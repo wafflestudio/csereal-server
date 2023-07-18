@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+---
+spring:
+  config.activate.on-profile: local
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+logging.level:
+  default: INFO
+
+---
+spring:
+  config.activate.on-profile: prod
+  jpa:
+    hibernate:
+      ddl-auto: none
