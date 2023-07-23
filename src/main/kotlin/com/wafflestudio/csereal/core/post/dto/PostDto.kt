@@ -9,8 +9,8 @@ data class PostDto(
     val description: String,
     // val postType: String,
     // val authorId: Int,
-    // val createdAt: LocalDateTime?,
-    // val modifiedAt: LocalDateTime?,
+    val createdAt: LocalDateTime?,
+    val modifiedAt: LocalDateTime?,
     // val isPublic: Boolean,
     // val isSlide: Boolean,
     // val isPinned: Boolean,
@@ -21,7 +21,9 @@ data class PostDto(
             PostDto(
                 id = this.id,
                 title = this.title,
-                description = this.description
+                description = this.description,
+                createdAt = this.createdAt,
+                modifiedAt = this.modifiedAt
             )
         }
 
