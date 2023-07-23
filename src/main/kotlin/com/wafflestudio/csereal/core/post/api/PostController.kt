@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.post.api
 
+import com.wafflestudio.csereal.core.post.dto.PostDto
 import com.wafflestudio.csereal.core.post.service.PostService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
