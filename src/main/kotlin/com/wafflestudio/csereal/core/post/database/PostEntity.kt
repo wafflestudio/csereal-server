@@ -7,11 +7,11 @@ import jakarta.persistence.Entity
 
 @Entity(name = "post")
 class PostEntity(
-    @Column(nullable = true)
-    var title: String? = null,
+    @Column
+    var title: String,
 
     @Column(columnDefinition = "text")
-    var content: String
+    var description: String
 ): BaseTimeEntity() {
 
 }
