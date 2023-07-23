@@ -1,9 +1,9 @@
-package com.wafflestudio.csereal.core.post.dto
+package com.wafflestudio.csereal.core.notice.dto
 
-import com.wafflestudio.csereal.core.post.database.PostEntity
+import com.wafflestudio.csereal.core.notice.database.NoticeEntity
 import java.time.LocalDateTime
 
-data class PostDto(
+data class NoticeDto(
     val id: Long,
     val title: String,
     val description: String,
@@ -17,8 +17,8 @@ data class PostDto(
 ) {
 
     companion object {
-        fun of(entity: PostEntity): PostDto = entity.run {
-            PostDto(
+        fun of(entity: NoticeEntity): NoticeDto = entity.run {
+            NoticeDto(
                 id = this.id,
                 title = this.title,
                 description = this.description,
