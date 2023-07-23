@@ -5,7 +5,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 
 
-@Entity(name = "post")
+@Entity(name = "notice")
 class NoticeEntity(
     @Column
     var title: String,

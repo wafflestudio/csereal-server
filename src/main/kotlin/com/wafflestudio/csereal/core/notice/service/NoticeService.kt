@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface NoticeService {
-    fun readNotice(postId: Long): NoticeDto
+    fun readNotice(noticeId: Long): NoticeDto
     fun createNotice(request: CreateNoticeRequest): NoticeDto
 }
 
@@ -20,23 +20,23 @@ class NoticeServiceImpl(
 ) : NoticeService {
 
     @Transactional(readOnly = true)
-    override fun readNotice(postId: Long): NoticeDto {
-        val post: NoticeEntity = noticeRepository.findByIdOrNull(postId)
-            ?: throw CserealException.Csereal400("존재하지 않는 질문 번호 입니다.(postId: $postId)")
-        return NoticeDto.of(post)
+    override fun readNotice(noticeId: Long): NoticeDto {
+        val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
+            ?: throw CserealException.Csereal400("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
+        return NoticeDto.of(notice)
     }
 
     @Transactional
     override fun createNotice(request: CreateNoticeRequest): NoticeDto {
-        // TODO():"아직 날짜가 제대로 안 뜸"
-        val newPost = NoticeEntity(
+        // TODO:"아직 날짜가 제대로 안 뜸"
+        val newNotice = NoticeEntity(
             title = request.title,
             description = request.description,
         )
 
-        noticeRepository.save(newPost)
+        noticeRepository.save(newNotice)
 
-        return NoticeDto.of(newPost)
+        return NoticeDto.of(newNotice)
 
     }
 }

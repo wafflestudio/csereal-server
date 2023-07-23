@@ -5,19 +5,19 @@ import com.wafflestudio.csereal.core.notice.dto.NoticeDto
 import com.wafflestudio.csereal.core.notice.service.NoticeService
 import org.springframework.web.bind.annotation.*
 
-@RequestMapping
+@RequestMapping("/notice")
 @RestController
 class NoticeController(
     private val noticeService: NoticeService,
 ) {
-    @GetMapping("/node/{id}")
+    @GetMapping("/{noticeId}")
     fun readNotice(
-        @PathVariable id: Long,
+        @PathVariable noticeId: Long,
     ) : NoticeDto {
-        return noticeService.readNotice(id)
+        return noticeService.readNotice(noticeId)
     }
 
-    @PostMapping("/node")
+    @PostMapping
     fun createNotice(
         @RequestBody request: CreateNoticeRequest
     ) : NoticeDto {
