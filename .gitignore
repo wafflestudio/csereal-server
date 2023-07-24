@@ -280,7 +280,6 @@ gradle-app.setting
 
 # local db save files
 db/
-data/
 
 # .env file
 .env
