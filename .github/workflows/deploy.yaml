@@ -32,6 +32,7 @@ jobs:
                 with:
                     push: true
                     tags: ghcr.io/wafflestudio/csereal-server/server_image:main
+                    context: .
     
             -
                 name: SCP Command to Transfer Files
