@@ -3,6 +3,8 @@ package com.wafflestudio.csereal.core.notice.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
 import com.wafflestudio.csereal.core.notice.database.NoticeRepository
+import com.wafflestudio.csereal.core.notice.database.TagEntity
+import com.wafflestudio.csereal.core.notice.database.TagRepository
 import com.wafflestudio.csereal.core.notice.dto.CreateNoticeRequest
 import com.wafflestudio.csereal.core.notice.dto.NoticeDto
 import com.wafflestudio.csereal.core.notice.dto.UpdateNoticeRequest
@@ -15,11 +17,13 @@ interface NoticeService {
     fun createNotice(request: CreateNoticeRequest): NoticeDto
     fun updateNotice(noticeId: Long, request: UpdateNoticeRequest) : NoticeDto
     fun deleteNotice(noticeId: Long)
+    fun enrollTag(tagName: String)
 }
 
 @Service
 class NoticeServiceImpl(
     private val noticeRepository: NoticeRepository,
+    private val tagRepository: TagRepository,
 ) : NoticeService {
 
     @Transactional(readOnly = true)
@@ -64,5 +68,12 @@ class NoticeServiceImpl(
 
         notice.isDeleted = true
 
+    }
+
+    override fun enrollTag(tagName: String) {
+        val newTag = TagEntity(
+            name = tagName
+        )
+        tagRepository.save(newTag)
     }
 }

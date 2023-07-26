@@ -43,4 +43,12 @@ class NoticeController(
         noticeService.deleteNotice(noticeId)
         return ResponseEntity<String>("삭제되었습니다. (noticeId: $noticeId)", HttpStatus.OK)
     }
+
+    @PostMapping("/tag")
+    fun enrollTag(
+        @RequestBody tagName: Map<String, String>
+    ) : ResponseEntity<String> {
+        noticeService.enrollTag(tagName["name"]!!)
+        return ResponseEntity<String>("등록되었습니다. (tagName: ${tagName["name"]})", HttpStatus.OK)
+    }
 }
