@@ -22,8 +22,12 @@ data class NoticeDto(
                 id = this.id,
                 title = this.title,
                 description = this.description,
+                // postType = this.postType,
                 createdAt = this.createdAt,
-                modifiedAt = this.modifiedAt
+                modifiedAt = this.modifiedAt,
+//                isPublic = this.isPublic,
+//                isSlide = this.isSlide,
+//                isPinned = this.isPinned,
             )
         }
 

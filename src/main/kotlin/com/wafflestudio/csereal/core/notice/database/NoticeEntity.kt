@@ -11,7 +11,15 @@ class NoticeEntity(
     var title: String,
 
     @Column(columnDefinition = "text")
-    var description: String
+    var description: String,
+
+//    var postType: String,
+//
+//    var isPublic: Boolean,
+//
+//    var isSlide: Boolean,
+//
+//    var isPinned: Boolean,
 ): BaseTimeEntity() {
 
 }
