@@ -8,13 +8,13 @@ import jakarta.persistence.ManyToOne
 
 @Entity(name="noticeTag")
 class NoticeTagEntity(
-    @ManyToOne(cascade = [CascadeType.ALL])
+    @ManyToOne(cascade = [CascadeType.PERSIST])
     @JoinColumn(name = "notice_id")
-    val notice: NoticeEntity,
+    var notice: NoticeEntity,
 
-    @ManyToOne(cascade = [CascadeType.ALL])
+    @ManyToOne(cascade = [CascadeType.PERSIST])
     @JoinColumn(name = "tag_id")
-    val tag: TagEntity,
+    var tag: TagEntity,
 
     ) : BaseTimeEntity() {
 }

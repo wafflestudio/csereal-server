@@ -1,10 +1,7 @@
 package com.wafflestudio.csereal.core.notice.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.core.notice.database.NoticeEntity
-import com.wafflestudio.csereal.core.notice.database.NoticeRepository
-import com.wafflestudio.csereal.core.notice.database.TagEntity
-import com.wafflestudio.csereal.core.notice.database.TagRepository
+import com.wafflestudio.csereal.core.notice.database.*
 import com.wafflestudio.csereal.core.notice.dto.CreateNoticeRequest
 import com.wafflestudio.csereal.core.notice.dto.NoticeDto
 import com.wafflestudio.csereal.core.notice.dto.UpdateNoticeRequest
@@ -24,6 +21,7 @@ interface NoticeService {
 class NoticeServiceImpl(
     private val noticeRepository: NoticeRepository,
     private val tagRepository: TagRepository,
+    private val noticeTagRepository: NoticeTagRepository
 ) : NoticeService {
 
     @Transactional(readOnly = true)
@@ -41,6 +39,15 @@ class NoticeServiceImpl(
             description = request.description,
         )
 
+        request.tag.forEach {
+            noticeTagRepository.save(
+                NoticeTagEntity(
+                    notice = newNotice,
+                    tag = tagRepository.findByIdOrNull(it) ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
+                )
+            )
+        }
+
         noticeRepository.save(newNotice)
 
         return NoticeDto.of(newNotice)
@@ -56,7 +63,14 @@ class NoticeServiceImpl(
         notice.title = request.title ?: notice.title
         notice.description = request.description ?: notice.description
 
-        noticeRepository.save(notice)
+        noticeTagRepository.deleteAllByNoticeId(noticeId)
+
+        request.tag.forEach {
+            noticeTagRepository.save(NoticeTagEntity(
+                notice = notice,
+                tag = tagRepository.findByIdOrNull(it) ?: throw CserealException.Csereal400("해당 태그는 존재하지 않습니다")
+            ))
+        }
 
         return NoticeDto.of(notice)
     }
@@ -76,4 +90,6 @@ class NoticeServiceImpl(
         )
         tagRepository.save(newTag)
     }
+
+    //TODO: 이미지 등록, 페이지네이션, 검색
 }
