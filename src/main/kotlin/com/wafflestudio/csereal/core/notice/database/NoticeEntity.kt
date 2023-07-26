@@ -7,6 +7,10 @@ import jakarta.persistence.Entity
 
 @Entity(name = "notice")
 class NoticeEntity(
+
+    @Column
+    var isDeleted: Boolean = false,
+
     @Column
     var title: String,
 

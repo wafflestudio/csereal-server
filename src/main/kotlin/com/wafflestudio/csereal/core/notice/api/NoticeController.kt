@@ -5,6 +5,8 @@ import com.wafflestudio.csereal.core.notice.dto.NoticeDto
 import com.wafflestudio.csereal.core.notice.dto.UpdateNoticeRequest
 import com.wafflestudio.csereal.core.notice.service.NoticeService
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/notice")
@@ -32,5 +34,13 @@ class NoticeController(
         @Valid @RequestBody request: UpdateNoticeRequest,
     ) : NoticeDto {
         return noticeService.updateNotice(noticeId, request)
+    }
+
+    @DeleteMapping("/{noticeId}")
+    fun deleteNotice(
+        @PathVariable noticeId: Long
+    ) : ResponseEntity<String> {
+        noticeService.deleteNotice(noticeId)
+        return ResponseEntity<String>("삭제되었습니다. (noticeId: $noticeId)", HttpStatus.OK)
     }
 }
