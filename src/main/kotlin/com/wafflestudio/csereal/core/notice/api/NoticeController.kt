@@ -28,7 +28,7 @@ class NoticeController(
         return noticeService.createNotice(request)
     }
 
-    @PutMapping("/{noticeId}")
+    @PatchMapping("/{noticeId}")
     fun updateNotice(
         @PathVariable noticeId: Long,
         @Valid @RequestBody request: UpdateNoticeRequest,
@@ -39,9 +39,8 @@ class NoticeController(
     @DeleteMapping("/{noticeId}")
     fun deleteNotice(
         @PathVariable noticeId: Long
-    ) : ResponseEntity<String> {
+    ) {
         noticeService.deleteNotice(noticeId)
-        return ResponseEntity<String>("삭제되었습니다. (noticeId: $noticeId)", HttpStatus.OK)
     }
 
     @PostMapping("/tag")

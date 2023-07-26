@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 interface NoticeService {
     fun readNotice(noticeId: Long): NoticeDto
     fun createNotice(request: CreateNoticeRequest): NoticeDto
-    fun updateNotice(noticeId: Long, request: UpdateNoticeRequest) : NoticeDto
+    fun updateNotice(noticeId: Long, request: UpdateNoticeRequest): NoticeDto
     fun deleteNotice(noticeId: Long)
     fun enrollTag(tagName: String)
 }
@@ -28,7 +28,7 @@ class NoticeServiceImpl(
     override fun readNotice(noticeId: Long): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal400("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
-        if(notice.isDeleted) throw CserealException.Csereal400("삭제된 공지사항입니다.(noticeId: $noticeId)")
+        if (notice.isDeleted) throw CserealException.Csereal400("삭제된 공지사항입니다.(noticeId: $noticeId)")
         return NoticeDto.of(notice)
     }
 
@@ -39,11 +39,12 @@ class NoticeServiceImpl(
             description = request.description,
         )
 
-        request.tag.forEach {
-            noticeTagRepository.save(
+        for (i: Int in 0 until request.tag.size) {
+            newNotice.setNoticeTag(
                 NoticeTagEntity(
                     notice = newNotice,
-                    tag = tagRepository.findByIdOrNull(it) ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
+                    tag = tagRepository.findByIdOrNull(request.tag[i])
+                        ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
                 )
             )
         }
@@ -55,29 +56,36 @@ class NoticeServiceImpl(
     }
 
     @Transactional
-    override fun updateNotice(noticeId: Long, request: UpdateNoticeRequest) : NoticeDto {
+    override fun updateNotice(noticeId: Long, request: UpdateNoticeRequest): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal400("존재하지 않는 공지사항입니다.(noticeId: $noticeId")
-        if(notice.isDeleted) throw CserealException.Csereal400("삭제된 공지사항입니다.(noticeId: $noticeId")
+        if (notice.isDeleted) throw CserealException.Csereal400("삭제된 공지사항입니다.(noticeId: $noticeId")
 
         notice.title = request.title ?: notice.title
         notice.description = request.description ?: notice.description
 
-        noticeTagRepository.deleteAllByNoticeId(noticeId)
-
-        request.tag.forEach {
-            noticeTagRepository.save(NoticeTagEntity(
-                notice = notice,
-                tag = tagRepository.findByIdOrNull(it) ?: throw CserealException.Csereal400("해당 태그는 존재하지 않습니다")
-            ))
+        if (request.tag != null) {
+            noticeTagRepository.deleteAllByNoticeId(noticeId)
+            notice.noticeTag = mutableSetOf()
+            for (i: Int in 0 until request.tag.size) {
+                notice.setNoticeTag(
+                    NoticeTagEntity(
+                        notice = notice,
+                        tag = tagRepository.findByIdOrNull(request.tag[i])
+                            ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
+                    )
+                )
+            }
         }
+
+
 
         return NoticeDto.of(notice)
     }
 
     @Transactional
     override fun deleteNotice(noticeId: Long) {
-        val notice : NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
+        val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal400("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
 
         notice.isDeleted = true

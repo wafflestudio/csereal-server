@@ -9,7 +9,7 @@ import jakarta.persistence.OneToMany
 class TagEntity(
     var name: String,
 
-    @OneToMany(mappedBy = "tag", cascade = [CascadeType.PERSIST])
+    @OneToMany(mappedBy = "tag")
     val noticeTag: MutableSet<NoticeTagEntity> = mutableSetOf()
 ) : BaseTimeEntity() {
 }
