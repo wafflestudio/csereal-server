@@ -10,6 +10,6 @@ class TagEntity(
     var name: String,
 
     @OneToMany(mappedBy = "tag")
-    val noticeTag: MutableSet<NoticeTagEntity> = mutableSetOf()
+    val noticeTags: MutableSet<NoticeTagEntity> = mutableSetOf()
 ) : BaseTimeEntity() {
 }

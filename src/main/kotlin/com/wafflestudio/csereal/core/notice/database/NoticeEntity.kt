@@ -28,14 +28,8 @@ class NoticeEntity(
 //    var isPinned: Boolean,
 
     @OneToMany(mappedBy = "notice", cascade = [CascadeType.ALL])
-    var noticeTag: MutableSet<NoticeTagEntity> = mutableSetOf()
+    var noticeTags: MutableSet<NoticeTagEntity> = mutableSetOf()
 ): BaseTimeEntity() {
-
-    fun setNoticeTag(noticeTag: NoticeTagEntity) {
-
-        this.noticeTag.add(noticeTag)
-        noticeTag.notice = this
-    }
 
 
 

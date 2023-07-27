@@ -39,14 +39,9 @@ class NoticeServiceImpl(
             description = request.description,
         )
 
-        for (i: Int in 0 until request.tag.size) {
-            newNotice.setNoticeTag(
-                NoticeTagEntity(
-                    notice = newNotice,
-                    tag = tagRepository.findByIdOrNull(request.tag[i])
-                        ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
-                )
-            )
+        for (tagId in request.tags) {
+            val tag = tagRepository.findByIdOrNull(tagId) ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
+            NoticeTagEntity.createNoticeTag(newNotice, tag)
         }
 
         noticeRepository.save(newNotice)
@@ -64,17 +59,12 @@ class NoticeServiceImpl(
         notice.title = request.title ?: notice.title
         notice.description = request.description ?: notice.description
 
-        if (request.tag != null) {
+        if (request.tags != null) {
             noticeTagRepository.deleteAllByNoticeId(noticeId)
-            notice.noticeTag = mutableSetOf()
-            for (i: Int in 0 until request.tag.size) {
-                notice.setNoticeTag(
-                    NoticeTagEntity(
-                        notice = notice,
-                        tag = tagRepository.findByIdOrNull(request.tag[i])
-                            ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
-                    )
-                )
+            notice.noticeTags.clear()
+            for (tagId in request.tags) {
+                val tag = tagRepository.findByIdOrNull(tagId) ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
+                NoticeTagEntity.createNoticeTag(notice, tag)
             }
         }
 
