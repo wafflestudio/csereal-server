@@ -48,9 +48,11 @@ class NoticeRepositoryImpl(
                 noticeTagEntity.tag.id
             )
         ).from(noticeTagEntity)
-            .rightJoin(noticeTagEntity.notice, noticeEntity)
+            .rightJoin(noticeTagEntity.notice, noticeEntity).on(noticeEntity.isDeleted.eq(false), noticeEntity.isPublic.eq(true))
             .where(noticeTagEntity.notice.eq(noticeEntity))
             .where(booleanBuilder2)
+            .orderBy(noticeEntity.isPinned.desc())
+            .orderBy(noticeEntity.createdAt.desc())
             .fetch()
 
     }
