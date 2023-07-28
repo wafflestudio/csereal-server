@@ -15,9 +15,10 @@ class NoticeController(
     @GetMapping("/search")
     fun searchNotice(
         @RequestParam(required = false) tag : List<Long>?,
-        @RequestParam(required = false) keyword: String?
+        @RequestParam(required = false) keyword: String?,
+        @RequestParam(required = false, defaultValue = "0") pageNum: Long
     ): List<SearchResponse> {
-        return noticeService.searchNotice(tag, keyword)
+        return noticeService.searchNotice(tag, keyword, pageNum)
     }
     @GetMapping("/{noticeId}")
     fun readNotice(

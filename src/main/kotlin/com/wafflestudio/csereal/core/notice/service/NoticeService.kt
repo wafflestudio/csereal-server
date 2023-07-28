@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface NoticeService {
-    fun searchNotice(tag: List<Long>?, keyword: String?): List<SearchResponse>
+    fun searchNotice(tag: List<Long>?, keyword: String?, pageNum: Long): List<SearchResponse>
     fun readNotice(noticeId: Long): NoticeDto
     fun createNotice(request: CreateNoticeRequest): NoticeDto
     fun updateNotice(noticeId: Long, request: UpdateNoticeRequest): NoticeDto
@@ -29,9 +29,10 @@ class NoticeServiceImpl(
     @Transactional
     override fun searchNotice(
         tag: List<Long>?,
-        keyword: String?
+        keyword: String?,
+        pageNum: Long
         ): List<SearchResponse> {
-            return noticeRepository.searchNotice(tag, keyword)
+            return noticeRepository.searchNotice(tag, keyword, pageNum)
         }
 
     @Transactional(readOnly = true)
@@ -105,5 +106,5 @@ class NoticeServiceImpl(
         tagRepository.save(newTag)
     }
 
-    //TODO: 이미지 등록, 페이지네이션, 글쓴이 함께 조회
+    //TODO: 이미지 등록, 글쓴이 함께 조회
 }

@@ -14,13 +14,13 @@ interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepo
 }
 
 interface CustomNoticeRepository {
-    fun searchNotice(tag: List<Long>?, keyword: String?): List<SearchResponse>
+    fun searchNotice(tag: List<Long>?, keyword: String?, pageNum: Long): List<SearchResponse>
 }
 @Component
 class NoticeRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
 ) : CustomNoticeRepository {
-    override fun searchNotice(tag: List<Long>?, keyword: String?): List<SearchResponse> {
+    override fun searchNotice(tag: List<Long>?, keyword: String?, pageNum: Long): List<SearchResponse> {
         val booleanBuilder = BooleanBuilder()
         val booleanBuilder2 = BooleanBuilder()
 
@@ -53,6 +53,8 @@ class NoticeRepositoryImpl(
             .where(booleanBuilder2)
             .orderBy(noticeEntity.isPinned.desc())
             .orderBy(noticeEntity.createdAt.desc())
+            .offset(5*pageNum)  //로컬 테스트를 위해 잠시 5로 둘 것, 원래는 20
+            .limit(5)
             .fetch()
 
     }
