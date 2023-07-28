@@ -17,9 +17,9 @@ class NoticeTagEntity(
     companion object {
 
         fun createNoticeTag(notice: NoticeEntity, tag: TagEntity) {
-            NoticeTagEntity(notice, tag)
-            notice.noticeTags.add(NoticeTagEntity(notice, tag))
-            tag.noticeTags.add(NoticeTagEntity(notice,tag))
+            val noticeTag = NoticeTagEntity(notice, tag)
+            notice.noticeTags.add(noticeTag)
+            tag.noticeTags.add(noticeTag)
         }
     }
 
