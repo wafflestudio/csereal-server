@@ -37,6 +37,9 @@ class NoticeServiceImpl(
         val newNotice = NoticeEntity(
             title = request.title,
             description = request.description,
+            isPublic = request.isPublic,
+            isSlide = request.isSlide,
+            isPinned = request.isPinned
         )
 
         for (tagId in request.tags) {
@@ -58,6 +61,9 @@ class NoticeServiceImpl(
 
         notice.title = request.title ?: notice.title
         notice.description = request.description ?: notice.description
+        notice.isPublic = request.isPublic ?: notice.isPublic
+        notice.isSlide = request.isSlide ?: notice.isSlide
+        notice.isPinned = request.isPinned ?: notice.isPinned
 
         if (request.tags != null) {
             noticeTagRepository.deleteAllByNoticeId(noticeId)
