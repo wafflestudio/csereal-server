@@ -14,13 +14,13 @@ interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepo
 }
 
 interface CustomNoticeRepository {
-    fun searchNotice(tags: List<Long>?, keyword: String?) : List<SearchResponse>
+    fun searchNotice(tag: List<Long>?, keyword: String?): List<SearchResponse>
 }
 @Component
 class NoticeRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
 ) : CustomNoticeRepository {
-    override fun searchNotice(tags: List<Long>?, keyword: String?): List<SearchResponse> {
+    override fun searchNotice(tag: List<Long>?, keyword: String?): List<SearchResponse> {
         val booleanBuilder = BooleanBuilder()
         val booleanBuilder2 = BooleanBuilder()
 
@@ -30,8 +30,8 @@ class NoticeRepositoryImpl(
                     .or(noticeEntity.description.contains(keyword))
             )
         }
-        if(!tags.isNullOrEmpty()) {
-            tags.forEach {
+        if(!tag.isNullOrEmpty()) {
+            tag.forEach {
                 booleanBuilder2.or(
                     noticeTagEntity.tag.id.eq(it)
                 )
