@@ -4,12 +4,14 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.notice.database.*
 import com.wafflestudio.csereal.core.notice.dto.CreateNoticeRequest
 import com.wafflestudio.csereal.core.notice.dto.NoticeDto
+import com.wafflestudio.csereal.core.notice.dto.SearchResponse
 import com.wafflestudio.csereal.core.notice.dto.UpdateNoticeRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface NoticeService {
+    fun searchNotice(tags: List<Long>?, keyword: String?): List<SearchResponse>
     fun readNotice(noticeId: Long): NoticeDto
     fun createNotice(request: CreateNoticeRequest): NoticeDto
     fun updateNotice(noticeId: Long, request: UpdateNoticeRequest): NoticeDto
@@ -23,6 +25,14 @@ class NoticeServiceImpl(
     private val tagRepository: TagRepository,
     private val noticeTagRepository: NoticeTagRepository
 ) : NoticeService {
+
+    @Transactional
+    override fun searchNotice(
+        tags: List<Long>?,
+        keyword: String?
+        ): List<SearchResponse> {
+            return noticeRepository.searchNotice(tags, keyword)
+        }
 
     @Transactional(readOnly = true)
     override fun readNotice(noticeId: Long): NoticeDto {

@@ -1,8 +1,6 @@
 package com.wafflestudio.csereal.core.notice.api
 
-import com.wafflestudio.csereal.core.notice.dto.CreateNoticeRequest
-import com.wafflestudio.csereal.core.notice.dto.NoticeDto
-import com.wafflestudio.csereal.core.notice.dto.UpdateNoticeRequest
+import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.notice.service.NoticeService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -14,6 +12,12 @@ import org.springframework.web.bind.annotation.*
 class NoticeController(
     private val noticeService: NoticeService,
 ) {
+    @GetMapping("/search")
+    fun searchNotice(
+        @RequestBody request: SearchRequest
+    ): List<SearchResponse> {
+        return noticeService.searchNotice(request.tags, request.keyWord)
+    }
     @GetMapping("/{noticeId}")
     fun readNotice(
         @PathVariable noticeId: Long,
