@@ -62,7 +62,7 @@ jobs:
                     MYSQL_USER: ${{secrets.MYSQL_USER}}
                     MYSQL_PASSWORD: ${{secrets.MYSQL_PASSWORD}}
                     MYSQL_DATABASE: ${{secrets.MYSQL_DATABASE}}
-                    PROFILE: prod
+                    PROFILE: "prod"
                 with:
                     host: ${{secrets.SSH_HOST}}
                     username: ${{secrets.SSH_USER}}
