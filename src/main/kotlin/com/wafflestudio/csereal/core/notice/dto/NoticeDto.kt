@@ -10,6 +10,7 @@ data class NoticeDto(
     val description: String,
     // val postType: String,
     // val authorId: Int,
+    val tags: List<Long>,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
     val isPublic: Boolean,
@@ -18,13 +19,14 @@ data class NoticeDto(
 ) {
 
     companion object {
-        fun of(entity: NoticeEntity): NoticeDto = entity.run {
+        fun of(entity: NoticeEntity, tags: List<Long>): NoticeDto = entity.run {
             NoticeDto(
                 id = this.id,
                 isDeleted = false,
                 title = this.title,
                 description = this.description,
                 // postType = this.postType,
+                tags = tags,
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
                 isPublic = this.isPublic,

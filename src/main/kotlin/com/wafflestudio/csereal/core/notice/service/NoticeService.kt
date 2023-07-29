@@ -39,8 +39,9 @@ class NoticeServiceImpl(
     override fun readNotice(noticeId: Long): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal400("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
+        val tags = notice.noticeTags.map { it.tag.id }
         if (notice.isDeleted) throw CserealException.Csereal400("삭제된 공지사항입니다.(noticeId: $noticeId)")
-        return NoticeDto.of(notice)
+        return NoticeDto.of(notice,tags)
     }
 
     @Transactional
@@ -60,7 +61,7 @@ class NoticeServiceImpl(
 
         noticeRepository.save(newNotice)
 
-        return NoticeDto.of(newNotice)
+        return NoticeDto.of(newNotice, request.tags)
 
     }
 
@@ -76,18 +77,24 @@ class NoticeServiceImpl(
         notice.isSlide = request.isSlide ?: notice.isSlide
         notice.isPinned = request.isPinned ?: notice.isPinned
 
+        val tags : List<Long>
         if (request.tags != null) {
+            tags = request.tags
             noticeTagRepository.deleteAllByNoticeId(noticeId)
             notice.noticeTags.clear()
             for (tagId in request.tags) {
                 val tag = tagRepository.findByIdOrNull(tagId) ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
                 NoticeTagEntity.createNoticeTag(notice, tag)
             }
+        } else {
+            tags = notice.noticeTags.map { it.tag.id }
         }
 
+        return NoticeDto.of(notice, tags)
 
 
-        return NoticeDto.of(notice)
+
+
     }
 
     @Transactional

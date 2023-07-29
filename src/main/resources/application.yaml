@@ -7,12 +7,12 @@ spring:
   config.activate.on-profile: local
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/csereal
+    url: jdbc:mysql://localhost:3306/csereal_develop
     username: root
-    password: password
+    password: toor
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
     open-in-view: false
 logging.level:
