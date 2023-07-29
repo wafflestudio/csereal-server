@@ -57,17 +57,19 @@ jobs:
             -
                 name: SSH Remote Commands
                 uses: appleboy/ssh-action@v1.0.0
+                env:
+                    MYSQL_ROOT_PASSWORD: ${{secrets.MYSQL_ROOT_PASSWORD}}
+                    MYSQL_USER: ${{secrets.MYSQL_USER}}
+                    MYSQL_PASSWORD: ${{secrets.MYSQL_PASSWORD}}
+                    MYSQL_DATABASE: ${{secrets.MYSQL_DATABASE}}
+                    PROFILE: prod
                 with:
                     host: ${{secrets.SSH_HOST}}
                     username: ${{secrets.SSH_USER}}
                     key: ${{secrets.SSH_KEY}}
+                    envs: MYSQL_ROOT_PASSWORD,MYSQL_USER,MYSQL_PASSWORD,MYSQL_DATABASE,PROFILE
                     script: |
                         cd ~/app
-                        export MYSQL_ROOT_PASSWORD=${{secrets.MYSQL_ROOT_PASSWORD}}
-                        export MYSQL_USER=${{secrets.MYSQL_USER}}
-                        export MYSQL_PASSWORD=${{secrets.MYSQL_PASSWORD}}
-                        export MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}
-                        export MYSQL_ROOT_PASSWORD=${{secrets.MYSQL_ROOT_PASSWORD}}
                         docker-compose down
                         docker-compose pull
                         docker-compose up -d
