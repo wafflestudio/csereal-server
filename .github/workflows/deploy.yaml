@@ -45,13 +45,22 @@ jobs:
                         ghcr.io/wafflestudio/csereal-server/server_image:${{github.sha}}
 
             -
+                name: Create .env file
+                run: |
+                    echo "MYSQL_ROOT_PASSWORD=${{secrets.MYSQL_ROOT_PASSWORD}}" > .env
+                    echo "MYSQL_USER=${{secrets.MYSQL_USER}}" >> .env
+                    echo "MYSQL_PASSWORD=${{secrets.MYSQL_PASSWORD}}" >> .env
+                    echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
+                    echo "PROFILE=prod" >> .env
+
+            -
                 name: SCP Command to Transfer Files
                 uses: appleboy/scp-action@v0.1.4
                 with:
                     host: ${{secrets.SSH_HOST}}
                     username: ${{secrets.SSH_USER}}
                     key: ${{secrets.SSH_KEY}}
-                    source: "docker-compose.yml"
+                    source: "docker-compose.yml, .env"
                     target: "~/app"
                     overwrite: true
             -
@@ -67,7 +76,6 @@ jobs:
                     host: ${{secrets.SSH_HOST}}
                     username: ${{secrets.SSH_USER}}
                     key: ${{secrets.SSH_KEY}}
-                    envs: MYSQL_ROOT_PASSWORD,MYSQL_USER,MYSQL_PASSWORD,MYSQL_DATABASE,PROFILE
                     script: |
                         cd ~/app
                         docker-compose down
