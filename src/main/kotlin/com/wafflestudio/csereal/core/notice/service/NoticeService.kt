@@ -26,7 +26,7 @@ class NoticeServiceImpl(
     private val noticeTagRepository: NoticeTagRepository
 ) : NoticeService {
 
-    @Transactional
+    @Transactional(readOnly = true)
     override fun searchNotice(
         tag: List<Long>?,
         keyword: String?,
