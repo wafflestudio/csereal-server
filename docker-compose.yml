@@ -15,7 +15,7 @@ services:
       - db
     networks:
       - csereal_network
-    image: ghcr.io/wafflestudio/csereal-server/server_image:main
+    image: ghcr.io/wafflestudio/csereal-server/server_image:latest
   db:
     container_name: csereal_db_container
     image: mysql:8.0
