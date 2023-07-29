@@ -40,9 +40,9 @@ jobs:
                 with:
                     context: .
                     push: true
-                    tags:
-                        - ghcr.io/wafflestudio/csereal-server/server_image:latest
-                        - ghcr.io/wafflestudio/csereal-server/server_image:${{github.sha}}
+                    tags: |
+                        ghcr.io/wafflestudio/csereal-server/server_image:latest
+                        ghcr.io/wafflestudio/csereal-server/server_image:${{github.sha}}
 
             -
                 name: SCP Command to Transfer Files
