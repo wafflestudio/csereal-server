@@ -39,7 +39,7 @@ class NoticeServiceImpl(
     override fun readNotice(noticeId: Long): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal400("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
-        val tags = notice.noticeTags.map { it.tag.id }
+        
         if (notice.isDeleted) throw CserealException.Csereal400("삭제된 공지사항입니다.(noticeId: $noticeId)")
         return NoticeDto.of(notice)
     }
