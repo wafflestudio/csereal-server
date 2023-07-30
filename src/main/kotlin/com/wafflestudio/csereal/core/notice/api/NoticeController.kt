@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*
 class NoticeController(
     private val noticeService: NoticeService,
 ) {
-    @GetMapping("/search")
+    @GetMapping
     fun searchNotice(
         @RequestParam(required = false) tag : List<Long>?,
         @RequestParam(required = false) keyword: String?,

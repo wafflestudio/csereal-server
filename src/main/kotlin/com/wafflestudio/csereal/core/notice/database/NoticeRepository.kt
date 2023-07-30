@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.notice.database
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.Projections
 import com.querydsl.jpa.impl.JPAQueryFactory
+import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.notice.database.QNoticeEntity.noticeEntity
 import com.wafflestudio.csereal.core.notice.database.QNoticeTagEntity.noticeTagEntity
 import com.wafflestudio.csereal.core.notice.dto.NoticeDto
@@ -21,23 +22,32 @@ class NoticeRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
 ) : CustomNoticeRepository {
     override fun searchNotice(tag: List<Long>?, keyword: String?, pageNum: Long): List<SearchResponse> {
-        val booleanBuilder = BooleanBuilder()
-        val booleanBuilder2 = BooleanBuilder()
+        val keywordBooleanBuilder = BooleanBuilder()
+        val tagsBooleanBuilder = BooleanBuilder()
 
         if (!keyword.isNullOrEmpty()) {
-            booleanBuilder.and(
-                noticeEntity.title.contains(keyword)
-                    .or(noticeEntity.description.contains(keyword))
-            )
+
+            val keywordList = keyword.split("[^a-zA-Z0-9가-힣]".toRegex())
+            keywordList.forEach {
+                if(it.length == 1) {
+                    throw CserealException.Csereal400("각각의 키워드는 한글자 이상이어야 합니다.")
+                } else {
+                    keywordBooleanBuilder.and(
+                        noticeEntity.title.contains(it)
+                            .or(noticeEntity.description.contains(it))
+                    )
+                }
+
+            }
+
         }
         if(!tag.isNullOrEmpty()) {
             tag.forEach {
-                booleanBuilder2.or(
+                tagsBooleanBuilder.or(
                     noticeTagEntity.tag.id.eq(it)
                 )
             }
         }
-
 
         return queryFactory.select(
             Projections.constructor(
@@ -45,17 +55,17 @@ class NoticeRepositoryImpl(
                 noticeEntity.id,
                 noticeEntity.title,
                 noticeEntity.createdAt,
-                noticeTagEntity.tag.id
             )
-        ).from(noticeTagEntity)
-            .rightJoin(noticeTagEntity.notice, noticeEntity).on(noticeEntity.isDeleted.eq(false), noticeEntity.isPublic.eq(true))
-            .where(noticeTagEntity.notice.eq(noticeEntity))
-            .where(booleanBuilder)
-            .where(booleanBuilder2)
+        ).from(noticeEntity)
+            .innerJoin(noticeTagEntity).on(noticeTagEntity.notice.eq(noticeEntity))
+            .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPublic.eq(true))
+            .where(keywordBooleanBuilder)
+            .where(tagsBooleanBuilder)
             .orderBy(noticeEntity.isPinned.desc())
             .orderBy(noticeEntity.createdAt.desc())
-            .offset(5*pageNum)  //로컬 테스트를 위해 잠시 5로 둘 것, 원래는 20
-            .limit(5)
+            .offset(20*pageNum)
+            .limit(20)
+            .distinct()
             .fetch()
 
     }

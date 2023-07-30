@@ -19,14 +19,14 @@ data class NoticeDto(
 ) {
 
     companion object {
-        fun of(entity: NoticeEntity, tags: List<Long>): NoticeDto = entity.run {
+        fun of(entity: NoticeEntity): NoticeDto = entity.run {
             NoticeDto(
                 id = this.id,
                 isDeleted = false,
                 title = this.title,
                 description = this.description,
                 // postType = this.postType,
-                tags = tags,
+                tags = this.noticeTags.map { it.tag.id },
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
                 isPublic = this.isPublic,
