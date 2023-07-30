@@ -2,7 +2,6 @@ on:
     push:
         branches:
             - main
-            - cicd/deploy # TODO: remove after testing
 
 jobs:
     build-and-deploy:
