@@ -7,4 +7,5 @@ data class SearchResponse @QueryProjection constructor(
     val noticeId: Long,
     val title: String,
     val createdDate: LocalDateTime,
+    val isPinned: Boolean
 )

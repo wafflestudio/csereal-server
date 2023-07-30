@@ -55,6 +55,7 @@ class NoticeRepositoryImpl(
                 noticeEntity.id,
                 noticeEntity.title,
                 noticeEntity.createdAt,
+                noticeEntity.isPinned
             )
         ).from(noticeEntity)
             .innerJoin(noticeTagEntity).on(noticeTagEntity.notice.eq(noticeEntity))
