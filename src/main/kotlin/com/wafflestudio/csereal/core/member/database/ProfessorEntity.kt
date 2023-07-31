@@ -13,7 +13,7 @@ import java.time.LocalDate
 
 @Entity(name = "professor")
 class ProfessorEntity(
-    val name: String,
+    var name: String,
     //val profileImage:File
     var isActive: Boolean,
     var academicRank: String,
@@ -24,7 +24,7 @@ class ProfessorEntity(
 
     var startDate: LocalDate?,
     var endDate: LocalDate?,
-    val office: String?,
+    var office: String?,
     var phone: String?,
     var fax: String?,
     var email: String?,
@@ -59,7 +59,21 @@ class ProfessorEntity(
     }
 
     fun addLab(lab: LabEntity) {
+        this.lab?.professors?.remove(this)
         this.lab = lab
         lab.professors.add(this)
+    }
+
+    fun update(updateProfessorRequest: ProfessorDto) {
+        this.name = updateProfessorRequest.name
+        this.isActive = updateProfessorRequest.isActive
+        this.academicRank = updateProfessorRequest.academicRank
+        this.startDate = updateProfessorRequest.startDate
+        this.endDate = updateProfessorRequest.endDate
+        this.office = updateProfessorRequest.office
+        this.phone = updateProfessorRequest.phone
+        this.fax = updateProfessorRequest.fax
+        this.email = updateProfessorRequest.email
+        this.website = updateProfessorRequest.website
     }
 }

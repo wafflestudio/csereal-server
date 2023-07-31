@@ -69,11 +69,26 @@ class ProfessorServiceImpl(
     }
 
     override fun updateProfessor(updateProfessorRequest: ProfessorDto): ProfessorDto {
-        TODO("Not yet implemented")
+        val professorId = updateProfessorRequest.id ?: throw CserealException.Csereal400("업데이트 시 교수님 id가 필요합니다.")
+
+        val professor = professorRepository.findByIdOrNull(professorId)
+            ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다. professorId: ${professorId}")
+
+        if (updateProfessorRequest.labId != null && updateProfessorRequest.labId != professor.lab?.id) {
+            val lab = labRepository.findByIdOrNull(updateProfessorRequest.labId)
+                ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다. LabId: ${updateProfessorRequest.labId}")
+            professor.addLab(lab)
+        }
+
+        professor.update(updateProfessorRequest)
+
+        // 학력, 연구분야, 경력 업데이트
+
+        return ProfessorDto.of(professor)
     }
 
     override fun deleteProfessor(professorId: Long) {
-        TODO("Not yet implemented")
+        professorRepository.deleteById(professorId)
     }
 
 }
