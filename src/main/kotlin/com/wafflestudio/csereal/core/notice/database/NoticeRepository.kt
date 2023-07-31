@@ -68,8 +68,8 @@ class NoticeRepositoryImpl(
             .where(tagsBooleanBuilder)
             .orderBy(noticeEntity.isPinned.desc())
             .orderBy(noticeEntity.createdAt.desc())
-            .offset(3*pageNum)
-            .limit(3)
+            .offset(20*pageNum)
+            .limit(20)
             .distinct()
             .fetch()
 
