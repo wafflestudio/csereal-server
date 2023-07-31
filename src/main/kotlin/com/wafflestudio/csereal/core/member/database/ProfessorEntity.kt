@@ -34,7 +34,7 @@ class ProfessorEntity(
     val educations: MutableList<EducationEntity> = mutableListOf(),
 
     @OneToMany(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val researchAreas: MutableSet<ResearchAreaEntity> = mutableSetOf(),
+    val researchAreas: MutableList<ResearchAreaEntity> = mutableListOf(),
 
     @OneToMany(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
     val careers: MutableList<CareerEntity> = mutableListOf(),
