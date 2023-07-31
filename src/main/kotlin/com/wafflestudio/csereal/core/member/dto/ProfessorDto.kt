@@ -37,7 +37,7 @@ data class ProfessorDto(
                 fax = professorEntity.fax,
                 email = professorEntity.email,
                 website = professorEntity.website,
-                educations = professorEntity.educations.map { EducationDto.of(it) },
+                educations = professorEntity.educations.map { EducationDto.of(it) }.sortedByDescending { it.year },
                 researchAreas = professorEntity.researchAreas.map { it.name },
                 careers = professorEntity.careers.map { CareerDto.of(it) }
             )
