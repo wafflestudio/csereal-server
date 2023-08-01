@@ -9,6 +9,12 @@ data class CreateNoticeRequest(
     @field:NotBlank(message = "내용은 비어있을 수 없습니다")
     val description: String,
 
-    val tags: List<Long> = emptyList()
+    val tags: List<Long> = emptyList(),
+
+    val isPublic: Boolean,
+
+    val isSlide: Boolean,
+
+    val isPinned: Boolean,
 ) {
 }
