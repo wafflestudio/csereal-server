@@ -277,6 +277,9 @@ gradle-app.setting
 
 ######################## Custom
 
+### IntelliJ IDEA ###
+.idea
+
 # local db save files
 db/
 

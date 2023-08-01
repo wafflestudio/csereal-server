@@ -1,14 +1,27 @@
 spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
+  profiles:
+    active: local
+
+datasource:
+  driver-class-name: com.mysql.cj.jdbc.Driver
+springdoc:
+  swagger-ui:
+    path: index.html
+  api-docs:
+    path: /api-docs/json
 
 ---
 spring:
   config.activate.on-profile: local
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/csereal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
+    username: root
+    password: password
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: true
+    open-in-view: false
 logging.level:
   default: INFO
 
@@ -17,4 +30,5 @@ spring:
   config.activate.on-profile: prod
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create # TODO: change to validate (or none) when save actual data to server
+    open-in-view: false
