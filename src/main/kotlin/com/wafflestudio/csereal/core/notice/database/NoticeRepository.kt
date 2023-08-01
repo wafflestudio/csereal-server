@@ -51,7 +51,9 @@ class NoticeRepositoryImpl(
         }
 
         val total = queryFactory.select(noticeEntity)
-            .from(noticeEntity).where(keywordBooleanBuilder).where(tagsBooleanBuilder).fetch().size
+            .from(noticeEntity).leftJoin(noticeTagEntity).on(noticeTagEntity.notice.eq(noticeEntity))
+            .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPublic.eq(true))
+            .where(keywordBooleanBuilder).where(tagsBooleanBuilder).fetch().size
 
         val list = queryFactory.select(
             Projections.constructor(
@@ -62,7 +64,7 @@ class NoticeRepositoryImpl(
                 noticeEntity.isPinned
             )
         ).from(noticeEntity)
-            .innerJoin(noticeTagEntity).on(noticeTagEntity.notice.eq(noticeEntity))
+            .leftJoin(noticeTagEntity).on(noticeTagEntity.notice.eq(noticeEntity))
             .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPublic.eq(true))
             .where(keywordBooleanBuilder)
             .where(tagsBooleanBuilder)
