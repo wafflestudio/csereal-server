@@ -20,12 +20,12 @@ class NoticeEntity(
     var description: String,
 
 //    var postType: String,
-//
-//    var isPublic: Boolean,
-//
-//    var isSlide: Boolean,
-//
-//    var isPinned: Boolean,
+
+    var isPublic: Boolean,
+
+    var isSlide: Boolean,
+
+    var isPinned: Boolean,
 
     @OneToMany(mappedBy = "notice", cascade = [CascadeType.ALL])
     var noticeTags: MutableSet<NoticeTagEntity> = mutableSetOf()

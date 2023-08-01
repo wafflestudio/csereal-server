@@ -10,11 +10,12 @@ data class NoticeDto(
     val description: String,
     // val postType: String,
     // val authorId: Int,
+    val tags: List<Long>,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
-    // val isPublic: Boolean,
-    // val isSlide: Boolean,
-    // val isPinned: Boolean,
+    val isPublic: Boolean,
+    val isSlide: Boolean,
+    val isPinned: Boolean,
 ) {
 
     companion object {
@@ -25,11 +26,12 @@ data class NoticeDto(
                 title = this.title,
                 description = this.description,
                 // postType = this.postType,
+                tags = this.noticeTags.map { it.tag.id },
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
-//                isPublic = this.isPublic,
-//                isSlide = this.isSlide,
-//                isPinned = this.isPinned,
+                isPublic = this.isPublic,
+                isSlide = this.isSlide,
+                isPinned = this.isPinned,
             )
         }
 
