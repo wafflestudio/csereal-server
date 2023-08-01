@@ -1,4 +1,4 @@
-FROM openjdk:18-slim
+FROM openjdk:17-slim
 
 ARG PROFILE=prod
 
@@ -9,4 +9,4 @@ COPY ./build/libs/*.jar /app/app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar", "-Dspring.profiles.active=${PROFILE}"]
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=$PROFILE", "app.jar"]
