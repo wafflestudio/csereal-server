@@ -4,6 +4,11 @@ spring:
 
 datasource:
   driver-class-name: com.mysql.cj.jdbc.Driver
+springdoc:
+  swagger-ui:
+    path: index.html
+  api-docs:
+    path: /api-docs/json
 
 ---
 spring:

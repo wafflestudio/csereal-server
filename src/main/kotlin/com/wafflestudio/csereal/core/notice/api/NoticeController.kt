@@ -1,8 +1,6 @@
 package com.wafflestudio.csereal.core.notice.api
 
-import com.wafflestudio.csereal.core.notice.dto.CreateNoticeRequest
-import com.wafflestudio.csereal.core.notice.dto.NoticeDto
-import com.wafflestudio.csereal.core.notice.dto.UpdateNoticeRequest
+import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.notice.service.NoticeService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -14,26 +12,34 @@ import org.springframework.web.bind.annotation.*
 class NoticeController(
     private val noticeService: NoticeService,
 ) {
+    @GetMapping
+    fun searchNotice(
+        @RequestParam(required = false) tag : List<Long>?,
+        @RequestParam(required = false) keyword: String?,
+        @RequestParam(required = false, defaultValue = "0") pageNum: Long
+    ): ResponseEntity<SearchResponse> {
+        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageNum))
+    }
     @GetMapping("/{noticeId}")
     fun readNotice(
         @PathVariable noticeId: Long,
-    ) : NoticeDto {
-        return noticeService.readNotice(noticeId)
+    ) : ResponseEntity<NoticeDto> {
+        return ResponseEntity.ok(noticeService.readNotice(noticeId))
     }
 
     @PostMapping
     fun createNotice(
         @Valid @RequestBody request: CreateNoticeRequest
-    ) : NoticeDto {
-        return noticeService.createNotice(request)
+    ) : ResponseEntity<NoticeDto> {
+        return ResponseEntity.ok(noticeService.createNotice(request))
     }
 
     @PatchMapping("/{noticeId}")
     fun updateNotice(
         @PathVariable noticeId: Long,
         @Valid @RequestBody request: UpdateNoticeRequest,
-    ) : NoticeDto {
-        return noticeService.updateNotice(noticeId, request)
+    ) : ResponseEntity<NoticeDto> {
+        return ResponseEntity.ok(noticeService.updateNotice(noticeId, request))
     }
 
     @DeleteMapping("/{noticeId}")
