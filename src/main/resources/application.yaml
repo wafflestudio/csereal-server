@@ -2,6 +2,12 @@ spring:
   profiles:
     active: local
 
+springdoc:
+  swagger-ui:
+    path: index.html
+  api-docs:
+    path: /api-docs/json
+
 ---
 spring:
   config.activate.on-profile: local
@@ -10,6 +16,7 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/csereal_local?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
     username: root
     password: password
+
   jpa:
     hibernate:
       ddl-auto: update
