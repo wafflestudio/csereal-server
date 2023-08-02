@@ -11,12 +11,12 @@ class NoticeTagEntity(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tag_id")
-    var tag: TagEntity,
+    var tag: TagInNoticeEntity,
 
     ) : BaseTimeEntity() {
     companion object {
 
-        fun createNoticeTag(notice: NoticeEntity, tag: TagEntity) {
+        fun createNoticeTag(notice: NoticeEntity, tag: TagInNoticeEntity) {
             val noticeTag = NoticeTagEntity(notice, tag)
             notice.noticeTags.add(noticeTag)
             tag.noticeTags.add(noticeTag)

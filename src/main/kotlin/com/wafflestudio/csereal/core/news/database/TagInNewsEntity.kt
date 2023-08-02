@@ -1,15 +1,14 @@
-package com.wafflestudio.csereal.core.notice.database
+package com.wafflestudio.csereal.core.news.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
-import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
 import jakarta.persistence.OneToMany
 
-@Entity(name = "tag")
-class TagEntity(
+@Entity(name = "tag_in_news")
+class TagInNewsEntity(
     var name: String,
 
     @OneToMany(mappedBy = "tag")
-    val noticeTags: MutableSet<NoticeTagEntity> = mutableSetOf()
+    val newsTags: MutableSet<NewsTagEntity> = mutableSetOf()
 ) : BaseTimeEntity() {
 }

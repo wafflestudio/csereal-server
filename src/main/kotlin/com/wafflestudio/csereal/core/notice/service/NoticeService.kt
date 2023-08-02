@@ -65,8 +65,8 @@ class NoticeServiceImpl(
     @Transactional
     override fun updateNotice(noticeId: Long, request: UpdateNoticeRequest): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
-            ?: throw CserealException.Csereal400("존재하지 않는 공지사항입니다.(noticeId: $noticeId")
-        if (notice.isDeleted) throw CserealException.Csereal400("삭제된 공지사항입니다.(noticeId: $noticeId")
+            ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
+        if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
 
         notice.title = request.title ?: notice.title
         notice.description = request.description ?: notice.description
@@ -82,7 +82,7 @@ class NoticeServiceImpl(
             for (tagId in request.tags) {
                 // 겹치는 거 말고, 새로운 태그만 추가
                 if(!notice.noticeTags.map { it.tag.id }.contains(tagId)) {
-                    val tag = tagRepository.findByIdOrNull(tagId) ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
+                    val tag = tagRepository.findByIdOrNull(tagId) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
                     NoticeTagEntity.createNoticeTag(notice, tag)
                 }
             }
@@ -98,14 +98,14 @@ class NoticeServiceImpl(
     @Transactional
     override fun deleteNotice(noticeId: Long) {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
-            ?: throw CserealException.Csereal400("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
+            ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
 
         notice.isDeleted = true
 
     }
 
     override fun enrollTag(tagName: String) {
-        val newTag = TagEntity(
+        val newTag = TagInNoticeEntity(
             name = tagName
         )
         tagRepository.save(newTag)
