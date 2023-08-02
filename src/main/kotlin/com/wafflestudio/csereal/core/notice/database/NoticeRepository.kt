@@ -7,8 +7,8 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.notice.database.QNoticeEntity.noticeEntity
 import com.wafflestudio.csereal.core.notice.database.QNoticeTagEntity.noticeTagEntity
 import com.wafflestudio.csereal.core.notice.dto.NoticeDto
-import com.wafflestudio.csereal.core.notice.dto.SearchDto
-import com.wafflestudio.csereal.core.notice.dto.SearchResponse
+import com.wafflestudio.csereal.core.notice.dto.NoticeSearchDto
+import com.wafflestudio.csereal.core.notice.dto.NoticeSearchResponse
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Component
 
@@ -16,14 +16,14 @@ interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepo
 }
 
 interface CustomNoticeRepository {
-    fun searchNotice(tag: List<Long>?, keyword: String?, pageNum: Long): SearchResponse
+    fun searchNotice(tag: List<Long>?, keyword: String?, pageNum: Long): NoticeSearchResponse
 }
 
 @Component
 class NoticeRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
 ) : CustomNoticeRepository {
-    override fun searchNotice(tag: List<Long>?, keyword: String?, pageNum: Long): SearchResponse {
+    override fun searchNotice(tag: List<Long>?, keyword: String?, pageNum: Long): NoticeSearchResponse {
         val keywordBooleanBuilder = BooleanBuilder()
         val tagsBooleanBuilder = BooleanBuilder()
 
@@ -57,7 +57,7 @@ class NoticeRepositoryImpl(
 
         val list = queryFactory.select(
             Projections.constructor(
-                SearchDto::class.java,
+                NoticeSearchDto::class.java,
                 noticeEntity.id,
                 noticeEntity.title,
                 noticeEntity.createdAt,
@@ -75,7 +75,7 @@ class NoticeRepositoryImpl(
             .distinct()
             .fetch()
 
-        return SearchResponse(total, list)
+        return NoticeSearchResponse(total, list)
     }
 
 }

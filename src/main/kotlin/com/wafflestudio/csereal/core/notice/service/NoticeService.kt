@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface NoticeService {
-    fun searchNotice(tag: List<Long>?, keyword: String?, pageNum: Long): SearchResponse
+    fun searchNotice(tag: List<Long>?, keyword: String?, pageNum: Long): NoticeSearchResponse
     fun readNotice(noticeId: Long): NoticeDto
     fun createNotice(request: CreateNoticeRequest): NoticeDto
     fun updateNotice(noticeId: Long, request: UpdateNoticeRequest): NoticeDto
@@ -28,7 +28,7 @@ class NoticeServiceImpl(
         tag: List<Long>?,
         keyword: String?,
         pageNum: Long
-        ): SearchResponse {
+        ): NoticeSearchResponse {
             return noticeRepository.searchNotice(tag, keyword, pageNum)
         }
 

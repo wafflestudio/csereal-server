@@ -17,7 +17,7 @@ class NoticeController(
         @RequestParam(required = false) tag : List<Long>?,
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false, defaultValue = "0") pageNum: Long
-    ): ResponseEntity<SearchResponse> {
+    ): ResponseEntity<NoticeSearchResponse> {
         return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageNum))
     }
     @GetMapping("/{noticeId}")
