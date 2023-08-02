@@ -14,7 +14,7 @@ class NoticeController(
 ) {
     @GetMapping
     fun searchNotice(
-        @RequestParam(required = false) tag : List<Long>?,
+        @RequestParam(required = false) tag : List<String>?,
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false, defaultValue = "0") pageNum: Long
     ): ResponseEntity<NoticeSearchResponse> {
@@ -29,7 +29,7 @@ class NoticeController(
 
     @PostMapping
     fun createNotice(
-        @Valid @RequestBody request: CreateNoticeRequest
+        @Valid @RequestBody request: NoticeDto
     ) : ResponseEntity<NoticeDto> {
         return ResponseEntity.ok(noticeService.createNotice(request))
     }
@@ -37,7 +37,7 @@ class NoticeController(
     @PatchMapping("/{noticeId}")
     fun updateNotice(
         @PathVariable noticeId: Long,
-        @Valid @RequestBody request: UpdateNoticeRequest,
+        @Valid @RequestBody request: NoticeDto,
     ) : ResponseEntity<NoticeDto> {
         return ResponseEntity.ok(noticeService.updateNotice(noticeId, request))
     }

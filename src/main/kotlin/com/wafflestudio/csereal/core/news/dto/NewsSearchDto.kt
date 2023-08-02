@@ -7,6 +7,6 @@ data class NewsSearchDto @QueryProjection constructor(
     val newsId: Long,
     val title: String,
     var summary: String,
-    val createdDate: LocalDateTime?,
+    val createdAt: LocalDateTime?,
     var tags: List<Long>?
 )

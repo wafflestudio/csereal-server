@@ -5,10 +5,9 @@ import java.time.LocalDateTime
 
 data class NewsDto(
     val id: Long,
-    val isDeleted: Boolean,
     val title: String,
     val description: String,
-    val tags: List<Long>,
+    val tags: List<String>,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
     val isPublic: Boolean,
@@ -19,10 +18,9 @@ data class NewsDto(
         fun of(entity: NewsEntity) : NewsDto = entity.run {
             NewsDto(
                 id = this.id,
-                isDeleted = false,
                 title = this.title,
                 description = this.description,
-                tags = this.newsTags.map { it.tag.id },
+                tags = this.newsTags.map { it.tag.name },
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
                 isPublic = this.isPublic,

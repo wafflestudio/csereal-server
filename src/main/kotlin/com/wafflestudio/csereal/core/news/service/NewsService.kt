@@ -11,10 +11,10 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface NewsService {
-    fun searchNews(tag: List<Long>?, keyword: String?, pageNum: Long): NewsSearchResponse
+    fun searchNews(tag: List<String>?, keyword: String?, pageNum: Long): NewsSearchResponse
     fun readNews(newsId: Long): NewsDto
-    fun createNews(request: CreateNewsRequest): NewsDto
-    fun updateNews(newsId: Long, request: UpdateNewsRequest): NewsDto
+    fun createNews(request: NewsDto): NewsDto
+    fun updateNews(newsId: Long, request: NewsDto): NewsDto
     fun deleteNews(newsId: Long)
     fun enrollTag(tagName: String)
 }
@@ -27,7 +27,7 @@ class NewsServiceImpl(
 ) : NewsService {
     @Transactional(readOnly = true)
     override fun searchNews(
-        tag: List<Long>?,
+        tag: List<String>?,
         keyword: String?,
         pageNum: Long
     ): NewsSearchResponse {
@@ -44,7 +44,7 @@ class NewsServiceImpl(
     }
 
     @Transactional
-    override fun createNews(request: CreateNewsRequest): NewsDto {
+    override fun createNews(request: NewsDto): NewsDto {
         val newNews = NewsEntity(
             title = request.title,
             description = request.description,
@@ -53,8 +53,8 @@ class NewsServiceImpl(
             isPinned = request.isPinned
         )
 
-        for (tagId in request.tags) {
-            val tag = tagInNewsRepository.findByIdOrNull(tagId) ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
+        for (tagName in request.tags) {
+            val tag = tagInNewsRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
             NewsTagEntity.createNewsTag(newNews, tag)
         }
 
@@ -64,24 +64,22 @@ class NewsServiceImpl(
     }
 
     @Transactional
-    override fun updateNews(newsId: Long, request: UpdateNewsRequest): NewsDto {
+    override fun updateNews(newsId: Long, request: NewsDto): NewsDto {
         val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
-            ?: throw CserealException.Csereal400("존재하지 않는 새소식입니다. (newsId: $newsId)")
-        if (news.isDeleted) throw CserealException.Csereal400("삭제된 새소식입니다.")
-        news.title = request.title ?: news.title
-        news.description = request.description ?: news.description
-        news.isPublic = request.isPublic ?: news.isPublic
-        news.isSlide = request.isSlide ?: news.isSlide
-        news.isPinned = request.isPinned ?: news.isPinned
+            ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다. (newsId: $newsId)")
+        if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.")
+        news.update(request)
 
-        if(request.tags != null) {
-            newsTagRepository.deleteAllByNewsId(newsId)
-            news.newsTags.clear()
-            for (tagId in request.tags) {
-                val tag = tagInNewsRepository.findByIdOrNull(tagId) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
+        newsTagRepository.deleteAllByNewsId(newsId)
+
+        news.newsTags = news.newsTags.filter { request.tags.contains(it.tag.name) }.toMutableSet()
+        for (tagName in request.tags) {
+            if(!news.newsTags.map { it.tag.name }.contains(tagName)) {
+                val tag = tagInNewsRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
                 NewsTagEntity.createNewsTag(news, tag)
             }
         }
+
         return NewsDto.of(news)
     }
 

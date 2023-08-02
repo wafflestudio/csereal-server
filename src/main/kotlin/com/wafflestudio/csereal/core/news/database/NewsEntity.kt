@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.news.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.core.news.dto.NewsDto
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -29,4 +30,11 @@ class NewsEntity(
     var newsTags: MutableSet<NewsTagEntity> = mutableSetOf()
 
 ): BaseTimeEntity() {
+    fun update(updateNewsRequest: NewsDto) {
+        this.title = updateNewsRequest.title
+        this.description = updateNewsRequest.description
+        this.isPublic = updateNewsRequest.isPublic
+        this.isSlide = updateNewsRequest.isSlide
+        this.isPinned = updateNewsRequest.isPinned
+    }
 }

@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 data class NoticeSearchDto @QueryProjection constructor(
     val noticeId: Long,
     val title: String,
-    val createdDate: LocalDateTime,
+    val createdAt: LocalDateTime,
     val isPinned: Boolean,
 ) {
 

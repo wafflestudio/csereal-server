@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface NoticeService {
-    fun searchNotice(tag: List<Long>?, keyword: String?, pageNum: Long): NoticeSearchResponse
+    fun searchNotice(tag: List<String>?, keyword: String?, pageNum: Long): NoticeSearchResponse
     fun readNotice(noticeId: Long): NoticeDto
-    fun createNotice(request: CreateNoticeRequest): NoticeDto
-    fun updateNotice(noticeId: Long, request: UpdateNoticeRequest): NoticeDto
+    fun createNotice(request: NoticeDto): NoticeDto
+    fun updateNotice(noticeId: Long, request: NoticeDto): NoticeDto
     fun deleteNotice(noticeId: Long)
     fun enrollTag(tagName: String)
 }
@@ -25,7 +25,7 @@ class NoticeServiceImpl(
 
     @Transactional(readOnly = true)
     override fun searchNotice(
-        tag: List<Long>?,
+        tag: List<String>?,
         keyword: String?,
         pageNum: Long
         ): NoticeSearchResponse {
@@ -35,14 +35,14 @@ class NoticeServiceImpl(
     @Transactional(readOnly = true)
     override fun readNotice(noticeId: Long): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
-            ?: throw CserealException.Csereal400("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
+            ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
         
-        if (notice.isDeleted) throw CserealException.Csereal400("삭제된 공지사항입니다.(noticeId: $noticeId)")
+        if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
         return NoticeDto.of(notice)
     }
 
     @Transactional
-    override fun createNotice(request: CreateNoticeRequest): NoticeDto {
+    override fun createNotice(request: NoticeDto): NoticeDto {
         val newNotice = NoticeEntity(
             title = request.title,
             description = request.description,
@@ -51,8 +51,8 @@ class NoticeServiceImpl(
             isPinned = request.isPinned,
         )
 
-        for (tagId in request.tags) {
-            val tag = tagInNoticeRepository.findByIdOrNull(tagId) ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
+        for (tagName in request.tags) {
+            val tag = tagInNoticeRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
             NoticeTagEntity.createNoticeTag(newNotice, tag)
         }
 
@@ -63,28 +63,22 @@ class NoticeServiceImpl(
     }
 
     @Transactional
-    override fun updateNotice(noticeId: Long, request: UpdateNoticeRequest): NoticeDto {
+    override fun updateNotice(noticeId: Long, request: NoticeDto): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
         if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
 
-        notice.title = request.title ?: notice.title
-        notice.description = request.description ?: notice.description
-        notice.isPublic = request.isPublic ?: notice.isPublic
-        notice.isSlide = request.isSlide ?: notice.isSlide
-        notice.isPinned = request.isPinned ?: notice.isPinned
+        notice.update(request)
 
-        if (request.tags != null) {
-            noticeTagRepository.deleteAllByNoticeId(noticeId)
-
-            // 원래 태그에서 겹치는 태그만 남기고, 나머지는 없애기
-            notice.noticeTags = notice.noticeTags.filter { request.tags.contains(it.tag.id) }.toMutableSet()
-            for (tagId in request.tags) {
-                // 겹치는 거 말고, 새로운 태그만 추가
-                if(!notice.noticeTags.map { it.tag.id }.contains(tagId)) {
-                    val tag = tagInNoticeRepository.findByIdOrNull(tagId) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
-                    NoticeTagEntity.createNoticeTag(notice, tag)
-                }
+        noticeTagRepository.deleteAllByNoticeId(noticeId)
+        // 원래 태그에서 겹치는 태그만 남기고, 나머지는 없애기
+        notice.noticeTags = notice.noticeTags.filter { request.tags.contains(it.tag.name) }.toMutableSet()
+        for (tagName in request.tags) {
+            // 겹치는 거 말고, 새로운 태그만 추가
+            if (!notice.noticeTags.map { it.tag.name }.contains(tagName)) {
+                val tag =
+                    tagInNoticeRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
+                NoticeTagEntity.createNoticeTag(notice, tag)
             }
         }
 

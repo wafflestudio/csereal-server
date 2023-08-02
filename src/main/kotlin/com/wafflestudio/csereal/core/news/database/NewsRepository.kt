@@ -19,14 +19,14 @@ interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository
 }
 
 interface CustomNewsRepository {
-    fun searchNews(tag: List<Long>?, keyword: String?, pageNum: Long): NewsSearchResponse
+    fun searchNews(tag: List<String>?, keyword: String?, pageNum: Long): NewsSearchResponse
 }
 
 @Component
 class NewsRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
 ) : CustomNewsRepository {
-    override fun searchNews(tag: List<Long>?, keyword: String?, pageNum: Long): NewsSearchResponse {
+    override fun searchNews(tag: List<String>?, keyword: String?, pageNum: Long): NewsSearchResponse {
         val keywordBooleanBuilder = BooleanBuilder()
         val tagsBooleanBuilder = BooleanBuilder()
 
@@ -46,7 +46,7 @@ class NewsRepositoryImpl(
         if(!tag.isNullOrEmpty()) {
             tag.forEach {
                 tagsBooleanBuilder.or(
-                    newsTagEntity.tag.id.eq(it)
+                    newsTagEntity.tag.name.eq(it)
                 )
             }
         }
@@ -70,7 +70,7 @@ class NewsRepositoryImpl(
                 newsId = it.id,
                 title = it.title,
                 summary = summary(it.description),
-                createdDate = it.createdAt,
+                createdAt = it.createdAt,
                 tags = it.newsTags.map { newsTagEntity -> newsTagEntity.tag.id }
             )
         }

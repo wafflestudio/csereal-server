@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.notice.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.core.notice.dto.NoticeDto
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -31,6 +32,12 @@ class NoticeEntity(
     var noticeTags: MutableSet<NoticeTagEntity> = mutableSetOf()
 ): BaseTimeEntity() {
 
-
+    fun update(updateNoticeRequest: NoticeDto) {
+        this.title = updateNoticeRequest.title
+        this.description = updateNoticeRequest.description
+        this.isPublic = updateNoticeRequest.isPublic
+        this.isSlide = updateNoticeRequest.isSlide
+        this.isPinned = updateNoticeRequest.isPinned
+    }
 
 }

@@ -17,32 +17,32 @@ class NewsController(
 ) {
     @GetMapping
     fun searchNews(
-        @RequestParam(required = false) tag: List<Long>?,
+        @RequestParam(required = false) tag: List<String>?,
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false, defaultValue = "0") pageNum:Long
-    ) : NewsSearchResponse {
-        return newsService.searchNews(tag, keyword, pageNum)
+    ) : ResponseEntity<NewsSearchResponse> {
+        return ResponseEntity.ok(newsService.searchNews(tag, keyword, pageNum))
     }
     @GetMapping("/{newsId}")
     fun readNews(
         @PathVariable newsId: Long,
-    ) : NewsDto {
-        return newsService.readNews(newsId)
+    ) : ResponseEntity<NewsDto> {
+        return ResponseEntity.ok(newsService.readNews(newsId))
     }
 
     @PostMapping
     fun createNews(
-        @Valid @RequestBody request: CreateNewsRequest
-    ) : NewsDto {
-        return newsService.createNews(request)
+        @Valid @RequestBody request: NewsDto
+    ) : ResponseEntity<NewsDto> {
+        return ResponseEntity.ok(newsService.createNews(request))
     }
 
     @PatchMapping("/{newsId}")
     fun updateNews(
         @PathVariable newsId: Long,
-        @Valid @RequestBody request: UpdateNewsRequest,
-    ) : NewsDto {
-        return newsService.updateNews(newsId, request)
+        @Valid @RequestBody request: NewsDto,
+    ) : ResponseEntity<NewsDto> {
+        return ResponseEntity.ok(newsService.updateNews(newsId, request))
     }
 
     @DeleteMapping("/{newsId}")
