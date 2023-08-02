@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.news.api
 
 import com.wafflestudio.csereal.core.news.dto.CreateNewsRequest
 import com.wafflestudio.csereal.core.news.dto.NewsDto
+import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
 import com.wafflestudio.csereal.core.news.dto.UpdateNewsRequest
 import com.wafflestudio.csereal.core.news.service.NewsService
 import jakarta.validation.Valid
@@ -14,6 +15,14 @@ import org.springframework.web.bind.annotation.*
 class NewsController(
     private val newsService: NewsService,
 ) {
+    @GetMapping
+    fun searchNews(
+        @RequestParam(required = false) tag: List<Long>?,
+        @RequestParam(required = false) keyword: String?,
+        @RequestParam(required = false, defaultValue = "0") pageNum:Long
+    ) : NewsSearchResponse {
+        return newsService.searchNews(tag, keyword, pageNum)
+    }
     @GetMapping("/{newsId}")
     fun readNews(
         @PathVariable newsId: Long,

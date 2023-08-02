@@ -4,12 +4,14 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.news.database.*
 import com.wafflestudio.csereal.core.news.dto.CreateNewsRequest
 import com.wafflestudio.csereal.core.news.dto.NewsDto
+import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
 import com.wafflestudio.csereal.core.news.dto.UpdateNewsRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface NewsService {
+    fun searchNews(tag: List<Long>?, keyword: String?, pageNum: Long): NewsSearchResponse
     fun readNews(newsId: Long): NewsDto
     fun createNews(request: CreateNewsRequest): NewsDto
     fun updateNews(newsId: Long, request: UpdateNewsRequest): NewsDto
@@ -23,6 +25,14 @@ class NewsServiceImpl(
     private val tagInNewsRepository: TagInNewsRepository,
     private val newsTagRepository: NewsTagRepository
 ) : NewsService {
+    @Transactional(readOnly = true)
+    override fun searchNews(
+        tag: List<Long>?,
+        keyword: String?,
+        pageNum: Long
+    ): NewsSearchResponse {
+        return newsRepository.searchNews(tag, keyword, pageNum)
+    }
 
     @Transactional
     override fun readNews(newsId: Long): NewsDto {
