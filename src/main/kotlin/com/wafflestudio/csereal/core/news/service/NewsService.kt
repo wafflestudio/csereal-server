@@ -2,17 +2,15 @@ package com.wafflestudio.csereal.core.news.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.news.database.*
-import com.wafflestudio.csereal.core.news.dto.CreateNewsRequest
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
-import com.wafflestudio.csereal.core.news.dto.UpdateNewsRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface NewsService {
     fun searchNews(tag: List<String>?, keyword: String?, pageNum: Long): NewsSearchResponse
-    fun readNews(newsId: Long): NewsDto
+    fun readNews(newsId: Long, tag: List<String>?, keyword: String?): NewsDto
     fun createNews(request: NewsDto): NewsDto
     fun updateNews(newsId: Long, request: NewsDto): NewsDto
     fun deleteNews(newsId: Long)
@@ -35,12 +33,19 @@ class NewsServiceImpl(
     }
 
     @Transactional
-    override fun readNews(newsId: Long): NewsDto {
+    override fun readNews(
+        newsId: Long,
+        tag: List<String>?,
+        keyword: String?
+    ): NewsDto {
         val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
             ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다.(newsId: $newsId)")
 
         if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.(newsId: $newsId")
-        return NewsDto.of(news)
+
+        val prevNext = newsRepository.findPrevNextId(newsId, tag, keyword)
+
+        return NewsDto.of(news, prevNext)
     }
 
     @Transactional
@@ -60,7 +65,7 @@ class NewsServiceImpl(
 
         newsRepository.save(newNews)
 
-        return NewsDto.of(newNews)
+        return NewsDto.of(newNews, null)
     }
 
     @Transactional
@@ -80,7 +85,7 @@ class NewsServiceImpl(
             }
         }
 
-        return NewsDto.of(news)
+        return NewsDto.of(news, null)
     }
 
     @Transactional

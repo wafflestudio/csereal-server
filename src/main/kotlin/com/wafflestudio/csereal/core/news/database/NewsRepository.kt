@@ -1,7 +1,6 @@
 package com.wafflestudio.csereal.core.news.database
 
 import com.querydsl.core.BooleanBuilder
-import com.querydsl.core.types.Projections
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.news.database.QNewsEntity.newsEntity
@@ -20,6 +19,7 @@ interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository
 
 interface CustomNewsRepository {
     fun searchNews(tag: List<String>?, keyword: String?, pageNum: Long): NewsSearchResponse
+    fun findPrevNextId(newsId: Long, tag: List<String>?, keyword: String?): Array<Long?>?
 }
 
 @Component
@@ -67,7 +67,7 @@ class NewsRepositoryImpl(
 
         val newsSearchDtoList : List<NewsSearchDto> = newsEntityList.map {
             NewsSearchDto(
-                newsId = it.id,
+                id = it.id,
                 title = it.title,
                 summary = summary(it.description),
                 createdAt = it.createdAt,
@@ -77,6 +77,56 @@ class NewsRepositoryImpl(
         return NewsSearchResponse(total, newsSearchDtoList)
     }
 
+    override fun findPrevNextId(newsId: Long, tag: List<String>?, keyword: String?): Array<Long?>? {
+        val keywordBooleanBuilder = BooleanBuilder()
+        val tagsBooleanBuilder = BooleanBuilder()
+
+        if (!keyword.isNullOrEmpty()) {
+            val keywordList = keyword.split("[^a-zA-Z0-9가-힣]".toRegex())
+            keywordList.forEach {
+                if(it.length == 1) {
+                    throw CserealException.Csereal400("각각의 키워드는 한글자 이상이어야 합니다.")
+                } else {
+                    keywordBooleanBuilder.and(
+                        newsEntity.title.contains(it)
+                            .or(newsEntity.description.contains(it))
+                    )
+                }
+
+            }
+        }
+        if(!tag.isNullOrEmpty()) {
+            tag.forEach {
+                tagsBooleanBuilder.or(
+                    newsTagEntity.tag.name.eq(it)
+                )
+            }
+        }
+
+        val newsSearchDtoIdList = queryFactory.select(newsEntity.id).from(newsEntity)
+            .leftJoin(newsTagEntity).on(newsTagEntity.news.eq(newsEntity))
+            .where(newsEntity.isDeleted.eq(false), newsEntity.isPublic.eq(true))
+            .where(keywordBooleanBuilder).where(tagsBooleanBuilder)
+            .orderBy(newsEntity.isPinned.desc())
+            .orderBy(newsEntity.createdAt.desc())
+            .distinct()
+            .fetch()
+
+        val findingId = newsSearchDtoIdList.indexOf(newsId)
+
+        val prevNext: Array<Long?>?
+        if(findingId == -1) {
+            return null
+        } else if(findingId != 0 && findingId != newsSearchDtoIdList.size-1) {
+            prevNext = arrayOf(newsSearchDtoIdList[findingId+1], newsSearchDtoIdList[findingId-1])
+        } else if(findingId == 0) {
+            prevNext = arrayOf(newsSearchDtoIdList[1], null)
+        } else {
+            prevNext = arrayOf(null, newsSearchDtoIdList[newsSearchDtoIdList.size-2])
+        }
+
+        return prevNext
+    }
     private fun summary(description: String): String {
         val summary = Jsoup.clean(description, Safelist.none())
         return Parser.unescapeEntities(summary, false)

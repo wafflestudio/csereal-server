@@ -1,9 +1,7 @@
 package com.wafflestudio.csereal.core.news.api
 
-import com.wafflestudio.csereal.core.news.dto.CreateNewsRequest
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
-import com.wafflestudio.csereal.core.news.dto.UpdateNewsRequest
 import com.wafflestudio.csereal.core.news.service.NewsService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -26,8 +24,10 @@ class NewsController(
     @GetMapping("/{newsId}")
     fun readNews(
         @PathVariable newsId: Long,
+        @RequestParam(required = false) tag : List<String>?,
+        @RequestParam(required = false) keyword: String?,
     ) : ResponseEntity<NewsDto> {
-        return ResponseEntity.ok(newsService.readNews(newsId))
+        return ResponseEntity.ok(newsService.readNews(newsId, tag, keyword))
     }
 
     @PostMapping

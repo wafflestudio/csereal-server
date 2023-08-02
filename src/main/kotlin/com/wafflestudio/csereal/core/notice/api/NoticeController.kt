@@ -23,8 +23,10 @@ class NoticeController(
     @GetMapping("/{noticeId}")
     fun readNotice(
         @PathVariable noticeId: Long,
+        @RequestParam(required = false) tag : List<String>?,
+        @RequestParam(required = false) keyword: String?,
     ) : ResponseEntity<NoticeDto> {
-        return ResponseEntity.ok(noticeService.readNotice(noticeId))
+        return ResponseEntity.ok(noticeService.readNotice(noticeId,tag,keyword))
     }
 
     @PostMapping

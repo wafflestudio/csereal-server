@@ -7,7 +7,6 @@ data class NoticeDto(
     val id: Long,
     val title: String,
     val description: String,
-    // val postType: String,
     // val authorId: Int,
     val tags: List<String>,
     val createdAt: LocalDateTime?,
@@ -15,21 +14,24 @@ data class NoticeDto(
     val isPublic: Boolean,
     val isSlide: Boolean,
     val isPinned: Boolean,
+    val prevId: Long?,
+    val nextId: Long?,
 ) {
 
     companion object {
-        fun of(entity: NoticeEntity): NoticeDto = entity.run {
+        fun of(entity: NoticeEntity, prevNext: Array<Long?>?): NoticeDto = entity.run {
             NoticeDto(
                 id = this.id,
                 title = this.title,
                 description = this.description,
-                // postType = this.postType,
                 tags = this.noticeTags.map { it.tag.name },
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
                 isPublic = this.isPublic,
                 isSlide = this.isSlide,
                 isPinned = this.isPinned,
+                prevId = prevNext?.get(0),
+                nextId = prevNext?.get(1)
             )
         }
 

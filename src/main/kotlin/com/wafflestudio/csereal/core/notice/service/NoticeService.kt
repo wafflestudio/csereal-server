@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional
 
 interface NoticeService {
     fun searchNotice(tag: List<String>?, keyword: String?, pageNum: Long): NoticeSearchResponse
-    fun readNotice(noticeId: Long): NoticeDto
+    fun readNotice(noticeId: Long, tag: List<String>?, keyword: String?): NoticeDto
     fun createNotice(request: NoticeDto): NoticeDto
     fun updateNotice(noticeId: Long, request: NoticeDto): NoticeDto
     fun deleteNotice(noticeId: Long)
@@ -33,12 +33,19 @@ class NoticeServiceImpl(
         }
 
     @Transactional(readOnly = true)
-    override fun readNotice(noticeId: Long): NoticeDto {
+    override fun readNotice(
+        noticeId: Long,
+        tag: List<String>?,
+        keyword: String?
+    ): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
         
         if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
-        return NoticeDto.of(notice)
+
+        val prevNext = noticeRepository.findPrevNextId(noticeId, tag, keyword)
+
+        return NoticeDto.of(notice, prevNext)
     }
 
     @Transactional
@@ -58,7 +65,7 @@ class NoticeServiceImpl(
 
         noticeRepository.save(newNotice)
 
-        return NoticeDto.of(newNotice)
+        return NoticeDto.of(newNotice, null)
 
     }
 
@@ -82,7 +89,7 @@ class NoticeServiceImpl(
             }
         }
 
-        return NoticeDto.of(notice)
+        return NoticeDto.of(notice, null)
 
 
 
