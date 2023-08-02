@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.news.api
 
 import com.wafflestudio.csereal.core.news.dto.CreateNewsRequest
 import com.wafflestudio.csereal.core.news.dto.NewsDto
+import com.wafflestudio.csereal.core.news.dto.UpdateNewsRequest
 import com.wafflestudio.csereal.core.news.service.NewsService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -27,6 +28,21 @@ class NewsController(
         return newsService.createNews(request)
     }
 
+    @PatchMapping("/{newsId}")
+    fun updateNews(
+        @PathVariable newsId: Long,
+        @Valid @RequestBody request: UpdateNewsRequest,
+    ) : NewsDto {
+        return newsService.updateNews(newsId, request)
+    }
+
+    @DeleteMapping("/{newsId}")
+    fun deleteNews(
+        @PathVariable newsId: Long
+    ) {
+        newsService.deleteNews(newsId)
+    }
+
     @PostMapping("/tag")
     fun enrollTag(
         @RequestBody tagName: Map<String, String>
@@ -34,4 +50,6 @@ class NewsController(
         newsService.enrollTag(tagName["name"]!!)
         return ResponseEntity<String>("등록되었습니다. (tagName: ${tagName["name"]})", HttpStatus.OK)
     }
+
+
 }
