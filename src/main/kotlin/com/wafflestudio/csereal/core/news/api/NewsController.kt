@@ -1,12 +1,15 @@
 package com.wafflestudio.csereal.core.news.api
 
+import com.wafflestudio.csereal.core.news.dto.CreateNewsRequest
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.service.NewsService
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
+import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/news")
+@RestController
 class NewsController(
     private val newsService: NewsService,
 ) {
@@ -15,5 +18,20 @@ class NewsController(
         @PathVariable newsId: Long,
     ) : NewsDto {
         return newsService.readNews(newsId)
+    }
+
+    @PostMapping
+    fun createNews(
+        @Valid @RequestBody request: CreateNewsRequest
+    ) : NewsDto {
+        return newsService.createNews(request)
+    }
+
+    @PostMapping("/tag")
+    fun enrollTag(
+        @RequestBody tagName: Map<String, String>
+    ) : ResponseEntity<String> {
+        newsService.enrollTag(tagName["name"]!!)
+        return ResponseEntity<String>("등록되었습니다. (tagName: ${tagName["name"]})", HttpStatus.OK)
     }
 }

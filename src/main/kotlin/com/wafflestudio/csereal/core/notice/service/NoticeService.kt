@@ -19,7 +19,7 @@ interface NoticeService {
 @Service
 class NoticeServiceImpl(
     private val noticeRepository: NoticeRepository,
-    private val tagRepository: TagRepository,
+    private val tagInNoticeRepository: TagInNoticeRepository,
     private val noticeTagRepository: NoticeTagRepository
 ) : NoticeService {
 
@@ -52,7 +52,7 @@ class NoticeServiceImpl(
         )
 
         for (tagId in request.tags) {
-            val tag = tagRepository.findByIdOrNull(tagId) ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
+            val tag = tagInNoticeRepository.findByIdOrNull(tagId) ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
             NoticeTagEntity.createNoticeTag(newNotice, tag)
         }
 
@@ -82,7 +82,7 @@ class NoticeServiceImpl(
             for (tagId in request.tags) {
                 // 겹치는 거 말고, 새로운 태그만 추가
                 if(!notice.noticeTags.map { it.tag.id }.contains(tagId)) {
-                    val tag = tagRepository.findByIdOrNull(tagId) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
+                    val tag = tagInNoticeRepository.findByIdOrNull(tagId) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
                     NoticeTagEntity.createNoticeTag(notice, tag)
                 }
             }
@@ -108,7 +108,7 @@ class NoticeServiceImpl(
         val newTag = TagInNoticeEntity(
             name = tagName
         )
-        tagRepository.save(newTag)
+        tagInNoticeRepository.save(newTag)
     }
 
     //TODO: 이미지 등록, 글쓴이 함께 조회
