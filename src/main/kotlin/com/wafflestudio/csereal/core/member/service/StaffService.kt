@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface StaffService {
-    fun createStaff(staffDto: StaffDto): StaffDto
+    fun createStaff(createStaffRequest: StaffDto): StaffDto
     fun getStaff(staffId: Long): StaffDto
     fun getAllStaff(): List<StaffDto>
-    fun updateStaff(staffDto: StaffDto): StaffDto
+    fun updateStaff(staffId: Long, updateStaffRequest: StaffDto): StaffDto
     fun deleteStaff(staffId: Long)
 }
 
@@ -22,10 +22,10 @@ interface StaffService {
 class StaffServiceImpl(
     private val staffRepository: StaffRepository
 ) : StaffService {
-    override fun createStaff(staffDto: StaffDto): StaffDto {
-        val staff = StaffEntity.of(staffDto)
+    override fun createStaff(createStaffRequest: StaffDto): StaffDto {
+        val staff = StaffEntity.of(createStaffRequest)
 
-        for (task in staffDto.tasks) {
+        for (task in createStaffRequest.tasks) {
             TaskEntity.create(task, staff)
         }
 
@@ -46,15 +46,24 @@ class StaffServiceImpl(
         return staffRepository.findAll().map { StaffDto.of(it) }.sortedBy { it.name }
     }
 
-    override fun updateStaff(staffDto: StaffDto): StaffDto {
-        val staffId = staffDto.id ?: throw CserealException.Csereal400("업데이트 시 행정직원 id가 필요합니다.")
+    override fun updateStaff(staffId: Long, updateStaffRequest: StaffDto): StaffDto {
 
         val staff = staffRepository.findByIdOrNull(staffId)
             ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. staffId: ${staffId}")
 
-        staff.update(staffDto)
+        staff.update(updateStaffRequest)
 
         // 주요 업무 업데이트
+        val oldTasks = staff.tasks.map { it.name }
+
+        val tasksToRemove = oldTasks - updateStaffRequest.tasks
+        val tasksToAdd = updateStaffRequest.tasks - oldTasks
+
+        staff.tasks.removeIf { it.name in tasksToRemove }
+
+        for (task in tasksToAdd) {
+            TaskEntity.create(task, staff)
+        }
 
         return StaffDto.of(staff)
     }
