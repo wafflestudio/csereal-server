@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface ProfessorService {
-    fun createProfessor(professorDto: ProfessorDto): ProfessorDto
+    fun createProfessor(createProfessorRequest: ProfessorDto): ProfessorDto
     fun getProfessor(professorId: Long): ProfessorDto
     fun getActiveProfessors(): List<SimpleProfessorDto>
     fun getInactiveProfessors(): List<SimpleProfessorDto>
-    fun updateProfessor(updateProfessorRequest: ProfessorDto): ProfessorDto
+    fun updateProfessor(professorId: Long, updateProfessorRequest: ProfessorDto): ProfessorDto
     fun deleteProfessor(professorId: Long)
 }
 
@@ -25,24 +25,24 @@ class ProfessorServiceImpl(
     private val professorRepository: ProfessorRepository
 ) : ProfessorService {
 
-    override fun createProfessor(professorDto: ProfessorDto): ProfessorDto {
-        val professor = ProfessorEntity.of(professorDto)
+    override fun createProfessor(createProfessorRequest: ProfessorDto): ProfessorDto {
+        val professor = ProfessorEntity.of(createProfessorRequest)
 
-        if (professorDto.labId != null) {
-            val lab = labRepository.findByIdOrNull(professorDto.labId)
-                ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다. LabId: ${professorDto.labId}")
+        if (createProfessorRequest.labId != null) {
+            val lab = labRepository.findByIdOrNull(createProfessorRequest.labId)
+                ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다. LabId: ${createProfessorRequest.labId}")
             professor.addLab(lab)
         }
 
-        for (education in professorDto.educations) {
+        for (education in createProfessorRequest.educations) {
             EducationEntity.create(education, professor)
         }
 
-        for (researchArea in professorDto.researchAreas) {
+        for (researchArea in createProfessorRequest.researchAreas) {
             ResearchAreaEntity.create(researchArea, professor)
         }
 
-        for (career in professorDto.careers) {
+        for (career in createProfessorRequest.careers) {
             CareerEntity.create(career, professor)
         }
 
@@ -68,8 +68,7 @@ class ProfessorServiceImpl(
         return professorRepository.findByIsActiveFalse().map { SimpleProfessorDto.of(it) }
     }
 
-    override fun updateProfessor(updateProfessorRequest: ProfessorDto): ProfessorDto {
-        val professorId = updateProfessorRequest.id ?: throw CserealException.Csereal400("업데이트 시 교수님 id가 필요합니다.")
+    override fun updateProfessor(professorId: Long, updateProfessorRequest: ProfessorDto): ProfessorDto {
 
         val professor = professorRepository.findByIdOrNull(professorId)
             ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다. professorId: ${professorId}")
@@ -82,7 +81,41 @@ class ProfessorServiceImpl(
 
         professor.update(updateProfessorRequest)
 
-        // 학력, 연구분야, 경력 업데이트
+        // 학력 업데이트
+        val oldEducations = professor.educations.map { it.name }
+
+        val educationsToRemove = oldEducations - updateProfessorRequest.educations
+        val educationsToAdd = updateProfessorRequest.educations - oldEducations
+
+        professor.educations.removeIf { it.name in educationsToRemove }
+
+        for (education in educationsToAdd) {
+            EducationEntity.create(education, professor)
+        }
+
+        // 연구 분야 업데이트
+        val oldResearchAreas = professor.researchAreas.map { it.name }
+
+        val researchAreasToRemove = oldResearchAreas - updateProfessorRequest.researchAreas
+        val researchAreasToAdd = updateProfessorRequest.researchAreas - oldResearchAreas
+
+        professor.researchAreas.removeIf { it.name in researchAreasToRemove }
+
+        for (researchArea in researchAreasToAdd) {
+            ResearchAreaEntity.create(researchArea, professor)
+        }
+
+        // 경력 업데이트
+        val oldCareers = professor.careers.map { it.name }
+
+        val careersToRemove = oldCareers - updateProfessorRequest.careers
+        val careersToAdd = updateProfessorRequest.careers - oldCareers
+
+        professor.careers.removeIf { it.name in careersToRemove }
+
+        for (career in careersToAdd) {
+            CareerEntity.create(career, professor)
+        }
 
         return ProfessorDto.of(professor)
     }

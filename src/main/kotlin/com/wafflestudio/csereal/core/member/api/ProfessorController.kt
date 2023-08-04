@@ -32,9 +32,12 @@ class ProfessorController(
         return ResponseEntity.ok(professorService.getInactiveProfessors())
     }
 
-    @PatchMapping
-    fun updateProfessor(@RequestBody updateProfessorRequest: ProfessorDto): ResponseEntity<ProfessorDto> {
-        return ResponseEntity.ok(professorService.updateProfessor(updateProfessorRequest))
+    @PatchMapping("/{professorId}")
+    fun updateProfessor(
+        @PathVariable professorId: Long,
+        @RequestBody updateProfessorRequest: ProfessorDto
+    ): ResponseEntity<ProfessorDto> {
+        return ResponseEntity.ok(professorService.updateProfessor(professorId, updateProfessorRequest))
     }
 
     @DeleteMapping("/{professorId}")
