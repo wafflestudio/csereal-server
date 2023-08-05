@@ -60,12 +60,12 @@ class ProfessorServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getActiveProfessors(): List<SimpleProfessorDto> {
-        return professorRepository.findByIsActiveTrue().map { SimpleProfessorDto.of(it) }
+        return professorRepository.findByIsActiveTrue().map { SimpleProfessorDto.of(it) }.sortedBy { it.name }
     }
 
     @Transactional(readOnly = true)
     override fun getInactiveProfessors(): List<SimpleProfessorDto> {
-        return professorRepository.findByIsActiveFalse().map { SimpleProfessorDto.of(it) }
+        return professorRepository.findByIsActiveFalse().map { SimpleProfessorDto.of(it) }.sortedBy { it.name }
     }
 
     override fun updateProfessor(professorId: Long, updateProfessorRequest: ProfessorDto): ProfessorDto {
