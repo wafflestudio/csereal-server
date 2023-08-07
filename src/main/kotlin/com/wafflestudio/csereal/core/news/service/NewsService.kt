@@ -7,6 +7,7 @@ import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 interface NewsService {
     fun searchNews(tag: List<String>?, keyword: String?, pageNum: Long): NewsSearchResponse
@@ -32,7 +33,7 @@ class NewsServiceImpl(
         return newsRepository.searchNews(tag, keyword, pageNum)
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     override fun readNews(
         newsId: Long,
         tag: List<String>?,
@@ -75,15 +76,43 @@ class NewsServiceImpl(
         if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.")
         news.update(request)
 
-        newsTagRepository.deleteAllByNewsId(newsId)
-
-        news.newsTags = news.newsTags.filter { request.tags.contains(it.tag.name) }.toMutableSet()
-        for (tagName in request.tags) {
-            if(!news.newsTags.map { it.tag.name }.contains(tagName)) {
-                val tag = tagInNewsRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
-                NewsTagEntity.createNewsTag(news, tag)
-            }
+        val oldTags = news.newsTags.map { it.tag.name }
+        for(index in oldTags) {
+            println(index)
         }
+        println("=====================")
+        val tagsToRemove = oldTags - request.tags
+        for(index in tagsToRemove) {
+            println(index)
+        }
+        println("===================")
+        val tagsToAdd = request.tags - oldTags
+        for(index in tagsToAdd) {
+            println(index)
+        }
+        println("===================")
+        for(index in tagsToRemove) {
+            val tag = TagInNewsEntity(name = index)
+            news.newsTags.removeIf { it.tag.name == index }
+        }
+        println("=================")
+        for (tagName in tagsToAdd) {
+            val tag = tagInNewsRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
+            NewsTagEntity.createNewsTag(news,tag)
+        }
+        for(index in news.newsTags) {
+            println(index.tag.name)
+        }
+        println("==============")
+//        newsTagRepository.deleteAllByNewsId(newsId)
+//
+//        news.newsTags = news.newsTags.filter { request.tags.contains(it.tag.name) }.toMutableSet()
+//        for (tagName in request.tags) {
+//            if(!news.newsTags.map { it.tag.name }.contains(tagName)) {
+//                val tag = tagInNewsRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
+//                NewsTagEntity.createNewsTag(news, tag)
+//            }
+//        }
 
         return NewsDto.of(news, null)
     }

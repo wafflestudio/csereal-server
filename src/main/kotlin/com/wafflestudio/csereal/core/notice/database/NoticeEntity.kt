@@ -11,13 +11,10 @@ import jakarta.persistence.OneToMany
 @Entity(name = "notice")
 class NoticeEntity(
 
-    @Column
     var isDeleted: Boolean = false,
 
-    @Column
     var title: String,
 
-    @Column(columnDefinition = "text")
     var description: String,
 
 //    var postType: String,
