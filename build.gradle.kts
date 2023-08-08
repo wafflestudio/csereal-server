@@ -41,6 +41,7 @@ dependencies {
 
 	// 태그 제거
 	implementation("org.jsoup:jsoup:1.15.4")
+
 }
 noArg {
 	annotation("jakarta.persistence.Entity")

@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.core.member.dto.CareerDto
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.JoinColumn
@@ -15,6 +16,7 @@ class CareerEntity(
     val professor: ProfessorEntity
 ) : BaseTimeEntity() {
     companion object {
+
         fun create(name: String, professor: ProfessorEntity): CareerEntity {
             val careerEntity = CareerEntity(
                 name = name,

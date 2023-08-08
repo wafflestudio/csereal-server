@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface ProfessorService {
+
     fun createProfessor(createProfessorRequest: ProfessorDto): ProfessorDto
     fun getProfessor(professorId: Long): ProfessorDto
     fun getActiveProfessors(): List<SimpleProfessorDto>
