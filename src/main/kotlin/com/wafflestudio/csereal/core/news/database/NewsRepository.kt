@@ -121,7 +121,11 @@ class NewsRepositoryImpl(
         } else if(findingId != 0 && findingId != newsSearchDtoList.size-1) {
             prevNext = arrayOf(newsSearchDtoList[findingId+1], newsSearchDtoList[findingId-1])
         } else if(findingId == 0) {
-            prevNext = arrayOf(newsSearchDtoList[1], null)
+            if(newsSearchDtoList.size == 1) {
+                prevNext = arrayOf(null, null)
+            } else {
+                prevNext = arrayOf(newsSearchDtoList[1], null)
+            }
         } else {
             prevNext = arrayOf(null, newsSearchDtoList[newsSearchDtoList.size-2])
         }

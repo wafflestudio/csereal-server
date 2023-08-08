@@ -118,7 +118,11 @@ class NoticeRepositoryImpl(
         } else if(findingId != 0 && findingId != noticeSearchDtoList.size-1) {
             prevNext = arrayOf(noticeSearchDtoList[findingId+1], noticeSearchDtoList[findingId-1])
         } else if(findingId == 0) {
-            prevNext = arrayOf(noticeSearchDtoList[1],null)
+            if(noticeSearchDtoList.size == 1) {
+                prevNext = arrayOf(null, null)
+            } else {
+                prevNext = arrayOf(noticeSearchDtoList[1],null)
+            }
         } else {
             prevNext = arrayOf(null, noticeSearchDtoList[noticeSearchDtoList.size-2])
         }
