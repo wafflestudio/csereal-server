@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface NoticeService {
-    fun searchNotice(tag: List<Long>?, keyword: String?, pageNum: Long): SearchResponse
-    fun readNotice(noticeId: Long): NoticeDto
-    fun createNotice(request: CreateNoticeRequest): NoticeDto
-    fun updateNotice(noticeId: Long, request: UpdateNoticeRequest): NoticeDto
+    fun searchNotice(tag: List<String>?, keyword: String?, pageNum: Long): NoticeSearchResponse
+    fun readNotice(noticeId: Long, tag: List<String>?, keyword: String?): NoticeDto
+    fun createNotice(request: NoticeDto): NoticeDto
+    fun updateNotice(noticeId: Long, request: NoticeDto): NoticeDto
     fun deleteNotice(noticeId: Long)
     fun enrollTag(tagName: String)
 }
@@ -19,30 +19,37 @@ interface NoticeService {
 @Service
 class NoticeServiceImpl(
     private val noticeRepository: NoticeRepository,
-    private val tagRepository: TagRepository,
+    private val tagInNoticeRepository: TagInNoticeRepository,
     private val noticeTagRepository: NoticeTagRepository
 ) : NoticeService {
 
     @Transactional(readOnly = true)
     override fun searchNotice(
-        tag: List<Long>?,
+        tag: List<String>?,
         keyword: String?,
         pageNum: Long
-        ): SearchResponse {
+        ): NoticeSearchResponse {
             return noticeRepository.searchNotice(tag, keyword, pageNum)
         }
 
     @Transactional(readOnly = true)
-    override fun readNotice(noticeId: Long): NoticeDto {
+    override fun readNotice(
+        noticeId: Long,
+        tag: List<String>?,
+        keyword: String?
+    ): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
-            ?: throw CserealException.Csereal400("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
+            ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
         
-        if (notice.isDeleted) throw CserealException.Csereal400("삭제된 공지사항입니다.(noticeId: $noticeId)")
-        return NoticeDto.of(notice)
+        if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
+
+        val prevNext = noticeRepository.findPrevNextId(noticeId, tag, keyword)
+
+        return NoticeDto.of(notice, prevNext)
     }
 
     @Transactional
-    override fun createNotice(request: CreateNoticeRequest): NoticeDto {
+    override fun createNotice(request: NoticeDto): NoticeDto {
         val newNotice = NoticeEntity(
             title = request.title,
             description = request.description,
@@ -51,44 +58,42 @@ class NoticeServiceImpl(
             isPinned = request.isPinned,
         )
 
-        for (tagId in request.tags) {
-            val tag = tagRepository.findByIdOrNull(tagId) ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
+        for (tagName in request.tags) {
+            val tag = tagInNoticeRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
             NoticeTagEntity.createNoticeTag(newNotice, tag)
         }
 
         noticeRepository.save(newNotice)
 
-        return NoticeDto.of(newNotice)
+        return NoticeDto.of(newNotice, null)
 
     }
 
     @Transactional
-    override fun updateNotice(noticeId: Long, request: UpdateNoticeRequest): NoticeDto {
+    override fun updateNotice(noticeId: Long, request: NoticeDto): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
-            ?: throw CserealException.Csereal400("존재하지 않는 공지사항입니다.(noticeId: $noticeId")
-        if (notice.isDeleted) throw CserealException.Csereal400("삭제된 공지사항입니다.(noticeId: $noticeId")
+            ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
+        if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
 
-        notice.title = request.title ?: notice.title
-        notice.description = request.description ?: notice.description
-        notice.isPublic = request.isPublic ?: notice.isPublic
-        notice.isSlide = request.isSlide ?: notice.isSlide
-        notice.isPinned = request.isPinned ?: notice.isPinned
+        notice.update(request)
 
-        if (request.tags != null) {
-            noticeTagRepository.deleteAllByNoticeId(noticeId)
+        val oldTags = notice.noticeTags.map { it.tag.name }
 
-            // 원래 태그에서 겹치는 태그만 남기고, 나머지는 없애기
-            notice.noticeTags = notice.noticeTags.filter { request.tags.contains(it.tag.id) }.toMutableSet()
-            for (tagId in request.tags) {
-                // 겹치는 거 말고, 새로운 태그만 추가
-                if(!notice.noticeTags.map { it.tag.id }.contains(tagId)) {
-                    val tag = tagRepository.findByIdOrNull(tagId) ?: throw CserealException.Csereal400("해당하는 태그가 없습니다")
-                    NoticeTagEntity.createNoticeTag(notice, tag)
-                }
-            }
+        val tagsToRemove = oldTags - request.tags
+        val tagsToAdd = request.tags - oldTags
+
+        for(tagName in tagsToRemove) {
+            val tagId = tagInNoticeRepository.findByName(tagName)!!.id
+            notice.noticeTags.removeIf { it.tag.name == tagName }
+            noticeTagRepository.deleteByNoticeIdAndTagId(noticeId, tagId)
         }
 
-        return NoticeDto.of(notice)
+        for(tagName in tagsToAdd) {
+            val tag = tagInNoticeRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
+            NoticeTagEntity.createNoticeTag(notice, tag)
+        }
+
+        return NoticeDto.of(notice, null)
 
 
 
@@ -98,17 +103,17 @@ class NoticeServiceImpl(
     @Transactional
     override fun deleteNotice(noticeId: Long) {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
-            ?: throw CserealException.Csereal400("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
+            ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
 
         notice.isDeleted = true
 
     }
 
     override fun enrollTag(tagName: String) {
-        val newTag = TagEntity(
+        val newTag = TagInNoticeEntity(
             name = tagName
         )
-        tagRepository.save(newTag)
+        tagInNoticeRepository.save(newTag)
     }
 
     //TODO: 이미지 등록, 글쓴이 함께 조회

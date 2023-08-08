@@ -1,0 +1,29 @@
+package com.wafflestudio.csereal.core.member.dto
+
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.wafflestudio.csereal.core.member.database.StaffEntity
+
+data class StaffDto(
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    var id: Long? = null,
+    val name: String,
+    val role: String,
+    val office: String,
+    val phone: String,
+    val email: String,
+    val tasks: List<String>
+) {
+    companion object {
+        fun of(staffEntity: StaffEntity): StaffDto {
+            return StaffDto(
+                id = staffEntity.id,
+                name = staffEntity.name,
+                role = staffEntity.role,
+                office = staffEntity.office,
+                phone = staffEntity.phone,
+                email = staffEntity.email,
+                tasks = staffEntity.tasks.map { it.name }
+            )
+        }
+    }
+}

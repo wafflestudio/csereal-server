@@ -18,9 +18,9 @@ data class ProfessorDto(
     val fax: String?,
     val email: String?,
     val website: String?,
-    val educations: List<EducationDto>,
+    val educations: List<String>,
     val researchAreas: List<String>,
-    val careers: List<CareerDto>
+    val careers: List<String>
 ) {
     companion object {
         fun of(professorEntity: ProfessorEntity): ProfessorDto {
@@ -37,9 +37,9 @@ data class ProfessorDto(
                 fax = professorEntity.fax,
                 email = professorEntity.email,
                 website = professorEntity.website,
-                educations = professorEntity.educations.map { EducationDto.of(it) },
+                educations = professorEntity.educations.map { it.name },
                 researchAreas = professorEntity.researchAreas.map { it.name },
-                careers = professorEntity.careers.map { CareerDto.of(it) }
+                careers = professorEntity.careers.map { it.name }
             )
         }
     }

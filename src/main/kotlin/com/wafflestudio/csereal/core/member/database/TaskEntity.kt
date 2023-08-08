@@ -1,29 +1,27 @@
 package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
-import com.wafflestudio.csereal.core.member.dto.CareerDto
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 
-@Entity(name = "career")
-class CareerEntity(
+@Entity
+class TaskEntity(
     val name: String,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "professor_id")
-    val professor: ProfessorEntity
+    @JoinColumn(name = "staff_id")
+    val staff: StaffEntity
 ) : BaseTimeEntity() {
     companion object {
-
-        fun create(name: String, professor: ProfessorEntity): CareerEntity {
-            val careerEntity = CareerEntity(
+        fun create(name: String, staff: StaffEntity): TaskEntity {
+            val task = TaskEntity(
                 name = name,
-                professor = professor
+                staff = staff
             )
-            professor.careers.add(careerEntity)
-            return careerEntity
+            staff.tasks.add(task)
+            return task
         }
     }
 }

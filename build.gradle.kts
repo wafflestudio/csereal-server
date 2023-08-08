@@ -38,6 +38,10 @@ dependencies {
 	kapt("com.querydsl:querydsl-apt:5.0.0:jakarta")
 	kapt("jakarta.annotation:jakarta.annotation-api")
 	kapt("jakarta.persistence:jakarta.persistence-api")
+
+	// 태그 제거
+	implementation("org.jsoup:jsoup:1.15.4")
+
 }
 noArg {
 	annotation("jakarta.persistence.Entity")
