@@ -46,6 +46,7 @@ class NewsServiceImpl(
 
         val prevNext = newsRepository.findPrevNextId(newsId, tag, keyword)
 
+
         return NewsDto.of(news, prevNext)
     }
 
@@ -77,42 +78,20 @@ class NewsServiceImpl(
         news.update(request)
 
         val oldTags = news.newsTags.map { it.tag.name }
-        for(index in oldTags) {
-            println(index)
-        }
-        println("=====================")
+
         val tagsToRemove = oldTags - request.tags
-        for(index in tagsToRemove) {
-            println(index)
-        }
-        println("===================")
         val tagsToAdd = request.tags - oldTags
-        for(index in tagsToAdd) {
-            println(index)
+
+        for(tagName in tagsToRemove) {
+            val tagId = tagInNewsRepository.findByName(tagName)!!.id
+            news.newsTags.removeIf { it.tag.name == tagName }
+            newsTagRepository.deleteByNewsIdAndTagId(newsId, tagId)
         }
-        println("===================")
-        for(index in tagsToRemove) {
-            val tag = TagInNewsEntity(name = index)
-            news.newsTags.removeIf { it.tag.name == index }
-        }
-        println("=================")
+
         for (tagName in tagsToAdd) {
             val tag = tagInNewsRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
             NewsTagEntity.createNewsTag(news,tag)
         }
-        for(index in news.newsTags) {
-            println(index.tag.name)
-        }
-        println("==============")
-//        newsTagRepository.deleteAllByNewsId(newsId)
-//
-//        news.newsTags = news.newsTags.filter { request.tags.contains(it.tag.name) }.toMutableSet()
-//        for (tagName in request.tags) {
-//            if(!news.newsTags.map { it.tag.name }.contains(tagName)) {
-//                val tag = tagInNewsRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
-//                NewsTagEntity.createNewsTag(news, tag)
-//            }
-//        }
 
         return NewsDto.of(news, null)
     }

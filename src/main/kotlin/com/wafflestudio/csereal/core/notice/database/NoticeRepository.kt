@@ -15,7 +15,7 @@ interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepo
 
 interface CustomNoticeRepository {
     fun searchNotice(tag: List<String>?, keyword: String?, pageNum: Long): NoticeSearchResponse
-    fun findPrevNextId(noticeId: Long, tag: List<String>?, keyword: String?): Array<Long?>?
+    fun findPrevNextId(noticeId: Long, tag: List<String>?, keyword: String?): Array<NoticeEntity?>?
 }
 
 @Component
@@ -75,7 +75,7 @@ class NoticeRepositoryImpl(
         return NoticeSearchResponse(total, noticeSearchDtoList)
     }
 
-    override fun findPrevNextId(noticeId: Long, tag: List<String>?, keyword: String?): Array<Long?>? {
+    override fun findPrevNextId(noticeId: Long, tag: List<String>?, keyword: String?): Array<NoticeEntity?>? {
         val keywordBooleanBuilder = BooleanBuilder()
         val tagsBooleanBuilder = BooleanBuilder()
 
@@ -101,7 +101,7 @@ class NoticeRepositoryImpl(
             }
         }
 
-        val noticeSearchDtoIdList = queryFactory.select(noticeEntity.id).from(noticeEntity)
+        val noticeSearchDtoList = queryFactory.select(noticeEntity).from(noticeEntity)
             .leftJoin(noticeTagEntity).on(noticeTagEntity.notice.eq(noticeEntity))
             .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPublic.eq(true))
             .where(keywordBooleanBuilder).where(tagsBooleanBuilder)
@@ -110,17 +110,17 @@ class NoticeRepositoryImpl(
             .distinct()
             .fetch()
 
-        val findingId = noticeSearchDtoIdList.indexOf(noticeId)
+        val findingId = noticeSearchDtoList.indexOfFirst {it.id == noticeId}
 
-        val prevNext : Array<Long?>?
+        val prevNext : Array<NoticeEntity?>?
         if(findingId == -1) {
             return null
-        } else if(findingId != 0 && findingId != noticeSearchDtoIdList.size-1) {
-            prevNext = arrayOf(noticeSearchDtoIdList[findingId+1], noticeSearchDtoIdList[findingId-1])
+        } else if(findingId != 0 && findingId != noticeSearchDtoList.size-1) {
+            prevNext = arrayOf(noticeSearchDtoList[findingId+1], noticeSearchDtoList[findingId-1])
         } else if(findingId == 0) {
-            prevNext = arrayOf(noticeSearchDtoIdList[1],null)
+            prevNext = arrayOf(noticeSearchDtoList[1],null)
         } else {
-            prevNext = arrayOf(null, noticeSearchDtoIdList[noticeSearchDtoIdList.size-2])
+            prevNext = arrayOf(null, noticeSearchDtoList[noticeSearchDtoList.size-2])
         }
 
         return prevNext

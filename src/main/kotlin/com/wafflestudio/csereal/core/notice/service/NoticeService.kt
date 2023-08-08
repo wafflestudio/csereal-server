@@ -77,16 +77,20 @@ class NoticeServiceImpl(
 
         notice.update(request)
 
-        noticeTagRepository.deleteAllByNoticeId(noticeId)
-        // 원래 태그에서 겹치는 태그만 남기고, 나머지는 없애기
-        notice.noticeTags = notice.noticeTags.filter { request.tags.contains(it.tag.name) }.toMutableSet()
-        for (tagName in request.tags) {
-            // 겹치는 거 말고, 새로운 태그만 추가
-            if (!notice.noticeTags.map { it.tag.name }.contains(tagName)) {
-                val tag =
-                    tagInNoticeRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
-                NoticeTagEntity.createNoticeTag(notice, tag)
-            }
+        val oldTags = notice.noticeTags.map { it.tag.name }
+
+        val tagsToRemove = oldTags - request.tags
+        val tagsToAdd = request.tags - oldTags
+
+        for(tagName in tagsToRemove) {
+            val tagId = tagInNoticeRepository.findByName(tagName)!!.id
+            notice.noticeTags.removeIf { it.tag.name == tagName }
+            noticeTagRepository.deleteByNoticeIdAndTagId(noticeId, tagId)
+        }
+
+        for(tagName in tagsToAdd) {
+            val tag = tagInNoticeRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
+            NoticeTagEntity.createNoticeTag(notice, tag)
         }
 
         return NoticeDto.of(notice, null)

@@ -19,7 +19,7 @@ interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository
 
 interface CustomNewsRepository {
     fun searchNews(tag: List<String>?, keyword: String?, pageNum: Long): NewsSearchResponse
-    fun findPrevNextId(newsId: Long, tag: List<String>?, keyword: String?): Array<Long?>?
+    fun findPrevNextId(newsId: Long, tag: List<String>?, keyword: String?): Array<NewsEntity?>?
 }
 
 @Component
@@ -77,7 +77,7 @@ class NewsRepositoryImpl(
         return NewsSearchResponse(total, newsSearchDtoList)
     }
 
-    override fun findPrevNextId(newsId: Long, tag: List<String>?, keyword: String?): Array<Long?>? {
+    override fun findPrevNextId(newsId: Long, tag: List<String>?, keyword: String?): Array<NewsEntity?>? {
         val keywordBooleanBuilder = BooleanBuilder()
         val tagsBooleanBuilder = BooleanBuilder()
 
@@ -103,7 +103,7 @@ class NewsRepositoryImpl(
             }
         }
 
-        val newsSearchDtoIdList = queryFactory.select(newsEntity.id).from(newsEntity)
+        val newsSearchDtoList = queryFactory.select(newsEntity).from(newsEntity)
             .leftJoin(newsTagEntity).on(newsTagEntity.news.eq(newsEntity))
             .where(newsEntity.isDeleted.eq(false), newsEntity.isPublic.eq(true))
             .where(keywordBooleanBuilder).where(tagsBooleanBuilder)
@@ -112,17 +112,18 @@ class NewsRepositoryImpl(
             .distinct()
             .fetch()
 
-        val findingId = newsSearchDtoIdList.indexOf(newsId)
 
-        val prevNext: Array<Long?>?
+        val findingId = newsSearchDtoList.indexOfFirst { it.id == newsId }
+
+        val prevNext: Array<NewsEntity?>?
         if(findingId == -1) {
             return null
-        } else if(findingId != 0 && findingId != newsSearchDtoIdList.size-1) {
-            prevNext = arrayOf(newsSearchDtoIdList[findingId+1], newsSearchDtoIdList[findingId-1])
+        } else if(findingId != 0 && findingId != newsSearchDtoList.size-1) {
+            prevNext = arrayOf(newsSearchDtoList[findingId+1], newsSearchDtoList[findingId-1])
         } else if(findingId == 0) {
-            prevNext = arrayOf(newsSearchDtoIdList[1], null)
+            prevNext = arrayOf(newsSearchDtoList[1], null)
         } else {
-            prevNext = arrayOf(null, newsSearchDtoIdList[newsSearchDtoIdList.size-2])
+            prevNext = arrayOf(null, newsSearchDtoList[newsSearchDtoList.size-2])
         }
 
         return prevNext
