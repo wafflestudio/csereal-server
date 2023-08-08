@@ -1,8 +1,8 @@
 package com.wafflestudio.csereal.core.notice.dto
 
-data class SearchResponse(
+data class NoticeSearchResponse(
     val total: Int,
-    val searchList: List<SearchDto>
+    val searchList: List<NoticeSearchDto>
 ) {
 
 }
