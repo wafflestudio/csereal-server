@@ -67,7 +67,7 @@ class NewsServiceImpl(
 
         newsRepository.save(newNews)
 
-        return NewsDto.of(newNews, null)
+        return NewsDto.of(newNews, arrayOf(null,null))
     }
 
     @Transactional
@@ -93,7 +93,7 @@ class NewsServiceImpl(
             NewsTagEntity.createNewsTag(news,tag)
         }
 
-        return NewsDto.of(news, null)
+        return NewsDto.of(news, arrayOf(null,null))
     }
 
     @Transactional

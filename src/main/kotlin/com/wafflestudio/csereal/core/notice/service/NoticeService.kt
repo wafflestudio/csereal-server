@@ -65,7 +65,7 @@ class NoticeServiceImpl(
 
         noticeRepository.save(newNotice)
 
-        return NoticeDto.of(newNotice, null)
+        return NoticeDto.of(newNotice, arrayOf(null,null))
 
     }
 
@@ -93,7 +93,7 @@ class NoticeServiceImpl(
             NoticeTagEntity.createNoticeTag(notice, tag)
         }
 
-        return NoticeDto.of(notice, null)
+        return NoticeDto.of(notice, arrayOf(null, null))
 
 
 

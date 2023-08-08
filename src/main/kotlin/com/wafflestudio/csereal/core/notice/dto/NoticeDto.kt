@@ -21,7 +21,7 @@ data class NoticeDto(
 ) {
 
     companion object {
-        fun of(entity: NoticeEntity, prevNext: Array<NoticeEntity?>?): NoticeDto = entity.run {
+        fun of(entity: NoticeEntity, prevNext: Array<NoticeEntity?>): NoticeDto = entity.run {
             NoticeDto(
                 id = this.id,
                 title = this.title,
@@ -32,10 +32,10 @@ data class NoticeDto(
                 isPublic = this.isPublic,
                 isSlide = this.isSlide,
                 isPinned = this.isPinned,
-                prevId = prevNext?.get(0)?.id,
-                prevTitle = prevNext?.get(0)?.title,
-                nextId = prevNext?.get(1)?.id,
-                nextTitle = prevNext?.get(1)?.title
+                prevId = prevNext[0]?.id,
+                prevTitle = prevNext[0]?.title,
+                nextId = prevNext[1]?.id,
+                nextTitle = prevNext[1]?.title
             )
         }
 

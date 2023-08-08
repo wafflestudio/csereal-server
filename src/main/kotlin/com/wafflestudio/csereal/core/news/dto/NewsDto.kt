@@ -19,7 +19,7 @@ data class NewsDto(
     val nextTitle: String?,
 ) {
     companion object {
-        fun of(entity: NewsEntity, prevNext: Array<NewsEntity?>?) : NewsDto = entity.run {
+        fun of(entity: NewsEntity, prevNext: Array<NewsEntity?>) : NewsDto = entity.run {
             NewsDto(
                 id = this.id,
                 title = this.title,
@@ -30,10 +30,10 @@ data class NewsDto(
                 isPublic = this.isPublic,
                 isSlide = this.isSlide,
                 isPinned = this.isPinned,
-                prevId = prevNext?.get(0)?.id,
-                prevTitle = prevNext?.get(0)?.title,
-                nextId = prevNext?.get(1)?.id,
-                nextTitle = prevNext?.get(1)?.title,
+                prevId = prevNext[0]?.id,
+                prevTitle = prevNext[0]?.title,
+                nextId = prevNext[1]?.id,
+                nextTitle = prevNext[1]?.title,
 
             )
         }
