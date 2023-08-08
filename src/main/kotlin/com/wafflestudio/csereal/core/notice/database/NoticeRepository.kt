@@ -15,7 +15,7 @@ interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepo
 
 interface CustomNoticeRepository {
     fun searchNotice(tag: List<String>?, keyword: String?, pageNum: Long): NoticeSearchResponse
-    fun findPrevNextId(noticeId: Long, tag: List<String>?, keyword: String?): Array<NoticeEntity?>
+    fun findPrevNextId(noticeId: Long, tag: List<String>?, keyword: String?): Array<NoticeEntity?>?
 }
 
 @Component
@@ -75,7 +75,7 @@ class NoticeRepositoryImpl(
         return NoticeSearchResponse(total, noticeSearchDtoList)
     }
 
-    override fun findPrevNextId(noticeId: Long, tag: List<String>?, keyword: String?): Array<NoticeEntity?> {
+    override fun findPrevNextId(noticeId: Long, tag: List<String>?, keyword: String?): Array<NoticeEntity?>? {
         val keywordBooleanBuilder = BooleanBuilder()
         val tagsBooleanBuilder = BooleanBuilder()
 

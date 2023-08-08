@@ -19,7 +19,7 @@ interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository
 
 interface CustomNewsRepository {
     fun searchNews(tag: List<String>?, keyword: String?, pageNum: Long): NewsSearchResponse
-    fun findPrevNextId(newsId: Long, tag: List<String>?, keyword: String?): Array<NewsEntity?>
+    fun findPrevNextId(newsId: Long, tag: List<String>?, keyword: String?): Array<NewsEntity?>?
 }
 
 @Component
@@ -77,7 +77,7 @@ class NewsRepositoryImpl(
         return NewsSearchResponse(total, newsSearchDtoList)
     }
 
-    override fun findPrevNextId(newsId: Long, tag: List<String>?, keyword: String?): Array<NewsEntity?> {
+    override fun findPrevNextId(newsId: Long, tag: List<String>?, keyword: String?): Array<NewsEntity?>? {
         val keywordBooleanBuilder = BooleanBuilder()
         val tagsBooleanBuilder = BooleanBuilder()
 
@@ -117,7 +117,7 @@ class NewsRepositoryImpl(
 
         val prevNext: Array<NewsEntity?>?
         if(findingId == -1) {
-            prevNext = arrayOf(null, null)
+            prevNext = null
         } else if(findingId != 0 && findingId != newsSearchDtoList.size-1) {
             prevNext = arrayOf(newsSearchDtoList[findingId+1], newsSearchDtoList[findingId-1])
         } else if(findingId == 0) {

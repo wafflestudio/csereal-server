@@ -42,10 +42,10 @@ class NewsServiceImpl(
         val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
             ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다.(newsId: $newsId)")
 
-        if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.(newsId: $newsId")
+        if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.(newsId: $newsId)")
 
         val prevNext = newsRepository.findPrevNextId(newsId, tag, keyword)
-
+            ?: throw CserealException.Csereal400("이전글 다음글이 존재하지 않습니다.(newsId=$newsId)")
 
         return NewsDto.of(news, prevNext)
     }
@@ -67,7 +67,7 @@ class NewsServiceImpl(
 
         newsRepository.save(newNews)
 
-        return NewsDto.of(newNews, arrayOf(null,null))
+        return NewsDto.of(newNews, null)
     }
 
     @Transactional
@@ -93,7 +93,7 @@ class NewsServiceImpl(
             NewsTagEntity.createNewsTag(news,tag)
         }
 
-        return NewsDto.of(news, arrayOf(null,null))
+        return NewsDto.of(news, null)
     }
 
     @Transactional
