@@ -1,7 +1,6 @@
 package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
-import com.wafflestudio.csereal.core.member.dto.EducationDto
 import jakarta.persistence.*
 
 @Entity(name = "education")
