@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.seminar.api
 
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
+import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
 import com.wafflestudio.csereal.core.seminar.service.SeminarService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -11,6 +12,13 @@ import org.springframework.web.bind.annotation.*
 class SeminarController (
     private val seminarService: SeminarService,
 ) {
+    @GetMapping
+    fun searchSeminar(
+        @RequestParam(required = false) keyword: String?,
+        @RequestParam(required = false, defaultValue = "0") pageNum: Long
+    ) : ResponseEntity<SeminarSearchResponse> {
+        return ResponseEntity.ok(seminarService.searchSeminar(keyword, pageNum))
+    }
     @PostMapping
     fun createSeminar(
         @Valid @RequestBody request: SeminarDto
@@ -32,5 +40,12 @@ class SeminarController (
         @Valid @RequestBody request: SeminarDto,
     ) : ResponseEntity<SeminarDto> {
         return ResponseEntity.ok(seminarService.updateSeminar(seminarId, request))
+    }
+
+    @DeleteMapping("/{seminarId}")
+    fun deleteSeminar(
+        @PathVariable seminarId: Long
+    ) {
+        seminarService.deleteSeminar(seminarId)
     }
 }
