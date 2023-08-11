@@ -42,6 +42,9 @@ dependencies {
 	// 태그 제거
 	implementation("org.jsoup:jsoup:1.15.4")
 
+	// 이미지 업로드
+	implementation("commons-io:commons-io:2.11.0")
+
 }
 noArg {
 	annotation("jakarta.persistence.Entity")
