@@ -11,7 +11,9 @@ data class StaffDto(
     val office: String,
     val phone: String,
     val email: String,
-    val tasks: List<String>
+    val tasks: List<String>,
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    val imageUri: String? = null
 ) {
     companion object {
         fun of(staffEntity: StaffEntity): StaffDto {
@@ -22,7 +24,8 @@ data class StaffDto(
                 office = staffEntity.office,
                 phone = staffEntity.phone,
                 email = staffEntity.email,
-                tasks = staffEntity.tasks.map { it.name }
+                tasks = staffEntity.tasks.map { it.name },
+                imageUri = staffEntity.imageUri
             )
         }
     }

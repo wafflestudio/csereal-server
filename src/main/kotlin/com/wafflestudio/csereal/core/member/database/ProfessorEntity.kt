@@ -3,12 +3,7 @@ package com.wafflestudio.csereal.core.member.database
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.research.database.LabEntity
-import jakarta.persistence.CascadeType
-import jakarta.persistence.Entity
-import jakarta.persistence.FetchType
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.OneToMany
+import jakarta.persistence.*
 import java.time.LocalDate
 
 @Entity(name = "professor")
@@ -16,8 +11,9 @@ class ProfessorEntity(
 
     var name: String,
 
-    //val profileImage:File
-    var isActive: Boolean,
+    @Enumerated(EnumType.STRING)
+    var status: ProfessorStatus,
+
     var academicRank: String,
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -43,13 +39,14 @@ class ProfessorEntity(
     @OneToMany(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
     val careers: MutableList<CareerEntity> = mutableListOf(),
 
-    ) : BaseTimeEntity() {
+    var imageUri: String? = null
+) : BaseTimeEntity() {
 
     companion object {
         fun of(professorDto: ProfessorDto): ProfessorEntity {
             return ProfessorEntity(
                 name = professorDto.name,
-                isActive = professorDto.isActive,
+                status = professorDto.status,
                 academicRank = professorDto.academicRank,
                 startDate = professorDto.startDate,
                 endDate = professorDto.endDate,
@@ -70,7 +67,7 @@ class ProfessorEntity(
 
     fun update(updateProfessorRequest: ProfessorDto) {
         this.name = updateProfessorRequest.name
-        this.isActive = updateProfessorRequest.isActive
+        this.status = updateProfessorRequest.status
         this.academicRank = updateProfessorRequest.academicRank
         this.startDate = updateProfessorRequest.startDate
         this.endDate = updateProfessorRequest.endDate
@@ -80,4 +77,8 @@ class ProfessorEntity(
         this.email = updateProfessorRequest.email
         this.website = updateProfessorRequest.website
     }
+}
+
+enum class ProfessorStatus {
+    ACTIVE, INACTIVE, VISITING
 }
