@@ -44,12 +44,11 @@ class SeminarRepositoryImpl(
             .where(seminarEntity.isDeleted.eq(false))
             .where(keywordBooleanBuilder)
 
-        val total = jpaQuery.distinct().fetch().size
+        val total = jpaQuery.fetch().size
 
         val seminarEntityList = jpaQuery.orderBy(seminarEntity.createdAt.desc())
             .offset(10*pageNum)
             .limit(20)
-            .distinct()
             .fetch()
 
         val seminarSearchDtoList : MutableList<SeminarSearchDto> = mutableListOf()
@@ -97,7 +96,6 @@ class SeminarRepositoryImpl(
             .where(seminarEntity.isDeleted.eq(false), seminarEntity.isPublic.eq(true))
             .where(keywordBooleanBuilder)
             .orderBy(seminarEntity.createdAt.desc())
-            .distinct()
             .fetch()
 
         val findingId = seminarSearchDtoList.indexOfFirst { it.id == seminarId }
