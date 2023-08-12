@@ -1,30 +1,56 @@
 package com.wafflestudio.csereal.common.config
 
+import com.wafflestudio.csereal.core.user.service.CustomOidcUserService
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.core.Authentication
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler
+import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler
 
 
 @Configuration
-class SpringSecurityConfig {
+@EnableWebSecurity
+class SecurityConfig(
+    private val customOidcUserService: CustomOidcUserService
+) {
 
-    // 확인 바람
     @Bean
-    fun securityFilterChain(httpSecurity: HttpSecurity): SecurityFilterChain =
-        httpSecurity
-            .csrf().disable()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+    fun filterChain(http: HttpSecurity): SecurityFilterChain {
+        return http.csrf().disable()
+            .oauth2Login()
+            .loginPage("/oauth2/authorization/idsnucse")
+            .userInfoEndpoint().oidcUserService(customOidcUserService).and()
             .and()
-            .authorizeRequests()
+            .logout()
+            .logoutSuccessHandler(oidcLogoutSuccessHandler())
+            .invalidateHttpSession(true)
+            .clearAuthentication(true)
+            .deleteCookies("JSESSIONID")
+            .and()
+            .authorizeHttpRequests()
+            .requestMatchers("/login").authenticated()
             .anyRequest().permitAll()
             .and()
             .build()
+    }
 
-//    @Bean
-//    fun filterChain(http: HttpSecurity): SecurityFilterChain {
-//        http.httpBasic().disable()
-//        return http.build()
-//    }
+    @Bean
+    fun oidcLogoutSuccessHandler(): LogoutSuccessHandler {
+        return object : SimpleUrlLogoutSuccessHandler() {
+            override fun onLogoutSuccess(
+                request: HttpServletRequest?,
+                response: HttpServletResponse?,
+                authentication: Authentication?
+            ) {
+                super.setDefaultTargetUrl("/home")
+                super.onLogoutSuccess(request, response, authentication)
+            }
+        }
+    }
+
 }
