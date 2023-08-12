@@ -1,17 +1,16 @@
 package com.wafflestudio.csereal.core.user.api
 
-import com.wafflestudio.csereal.core.user.dto.LoginRequest
-import com.wafflestudio.csereal.core.user.service.UserService
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.core.oidc.user.OidcUser
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class UserController(private val userService: UserService) {
+class UserController {
 
-    @PostMapping("/login")
-    fun login(loginRequest: LoginRequest): ResponseEntity<Any> {
-        userService.login(loginRequest)
-        return ResponseEntity.ok().build()
+    @GetMapping("/oidc-principal")
+    fun getOidcUserPrincipal(@AuthenticationPrincipal principal: OidcUser?): OidcUser? {
+        return principal
     }
+
 }
