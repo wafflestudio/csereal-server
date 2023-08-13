@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface IntroductionService {
-    fun createIntroduction(postType: String, postDetail: String?, request: IntroductionDto): IntroductionDto
+    fun createIntroduction(request: IntroductionDto): IntroductionDto
     fun readIntroduction(postType: String): IntroductionDto
     fun readAllClubs() : List<IntroductionDto>
     fun readAllFacilities() : List<IntroductionDto>
@@ -21,8 +21,8 @@ class IntroductionServiceImpl(
     private val introductionRepository: IntroductionRepository
 ) : IntroductionService {
     @Transactional
-    override fun createIntroduction(postType: String, postDetail: String?, request: IntroductionDto): IntroductionDto {
-        val newIntroduction = IntroductionEntity.of(postType, postDetail, request)
+    override fun createIntroduction(request: IntroductionDto): IntroductionDto {
+        val newIntroduction = IntroductionEntity.of(request)
 
         if(request.locations != null) {
             for (location in request.locations) {
@@ -44,7 +44,7 @@ class IntroductionServiceImpl(
 
     @Transactional(readOnly = true)
     override fun readAllClubs(): List<IntroductionDto> {
-        val clubs = introductionRepository.findAllByPostTypeOrderByPostDetail("students-clubs").map {
+        val clubs = introductionRepository.findAllByPostTypeOrderByPostDetail("student-clubs").map {
             IntroductionDto.of(it)
         }
 

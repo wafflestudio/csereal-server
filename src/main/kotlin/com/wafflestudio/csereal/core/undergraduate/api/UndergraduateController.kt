@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RequestMapping("/undergraduate")
@@ -18,30 +17,16 @@ import org.springframework.web.bind.annotation.RestController
 class UndergraduateController(
     private val undergraduateService: UndergraduateService
 ) {
-    // 학부 메인 페이지
-    @PostMapping
-    fun createUndergraduateMain(
-        @Valid @RequestBody request: UndergraduateDto
-    ) : ResponseEntity<UndergraduateDto> {
-        return ResponseEntity.ok(undergraduateService.createUndergraduate("main", request))
-    }
 
-    @GetMapping
-    fun readUndergraduateMain() : ResponseEntity<UndergraduateDto> {
-        return ResponseEntity.ok(undergraduateService.readUndergraduate("main"))
-    }
-
-    // postType -> 필수 교양 과목: general-education-requirements,
+    // postType -> 메인페이지: main, 필수 교양 과목: general-education-requirements,
     // 전공 이수 표준 형태: recommended-tracks (~2020년), 졸업 규청: degree-requirements (~2020년),
     // 교과목 변경 내역: course-changes, 장학제도: scholarships
-    //Todo: 선수 교과목 -> 파일/이미지 필요, 전공 이수 표준 형태(2021년~) -> 파일 필요,
-    //Todo: 졸업 규정(2021년~) -> 파일 필요
-    @PostMapping("/{postType}")
+    //Todo: 이미지, 파일 추가 필요
+    @PostMapping
     fun createUndergraduate(
-        @PathVariable postType: String,
         @Valid @RequestBody request: UndergraduateDto
     ) : ResponseEntity<UndergraduateDto> {
-        return ResponseEntity.ok(undergraduateService.createUndergraduate(postType, request))
+        return ResponseEntity.ok(undergraduateService.createUndergraduate(request))
     }
 
     @GetMapping("/{postType}")

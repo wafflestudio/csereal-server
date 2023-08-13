@@ -18,9 +18,9 @@ class UndergraduateEntity(
 
 ): BaseTimeEntity() {
     companion object {
-        fun of(postType: String, undergraduateDto: UndergraduateDto): UndergraduateEntity {
+        fun of(undergraduateDto: UndergraduateDto): UndergraduateEntity {
             return UndergraduateEntity(
-                postType = postType,
+                postType = undergraduateDto.postType,
                 title = undergraduateDto.title,
                 description = undergraduateDto.description,
                 year = undergraduateDto.year,

@@ -24,10 +24,10 @@ class IntroductionEntity(
     val locations: MutableList<LocationEntity> = mutableListOf()
 ) : BaseTimeEntity() {
     companion object {
-        fun of(postType: String, postDetail: String?, introductionDto: IntroductionDto): IntroductionEntity {
+        fun of(introductionDto: IntroductionDto): IntroductionEntity {
             return IntroductionEntity(
-                postType = postType,
-                postDetail = postDetail,
+                postType = introductionDto.postType,
+                postDetail = introductionDto.postDetail,
                 title = introductionDto.title,
                 description = introductionDto.description,
                 year = introductionDto.year,

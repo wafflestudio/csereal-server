@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface UndergraduateService {
-    fun createUndergraduate(postType: String, request: UndergraduateDto): UndergraduateDto
+    fun createUndergraduate(request: UndergraduateDto): UndergraduateDto
     fun readUndergraduate(postType: String): UndergraduateDto
     /*
     fun createUnderCourseDependency(request: UndergraduateDto): UndergraduateDto
@@ -29,8 +29,8 @@ class UndergraduateServiceImpl(
     private val courseRepository: CourseRepository,
 ) : UndergraduateService {
     @Transactional
-    override fun createUndergraduate(postType: String, request: UndergraduateDto): UndergraduateDto {
-        val newUndergraduate = UndergraduateEntity.of(postType, request)
+    override fun createUndergraduate(request: UndergraduateDto): UndergraduateDto {
+        val newUndergraduate = UndergraduateEntity.of(request)
 
         undergraduateRepository.save(newUndergraduate)
 
