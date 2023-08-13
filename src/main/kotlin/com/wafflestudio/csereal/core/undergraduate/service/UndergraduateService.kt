@@ -40,7 +40,6 @@ class UndergraduateServiceImpl(
     @Transactional(readOnly = true)
     override fun readUndergraduate(postType: String): UndergraduateDto {
         val undergraduate : UndergraduateEntity = undergraduateRepository.findByPostType(postType)
-            ?: throw CserealException.Csereal400("존재하지 않는 게시글입니다.")
 
         return UndergraduateDto.of(undergraduate)
     }
@@ -88,7 +87,6 @@ class UndergraduateServiceImpl(
     @Transactional
     override fun readCourse(title: String): CourseDto {
         val course : CourseEntity = courseRepository.findByTitle(title)
-            ?: throw CserealException.Csereal400("존재하지 않는 수업입니다.")
 
         return CourseDto.of(course)
     }

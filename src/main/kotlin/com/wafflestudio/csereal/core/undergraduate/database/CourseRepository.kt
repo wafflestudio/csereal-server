@@ -4,5 +4,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface CourseRepository : JpaRepository<CourseEntity, Long> {
     fun findAllByOrderByYearAsc() : List<CourseEntity>
-    fun findByTitle(title: String) : CourseEntity?
+    fun findByTitle(title: String) : CourseEntity
 }

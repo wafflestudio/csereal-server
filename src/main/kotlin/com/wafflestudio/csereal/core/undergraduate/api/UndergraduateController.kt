@@ -67,7 +67,7 @@ class UndergraduateController(
     */
 
     //교과목 정보
-    @GetMapping("/course")
+    @GetMapping("/courses")
     fun readAllCourses() : ResponseEntity<List<CourseDto>> {
         return ResponseEntity.ok(undergraduateService.readAllCourses())
     }
