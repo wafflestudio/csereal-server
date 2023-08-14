@@ -1,12 +1,12 @@
-package com.wafflestudio.csereal.core.undergraduate.dto
+package com.wafflestudio.csereal.core.academics.dto
 
-import com.wafflestudio.csereal.core.undergraduate.database.UndergraduateEntity
+import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
 import java.time.LocalDateTime
 
-data class UndergraduateDto(
+data class AcademicsDto(
     val id: Long,
     val postType: String,
-    val title: String,
+    val name: String,
     val description: String,
     val year: Int?,
     val createdAt: LocalDateTime?,
@@ -14,11 +14,11 @@ data class UndergraduateDto(
     val isPublic: Boolean,
 ) {
     companion object {
-        fun of(entity: UndergraduateEntity) : UndergraduateDto = entity.run {
-            UndergraduateDto(
+        fun of(entity: AcademicsEntity) : AcademicsDto = entity.run {
+            AcademicsDto(
                 id = this.id,
                 postType = this.postType,
-                title = this.title,
+                name = this.name,
                 description = this.description,
                 year = this.year,
                 createdAt = this.createdAt,

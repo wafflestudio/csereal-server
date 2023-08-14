@@ -1,15 +1,15 @@
-package com.wafflestudio.csereal.core.undergraduate.dto
+package com.wafflestudio.csereal.core.academics.dto
 
-import com.wafflestudio.csereal.core.undergraduate.database.CourseEntity
+import com.wafflestudio.csereal.core.academics.database.CourseEntity
 
 data class CourseDto(
     val id: Long,
     val classification: String,
     val number: String,
-    val title: String,
+    val name: String,
     val credit: Int,
     val year: String,
-    val courseUrl: String?,
+    val courseURL: String?,
     val description: String?
 ) {
     companion object {
@@ -18,10 +18,10 @@ data class CourseDto(
                 id = this.id,
                 classification = this.classification,
                 number = this.number,
-                title = this.title,
+                name = this.name,
                 credit = this.credit,
                 year = this.year,
-                courseUrl = this.courseUrl,
+                courseURL = this.courseURL,
                 description = this.description,
             )
         }
