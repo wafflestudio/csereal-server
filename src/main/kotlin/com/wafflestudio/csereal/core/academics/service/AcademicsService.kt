@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 interface AcademicsService {
     fun createAcademics(to: String, request: AcademicsDto): AcademicsDto
     fun readAcademics(to: String, postType: String): AcademicsDto
+
     /*
     fun createUnderCourseDependency(request: AcademicsDto): AcademicsDto
     fun readUnderCourseDependency(): AcademicsDto
@@ -19,6 +20,7 @@ interface AcademicsService {
     fun readAllCourses(to: String): List<CourseDto>
     fun createCourse(to: String, request: CourseDto): CourseDto
     fun readCourse(name: String): CourseDto
+    fun readScholarship(name:String): AcademicsDto
 }
 
 @Service
@@ -88,5 +90,13 @@ class AcademicsServiceImpl(
 
         return CourseDto.of(course)
     }
+
+    @Transactional
+    override fun readScholarship(name: String): AcademicsDto {
+        val scholarship : AcademicsEntity = academicsRepository.findByName(name)
+
+        return AcademicsDto.of(scholarship)
+    }
+
 
 }

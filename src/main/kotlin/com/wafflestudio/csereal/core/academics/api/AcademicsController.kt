@@ -54,12 +54,7 @@ class AcademicsController(
     */
 
     //교과목 정보: courses
-    @GetMapping("/{to}/courses")
-    fun readAllCourses(
-        @PathVariable to: String,
-    ) : ResponseEntity<List<CourseDto>> {
-        return ResponseEntity.ok(academicsService.readAllCourses(to))
-    }
+
     @PostMapping("/{to}/course")
     fun createCourse(
         @PathVariable to: String,
@@ -68,11 +63,34 @@ class AcademicsController(
         return ResponseEntity.ok(academicsService.createCourse(to, request))
     }
 
+    @GetMapping("/{to}/courses")
+    fun readAllCourses(
+        @PathVariable to: String,
+    ) : ResponseEntity<List<CourseDto>> {
+        return ResponseEntity.ok(academicsService.readAllCourses(to))
+    }
+
     @GetMapping("/course/{name}")
     fun readCourse(
         @PathVariable name: String
     ): ResponseEntity<CourseDto> {
         return ResponseEntity.ok(academicsService.readCourse(name))
+    }
+
+    // 장학금
+    @PostMapping("/{to}/scholarship")
+    fun createScholarship(
+        @PathVariable to: String,
+        @Valid @RequestBody request: AcademicsDto
+    ) : ResponseEntity<AcademicsDto> {
+        return ResponseEntity.ok(academicsService.createAcademics(to, request))
+    }
+
+    @GetMapping("/scholarship/{name}")
+    fun readScholarship(
+        @PathVariable name: String
+    ) : ResponseEntity<AcademicsDto> {
+        return ResponseEntity.ok(academicsService.readScholarship(name))
     }
 
 }
