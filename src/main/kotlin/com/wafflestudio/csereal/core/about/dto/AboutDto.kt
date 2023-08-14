@@ -1,14 +1,14 @@
-package com.wafflestudio.csereal.core.introduction.dto
+package com.wafflestudio.csereal.core.about.dto
 
 
-import com.wafflestudio.csereal.core.introduction.database.IntroductionEntity
+import com.wafflestudio.csereal.core.about.database.AboutEntity
 import java.time.LocalDateTime
 
-data class IntroductionDto(
+data class AboutDto(
     val id: Long,
     val postType: String,
-    val postDetail: String?,
-    val title: String,
+    val name: String,
+    val engName: String?,
     val description: String,
     val year: Int?,
     val createdAt: LocalDateTime?,
@@ -17,12 +17,12 @@ data class IntroductionDto(
     val locations: List<String>?
 ) {
     companion object {
-        fun of(entity: IntroductionEntity) : IntroductionDto = entity.run {
-            IntroductionDto(
+        fun of(entity: AboutEntity) : AboutDto = entity.run {
+            AboutDto(
                 id = this.id,
                 postType = this.postType,
-                postDetail = this.postDetail,
-                title = this.title,
+                name = this.name,
+                engName = this.engName,
                 description = this.description,
                 year = this.year,
                 createdAt = this.createdAt,

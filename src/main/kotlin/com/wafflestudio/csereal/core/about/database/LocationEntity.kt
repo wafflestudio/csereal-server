@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.introduction.database
+package com.wafflestudio.csereal.core.about.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import jakarta.persistence.Entity
@@ -11,16 +11,16 @@ class LocationEntity(
     val name: String,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "introduction_id")
-    val introduction: IntroductionEntity
+    @JoinColumn(name = "about_id")
+    val about: AboutEntity
 ) : BaseTimeEntity() {
     companion object {
-        fun create(name: String, introduction: IntroductionEntity): LocationEntity {
+        fun create(name: String, about: AboutEntity): LocationEntity {
             val locationEntity = LocationEntity(
                 name = name,
-                introduction = introduction
+                about = about
             )
-            introduction.locations.add(locationEntity)
+            about.locations.add(locationEntity)
             return locationEntity
         }
     }
