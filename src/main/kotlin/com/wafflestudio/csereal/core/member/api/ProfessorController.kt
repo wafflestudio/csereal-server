@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.member.api
 
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
+import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
 import com.wafflestudio.csereal.core.member.dto.SimpleProfessorDto
 import com.wafflestudio.csereal.core.member.service.ProfessorService
 import org.springframework.http.ResponseEntity
@@ -23,7 +24,7 @@ class ProfessorController(
     }
 
     @GetMapping("/active")
-    fun getActiveProfessors(): ResponseEntity<List<SimpleProfessorDto>> {
+    fun getActiveProfessors(): ResponseEntity<ProfessorPageDto> {
         return ResponseEntity.ok(professorService.getActiveProfessors())
     }
 
