@@ -43,7 +43,7 @@ class AboutServiceImpl(
 
     @Transactional(readOnly = true)
     override fun readAllClubs(): List<AboutDto> {
-        val clubs = aboutRepository.findAllByPostTypeOrderByPostDetail("student-clubs").map {
+        val clubs = aboutRepository.findAllByPostTypeOrderByName("student-clubs").map {
             AboutDto.of(it)
         }
 
@@ -52,7 +52,7 @@ class AboutServiceImpl(
 
     @Transactional(readOnly = true)
     override fun readAllFacilities(): List<AboutDto> {
-        val facilities = aboutRepository.findAllByPostTypeOrderByPostDetail("facilities").map {
+        val facilities = aboutRepository.findAllByPostTypeOrderByName("facilities").map {
             AboutDto.of(it)
         }
 
@@ -61,7 +61,7 @@ class AboutServiceImpl(
 
     @Transactional(readOnly = true)
     override fun readAllDirections(): List<AboutDto> {
-        val directions = aboutRepository.findAllByPostTypeOrderByPostDetail("directions").map {
+        val directions = aboutRepository.findAllByPostTypeOrderByName("directions").map {
             AboutDto.of(it)
         }
 

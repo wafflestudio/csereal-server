@@ -8,7 +8,7 @@ import jakarta.persistence.Entity
 class CourseEntity(
     var isDeleted: Boolean = false,
 
-    var to: String,
+    var studentType: StudentType,
 
     var classification: String,
 
@@ -25,9 +25,9 @@ class CourseEntity(
     var description: String?
 ): BaseTimeEntity() {
     companion object {
-        fun of(to: String, courseDto: CourseDto): CourseEntity {
+        fun of(studentType: StudentType, courseDto: CourseDto): CourseEntity {
             return CourseEntity(
-                to = to,
+                studentType = studentType,
                 classification = courseDto.classification,
                 number = courseDto.number,
                 name = courseDto.name.replace(" ","-"),

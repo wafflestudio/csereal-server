@@ -1,24 +1,16 @@
 package com.wafflestudio.csereal.core.academics.service
 
-import com.wafflestudio.csereal.core.academics.database.CourseEntity
-import com.wafflestudio.csereal.core.academics.database.CourseRepository
-import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
-import com.wafflestudio.csereal.core.academics.database.AcademicsRepository
+import com.wafflestudio.csereal.core.academics.database.*
 import com.wafflestudio.csereal.core.academics.dto.CourseDto
 import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface AcademicsService {
-    fun createAcademics(to: String, request: AcademicsDto): AcademicsDto
-    fun readAcademics(to: String, postType: String): AcademicsDto
-
-    /*
-    fun createUnderCourseDependency(request: AcademicsDto): AcademicsDto
-    fun readUnderCourseDependency(): AcademicsDto
-     */
-    fun readAllCourses(to: String): List<CourseDto>
-    fun createCourse(to: String, request: CourseDto): CourseDto
+    fun createAcademics(studentType: StudentType, request: AcademicsDto): AcademicsDto
+    fun readAcademics(studentType: StudentType, postType: String): AcademicsDto
+    fun readAllCourses(studentType: StudentType): List<CourseDto>
+    fun createCourse(studentType: StudentType, request: CourseDto): CourseDto
     fun readCourse(name: String): CourseDto
     fun readScholarship(name:String): AcademicsDto
 }
@@ -29,8 +21,8 @@ class AcademicsServiceImpl(
     private val courseRepository: CourseRepository,
 ) : AcademicsService {
     @Transactional
-    override fun createAcademics(to: String, request: AcademicsDto): AcademicsDto {
-        val newAcademics = AcademicsEntity.of(to, request)
+    override fun createAcademics(studentType: StudentType, request: AcademicsDto): AcademicsDto {
+        val newAcademics = AcademicsEntity.of(studentType, request)
 
         academicsRepository.save(newAcademics)
 
@@ -38,46 +30,22 @@ class AcademicsServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAcademics(to: String, postType: String): AcademicsDto {
-        val academics : AcademicsEntity = academicsRepository.findByToAndPostType(to, postType)
+    override fun readAcademics(studentType: StudentType, postType: String): AcademicsDto {
+        val academics : AcademicsEntity = academicsRepository.findByStudentTypeAndPostType(studentType, postType)
 
         return AcademicsDto.of(academics)
     }
 
-    /*
     @Transactional
-    override fun createUnderCourseDependency(request: AcademicsDto): AcademicsDto {
-        val newUnderCourseDependency = AcademicsEntity(
-            postType = "underCourseDependency",
-            title = request.title,
-            description = request.description,
-            isPublic = request.isPublic
-        )
-
-        AcademicsRepository.save(newUnderCourseDependency)
-
-        return AcademicsDto.of(newUnderCourseDependency)
-    }
-
-    @Transactional(readOnly = true)
-    override fun readUnderCourseDependency(): AcademicsDto {
-        val Academics : AcademicsEntity = AcademicsRepository.findByPostType("underCourseDependency")
-
-        return AcademicsDto.of(Academics)
-    }
-
-     */
-
-    @Transactional
-    override fun readAllCourses(to: String): List<CourseDto> {
-        val courseDtoList = courseRepository.findAllByToOrderByYearAsc(to).map {
+    override fun readAllCourses(studentType: StudentType): List<CourseDto> {
+        val courseDtoList = courseRepository.findAllByStudentTypeOrderByYearAsc(studentType).map {
            CourseDto.of(it)
         }
         return courseDtoList
     }
     @Transactional
-    override fun createCourse(to: String, request: CourseDto): CourseDto {
-        val course = CourseEntity.of(to, request)
+    override fun createCourse(studentType: StudentType, request: CourseDto): CourseDto {
+        val course = CourseEntity.of(studentType, request)
 
         courseRepository.save(course)
 

@@ -3,10 +3,13 @@ package com.wafflestudio.csereal.core.academics.database
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 
 @Entity(name = "academics")
 class AcademicsEntity(
-    var to: String,
+    @Enumerated(EnumType.STRING)
+    var studentType: StudentType,
 
     var postType: String,
 
@@ -20,9 +23,9 @@ class AcademicsEntity(
 
 ): BaseTimeEntity() {
     companion object {
-        fun of(to: String, academicsDto: AcademicsDto): AcademicsEntity {
+        fun of(studentType: StudentType, academicsDto: AcademicsDto): AcademicsEntity {
             return AcademicsEntity(
-                to = to,
+                studentType = studentType,
                 postType = academicsDto.postType,
                 name = academicsDto.name,
                 description = academicsDto.description,
