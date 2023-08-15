@@ -1,0 +1,28 @@
+package com.wafflestudio.csereal.core.research.dto
+
+import com.wafflestudio.csereal.core.research.database.ResearchEntity
+import java.time.LocalDateTime
+
+data class ResearchDto(
+    val id: Long,
+    val title: String,
+    val description: String,
+    val createdAt: LocalDateTime?,
+    val modifiedAt: LocalDateTime?,
+    val isPublic: Boolean,
+    val labs: List<String>?
+) {
+    companion object {
+        fun of(entity: ResearchEntity) = entity.run {
+            ResearchDto(
+                id = this.id,
+                title = this.title,
+                description = this.description,
+                createdAt = this.createdAt,
+                modifiedAt = this.modifiedAt,
+                isPublic = this.isPublic,
+                labs = this.labs.map { it.name }
+            )
+        }
+    }
+}
