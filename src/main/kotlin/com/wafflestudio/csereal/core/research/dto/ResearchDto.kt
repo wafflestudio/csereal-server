@@ -10,7 +10,7 @@ data class ResearchDto(
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
     val isPublic: Boolean,
-    val labs: List<String>?
+    val labsId: List<Long>?
 ) {
     companion object {
         fun of(entity: ResearchEntity) = entity.run {
@@ -21,7 +21,7 @@ data class ResearchDto(
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
                 isPublic = this.isPublic,
-                labs = this.labs.map { it.name }
+                labsId = this.labs.map { it.id }
             )
         }
     }

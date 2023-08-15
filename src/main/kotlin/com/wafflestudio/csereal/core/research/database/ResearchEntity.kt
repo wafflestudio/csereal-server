@@ -19,7 +19,7 @@ class ResearchEntity(
     var isPublic: Boolean,
 
     @OneToMany(mappedBy = "research", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val labs: MutableList<LabEntity> = mutableListOf()
+    var labs: MutableList<LabEntity> = mutableListOf()
 ): BaseTimeEntity() {
     companion object {
         fun of(postType: String, postDetail: String?, researchDto: ResearchDto) : ResearchEntity {

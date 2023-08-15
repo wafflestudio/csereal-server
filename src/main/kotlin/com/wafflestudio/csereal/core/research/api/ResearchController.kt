@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.research.api
 
+import com.wafflestudio.csereal.core.research.dto.LabDto
 import com.wafflestudio.csereal.core.research.dto.ResearchDto
 import com.wafflestudio.csereal.core.research.service.ResearchService
 import jakarta.validation.Valid
@@ -21,5 +22,12 @@ class ResearchController(
         @Valid @RequestBody request: ResearchDto
     ) : ResponseEntity<ResearchDto> {
         return ResponseEntity.ok(researchService.createResearchDetail(postType, name, request))
+    }
+
+    @PostMapping("/lab")
+    fun createLab(
+        @Valid @RequestBody request: LabDto
+    ) : ResponseEntity<LabDto> {
+        return ResponseEntity.ok(researchService.createLab(request))
     }
 }
