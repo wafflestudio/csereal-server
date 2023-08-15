@@ -16,13 +16,12 @@ import org.springframework.web.bind.annotation.RestController
 class AdmissionsController(
     private val admissionsService: AdmissionsService
 ) {
-    @PostMapping("/{postType}/{admissionsType}")
+    // postType -> 메인: main (학부, 대학원 모두 o), 수시: early-admission, 정시: regular-admission (수시 정시는 학부만)
+    @PostMapping
     fun createAdmissions(
-        @PathVariable postType: String,
-        @PathVariable admissionsType: String,
         @Valid @RequestBody request: AdmissionsDto
     ) : AdmissionsDto {
-        return admissionsService.createAdmissions(postType, admissionsType, request)
+        return admissionsService.createAdmissions(request)
     }
 
     /*
@@ -35,10 +34,18 @@ class AdmissionsController(
 
      */
 
-    @GetMapping("/{postType}")
-    fun readAdmissions(
-        @PathVariable postType: String
-    ) : ResponseEntity<List<AdmissionsDto>> {
-        return ResponseEntity.ok(admissionsService.readAdmissions(postType))
+    @GetMapping("/{to}")
+    fun readAdmissionsMain(
+        @PathVariable to: String,
+    ) : ResponseEntity<AdmissionsDto> {
+        return ResponseEntity.ok(admissionsService.readAdmissionsMain(to))
     }
+    @GetMapping("/undergraduate/{postType}")
+    fun readUndergraduateAdmissions(
+        @PathVariable postType: String
+    ) : ResponseEntity<AdmissionsDto> {
+        return ResponseEntity.ok(admissionsService.readUndergraduateAdmissions(postType))
+    }
+
+
 }

@@ -10,11 +10,11 @@ import jakarta.persistence.OneToMany
 class ResearchEntity(
     var postType: String,
 
-    var postDetail: String?,
+    var name: String,
 
-    var title: String,
+    var description: String?,
 
-    var description: String,
+    var websiteUrl: String?,
 
     var isPublic: Boolean,
 
@@ -25,9 +25,9 @@ class ResearchEntity(
         fun of(researchDto: ResearchDto) : ResearchEntity {
             return ResearchEntity(
                 postType = researchDto.postType,
-                postDetail = researchDto.postDetail,
-                title = researchDto.title,
+                name = researchDto.name,
                 description = researchDto.description,
+                websiteUrl = researchDto.websiteUrl,
                 isPublic = researchDto.isPublic
             )
         }

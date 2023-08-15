@@ -6,17 +6,17 @@ import jakarta.persistence.Entity
 
 @Entity(name = "admissions")
 class AdmissionsEntity(
+    val to: String,
     val postType: String,
-    val admissionsType: String,
     val title: String,
     val description: String,
     val isPublic: Boolean,
 ): BaseTimeEntity() {
     companion object {
-        fun of(postType: String, admissionsType: String, admissionsDto: AdmissionsDto) : AdmissionsEntity {
+        fun of(admissionsDto: AdmissionsDto) : AdmissionsEntity {
             return AdmissionsEntity(
-                postType = postType,
-                admissionsType = admissionsType,
+                to = admissionsDto.to,
+                postType = admissionsDto.postType,
                 title = admissionsDto.title,
                 description = admissionsDto.description,
                 isPublic = admissionsDto.isPublic

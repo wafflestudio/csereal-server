@@ -7,18 +7,21 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface AdmissionsService {
-    fun createAdmissions(postType: String, admissionsType: String, request: AdmissionsDto) : AdmissionsDto
+    fun createAdmissions(request: AdmissionsDto): AdmissionsDto
+
     // fun readAdmissionsUndergraduate() : List<AdmissionsDto>
-    fun readAdmissions(postType: String): List<AdmissionsDto>
+    fun readAdmissionsMain(to: String): AdmissionsDto
+    fun readUndergraduateAdmissions(postType: String): AdmissionsDto
+
 }
 
 @Service
 class AdmissionsServiceImpl(
     private val admissionsRepository: AdmissionsRepository
-): AdmissionsService {
+) : AdmissionsService {
     @Transactional
-    override fun createAdmissions(postType: String, admissionsType: String, request: AdmissionsDto) : AdmissionsDto {
-        val newAdmissions : AdmissionsEntity = AdmissionsEntity.of(postType, admissionsType, request)
+    override fun createAdmissions(request: AdmissionsDto): AdmissionsDto {
+        val newAdmissions: AdmissionsEntity = AdmissionsEntity.of(request)
 
         admissionsRepository.save(newAdmissions)
 
@@ -40,22 +43,22 @@ class AdmissionsServiceImpl(
      */
 
     @Transactional(readOnly = true)
-    override fun readAdmissions(postType: String): List<AdmissionsDto> {
-        val list : MutableList<AdmissionsDto> = mutableListOf()
-        if(postType == "undergraduate") {
-            val susi = AdmissionsDto.of(admissionsRepository.findByAdmissionsType("susi"))
-            val jeongsi = AdmissionsDto.of(admissionsRepository.findByAdmissionsType("jeongsi"))
-            list.add(susi)
-            list.add(jeongsi)
+    override fun readAdmissionsMain(to: String): AdmissionsDto {
+        return if (to == "undergraduate") {
+            AdmissionsDto.of(admissionsRepository.findByToAndPostType("undergraduate", "main"))
         } else {
-            // 원래는 regular와 함께 labVideo도 같이 있습니다. labVideo도 한번에 읽을거면 리스트를 추가할 예정입니다.
-            val regular = AdmissionsDto.of(admissionsRepository.findByAdmissionsType("regular"))
-            list.add(regular)
+            AdmissionsDto.of(admissionsRepository.findByToAndPostType("graduate", "main"))
         }
-
-        return list
     }
 
+    @Transactional(readOnly = true)
+    override fun readUndergraduateAdmissions(postType: String): AdmissionsDto {
+        return if (postType == "early-admission") {
+            AdmissionsDto.of(admissionsRepository.findByPostType("early-admission"))
+        } else {
+            AdmissionsDto.of(admissionsRepository.findByPostType("regular-admission"))
+        }
+    }
 
 
 }
