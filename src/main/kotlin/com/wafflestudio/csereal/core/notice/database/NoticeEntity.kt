@@ -17,8 +17,6 @@ class NoticeEntity(
 
     var description: String,
 
-//    var postType: String,
-
     var isPublic: Boolean,
 
     var isSlide: Boolean,
