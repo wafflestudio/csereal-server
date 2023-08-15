@@ -14,7 +14,7 @@ class ResearchEntity(
 
     var description: String?,
 
-    var websiteUrl: String?,
+    var websiteURL: String?,
 
     var isPublic: Boolean,
 
@@ -27,7 +27,7 @@ class ResearchEntity(
                 postType = researchDto.postType,
                 name = researchDto.name,
                 description = researchDto.description,
-                websiteUrl = researchDto.websiteUrl,
+                websiteURL = researchDto.websiteURL,
                 isPublic = researchDto.isPublic
             )
         }
