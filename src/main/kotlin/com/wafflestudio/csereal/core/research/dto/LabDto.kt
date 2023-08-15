@@ -13,20 +13,22 @@ data class LabDto(
     val fax: String?,
     val website: String?,
     val description: String?,
+    val isPublic: Boolean,
 ) {
     companion object {
-        fun of(researchGroupId: Long, entity: LabEntity): LabDto = entity.run {
+        fun of(entity: LabEntity): LabDto = entity.run {
             LabDto(
                 id = this.id,
                 name = this.name,
                 initial = this.initial,
-                researchGroupId = researchGroupId,
+                researchGroupId = this.research.id,
                 professorsId = this.professors.map { it.id },
                 labs = this.labs,
                 phone = this.phone,
                 fax = this.fax,
                 website = this.website,
-                description = this.description
+                description = this.description,
+                isPublic = this.isPublic
             )
         }
     }

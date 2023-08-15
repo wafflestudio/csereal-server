@@ -22,10 +22,30 @@ class ResearchController(
         return ResponseEntity.ok(researchService.createResearchDetail(request))
     }
 
+    @GetMapping("/{postType}")
+    fun readAllResearchDetails(
+        @PathVariable postType: String,
+    ) : ResponseEntity<List<ResearchDto>> {
+        return ResponseEntity.ok(researchService.readAllResearchDetails(postType))
+    }
+
+    @PatchMapping("/{researchId}")
+    fun updateResearchDetail(
+        @PathVariable researchId: Long,
+        @Valid @RequestBody request: ResearchDto
+    ) : ResponseEntity<ResearchDto> {
+        return ResponseEntity.ok(researchService.updateResearchDetail(researchId, request))
+    }
+
     @PostMapping("/lab")
     fun createLab(
         @Valid @RequestBody request: LabDto
     ) : ResponseEntity<LabDto> {
         return ResponseEntity.ok(researchService.createLab(request))
+    }
+
+    @GetMapping("/labs")
+    fun readAllLabs() : ResponseEntity<List<LabDto>> {
+        return ResponseEntity.ok(researchService.readAllLabs())
     }
 }

@@ -24,25 +24,27 @@ class LabEntity(
 
     val description: String?,
 
+    val isPublic: Boolean,
+
     @OneToMany(mappedBy = "lab")
     val professors: MutableSet<ProfessorEntity> = mutableSetOf(),
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "research_id")
-    val research: ResearchEntity
+    var research: ResearchEntity
 ) : BaseTimeEntity() {
     companion object {
         fun of(researchGroup: ResearchEntity, labDto: LabDto) : LabEntity {
             return LabEntity(
                 name = labDto.name,
                 initial = labDto.initial,
-                researchGroup = researchGroup.title,
                 labs = labDto.labs,
                 phone = labDto.phone,
                 fax = labDto.fax,
                 website = labDto.website,
                 description = labDto.description,
-                research = researchGroup
+                isPublic = labDto.isPublic,
+                research = researchGroup,
             )
         }
     }
