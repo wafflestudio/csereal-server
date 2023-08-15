@@ -15,13 +15,11 @@ class ResearchController(
     //research 메인 페이지는 안만드는 걸로 알아서 뺐어요
 
     // postType: groups, centers
-    @PostMapping("/{postType}/{name}")
+    @PostMapping
     fun createResearchDetail(
-        @PathVariable postType: String,
-        @PathVariable name: String,
         @Valid @RequestBody request: ResearchDto
     ) : ResponseEntity<ResearchDto> {
-        return ResponseEntity.ok(researchService.createResearchDetail(postType, name, request))
+        return ResponseEntity.ok(researchService.createResearchDetail(request))
     }
 
     @PostMapping("/lab")

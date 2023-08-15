@@ -22,10 +22,10 @@ class ResearchEntity(
     var labs: MutableList<LabEntity> = mutableListOf()
 ): BaseTimeEntity() {
     companion object {
-        fun of(postType: String, postDetail: String?, researchDto: ResearchDto) : ResearchEntity {
+        fun of(researchDto: ResearchDto) : ResearchEntity {
             return ResearchEntity(
-                postType = postType,
-                postDetail = postDetail,
+                postType = researchDto.postType,
+                postDetail = researchDto.postDetail,
                 title = researchDto.title,
                 description = researchDto.description,
                 isPublic = researchDto.isPublic

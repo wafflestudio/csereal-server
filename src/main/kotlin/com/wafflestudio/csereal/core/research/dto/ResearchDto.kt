@@ -5,6 +5,8 @@ import java.time.LocalDateTime
 
 data class ResearchDto(
     val id: Long,
+    val postType: String,
+    val postDetail: String?,
     val title: String,
     val description: String,
     val createdAt: LocalDateTime?,
@@ -16,6 +18,8 @@ data class ResearchDto(
         fun of(entity: ResearchEntity) = entity.run {
             ResearchDto(
                 id = this.id,
+                postType = this.postType,
+                postDetail = this.postDetail,
                 title = this.title,
                 description = this.description,
                 createdAt = this.createdAt,

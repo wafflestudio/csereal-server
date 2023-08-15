@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface ResearchService {
-    fun createResearchDetail(postType: String, name: String, request: ResearchDto): ResearchDto
+    fun createResearchDetail(request: ResearchDto): ResearchDto
     fun createLab(request: LabDto): LabDto
 }
 
@@ -22,8 +22,8 @@ class ResearchServiceImpl(
     private val labRepository: LabRepository,
 ) : ResearchService {
     @Transactional
-    override fun createResearchDetail(postType: String, name: String, request: ResearchDto): ResearchDto {
-        val newResearch = ResearchEntity.of(postType, name, request)
+    override fun createResearchDetail(request: ResearchDto): ResearchDto {
+        val newResearch = ResearchEntity.of(request)
         val list : MutableList<LabEntity> = mutableListOf()
         if(request.labsId != null) {
 
