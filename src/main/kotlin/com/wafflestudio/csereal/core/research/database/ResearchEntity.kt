@@ -2,13 +2,12 @@ package com.wafflestudio.csereal.core.research.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.core.research.dto.ResearchDto
-import jakarta.persistence.CascadeType
-import jakarta.persistence.Entity
-import jakarta.persistence.OneToMany
+import jakarta.persistence.*
 
 @Entity(name = "research")
 class ResearchEntity(
-    var postType: String,
+    @Enumerated(EnumType.STRING)
+    var postType: ResearchPostType,
 
     var name: String,
 

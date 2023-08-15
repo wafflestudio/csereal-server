@@ -13,9 +13,6 @@ import org.springframework.web.bind.annotation.*
 class ResearchController(
     private val researchService: ResearchService
 ) {
-    //research 메인 페이지는 안만드는 걸로 알아서 뺐어요
-
-    // postType: groups, centers
     @PostMapping
     fun createResearchDetail(
         @Valid @RequestBody request: ResearchDto

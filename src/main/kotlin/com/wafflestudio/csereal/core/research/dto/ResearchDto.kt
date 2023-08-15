@@ -1,11 +1,12 @@
 package com.wafflestudio.csereal.core.research.dto
 
 import com.wafflestudio.csereal.core.research.database.ResearchEntity
+import com.wafflestudio.csereal.core.research.database.ResearchPostType
 import java.time.LocalDateTime
 
 data class ResearchDto(
     val id: Long,
-    val postType: String,
+    val postType: ResearchPostType,
     val name: String,
     val description: String?,
     val websiteURL: String?,
