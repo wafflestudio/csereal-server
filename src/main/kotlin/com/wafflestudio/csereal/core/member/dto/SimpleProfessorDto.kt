@@ -10,7 +10,7 @@ data class SimpleProfessorDto(
     val labName: String?,
     val phone: String?,
     val email: String?,
-    // val imageUri: String
+    val imageUri: String?
 ) {
     companion object {
         fun of(professorEntity: ProfessorEntity): SimpleProfessorDto {
@@ -21,7 +21,8 @@ data class SimpleProfessorDto(
                 labId = professorEntity.lab?.id,
                 labName = professorEntity.lab?.name,
                 phone = professorEntity.phone,
-                email = professorEntity.email
+                email = professorEntity.email,
+                imageUri = professorEntity.imageUri
             )
         }
     }

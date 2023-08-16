@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.member.database.StaffRepository
 import com.wafflestudio.csereal.core.member.database.TaskEntity
+import com.wafflestudio.csereal.core.member.dto.SimpleStaffDto
 import com.wafflestudio.csereal.core.member.dto.StaffDto
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -12,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional
 interface StaffService {
     fun createStaff(createStaffRequest: StaffDto): StaffDto
     fun getStaff(staffId: Long): StaffDto
-    fun getAllStaff(): List<StaffDto>
+    fun getAllStaff(): List<SimpleStaffDto>
     fun updateStaff(staffId: Long, updateStaffRequest: StaffDto): StaffDto
     fun deleteStaff(staffId: Long)
 }
@@ -42,8 +43,8 @@ class StaffServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun getAllStaff(): List<StaffDto> {
-        return staffRepository.findAll().map { StaffDto.of(it) }.sortedBy { it.name }
+    override fun getAllStaff(): List<SimpleStaffDto> {
+        return staffRepository.findAll().map { SimpleStaffDto.of(it) }.sortedBy { it.name }
     }
 
     override fun updateStaff(staffId: Long, updateStaffRequest: StaffDto): StaffDto {

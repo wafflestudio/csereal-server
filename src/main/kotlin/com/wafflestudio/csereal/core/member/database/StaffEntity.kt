@@ -11,14 +11,14 @@ class StaffEntity(
     var name: String,
     var role: String,
 
-    // profileImage
-
     var office: String,
     var phone: String,
     var email: String,
 
     @OneToMany(mappedBy = "staff", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val tasks: MutableList<TaskEntity> = mutableListOf()
+    val tasks: MutableList<TaskEntity> = mutableListOf(),
+
+    var imageUri: String? = null
 
 ) : BaseTimeEntity() {
 

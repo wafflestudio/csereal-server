@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.member.api
 
+import com.wafflestudio.csereal.core.member.dto.SimpleStaffDto
 import com.wafflestudio.csereal.core.member.dto.StaffDto
 import com.wafflestudio.csereal.core.member.service.StaffService
 import org.springframework.http.ResponseEntity
@@ -29,7 +30,7 @@ class StaffController(
     }
 
     @GetMapping
-    fun getAllStaff(): ResponseEntity<List<StaffDto>> {
+    fun getAllStaff(): ResponseEntity<List<SimpleStaffDto>> {
         return ResponseEntity.ok(staffService.getAllStaff())
     }
 
