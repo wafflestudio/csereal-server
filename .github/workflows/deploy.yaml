@@ -39,6 +39,8 @@ jobs:
                 with:
                     context: .
                     push: true
+                    build-args: |
+                        PROFILE=prod
                     tags: |
                         ghcr.io/wafflestudio/csereal-server/server_image:latest
                         ghcr.io/wafflestudio/csereal-server/server_image:${{github.sha}}
@@ -77,6 +79,7 @@ jobs:
                     key: ${{secrets.SSH_KEY}}
                     script: |
                         cd ~/app
+                        source .env
                         docker-compose down
                         docker-compose pull
                         docker-compose up -d

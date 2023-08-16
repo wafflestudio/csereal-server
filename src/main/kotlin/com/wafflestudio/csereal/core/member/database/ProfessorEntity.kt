@@ -77,6 +77,7 @@ class ProfessorEntity(
         this.email = updateProfessorRequest.email
         this.website = updateProfessorRequest.website
     }
+
 }
 
 enum class ProfessorStatus {

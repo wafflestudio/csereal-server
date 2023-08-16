@@ -19,6 +19,7 @@ class StaffEntity(
     val tasks: MutableList<TaskEntity> = mutableListOf(),
 
     var imageUri: String? = null
+
 ) : BaseTimeEntity() {
 
     companion object {

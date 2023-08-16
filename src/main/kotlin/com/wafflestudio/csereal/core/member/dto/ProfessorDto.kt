@@ -25,6 +25,7 @@ data class ProfessorDto(
     val careers: List<String>,
     @JsonInclude(JsonInclude.Include.NON_NULL)
     var imageUri: String? = null
+
 ) {
     companion object {
         fun of(professorEntity: ProfessorEntity): ProfessorDto {
