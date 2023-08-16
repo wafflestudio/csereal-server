@@ -18,6 +18,11 @@ spring:
             issuer-uri: https://id-dev.bacchus.io/o
             jwk-set-uri: https://id-dev.bacchus.io/o/jwks
 
+server:
+  servlet:
+    session:
+      timeout: 7200 # 2시간
+
 springdoc:
   swagger-ui:
     path: index.html
@@ -38,6 +43,9 @@ spring:
     open-in-view: false
 logging.level:
   default: INFO
+  org:
+    springframework:
+      security: DEBUG
 
 ---
 spring:
