@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RequestMapping("/about")
@@ -24,11 +25,12 @@ class AboutController(
     // postType: directions / name -> by-public-transit, by-car, from-far-away
 
     // Todo: 전체 image, file, 학부장 인사말(greetings) signature
-    @PostMapping
+    @PostMapping("/{postType}")
     fun createAbout(
+        @PathVariable postType: String,
         @Valid @RequestBody request: AboutDto
     ) : ResponseEntity<AboutDto> {
-        return ResponseEntity.ok(aboutService.createAbout(request))
+        return ResponseEntity.ok(aboutService.createAbout(postType, request))
     }
 
     // read 목록이 하나

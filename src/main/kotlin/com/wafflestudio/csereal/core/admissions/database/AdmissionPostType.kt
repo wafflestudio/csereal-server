@@ -1,5 +1,5 @@
 package com.wafflestudio.csereal.core.admissions.database
 
 enum class AdmissionPostType {
-    MAIN, EARLY_ADMISSION, REGULAR_ADMISSION,
+    GRADUATE, UNDERGRADUATE_EARLY_ADMISSION, UNDERGRADUATE_REGULAR_ADMISSION,
 }

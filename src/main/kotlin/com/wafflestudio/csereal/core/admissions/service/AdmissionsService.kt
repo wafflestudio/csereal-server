@@ -1,17 +1,18 @@
 package com.wafflestudio.csereal.core.admissions.service
 
+import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.admissions.database.AdmissionPostType
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsEntity
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsRepository
-import com.wafflestudio.csereal.core.admissions.database.StudentType
 import com.wafflestudio.csereal.core.admissions.dto.AdmissionsDto
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface AdmissionsService {
-    fun createAdmissions(studentType: StudentType, request: AdmissionsDto): AdmissionsDto
-    fun readAdmissionsMain(studentType: StudentType): AdmissionsDto
-    fun readUndergraduateAdmissions(postType: AdmissionPostType): AdmissionsDto
+    fun createUndergraduateAdmissions(postType: String, request: AdmissionsDto): AdmissionsDto
+    fun createGraduateAdmissions(request: AdmissionsDto): AdmissionsDto
+    fun readUndergraduateAdmissions(postType: String): AdmissionsDto
+    fun readGraduateAdmissions(): AdmissionsDto
 
 }
 
@@ -20,30 +21,45 @@ class AdmissionsServiceImpl(
     private val admissionsRepository: AdmissionsRepository
 ) : AdmissionsService {
     @Transactional
-    override fun createAdmissions(studentType: StudentType, request: AdmissionsDto): AdmissionsDto {
-        val newAdmissions: AdmissionsEntity = AdmissionsEntity.of(studentType, request)
+    override fun createUndergraduateAdmissions(postType: String, request: AdmissionsDto): AdmissionsDto {
+        val stringPostTypes = listOf("early", "regular")
+        val enumPostTypes = listOf(AdmissionPostType.UNDERGRADUATE_EARLY_ADMISSION, AdmissionPostType.UNDERGRADUATE_REGULAR_ADMISSION)
+
+        if(!stringPostTypes.contains(postType)) {
+            throw CserealException.Csereal404("해당하는 내용을 전송할 수 없습니다.")
+        }
+        val enumPostType = enumPostTypes[stringPostTypes.indexOf(postType)]
+
+        val newAdmissions = AdmissionsEntity.of(enumPostType, request)
 
         admissionsRepository.save(newAdmissions)
 
         return AdmissionsDto.of(newAdmissions)
     }
 
+    @Transactional
+    override fun createGraduateAdmissions(request: AdmissionsDto): AdmissionsDto {
+        val newAdmissions: AdmissionsEntity = AdmissionsEntity.of(AdmissionPostType.GRADUATE, request)
+
+        admissionsRepository.save(newAdmissions)
+
+        return AdmissionsDto.of(newAdmissions)
+    }
     @Transactional(readOnly = true)
-    override fun readAdmissionsMain(studentType: StudentType): AdmissionsDto {
-        return if (studentType == StudentType.UNDERGRADUATE) {
-            AdmissionsDto.of(admissionsRepository.findByStudentTypeAndPostType(StudentType.UNDERGRADUATE, AdmissionPostType.MAIN))
+    override fun readUndergraduateAdmissions(postType: String): AdmissionsDto {
+        return if (postType == "early") {
+            AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionPostType.UNDERGRADUATE_EARLY_ADMISSION))
+        } else if (postType == "regular") {
+            AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionPostType.UNDERGRADUATE_REGULAR_ADMISSION))
         } else {
-            AdmissionsDto.of(admissionsRepository.findByStudentTypeAndPostType(StudentType.GRADUATE, AdmissionPostType.MAIN))
+            throw CserealException.Csereal404("해당하는 페이지를 찾을 수 없습니다.")
         }
     }
 
     @Transactional(readOnly = true)
-    override fun readUndergraduateAdmissions(postType: AdmissionPostType): AdmissionsDto {
-        return if (postType == AdmissionPostType.EARLY_ADMISSION) {
-            AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionPostType.EARLY_ADMISSION))
-        } else {
-            AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionPostType.REGULAR_ADMISSION))
-        }
+    override fun readGraduateAdmissions(): AdmissionsDto {
+        return AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionPostType.GRADUATE))
+
     }
 
 
