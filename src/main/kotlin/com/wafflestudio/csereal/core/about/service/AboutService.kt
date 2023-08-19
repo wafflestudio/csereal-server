@@ -31,6 +31,7 @@ class AboutServiceImpl(
         AboutPostType.FACILITIES,
         AboutPostType.DIRECTIONS
     )
+
     @Transactional
     override fun createAbout(postType: String, request: AboutDto): AboutDto {
         if(!stringPostTypes.contains(postType)) {

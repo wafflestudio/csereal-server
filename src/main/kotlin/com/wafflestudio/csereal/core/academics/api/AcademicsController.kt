@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.academics.api
 
-import com.wafflestudio.csereal.core.academics.database.StudentType
 import com.wafflestudio.csereal.core.academics.dto.CourseDto
 import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
 import com.wafflestudio.csereal.core.academics.service.AcademicsService
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RequestMapping("/academics")
@@ -19,30 +19,28 @@ class AcademicsController(
     private val academicsService: AcademicsService
 ) {
 
-    // postType -> 학부 안내: guide, 필수 교양 과목: general-studies-requirements,
-    // 전공 이수 표준 형태: curriculum, 졸업 규청: degree-requirements,
-    // 교과목 변경 내역: course-changes, 장학제도: scholarship
     //Todo: 이미지, 파일 추가 필요
     @PostMapping("/{studentType}")
     fun createAcademics(
-        @PathVariable studentType: StudentType,
+        @PathVariable studentType: String,
+        @RequestParam postType: String,
         @Valid @RequestBody request: AcademicsDto
     ) : ResponseEntity<AcademicsDto> {
-        return ResponseEntity.ok(academicsService.createAcademics(studentType, request))
+        return ResponseEntity.ok(academicsService.createAcademics(studentType, postType, request))
     }
 
-    @GetMapping("/{studentType}/{postType}")
+    @GetMapping("/{studentType}")
     fun readAcademics(
-        @PathVariable studentType: StudentType,
-        @PathVariable postType: String,
+        @PathVariable studentType: String,
+        @RequestParam postType: String,
     ): ResponseEntity<AcademicsDto> {
         return ResponseEntity.ok(academicsService.readAcademics(studentType, postType))
     }
 
-    //교과목 정보: courses
+    //교과목 정보
     @PostMapping("/{studentType}/course")
     fun createCourse(
-        @PathVariable studentType: StudentType,
+        @PathVariable studentType: String,
         @Valid @RequestBody request: CourseDto
     ) : ResponseEntity<CourseDto> {
         return ResponseEntity.ok(academicsService.createCourse(studentType, request))
@@ -50,14 +48,14 @@ class AcademicsController(
 
     @GetMapping("/{studentType}/courses")
     fun readAllCourses(
-        @PathVariable studentType: StudentType,
+        @PathVariable studentType: String,
     ) : ResponseEntity<List<CourseDto>> {
         return ResponseEntity.ok(academicsService.readAllCourses(studentType))
     }
 
-    @GetMapping("/course/{name}")
+    @GetMapping("/course")
     fun readCourse(
-        @PathVariable name: String
+        @RequestParam name: String
     ): ResponseEntity<CourseDto> {
         return ResponseEntity.ok(academicsService.readCourse(name))
     }
@@ -65,15 +63,15 @@ class AcademicsController(
     // 장학금
     @PostMapping("/{studentType}/scholarship")
     fun createScholarship(
-        @PathVariable studentType: StudentType,
+        @PathVariable studentType: String,
         @Valid @RequestBody request: AcademicsDto
     ) : ResponseEntity<AcademicsDto> {
-        return ResponseEntity.ok(academicsService.createAcademics(studentType, request))
+        return ResponseEntity.ok(academicsService.createAcademics(studentType, "scholarship", request))
     }
 
-    @GetMapping("/scholarship/{name}")
+    @GetMapping("/scholarship")
     fun readScholarship(
-        @PathVariable name: String
+        @RequestParam name: String
     ) : ResponseEntity<AcademicsDto> {
         return ResponseEntity.ok(academicsService.readScholarship(name))
     }

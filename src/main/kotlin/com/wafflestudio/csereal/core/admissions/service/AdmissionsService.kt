@@ -20,10 +20,11 @@ interface AdmissionsService {
 class AdmissionsServiceImpl(
     private val admissionsRepository: AdmissionsRepository
 ) : AdmissionsService {
+    val stringPostTypes = listOf("early", "regular")
+    val enumPostTypes = listOf(AdmissionPostType.UNDERGRADUATE_EARLY_ADMISSION, AdmissionPostType.UNDERGRADUATE_REGULAR_ADMISSION)
+
     @Transactional
     override fun createUndergraduateAdmissions(postType: String, request: AdmissionsDto): AdmissionsDto {
-        val stringPostTypes = listOf("early", "regular")
-        val enumPostTypes = listOf(AdmissionPostType.UNDERGRADUATE_EARLY_ADMISSION, AdmissionPostType.UNDERGRADUATE_REGULAR_ADMISSION)
 
         if(!stringPostTypes.contains(postType)) {
             throw CserealException.Csereal404("해당하는 내용을 전송할 수 없습니다.")
