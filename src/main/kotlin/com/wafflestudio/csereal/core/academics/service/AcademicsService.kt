@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.academics.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.core.about.database.AboutPostType
 import com.wafflestudio.csereal.core.academics.database.*
 import com.wafflestudio.csereal.core.academics.dto.CourseDto
 import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
@@ -21,24 +22,12 @@ class AcademicsServiceImpl(
     private val academicsRepository: AcademicsRepository,
     private val courseRepository: CourseRepository,
 ) : AcademicsService {
-    val stringPostTypes = listOf("guide", "general-studies-requirements", "curriculum", "degree-requirements", "course-changes", "scholarship")
-    val enumPostTypes = listOf(
-        AcademicsPostType.GUIDE,
-        AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS,
-        AcademicsPostType.CURRICULUM,
-        AcademicsPostType.DEGREE_REQUIREMENTS,
-        AcademicsPostType.COURSE_CHANGES,
-        AcademicsPostType.SCHOLARSHIP
-    )
-
     @Transactional
     override fun createAcademics(studentType: String, postType: String, request: AcademicsDto): AcademicsDto {
-        if(!stringPostTypes.contains(postType)) {
-            throw CserealException.Csereal404("해당하는 내용을 전송할 수 없습니다.")
-        }
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val enumPostType = makeStringToAcademicsPostType(postType)
 
-        val enumPostType = enumPostTypes[stringPostTypes.indexOf(postType)]
-        val newAcademics = AcademicsEntity.of(studentType, enumPostType, request)
+        val newAcademics = AcademicsEntity.of(enumStudentType, enumPostType, request)
 
         academicsRepository.save(newAcademics)
 
@@ -47,20 +36,19 @@ class AcademicsServiceImpl(
 
     @Transactional(readOnly = true)
     override fun readAcademics(studentType: String, postType: String): AcademicsDto {
-        if(!stringPostTypes.contains(postType)) {
-            throw CserealException.Csereal404("해당하는 내용을 전송할 수 없습니다.")
-        }
 
-        val enumPostType = enumPostTypes[stringPostTypes.indexOf(postType)]
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val enumPostType = makeStringToAcademicsPostType(postType)
 
-        val academics = academicsRepository.findByStudentTypeAndPostType(studentType, enumPostType)
+        val academics = academicsRepository.findByStudentTypeAndPostType(enumStudentType, enumPostType)
 
         return AcademicsDto.of(academics)
     }
 
     @Transactional
     override fun createCourse(studentType: String, request: CourseDto): CourseDto {
-        val course = CourseEntity.of(studentType, request)
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val course = CourseEntity.of(enumStudentType, request)
 
         courseRepository.save(course)
 
@@ -69,7 +57,9 @@ class AcademicsServiceImpl(
 
     @Transactional(readOnly = true)
     override fun readAllCourses(studentType: String): List<CourseDto> {
-        val courseDtoList = courseRepository.findAllByStudentTypeOrderByYearAsc(studentType).map {
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+
+        val courseDtoList = courseRepository.findAllByStudentTypeOrderByYearAsc(enumStudentType).map {
             CourseDto.of(it)
         }
         return courseDtoList
@@ -89,5 +79,23 @@ class AcademicsServiceImpl(
         return AcademicsDto.of(scholarship)
     }
 
+    private fun makeStringToAcademicsStudentType(postType: String) : AcademicsStudentType {
+        try {
+            val upperPostType = postType.replace("-","_").uppercase()
+            return AcademicsStudentType.valueOf(upperPostType)
 
+        } catch (e: IllegalArgumentException) {
+            throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
+        }
+    }
+
+    private fun makeStringToAcademicsPostType(postType: String) : AcademicsPostType {
+        try {
+            val upperPostType = postType.replace("-","_").uppercase()
+            return AcademicsPostType.valueOf(upperPostType)
+
+        } catch (e: IllegalArgumentException) {
+            throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
+        }
+    }
 }

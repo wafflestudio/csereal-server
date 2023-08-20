@@ -8,7 +8,8 @@ import jakarta.persistence.Enumerated
 
 @Entity(name = "academics")
 class AcademicsEntity(
-    var studentType: String,
+    @Enumerated(EnumType.STRING)
+    var studentType: AcademicsStudentType,
 
     @Enumerated(EnumType.STRING)
     var postType: AcademicsPostType,
@@ -20,7 +21,7 @@ class AcademicsEntity(
 
 ): BaseTimeEntity() {
     companion object {
-        fun of(studentType: String, postType: AcademicsPostType, academicsDto: AcademicsDto): AcademicsEntity {
+        fun of(studentType: AcademicsStudentType, postType: AcademicsPostType, academicsDto: AcademicsDto): AcademicsEntity {
             return AcademicsEntity(
                 studentType = studentType,
                 postType = postType,

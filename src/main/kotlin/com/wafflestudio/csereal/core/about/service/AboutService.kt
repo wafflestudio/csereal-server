@@ -21,24 +21,9 @@ interface AboutService {
 class AboutServiceImpl(
     private val aboutRepository: AboutRepository
 ) : AboutService {
-    val stringPostTypes = listOf("overview", "history", "future-careers", "contact", "student-clubs", "facilities", "directions")
-    val enumPostTypes = listOf(
-        AboutPostType.OVERVIEW,
-        AboutPostType.HISTORY,
-        AboutPostType.FUTURE_CAREERS,
-        AboutPostType.CONTACT,
-        AboutPostType.STUDENT_CLUBS,
-        AboutPostType.FACILITIES,
-        AboutPostType.DIRECTIONS
-    )
-
     @Transactional
     override fun createAbout(postType: String, request: AboutDto): AboutDto {
-        if(!stringPostTypes.contains(postType)) {
-            throw CserealException.Csereal404("해당하는 내용을 전송할 수 없습니다.")
-        }
-
-        val enumPostType = enumPostTypes[stringPostTypes.indexOf(postType)]
+        val enumPostType = makeStringToEnum(postType)
         val newAbout = AboutEntity.of(enumPostType, request)
 
         if(request.locations != null) {
@@ -54,10 +39,8 @@ class AboutServiceImpl(
 
     @Transactional(readOnly = true)
     override fun readAbout(postType: String): AboutDto {
-        if(!stringPostTypes.contains(postType)) {
-            throw CserealException.Csereal404("해당하는 페이지를 찾을 수 없습니다.")
-        }
-        val about = aboutRepository.findByPostType(enumPostTypes[stringPostTypes.indexOf(postType)])
+        val enumPostType = makeStringToEnum(postType)
+        val about = aboutRepository.findByPostType(enumPostType)
 
         return AboutDto.of(about)
     }
@@ -87,5 +70,15 @@ class AboutServiceImpl(
         }
 
         return directions
+    }
+
+    private fun makeStringToEnum(postType: String) : AboutPostType {
+        try {
+            val upperPostType = postType.replace("-","_").uppercase()
+            return AboutPostType.valueOf(upperPostType)
+
+        } catch (e: IllegalArgumentException) {
+            throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
+        }
     }
 }

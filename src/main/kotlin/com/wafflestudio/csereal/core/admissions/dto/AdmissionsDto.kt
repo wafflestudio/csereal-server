@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.admissions.dto
 
-import com.wafflestudio.csereal.core.admissions.database.AdmissionPostType
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsEntity
 import java.time.LocalDateTime
 

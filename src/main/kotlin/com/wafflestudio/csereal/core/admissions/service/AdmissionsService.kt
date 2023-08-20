@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.admissions.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.core.admissions.database.AdmissionPostType
+import com.wafflestudio.csereal.core.admissions.database.AdmissionsPostType
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsEntity
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsRepository
 import com.wafflestudio.csereal.core.admissions.dto.AdmissionsDto
@@ -20,15 +20,9 @@ interface AdmissionsService {
 class AdmissionsServiceImpl(
     private val admissionsRepository: AdmissionsRepository
 ) : AdmissionsService {
-    val stringPostTypes = listOf("early", "regular")
-    val enumPostTypes = listOf(AdmissionPostType.UNDERGRADUATE_EARLY_ADMISSION, AdmissionPostType.UNDERGRADUATE_REGULAR_ADMISSION)
-
     @Transactional
     override fun createUndergraduateAdmissions(postType: String, request: AdmissionsDto): AdmissionsDto {
-        if(!stringPostTypes.contains(postType)) {
-            throw CserealException.Csereal404("해당하는 내용을 전송할 수 없습니다.")
-        }
-        val enumPostType = enumPostTypes[stringPostTypes.indexOf(postType)]
+        val enumPostType = makeStringToAdmissionsPostType(postType)
 
         val newAdmissions = AdmissionsEntity.of(enumPostType, request)
 
@@ -39,27 +33,34 @@ class AdmissionsServiceImpl(
 
     @Transactional
     override fun createGraduateAdmissions(request: AdmissionsDto): AdmissionsDto {
-        val newAdmissions: AdmissionsEntity = AdmissionsEntity.of(AdmissionPostType.GRADUATE, request)
+        val newAdmissions: AdmissionsEntity = AdmissionsEntity.of(AdmissionsPostType.GRADUATE, request)
 
         admissionsRepository.save(newAdmissions)
 
         return AdmissionsDto.of(newAdmissions)
     }
+
     @Transactional(readOnly = true)
     override fun readUndergraduateAdmissions(postType: String): AdmissionsDto {
-        return if (postType == "early") {
-            AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionPostType.UNDERGRADUATE_EARLY_ADMISSION))
-        } else if (postType == "regular") {
-            AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionPostType.UNDERGRADUATE_REGULAR_ADMISSION))
-        } else {
-            throw CserealException.Csereal404("해당하는 페이지를 찾을 수 없습니다.")
+        return when (postType) {
+            "early" -> AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionsPostType.UNDERGRADUATE_EARLY_ADMISSION))
+            "regular" -> AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionsPostType.UNDERGRADUATE_REGULAR_ADMISSION))
+            else -> throw CserealException.Csereal404("해당하는 페이지를 찾을 수 없습니다.")
         }
     }
 
     @Transactional(readOnly = true)
     override fun readGraduateAdmissions(): AdmissionsDto {
-        return AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionPostType.GRADUATE))
+        return AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionsPostType.GRADUATE))
     }
 
+    private fun makeStringToAdmissionsPostType(postType: String) : AdmissionsPostType {
+        try {
+            val upperPostType = postType.replace("-","_").uppercase()
+            return AdmissionsPostType.valueOf(upperPostType)
 
+        } catch (e: IllegalArgumentException) {
+            throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
+        }
+    }
 }
