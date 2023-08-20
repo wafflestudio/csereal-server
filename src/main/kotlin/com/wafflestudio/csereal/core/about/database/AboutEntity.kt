@@ -8,7 +8,7 @@ import jakarta.persistence.*
 class AboutEntity(
     @Enumerated(EnumType.STRING)
     var postType: AboutPostType,
-    var name: String,
+    var name: String?,
     var engName: String?,
     var description: String,
     var year: Int?,

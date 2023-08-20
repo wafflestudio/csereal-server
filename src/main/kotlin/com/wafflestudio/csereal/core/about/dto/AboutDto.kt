@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 data class AboutDto(
     val id: Long,
-    val name: String,
+    val name: String?,
     val engName: String?,
     val description: String,
     val year: Int?,

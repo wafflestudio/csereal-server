@@ -25,7 +25,6 @@ class AdmissionsServiceImpl(
 
     @Transactional
     override fun createUndergraduateAdmissions(postType: String, request: AdmissionsDto): AdmissionsDto {
-
         if(!stringPostTypes.contains(postType)) {
             throw CserealException.Csereal404("해당하는 내용을 전송할 수 없습니다.")
         }
@@ -60,7 +59,6 @@ class AdmissionsServiceImpl(
     @Transactional(readOnly = true)
     override fun readGraduateAdmissions(): AdmissionsDto {
         return AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionPostType.GRADUATE))
-
     }
 
 

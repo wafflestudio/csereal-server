@@ -20,19 +20,19 @@ class AcademicsController(
 ) {
 
     //Todo: 이미지, 파일 추가 필요
-    @PostMapping("/{studentType}")
+    @PostMapping("/{studentType}/{postType}")
     fun createAcademics(
         @PathVariable studentType: String,
-        @RequestParam postType: String,
+        @PathVariable postType: String,
         @Valid @RequestBody request: AcademicsDto
     ) : ResponseEntity<AcademicsDto> {
         return ResponseEntity.ok(academicsService.createAcademics(studentType, postType, request))
     }
 
-    @GetMapping("/{studentType}")
+    @GetMapping("/{studentType}/{postType}")
     fun readAcademics(
         @PathVariable studentType: String,
-        @RequestParam postType: String,
+        @PathVariable postType: String,
     ): ResponseEntity<AcademicsDto> {
         return ResponseEntity.ok(academicsService.readAcademics(studentType, postType))
     }
