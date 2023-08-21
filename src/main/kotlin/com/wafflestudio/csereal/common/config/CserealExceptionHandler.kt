@@ -36,6 +36,6 @@ class CserealExceptionHandler {
     // oidc provider 서버에 문제가 있을때
     @ExceptionHandler(value = [RestClientException::class])
     fun handle(e: RestClientException): ResponseEntity<Any> {
-        return ResponseEntity("idsnucse error", HttpStatus.BAD_GATEWAY)
+        return ResponseEntity("idsnucse error: ${e.message}", HttpStatus.BAD_GATEWAY)
     }
 }
