@@ -53,6 +53,7 @@ jobs:
                     echo "MYSQL_PASSWORD=${{secrets.MYSQL_PASSWORD}}" >> .env
                     echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
                     echo "PROFILE=prod" >> .env
+                    echo "OIDC_CLIENT_SECRET_DEV=${{secrets.OIDC_CLIENT_SECRET_DEV}}" >> .env
 
             -
                 name: SCP Command to Transfer Files
@@ -73,6 +74,7 @@ jobs:
                     MYSQL_PASSWORD: ${{secrets.MYSQL_PASSWORD}}
                     MYSQL_DATABASE: ${{secrets.MYSQL_DATABASE}}
                     PROFILE: "prod"
+                    OIDC_CLIENT_SECRET_DEV: ${{secrets.OIDC_CLIENT_SECRET_DEV}}
                 with:
                     host: ${{secrets.SSH_HOST}}
                     username: ${{secrets.SSH_USER}}
