@@ -48,7 +48,7 @@ class SecurityConfig(
                 response: HttpServletResponse?,
                 authentication: Authentication?
             ) {
-                super.setDefaultTargetUrl("/home")
+                super.setDefaultTargetUrl("/")
                 super.onLogoutSuccess(request, response, authentication)
             }
         }

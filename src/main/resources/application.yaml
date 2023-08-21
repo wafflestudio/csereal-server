@@ -11,7 +11,7 @@ spring:
             client-id: waffle-dev-local-testing
             client-secret: ${OIDC_CLIENT_SECRET_DEV}
             authorization-grant-type: authorization_code
-            redirect-uri: http://localhost:8080/login/oauth2/code/idsnucse
+            redirect-uri: http://cse-dev-waffle.bacchus.io/login/oauth2/code/idsnucse
             scope: openid, profile, email
         provider:
           idsnucse:
