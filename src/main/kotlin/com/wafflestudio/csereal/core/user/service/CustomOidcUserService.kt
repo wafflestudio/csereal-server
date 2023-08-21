@@ -73,11 +73,11 @@ class CustomOidcUserService(
         val studentId = userInfo["student_id"] as String
 
         val groups = userInfo["groups"] as List<String>
-        val role = if ("STAFF" in groups) {
+        val role = if ("staff" in groups) {
             Role.ROLE_STAFF
-        } else if ("PROFESSOR" in groups) {
+        } else if ("professor" in groups) {
             Role.ROLE_PROFESSOR
-        } else if ("GRADUATE" in groups) {
+        } else if ("graduate" in groups) {
             Role.ROLE_GRADUATE
         } else {
             null
