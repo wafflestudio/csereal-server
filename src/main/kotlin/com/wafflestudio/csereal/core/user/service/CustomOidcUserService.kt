@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.user.service
 
+import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.user.database.Role
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
@@ -57,6 +58,10 @@ class CustomOidcUserService(
             HttpMethod.POST, requestEntity, Map::class.java
         )
 
+        if (userInfoResponse.body?.get("sub") != userRequest.idToken.getClaim("sub")) {
+            throw CserealException.Csereal401("Authentication failed")
+        }
+
         return userInfoResponse.body ?: emptyMap()
     }
 
@@ -65,6 +70,7 @@ class CustomOidcUserService(
 
         val name = userInfo["name"] as String
         val email = userInfo["email"] as String
+        val studentId = userInfo["student_id"] as String
 
         val groups = userInfo["groups"] as List<String>
         val role = if ("STAFF" in groups) {
@@ -81,6 +87,7 @@ class CustomOidcUserService(
             username = username,
             name = name,
             email = email,
+            studentId = studentId,
             role = role
         )
 

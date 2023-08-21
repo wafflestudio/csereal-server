@@ -11,6 +11,7 @@ class UserEntity(
     val username: String,
     val name: String,
     val email: String,
+    val studentId: String,
 
     @Enumerated(EnumType.STRING)
     val role: Role?,
