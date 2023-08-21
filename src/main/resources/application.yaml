@@ -12,7 +12,7 @@ spring:
             client-secret: ${OIDC_CLIENT_SECRET_DEV}
             authorization-grant-type: authorization_code
             redirect-uri: http://localhost:8080/login/oauth2/code/idsnucse
-            scope: openid
+            scope: openid, profile, email
         provider:
           idsnucse:
             issuer-uri: https://id-dev.bacchus.io/o

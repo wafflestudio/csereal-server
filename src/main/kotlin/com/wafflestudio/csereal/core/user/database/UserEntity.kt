@@ -8,14 +8,15 @@ import jakarta.persistence.Enumerated
 @Entity(name = "users")
 class UserEntity(
 
+    val username: String,
     val name: String,
     val email: String,
 
     @Enumerated(EnumType.STRING)
-    val role: Role,
+    val role: Role?,
 
     ) : BaseTimeEntity()
 
 enum class Role {
-    ROLE_ADMIN, ROLE_GRADUATE, ROLE_LAB_ASSISTANT
+    ROLE_STAFF, ROLE_GRADUATE, ROLE_PROFESSOR
 }
