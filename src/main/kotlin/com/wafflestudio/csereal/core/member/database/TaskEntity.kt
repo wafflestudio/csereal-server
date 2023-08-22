@@ -6,7 +6,7 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 
-@Entity
+@Entity(name = "task")
 class TaskEntity(
     val name: String,
 
