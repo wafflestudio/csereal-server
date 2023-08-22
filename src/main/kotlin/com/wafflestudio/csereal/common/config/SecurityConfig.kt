@@ -11,7 +11,10 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler
-import org.springframework.web.client.RestTemplate
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+
 
 
 @Configuration
@@ -23,6 +26,8 @@ class SecurityConfig(
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         return http.csrf().disable()
+            .cors()
+            .and()
             .oauth2Login()
             .loginPage("/oauth2/authorization/idsnucse")
             .userInfoEndpoint().oidcUserService(customOidcUserService).and()
@@ -52,6 +57,18 @@ class SecurityConfig(
                 super.onLogoutSuccess(request, response, authentication)
             }
         }
+    }
+
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val configuration = CorsConfiguration()
+        configuration.allowedOrigins = listOf("http://localhost:3000", "http://cse-dev-waffle.bacchus.io:3000")
+        configuration.allowedMethods = listOf("*")
+        configuration.allowedHeaders = listOf("*")
+        configuration.maxAge = 3000
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", configuration)
+        return source
     }
 
 }
