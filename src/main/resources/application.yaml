@@ -29,6 +29,12 @@ springdoc:
   api-docs:
     path: /api-docs/json
 
+logging.level:
+  default: INFO
+  org:
+    springframework:
+      security: DEBUG
+
 ---
 spring:
   config.activate.on-profile: local
@@ -41,11 +47,6 @@ spring:
       ddl-auto: update
     show-sql: true
     open-in-view: false
-logging.level:
-  default: INFO
-  org:
-    springframework:
-      security: DEBUG
 
 ---
 spring:
