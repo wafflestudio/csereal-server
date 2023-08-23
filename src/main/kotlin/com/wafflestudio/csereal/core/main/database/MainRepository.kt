@@ -14,19 +14,18 @@ import com.wafflestudio.csereal.core.notice.database.QTagInNoticeEntity.tagInNot
 
 import org.springframework.stereotype.Component
 
-interface MainRepository : CustomMainRepository {
-}
-
-interface CustomMainRepository {
-    fun readMain(): MainResponse
+interface MainRepository {
+    fun readMainSlide(): List<NewsResponse>
+    fun readMainNoticeTotal(): List<NoticeResponse>
+    fun readMainNoticeTag(tag: String): List<NoticeResponse>
 }
 
 @Component
 class MainRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
-) : CustomMainRepository {
-    override fun readMain(): MainResponse {
-        val slideList = queryFactory.select(
+) : MainRepository {
+    override fun readMainSlide(): List<NewsResponse> {
+        return queryFactory.select(
             Projections.constructor(
                 NewsResponse::class.java,
                 newsEntity.id,
@@ -36,9 +35,11 @@ class MainRepositoryImpl(
         ).from(newsEntity)
             .where(newsEntity.isDeleted.eq(false), newsEntity.isPublic.eq(true), newsEntity.isSlide.eq(true))
             .orderBy(newsEntity.isPinned.desc()).orderBy(newsEntity.createdAt.desc())
-            .limit(10).fetch()
+            .limit(20).fetch()
+    }
 
-        val noticeTotalList = queryFactory.select(
+    override fun readMainNoticeTotal(): List<NoticeResponse> {
+        return queryFactory.select(
             Projections.constructor(
                 NoticeResponse::class.java,
                 noticeEntity.id,
@@ -48,16 +49,9 @@ class MainRepositoryImpl(
         ).from(noticeEntity)
             .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPublic.eq(true))
             .orderBy(noticeEntity.isPinned.desc()).orderBy(noticeEntity.createdAt.desc())
-            .limit(5).fetch()
-
-        val noticeAdmissionsList = makeNoticeEntityTagList("admissions")
-        val noticeUndergraduateList = makeNoticeEntityTagList("undergraduate")
-        val noticeGraduateList = makeNoticeEntityTagList("graduate")
-
-        return MainResponse(slideList, noticeTotalList, noticeAdmissionsList, noticeUndergraduateList, noticeGraduateList)
+            .limit(6).fetch()
     }
-
-    private fun makeNoticeEntityTagList(tag: String) : List<NoticeResponse> {
+    override fun readMainNoticeTag(tag: String): List<NoticeResponse> {
         return queryFactory.select(
             Projections.constructor(
                 NoticeResponse::class.java,
@@ -71,7 +65,6 @@ class MainRepositoryImpl(
             .where(noticeTagEntity.tag.name.eq(tag))
             .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPublic.eq(true))
             .orderBy(noticeEntity.isPinned.desc()).orderBy(noticeEntity.createdAt.desc())
-            .limit(5).distinct().fetch()
-
+            .limit(6).distinct().fetch()
     }
 }
