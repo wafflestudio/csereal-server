@@ -9,7 +9,7 @@ class WebConfig : WebMvcConfigurer {
 
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/**")
-            .allowedOrigins("http://localhost:3000", "http://cse-dev-waffle.bacchus.io:3000")
+            .allowedOrigins("*")
             .allowedMethods("*")
             .allowedHeaders("*")
             .maxAge(3000)
