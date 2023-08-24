@@ -16,7 +16,6 @@ import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 
-
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
@@ -25,23 +24,21 @@ class SecurityConfig(
 
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        return http.csrf().disable()
-            .cors()
-            .and()
+        return http
+            .cors().and()
+            .csrf().disable()
             .oauth2Login()
             .loginPage("/oauth2/authorization/idsnucse")
             .userInfoEndpoint().oidcUserService(customOidcUserService).and()
-            .and()
+            .successHandler(CustomAuthenticationSuccessHandler()).and()
             .logout()
             .logoutSuccessHandler(oidcLogoutSuccessHandler())
             .invalidateHttpSession(true)
             .clearAuthentication(true)
-            .deleteCookies("JSESSIONID")
-            .and()
+            .deleteCookies("JSESSIONID").and()
             .authorizeHttpRequests()
             .requestMatchers("/login").authenticated()
-            .anyRequest().permitAll()
-            .and()
+            .anyRequest().permitAll().and()
             .build()
     }
 
@@ -53,7 +50,7 @@ class SecurityConfig(
                 response: HttpServletResponse?,
                 authentication: Authentication?
             ) {
-                super.setDefaultTargetUrl("/")
+                super.setDefaultTargetUrl("http://cse-dev-waffle.bacchus.io:3000/")
                 super.onLogoutSuccess(request, response, authentication)
             }
         }
