@@ -1,7 +1,5 @@
 package com.wafflestudio.csereal.core.admissions.api
 
-import com.wafflestudio.csereal.core.admissions.database.AdmissionPostType
-import com.wafflestudio.csereal.core.admissions.database.StudentType
 import com.wafflestudio.csereal.core.admissions.dto.AdmissionsDto
 import com.wafflestudio.csereal.core.admissions.service.AdmissionsService
 import jakarta.validation.Valid
@@ -19,26 +17,34 @@ import org.springframework.web.bind.annotation.RestController
 class AdmissionsController(
     private val admissionsService: AdmissionsService
 ) {
-    @PostMapping
-    fun createAdmissions(
-        @RequestParam studentType: StudentType,
+    @PostMapping("/undergraduate")
+    fun createUndergraduateAdmissions(
+        @RequestParam postType: String,
         @Valid @RequestBody request: AdmissionsDto
     ) : AdmissionsDto {
-        return admissionsService.createAdmissions(studentType, request)
+        return admissionsService.createUndergraduateAdmissions(postType, request)
     }
 
-    @GetMapping
-    fun readAdmissionsMain(
-        @RequestParam studentType: StudentType,
-    ) : ResponseEntity<AdmissionsDto> {
-        return ResponseEntity.ok(admissionsService.readAdmissionsMain(studentType))
+    @PostMapping("/graduate")
+    fun createGraduateAdmissions(
+        @Valid @RequestBody request: AdmissionsDto
+    ) : AdmissionsDto {
+        return admissionsService.createGraduateAdmissions(request)
     }
+
     @GetMapping("/undergraduate")
     fun readUndergraduateAdmissions(
-        @RequestParam postType: AdmissionPostType
+        @RequestParam postType: String
     ) : ResponseEntity<AdmissionsDto> {
         return ResponseEntity.ok(admissionsService.readUndergraduateAdmissions(postType))
     }
+
+    @GetMapping("/graduate")
+    fun readGraduateAdmissions() : ResponseEntity<AdmissionsDto> {
+        return ResponseEntity.ok(admissionsService.readGraduateAdmissions())
+    }
+
+
 
 
 }
