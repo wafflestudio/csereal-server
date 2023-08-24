@@ -9,24 +9,22 @@ import jakarta.persistence.Enumerated
 @Entity(name = "academics")
 class AcademicsEntity(
     @Enumerated(EnumType.STRING)
-    var studentType: StudentType,
+    var studentType: AcademicsStudentType,
 
-    var postType: String,
+    @Enumerated(EnumType.STRING)
+    var postType: AcademicsPostType,
 
     var name: String,
-
     var description: String,
-
     var year: Int?,
-
     var isPublic: Boolean,
 
 ): BaseTimeEntity() {
     companion object {
-        fun of(studentType: StudentType, academicsDto: AcademicsDto): AcademicsEntity {
+        fun of(studentType: AcademicsStudentType, postType: AcademicsPostType, academicsDto: AcademicsDto): AcademicsEntity {
             return AcademicsEntity(
                 studentType = studentType,
-                postType = academicsDto.postType,
+                postType = postType,
                 name = academicsDto.name,
                 description = academicsDto.description,
                 year = academicsDto.year,

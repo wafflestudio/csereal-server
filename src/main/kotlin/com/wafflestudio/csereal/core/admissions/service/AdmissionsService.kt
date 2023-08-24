@@ -1,17 +1,18 @@
 package com.wafflestudio.csereal.core.admissions.service
 
-import com.wafflestudio.csereal.core.admissions.database.AdmissionPostType
+import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.core.admissions.database.AdmissionsPostType
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsEntity
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsRepository
-import com.wafflestudio.csereal.core.admissions.database.StudentType
 import com.wafflestudio.csereal.core.admissions.dto.AdmissionsDto
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface AdmissionsService {
-    fun createAdmissions(studentType: StudentType, request: AdmissionsDto): AdmissionsDto
-    fun readAdmissionsMain(studentType: StudentType): AdmissionsDto
-    fun readUndergraduateAdmissions(postType: AdmissionPostType): AdmissionsDto
+    fun createUndergraduateAdmissions(postType: String, request: AdmissionsDto): AdmissionsDto
+    fun createGraduateAdmissions(request: AdmissionsDto): AdmissionsDto
+    fun readUndergraduateAdmissions(postType: String): AdmissionsDto
+    fun readGraduateAdmissions(): AdmissionsDto
 
 }
 
@@ -20,8 +21,19 @@ class AdmissionsServiceImpl(
     private val admissionsRepository: AdmissionsRepository
 ) : AdmissionsService {
     @Transactional
-    override fun createAdmissions(studentType: StudentType, request: AdmissionsDto): AdmissionsDto {
-        val newAdmissions: AdmissionsEntity = AdmissionsEntity.of(studentType, request)
+    override fun createUndergraduateAdmissions(postType: String, request: AdmissionsDto): AdmissionsDto {
+        val enumPostType = makeStringToAdmissionsPostType(postType)
+
+        val newAdmissions = AdmissionsEntity.of(enumPostType, request)
+
+        admissionsRepository.save(newAdmissions)
+
+        return AdmissionsDto.of(newAdmissions)
+    }
+
+    @Transactional
+    override fun createGraduateAdmissions(request: AdmissionsDto): AdmissionsDto {
+        val newAdmissions: AdmissionsEntity = AdmissionsEntity.of(AdmissionsPostType.GRADUATE, request)
 
         admissionsRepository.save(newAdmissions)
 
@@ -29,22 +41,26 @@ class AdmissionsServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAdmissionsMain(studentType: StudentType): AdmissionsDto {
-        return if (studentType == StudentType.UNDERGRADUATE) {
-            AdmissionsDto.of(admissionsRepository.findByStudentTypeAndPostType(StudentType.UNDERGRADUATE, AdmissionPostType.MAIN))
-        } else {
-            AdmissionsDto.of(admissionsRepository.findByStudentTypeAndPostType(StudentType.GRADUATE, AdmissionPostType.MAIN))
+    override fun readUndergraduateAdmissions(postType: String): AdmissionsDto {
+        return when (postType) {
+            "early" -> AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionsPostType.UNDERGRADUATE_EARLY_ADMISSION))
+            "regular" -> AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionsPostType.UNDERGRADUATE_REGULAR_ADMISSION))
+            else -> throw CserealException.Csereal404("해당하는 페이지를 찾을 수 없습니다.")
         }
     }
 
     @Transactional(readOnly = true)
-    override fun readUndergraduateAdmissions(postType: AdmissionPostType): AdmissionsDto {
-        return if (postType == AdmissionPostType.EARLY_ADMISSION) {
-            AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionPostType.EARLY_ADMISSION))
-        } else {
-            AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionPostType.REGULAR_ADMISSION))
-        }
+    override fun readGraduateAdmissions(): AdmissionsDto {
+        return AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionsPostType.GRADUATE))
     }
 
+    private fun makeStringToAdmissionsPostType(postType: String) : AdmissionsPostType {
+        try {
+            val upperPostType = postType.replace("-","_").uppercase()
+            return AdmissionsPostType.valueOf(upperPostType)
 
+        } catch (e: IllegalArgumentException) {
+            throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
+        }
+    }
 }
