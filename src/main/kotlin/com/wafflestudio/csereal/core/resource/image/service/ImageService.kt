@@ -49,7 +49,7 @@ class ImageServiceImpl(
 
         val extension = FilenameUtils.getExtension(requestImage.originalFilename)
 
-        if(!listOf("jpg", "jpeg", "png", "gif").contains(extension)) {
+        if(!listOf("jpg", "jpeg", "png").contains(extension)) {
             throw CserealException.Csereal400("파일의 형식은 jpg, jpeg, png, gif 중 하나여야 합니다.")
         }
 
