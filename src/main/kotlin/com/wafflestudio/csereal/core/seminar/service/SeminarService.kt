@@ -1,6 +1,9 @@
 package com.wafflestudio.csereal.core.seminar.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
+import com.wafflestudio.csereal.core.resource.image.database.ImageRepository
+import com.wafflestudio.csereal.core.resource.image.service.ImageService
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import com.wafflestudio.csereal.core.seminar.database.SeminarRepository
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
@@ -8,10 +11,11 @@ import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 
 interface SeminarService {
     fun searchSeminar(keyword: String?, pageNum: Long): SeminarSearchResponse
-    fun createSeminar(request: SeminarDto): SeminarDto
+    fun createSeminar(request: SeminarDto, image: MultipartFile?): SeminarDto
     fun readSeminar(seminarId: Long, keyword: String?): SeminarDto
     fun updateSeminar(seminarId: Long, request: SeminarDto): SeminarDto
     fun deleteSeminar(seminarId: Long)
@@ -19,7 +23,9 @@ interface SeminarService {
 
 @Service
 class SeminarServiceImpl(
-    private val seminarRepository: SeminarRepository
+    private val seminarRepository: SeminarRepository,
+    private val imageService: ImageService,
+    private val imageRepository: ImageRepository,
 ) : SeminarService {
     @Transactional(readOnly = true)
     override fun searchSeminar(keyword: String?, pageNum: Long): SeminarSearchResponse {
@@ -27,8 +33,16 @@ class SeminarServiceImpl(
     }
 
     @Transactional
-    override fun createSeminar(request: SeminarDto): SeminarDto {
-        val newSeminar = SeminarEntity.of(request)
+    override fun createSeminar(request: SeminarDto, image: MultipartFile?): SeminarDto {
+        var imageEntity : ImageEntity? = null
+        if(image != null) {
+            val imageDto = imageService.uploadImage(image)
+            imageEntity = imageRepository.findByFilenameAndExtension(imageDto.filename, imageDto.extension)
+        }
+
+        val newSeminar = SeminarEntity.of(request, imageEntity)
+
+        imageEntity?.seminar = newSeminar
 
         seminarRepository.save(newSeminar)
 

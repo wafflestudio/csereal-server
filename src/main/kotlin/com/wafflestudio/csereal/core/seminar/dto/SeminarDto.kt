@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.seminar.dto
 
+import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 
 data class SeminarDto(
@@ -19,7 +20,6 @@ data class SeminarDto(
     val endTime: String?,
     val location: String,
     val host: String?,
-    // val profileImage: File,
     // val seminarFile: File,
     val additionalNote: String?,
     val isPublic: Boolean,
@@ -27,7 +27,8 @@ data class SeminarDto(
     val prevId: Long?,
     val prevTitle: String?,
     val nextId: Long?,
-    val nextTitle: String?
+    val nextTitle: String?,
+    val imageURL: String?,
 ) {
 
     companion object {
@@ -55,10 +56,18 @@ data class SeminarDto(
                 prevId = prevNext?.get(0)?.id,
                 prevTitle = prevNext?.get(0)?.title,
                 nextId = prevNext?.get(1)?.id,
-                nextTitle = prevNext?.get(1)?.title
+                nextTitle = prevNext?.get(1)?.title,
+                imageURL = createImageURL(this.mainImage),
             )
         }
 
+        private fun createImageURL(image: ImageEntity?) : String? {
+            return if(image != null) {
+                "http://cse-dev-waffle.bacchus.io/var/myapp/image/${image.filename}.${image.extension}"
+            } else null
+
+
+        }
     }
 
 }
