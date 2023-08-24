@@ -1,15 +1,22 @@
 package com.wafflestudio.csereal.core.resource.image.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.controller.ContentEntityType
+import com.wafflestudio.csereal.core.about.database.AboutEntity
+import com.wafflestudio.csereal.core.member.database.ProfessorEntity
+import com.wafflestudio.csereal.core.member.database.StaffEntity
+import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
 import com.wafflestudio.csereal.core.resource.image.database.ImageRepository
 import com.wafflestudio.csereal.core.resource.image.dto.ImageDto
+import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import net.coobird.thumbnailator.Thumbnailator
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import org.apache.commons.io.FilenameUtils
+import java.lang.invoke.WrongMethodTypeException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
@@ -19,10 +26,10 @@ import kotlin.io.path.name
 
 interface ImageService {
     fun uploadImage(
+        contentEntityType: ContentEntityType,
         requestImage: MultipartFile,
         setUUIDFilename: Boolean = true
     ): ImageDto
-
 }
 
 @Service
@@ -34,6 +41,7 @@ class ImageServiceImpl(
 
     @Transactional
     override fun uploadImage(
+        contentEntity: ContentEntityType,
         requestImage: MultipartFile,
         setUUIDFilename: Boolean,
     ): ImageDto {
@@ -75,6 +83,7 @@ class ImageServiceImpl(
             size = thumbnailFile.fileSize()
         )
 
+        connectImageToEntity(contentEntity, image)
         imageRepository.save(image)
         imageRepository.save(thumbnail)
 
@@ -84,6 +93,36 @@ class ImageServiceImpl(
             imagesOrder = 1,
             size = requestImage.size
         )
+    }
+
+    fun connectImageToEntity(contentEntity: ContentEntityType, image: ImageEntity) {
+        when (contentEntity) {
+            is NewsEntity -> {
+                contentEntity.mainImage = image
+                image.news = contentEntity
+            }
+            is SeminarEntity -> {
+                contentEntity.mainImage = image
+                image.seminar = contentEntity
+            }
+            is AboutEntity -> {
+                contentEntity.mainImage = image
+                image.about = contentEntity
+            }
+            is ProfessorEntity -> {
+                contentEntity.mainImage = image
+                image.professor = contentEntity
+            }
+            is StaffEntity -> {
+                contentEntity.mainImage = image
+                image.staff = contentEntity
+            }
+            else -> {
+                throw WrongMethodTypeException("해당하는 엔티티가 없습니다")
+            }
+        }
+
+
     }
 
 }

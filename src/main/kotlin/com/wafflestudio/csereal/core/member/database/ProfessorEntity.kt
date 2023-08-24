@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.controller.ContentEntityType
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.research.database.LabEntity
 import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
@@ -41,11 +42,12 @@ class ProfessorEntity(
     val careers: MutableList<CareerEntity> = mutableListOf(),
 
     @OneToOne(mappedBy = "professor", cascade = [CascadeType.ALL])
-    var mainImage: ImageEntity?,
-) : BaseTimeEntity() {
+    var mainImage: ImageEntity? = null,
+) : BaseTimeEntity(), ContentEntityType {
+    override fun bringMainImage(): ImageEntity? = mainImage
 
     companion object {
-        fun of(professorDto: ProfessorDto, imageEntity: ImageEntity?): ProfessorEntity {
+        fun of(professorDto: ProfessorDto): ProfessorEntity {
             return ProfessorEntity(
                 name = professorDto.name,
                 status = professorDto.status,
@@ -57,7 +59,6 @@ class ProfessorEntity(
                 fax = professorDto.fax,
                 email = professorDto.email,
                 website = professorDto.website,
-                mainImage = imageEntity,
             )
         }
     }

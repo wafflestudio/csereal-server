@@ -30,19 +30,16 @@ class StaffServiceImpl(
     private val imageRepository: ImageRepository,
 ) : StaffService {
     override fun createStaff(createStaffRequest: StaffDto, image: MultipartFile?): StaffDto {
-        var imageEntity : ImageEntity? = null
-        if(image != null) {
-            val imageDto = imageService.uploadImage(image)
-            imageEntity = imageRepository.findByFilenameAndExtension(imageDto.filename, imageDto.extension)
-        }
-
-        val staff = StaffEntity.of(createStaffRequest, imageEntity)
+        val staff = StaffEntity.of(createStaffRequest)
 
         for (task in createStaffRequest.tasks) {
             TaskEntity.create(task, staff)
         }
 
-        imageEntity?.staff = staff
+        if(image != null) {
+            imageService.uploadImage(staff, image)
+        }
+
         staffRepository.save(staff)
 
         return StaffDto.of(staff)

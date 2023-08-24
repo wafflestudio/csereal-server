@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.news.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.controller.ContentEntityType
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
 import jakarta.persistence.*
@@ -22,21 +23,21 @@ class NewsEntity(
     var isPinned: Boolean,
 
     @OneToOne(mappedBy = "news", cascade = [CascadeType.ALL])
-    var mainImage: ImageEntity?,
+    var mainImage: ImageEntity? = null,
 
     @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL])
     var newsTags: MutableSet<NewsTagEntity> = mutableSetOf()
 
-): BaseTimeEntity() {
+): BaseTimeEntity(), ContentEntityType {
+    override fun bringMainImage() = mainImage
     companion object {
-        fun of(newsDto: NewsDto, imageEntity: ImageEntity?): NewsEntity {
+        fun of(newsDto: NewsDto): NewsEntity {
             return NewsEntity(
                 title = newsDto.title,
                 description = newsDto.description,
                 isPublic = newsDto.isPublic,
                 isSlide = newsDto.isSlide,
                 isPinned = newsDto.isPinned,
-                mainImage = imageEntity,
             )
         }
     }

@@ -11,9 +11,5 @@ import org.springframework.web.multipart.MultipartFile
 class ImageController(
     private val imageService: ImageService
 ) {
-    @PostMapping(consumes = ["multipart/form-data"])
-    fun uploadImage(@RequestParam requestImage: MultipartFile) : ImageDto {
-        return imageService.uploadImage(requestImage)
-    }
 
 }

@@ -34,15 +34,13 @@ class SeminarServiceImpl(
 
     @Transactional
     override fun createSeminar(request: SeminarDto, image: MultipartFile?): SeminarDto {
-        var imageEntity : ImageEntity? = null
+
+
+        val newSeminar = SeminarEntity.of(request)
+
         if(image != null) {
-            val imageDto = imageService.uploadImage(image)
-            imageEntity = imageRepository.findByFilenameAndExtension(imageDto.filename, imageDto.extension)
+            imageService.uploadImage(newSeminar, image)
         }
-
-        val newSeminar = SeminarEntity.of(request, imageEntity)
-
-        imageEntity?.seminar = newSeminar
 
         seminarRepository.save(newSeminar)
 

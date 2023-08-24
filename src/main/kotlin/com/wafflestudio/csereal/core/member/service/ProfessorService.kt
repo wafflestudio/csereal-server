@@ -32,13 +32,9 @@ class ProfessorServiceImpl(
 ) : ProfessorService {
 
     override fun createProfessor(createProfessorRequest: ProfessorDto, image: MultipartFile?): ProfessorDto {
-        var imageEntity : ImageEntity? = null
-        if(image != null) {
-            val imageDto = imageService.uploadImage(image)
-            imageEntity = imageRepository.findByFilenameAndExtension(imageDto.filename, imageDto.extension)
-        }
 
-        val professor = ProfessorEntity.of(createProfessorRequest, imageEntity)
+
+        val professor = ProfessorEntity.of(createProfessorRequest)
         if (createProfessorRequest.labId != null) {
             val lab = labRepository.findByIdOrNull(createProfessorRequest.labId)
                 ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다. LabId: ${createProfessorRequest.labId}")
@@ -57,7 +53,10 @@ class ProfessorServiceImpl(
             CareerEntity.create(career, professor)
         }
 
-        imageEntity?.professor = professor
+        if(image != null) {
+            imageService.uploadImage(professor, image)
+        }
+
         professorRepository.save(professor)
 
         return ProfessorDto.of(professor)

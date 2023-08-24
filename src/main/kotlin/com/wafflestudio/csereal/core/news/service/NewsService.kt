@@ -58,20 +58,18 @@ class NewsServiceImpl(
 
     @Transactional
     override fun createNews(request: NewsDto, image: MultipartFile?): NewsDto {
-        var imageEntity : ImageEntity? = null
-        if(image != null) {
-            val imageDto = imageService.uploadImage(image)
-            imageEntity = imageRepository.findByFilenameAndExtension(imageDto.filename, imageDto.extension)
-        }
 
-        val newNews = NewsEntity.of(request, imageEntity)
+        val newNews = NewsEntity.of(request)
+
+        if(image != null) {
+            imageService.uploadImage(newNews, image)
+        }
 
         for (tagName in request.tags) {
             val tag = tagInNewsRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
             NewsTagEntity.createNewsTag(newNews, tag)
         }
 
-        imageEntity?.news = newNews
         newsRepository.save(newNews)
 
         return NewsDto.of(newNews, null)

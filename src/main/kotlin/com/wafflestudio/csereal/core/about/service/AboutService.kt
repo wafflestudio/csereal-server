@@ -29,14 +29,8 @@ class AboutServiceImpl(
 ) : AboutService {
     @Transactional
     override fun createAbout(postType: String, request: AboutDto, image: MultipartFile?): AboutDto {
-        var imageEntity : ImageEntity? = null
-        if(image != null) {
-            val imageDto = imageService.uploadImage(image)
-            imageEntity = imageRepository.findByFilenameAndExtension(imageDto.filename, imageDto.extension)
-        }
-
         val enumPostType = makeStringToEnum(postType)
-        val newAbout = AboutEntity.of(enumPostType, request, imageEntity)
+        val newAbout = AboutEntity.of(enumPostType, request)
 
         if(request.locations != null) {
             for (location in request.locations) {
@@ -44,6 +38,9 @@ class AboutServiceImpl(
             }
         }
 
+        if(image != null) {
+            imageService.uploadImage(newAbout, image)
+        }
         aboutRepository.save(newAbout)
 
         return AboutDto.of(newAbout)
