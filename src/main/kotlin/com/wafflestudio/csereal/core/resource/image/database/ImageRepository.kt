@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface ImageRepository : JpaRepository<ImageEntity, Long> {
+    fun findByFilenameAndExtension(filename: String, extension: String): ImageEntity
 }

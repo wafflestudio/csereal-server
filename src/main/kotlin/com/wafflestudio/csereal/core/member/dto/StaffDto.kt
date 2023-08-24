@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.member.dto
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.wafflestudio.csereal.core.member.database.StaffEntity
+import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
 
 data class StaffDto(
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -13,7 +14,7 @@ data class StaffDto(
     val email: String,
     val tasks: List<String>,
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    val imageUri: String? = null
+    val imageURL: String? = null
 ) {
     companion object {
         fun of(staffEntity: StaffEntity): StaffDto {
@@ -25,8 +26,14 @@ data class StaffDto(
                 phone = staffEntity.phone,
                 email = staffEntity.email,
                 tasks = staffEntity.tasks.map { it.name },
-                imageUri = staffEntity.imageUri
+                imageURL = createImageURL(staffEntity.mainImage)
             )
+        }
+
+        private fun createImageURL(image: ImageEntity?) : String? {
+            return if(image != null) {
+                "http://cse-dev-waffle.bacchus.io/var/myapp/image/${image.filename}.${image.extension}"
+            } else null
         }
     }
 }

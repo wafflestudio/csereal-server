@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.member.dto
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
+import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
 import java.time.LocalDate
 
 data class ProfessorDto(
@@ -24,7 +25,7 @@ data class ProfessorDto(
     val researchAreas: List<String>,
     val careers: List<String>,
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    var imageUri: String? = null
+    var imageURL: String? = null
 
 ) {
     companion object {
@@ -46,8 +47,14 @@ data class ProfessorDto(
                 educations = professorEntity.educations.map { it.name },
                 researchAreas = professorEntity.researchAreas.map { it.name },
                 careers = professorEntity.careers.map { it.name },
-                imageUri = professorEntity.imageUri
+                imageURL = createImageURL(professorEntity.mainImage),
             )
+        }
+
+        private fun createImageURL(image: ImageEntity?) : String? {
+            return if(image != null) {
+                "http://cse-dev-waffle.bacchus.io/var/myapp/image/${image.filename}.${image.extension}"
+            } else null
         }
     }
 }

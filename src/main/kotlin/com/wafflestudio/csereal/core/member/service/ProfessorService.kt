@@ -6,14 +6,16 @@ import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
 import com.wafflestudio.csereal.core.member.dto.SimpleProfessorDto
 import com.wafflestudio.csereal.core.research.database.LabRepository
+import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
+import com.wafflestudio.csereal.core.resource.image.database.ImageRepository
+import com.wafflestudio.csereal.core.resource.image.service.ImageService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 
 interface ProfessorService {
-
-    fun createProfessor(createProfessorRequest: ProfessorDto): ProfessorDto
-    fun getProfessor(professorId: Long): ProfessorDto
+    fun createProfessor(createProfessorRequest: ProfessorDto, image: MultipartFile?): ProfessorDto    fun getProfessor(professorId: Long): ProfessorDto
     fun getActiveProfessors(): ProfessorPageDto
     fun getInactiveProfessors(): List<SimpleProfessorDto>
     fun updateProfessor(professorId: Long, updateProfessorRequest: ProfessorDto): ProfessorDto
@@ -24,12 +26,19 @@ interface ProfessorService {
 @Transactional
 class ProfessorServiceImpl(
     private val labRepository: LabRepository,
-    private val professorRepository: ProfessorRepository
+    private val professorRepository: ProfessorRepository,
+    private val imageService: ImageService,
+    private val imageRepository: ImageRepository,
 ) : ProfessorService {
 
-    override fun createProfessor(createProfessorRequest: ProfessorDto): ProfessorDto {
-        val professor = ProfessorEntity.of(createProfessorRequest)
+    override fun createProfessor(createProfessorRequest: ProfessorDto, image: MultipartFile?): ProfessorDto {
+        var imageEntity : ImageEntity? = null
+        if(image != null) {
+            val imageDto = imageService.uploadImage(image)
+            imageEntity = imageRepository.findByFilenameAndExtension(imageDto.filename, imageDto.extension)
+        }
 
+        val professor = ProfessorEntity.of(createProfessorRequest, imageEntity)
         if (createProfessorRequest.labId != null) {
             val lab = labRepository.findByIdOrNull(createProfessorRequest.labId)
                 ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다. LabId: ${createProfessorRequest.labId}")
@@ -48,6 +57,7 @@ class ProfessorServiceImpl(
             CareerEntity.create(career, professor)
         }
 
+        imageEntity?.professor = professor
         professorRepository.save(professor)
 
         return ProfessorDto.of(professor)

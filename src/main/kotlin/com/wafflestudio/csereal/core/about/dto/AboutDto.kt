@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.about.dto
 
 
 import com.wafflestudio.csereal.core.about.database.AboutEntity
+import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
 import java.time.LocalDateTime
 
 data class AboutDto(
@@ -12,7 +13,8 @@ data class AboutDto(
     val year: Int?,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
-    val locations: List<String>?
+    val locations: List<String>?,
+    val imageURL: String?
 ) {
     companion object {
         fun of(entity: AboutEntity) : AboutDto = entity.run {
@@ -24,8 +26,17 @@ data class AboutDto(
                 year = this.year,
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
-                locations = this.locations.map { it.name }
+                locations = this.locations.map { it.name },
+                imageURL = createImageURL(this.mainImage)
             )
+        }
+
+        private fun createImageURL(image: ImageEntity?) : String? {
+            return if(image != null) {
+                "http://cse-dev-waffle.bacchus.io/var/myapp/image/${image.filename}.${image.extension}"
+            } else null
+
+
         }
     }
 }

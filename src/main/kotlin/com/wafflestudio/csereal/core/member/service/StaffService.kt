@@ -6,12 +6,16 @@ import com.wafflestudio.csereal.core.member.database.StaffRepository
 import com.wafflestudio.csereal.core.member.database.TaskEntity
 import com.wafflestudio.csereal.core.member.dto.SimpleStaffDto
 import com.wafflestudio.csereal.core.member.dto.StaffDto
+import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
+import com.wafflestudio.csereal.core.resource.image.database.ImageRepository
+import com.wafflestudio.csereal.core.resource.image.service.ImageService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 
 interface StaffService {
-    fun createStaff(createStaffRequest: StaffDto): StaffDto
+    fun createStaff(createStaffRequest: StaffDto, image: MultipartFile?): StaffDto
     fun getStaff(staffId: Long): StaffDto
     fun getAllStaff(): List<SimpleStaffDto>
     fun updateStaff(staffId: Long, updateStaffRequest: StaffDto): StaffDto
@@ -21,15 +25,24 @@ interface StaffService {
 @Service
 @Transactional
 class StaffServiceImpl(
-    private val staffRepository: StaffRepository
+    private val staffRepository: StaffRepository,
+    private val imageService: ImageService,
+    private val imageRepository: ImageRepository,
 ) : StaffService {
-    override fun createStaff(createStaffRequest: StaffDto): StaffDto {
-        val staff = StaffEntity.of(createStaffRequest)
+    override fun createStaff(createStaffRequest: StaffDto, image: MultipartFile?): StaffDto {
+        var imageEntity : ImageEntity? = null
+        if(image != null) {
+            val imageDto = imageService.uploadImage(image)
+            imageEntity = imageRepository.findByFilenameAndExtension(imageDto.filename, imageDto.extension)
+        }
+
+        val staff = StaffEntity.of(createStaffRequest, imageEntity)
 
         for (task in createStaffRequest.tasks) {
             TaskEntity.create(task, staff)
         }
 
+        imageEntity?.staff = staff
         staffRepository.save(staff)
 
         return StaffDto.of(staff)

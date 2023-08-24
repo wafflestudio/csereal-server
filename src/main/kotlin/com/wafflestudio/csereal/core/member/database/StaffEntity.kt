@@ -2,9 +2,11 @@ package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.core.member.dto.StaffDto
+import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
 import jakarta.persistence.OneToMany
+import jakarta.persistence.OneToOne
 
 @Entity(name = "staff")
 class StaffEntity(
@@ -18,18 +20,20 @@ class StaffEntity(
     @OneToMany(mappedBy = "staff", cascade = [CascadeType.ALL], orphanRemoval = true)
     val tasks: MutableList<TaskEntity> = mutableListOf(),
 
-    var imageUri: String? = null
+    @OneToOne(mappedBy = "staff", cascade = [CascadeType.ALL])
+    var mainImage: ImageEntity?,
 
-) : BaseTimeEntity() {
+    ) : BaseTimeEntity() {
 
     companion object {
-        fun of(staffDto: StaffDto): StaffEntity {
+        fun of(staffDto: StaffDto, imageEntity: ImageEntity?): StaffEntity {
             return StaffEntity(
                 name = staffDto.name,
                 role = staffDto.role,
                 office = staffDto.office,
                 phone = staffDto.phone,
-                email = staffDto.email
+                email = staffDto.email,
+                mainImage = imageEntity,
             )
         }
     }

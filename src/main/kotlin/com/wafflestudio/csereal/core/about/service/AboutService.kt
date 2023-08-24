@@ -6,11 +6,15 @@ import com.wafflestudio.csereal.core.about.database.AboutPostType
 import com.wafflestudio.csereal.core.about.database.AboutRepository
 import com.wafflestudio.csereal.core.about.database.LocationEntity
 import com.wafflestudio.csereal.core.about.dto.AboutDto
+import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
+import com.wafflestudio.csereal.core.resource.image.database.ImageRepository
+import com.wafflestudio.csereal.core.resource.image.service.ImageService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 
 interface AboutService {
-    fun createAbout(postType: String, request: AboutDto): AboutDto
+    fun createAbout(postType: String, request: AboutDto, image: MultipartFile?): AboutDto
     fun readAbout(postType: String): AboutDto
     fun readAllClubs() : List<AboutDto>
     fun readAllFacilities() : List<AboutDto>
@@ -19,12 +23,20 @@ interface AboutService {
 
 @Service
 class AboutServiceImpl(
-    private val aboutRepository: AboutRepository
+    private val aboutRepository: AboutRepository,
+    private val imageService: ImageService,
+    private val imageRepository: ImageRepository,
 ) : AboutService {
     @Transactional
-    override fun createAbout(postType: String, request: AboutDto): AboutDto {
+    override fun createAbout(postType: String, request: AboutDto, image: MultipartFile?): AboutDto {
+        var imageEntity : ImageEntity? = null
+        if(image != null) {
+            val imageDto = imageService.uploadImage(image)
+            imageEntity = imageRepository.findByFilenameAndExtension(imageDto.filename, imageDto.extension)
+        }
+
         val enumPostType = makeStringToEnum(postType)
-        val newAbout = AboutEntity.of(enumPostType, request)
+        val newAbout = AboutEntity.of(enumPostType, request, imageEntity)
 
         if(request.locations != null) {
             for (location in request.locations) {
