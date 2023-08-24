@@ -47,7 +47,14 @@ spring:
       ddl-auto: update
     show-sql: true
     open-in-view: false
-
+servlet:
+  multipart:
+    enabled: true
+    max-request-size: 100MB
+    max-file-size: 10MB
+csereal:
+  upload:
+    path: /var/myapp/image/
 ---
 spring:
   config.activate.on-profile: prod
