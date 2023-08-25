@@ -6,6 +6,7 @@ import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
 import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
 import com.wafflestudio.csereal.core.resource.image.database.ImageRepository
+import com.wafflestudio.csereal.core.resource.image.dto.ImageDto
 import com.wafflestudio.csereal.core.resource.image.service.ImageService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -28,7 +29,6 @@ class NewsServiceImpl(
     private val tagInNewsRepository: TagInNewsRepository,
     private val newsTagRepository: NewsTagRepository,
     private val imageService: ImageService,
-    private val imageRepository: ImageRepository,
 ) : NewsService {
     @Transactional(readOnly = true)
     override fun searchNews(
@@ -58,16 +58,15 @@ class NewsServiceImpl(
 
     @Transactional
     override fun createNews(request: NewsDto, image: MultipartFile?): NewsDto {
-
         val newNews = NewsEntity.of(request)
-
-        if(image != null) {
-            imageService.uploadImage(newNews, image)
-        }
 
         for (tagName in request.tags) {
             val tag = tagInNewsRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
             NewsTagEntity.createNewsTag(newNews, tag)
+        }
+
+        if(image != null) {
+            imageService.uploadImage(newNews, image)
         }
 
         newsRepository.save(newNews)

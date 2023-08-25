@@ -25,7 +25,6 @@ interface AboutService {
 class AboutServiceImpl(
     private val aboutRepository: AboutRepository,
     private val imageService: ImageService,
-    private val imageRepository: ImageRepository,
 ) : AboutService {
     @Transactional
     override fun createAbout(postType: String, request: AboutDto, image: MultipartFile?): AboutDto {

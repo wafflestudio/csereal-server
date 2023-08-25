@@ -28,12 +28,8 @@ class ProfessorServiceImpl(
     private val labRepository: LabRepository,
     private val professorRepository: ProfessorRepository,
     private val imageService: ImageService,
-    private val imageRepository: ImageRepository,
 ) : ProfessorService {
-
     override fun createProfessor(createProfessorRequest: ProfessorDto, image: MultipartFile?): ProfessorDto {
-
-
         val professor = ProfessorEntity.of(createProfessorRequest)
         if (createProfessorRequest.labId != null) {
             val lab = labRepository.findByIdOrNull(createProfessorRequest.labId)

@@ -27,7 +27,6 @@ interface StaffService {
 class StaffServiceImpl(
     private val staffRepository: StaffRepository,
     private val imageService: ImageService,
-    private val imageRepository: ImageRepository,
 ) : StaffService {
     override fun createStaff(createStaffRequest: StaffDto, image: MultipartFile?): StaffDto {
         val staff = StaffEntity.of(createStaffRequest)

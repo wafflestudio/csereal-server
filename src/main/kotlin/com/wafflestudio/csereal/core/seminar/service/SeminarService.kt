@@ -25,7 +25,6 @@ interface SeminarService {
 class SeminarServiceImpl(
     private val seminarRepository: SeminarRepository,
     private val imageService: ImageService,
-    private val imageRepository: ImageRepository,
 ) : SeminarService {
     @Transactional(readOnly = true)
     override fun searchSeminar(keyword: String?, pageNum: Long): SeminarSearchResponse {
@@ -34,8 +33,6 @@ class SeminarServiceImpl(
 
     @Transactional
     override fun createSeminar(request: SeminarDto, image: MultipartFile?): SeminarDto {
-
-
         val newSeminar = SeminarEntity.of(request)
 
         if(image != null) {
