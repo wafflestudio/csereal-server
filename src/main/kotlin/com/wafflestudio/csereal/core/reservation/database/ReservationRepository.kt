@@ -10,6 +10,12 @@ interface ReservationRepository : JpaRepository<ReservationEntity, Long> {
     @Query("SELECT r FROM reservation r WHERE r.room.id = :roomId AND ((:start <= r.startTime AND r.startTime < :end) OR (:start < r.endTime AND r.endTime <= :end) OR (r.startTime <= :start AND r.endTime >= :end))")
     fun findByRoomIdAndTimeOverlap(roomId: Long, start: LocalDateTime, end: LocalDateTime): List<ReservationEntity>
 
+    fun findByRoomIdAndStartTimeBetweenOrderByStartTimeAsc(
+        roomId: Long,
+        start: LocalDateTime,
+        end: LocalDateTime
+    ): List<ReservationEntity>
+
     fun deleteAllByRecurrenceId(recurrenceId: UUID)
 
 }
