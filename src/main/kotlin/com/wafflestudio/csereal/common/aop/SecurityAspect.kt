@@ -9,6 +9,8 @@ import org.aspectj.lang.annotation.Before
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.stereotype.Component
+import org.springframework.web.context.request.RequestAttributes
+import org.springframework.web.context.request.RequestContextHolder
 
 @Aspect
 @Component
@@ -41,7 +43,11 @@ class SecurityAspect(private val userRepository: UserRepository) {
         }
 
         val username = principal.idToken.getClaim<String>("username")
-        return userRepository.findByUsername(username) ?: throw CserealException.Csereal404("재로그인이 필요합니다.")
+        val user = userRepository.findByUsername(username) ?: throw CserealException.Csereal404("재로그인이 필요합니다.")
+
+        RequestContextHolder.getRequestAttributes()?.setAttribute("loggedInUser", user, RequestAttributes.SCOPE_REQUEST)
+
+        return user
     }
 
 }

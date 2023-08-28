@@ -4,12 +4,15 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.reservation.database.*
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
+import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.context.request.RequestAttributes
+import org.springframework.web.context.request.RequestContextHolder
 import java.time.LocalDateTime
 import java.util.*
 
@@ -30,10 +33,18 @@ class ReservationServiceImpl(
 ) : ReservationService {
 
     override fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto> {
-        val oidcUser = SecurityContextHolder.getContext().authentication.principal as OidcUser
-        val username = oidcUser.idToken.getClaim<String>("username")
+        var user = RequestContextHolder.getRequestAttributes()?.getAttribute(
+            "loggedInUser",
+            RequestAttributes.SCOPE_REQUEST
+        ) as UserEntity?
 
-        val user = userRepository.findByUsername(username)
+        if (user == null) {
+            val oidcUser = SecurityContextHolder.getContext().authentication.principal as OidcUser
+            val username = oidcUser.idToken.getClaim<String>("username")
+
+            user = userRepository.findByUsername(username) ?: throw CserealException.Csereal404("재로그인이 필요합니다.")
+        }
+
         val room =
             roomRepository.findByIdOrNull(reserveRequest.roomId) ?: throw CserealException.Csereal404("Room Not Found")
 
@@ -57,7 +68,7 @@ class ReservationServiceImpl(
                 throw CserealException.Csereal409("${week}주차 해당 시간에 이미 예약이 있습니다.")
             }
 
-            val newReservation = ReservationEntity.create(user!!, room, reserveRequest, start, end, recurrenceId)
+            val newReservation = ReservationEntity.create(user, room, reserveRequest, start, end, recurrenceId)
             reservations.add(newReservation)
         }
 
