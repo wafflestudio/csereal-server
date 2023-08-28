@@ -11,7 +11,6 @@ services:
       - '3306:3306'
     volumes:
       - db:/var/lib/mysql
-      - $PWD/db/init.sql:/docker-entrypoint-initdb.d/init.sql
 volumes:
   db:
     driver: local

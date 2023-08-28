@@ -29,12 +29,6 @@ springdoc:
   api-docs:
     path: /api-docs/json
 
-logging.level:
-  default: INFO
-  org:
-    springframework:
-      security: DEBUG
-
 ---
 spring:
   config.activate.on-profile: local
@@ -48,10 +42,16 @@ spring:
     show-sql: true
     open-in-view: false
 
+logging.level:
+  default: INFO
+  org:
+    springframework:
+      security: DEBUG
+
 ---
 spring:
   config.activate.on-profile: prod
   jpa:
     hibernate:
-      ddl-auto: create # TODO: change to validate (or none) when save actual data to server
+      ddl-auto: update # TODO: change to validate (or none) when save actual data to server
     open-in-view: false

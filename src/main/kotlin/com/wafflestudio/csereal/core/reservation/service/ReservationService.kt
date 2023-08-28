@@ -4,19 +4,22 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.reservation.database.*
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
-import com.wafflestudio.csereal.core.user.database.Role
+import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.context.request.RequestAttributes
+import org.springframework.web.context.request.RequestContextHolder
+import java.time.LocalDateTime
 import java.util.*
 
 interface ReservationService {
-    fun reserveRoom(
-        username: String,
-        reserveRequest: ReserveRequest
-    ): List<ReservationDto>
-
+    fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto>
+    fun getRoomReservationsBetween(roomId: Long, start: LocalDateTime, end: LocalDateTime): List<ReservationDto>
+    fun getReservation(reservationId: Long): ReservationDto
     fun cancelSpecific(reservationId: Long)
     fun cancelRecurring(recurrenceId: UUID)
 }
@@ -29,17 +32,21 @@ class ReservationServiceImpl(
     private val roomRepository: RoomRepository
 ) : ReservationService {
 
-    override fun reserveRoom(
-        username: String,
-        reserveRequest: ReserveRequest
-    ): List<ReservationDto> {
-        val user = userRepository.findByUsername(username) ?: throw CserealException.Csereal404("재로그인이 필요합니다.")
+    override fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto> {
+        var user = RequestContextHolder.getRequestAttributes()?.getAttribute(
+            "loggedInUser",
+            RequestAttributes.SCOPE_REQUEST
+        ) as UserEntity?
+
+        if (user == null) {
+            val oidcUser = SecurityContextHolder.getContext().authentication.principal as OidcUser
+            val username = oidcUser.idToken.getClaim<String>("username")
+
+            user = userRepository.findByUsername(username) ?: throw CserealException.Csereal404("재로그인이 필요합니다.")
+        }
+
         val room =
             roomRepository.findByIdOrNull(reserveRequest.roomId) ?: throw CserealException.Csereal404("Room Not Found")
-
-        if (user.role == null) {
-            throw CserealException.Csereal401("권한이 없습니다.")
-        }
 
         val reservations = mutableListOf<ReservationEntity>()
 
@@ -68,6 +75,23 @@ class ReservationServiceImpl(
         reservationRepository.saveAll(reservations)
 
         return reservations.map { ReservationDto.of(it) }
+    }
+
+    @Transactional(readOnly = true)
+    override fun getRoomReservationsBetween(
+        roomId: Long,
+        start: LocalDateTime,
+        end: LocalDateTime
+    ): List<ReservationDto> {
+        return reservationRepository.findByRoomIdAndStartTimeBetweenOrderByStartTimeAsc(roomId, start, end)
+            .map { ReservationDto.of(it) }
+    }
+
+    @Transactional(readOnly = true)
+    override fun getReservation(reservationId: Long): ReservationDto {
+        val reservationEntity =
+            reservationRepository.findByIdOrNull(reservationId) ?: throw CserealException.Csereal404("예약을 찾을 수 없습니다.")
+        return ReservationDto.of(reservationEntity)
     }
 
     override fun cancelSpecific(reservationId: Long) {

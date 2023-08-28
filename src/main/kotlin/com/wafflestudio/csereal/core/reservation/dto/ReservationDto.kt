@@ -2,9 +2,11 @@ package com.wafflestudio.csereal.core.reservation.dto
 
 import com.wafflestudio.csereal.core.reservation.database.ReservationEntity
 import java.time.LocalDateTime
+import java.util.UUID
 
 data class ReservationDto(
     val id: Long,
+    val recurrenceId: UUID?,
     val title: String,
     val purpose: String,
     val startTime: LocalDateTime,
@@ -19,6 +21,7 @@ data class ReservationDto(
         fun of(reservationEntity: ReservationEntity): ReservationDto {
             return ReservationDto(
                 id = reservationEntity.id,
+                recurrenceId = reservationEntity.recurrenceId,
                 title = reservationEntity.title,
                 purpose = reservationEntity.purpose,
                 startTime = reservationEntity.startTime,
