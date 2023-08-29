@@ -56,7 +56,11 @@ logging.level:
     springframework:
       security: DEBUG
 
-csereal:
+csereal_image:
+  upload:
+    path: /app/image/
+
+csereal_attachment:
   upload:
     path: /app/image/
 ---
@@ -69,7 +73,10 @@ spring:
 
 
 
-csereal:
+csereal_image:
   upload:
     path: /app/image/
 
+csereal_attachment:
+  upload:
+    path: /app/image/

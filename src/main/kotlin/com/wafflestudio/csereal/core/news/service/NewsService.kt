@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.news.database.*
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
+import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.ImageService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -13,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile
 interface NewsService {
     fun searchNews(tag: List<String>?, keyword: String?, pageNum: Long): NewsSearchResponse
     fun readNews(newsId: Long, tag: List<String>?, keyword: String?): NewsDto
-    fun createNews(request: NewsDto, image: MultipartFile?): NewsDto
+    fun createNews(request: NewsDto, image: MultipartFile?, attachments: List<MultipartFile>?): NewsDto
     fun updateNews(newsId: Long, request: NewsDto): NewsDto
     fun deleteNews(newsId: Long)
     fun enrollTag(tagName: String)
@@ -25,6 +26,7 @@ class NewsServiceImpl(
     private val tagInNewsRepository: TagInNewsRepository,
     private val newsTagRepository: NewsTagRepository,
     private val imageService: ImageService,
+    private val attachmentService: AttachmentService,
 ) : NewsService {
     @Transactional(readOnly = true)
     override fun searchNews(
@@ -47,15 +49,16 @@ class NewsServiceImpl(
         if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.(newsId: $newsId)")
 
         val imageURL = imageService.createImageURL(news.mainImage)
+        val attachments = attachmentService.createAttachments(news.attachments)
 
         val prevNext = newsRepository.findPrevNextId(newsId, tag, keyword)
             ?: throw CserealException.Csereal400("이전글 다음글이 존재하지 않습니다.(newsId=$newsId)")
 
-        return NewsDto.of(news, imageURL, prevNext)
+        return NewsDto.of(news, imageURL, attachments, prevNext)
     }
 
     @Transactional
-    override fun createNews(request: NewsDto, image: MultipartFile?): NewsDto {
+    override fun createNews(request: NewsDto, image: MultipartFile?, attachments: List<MultipartFile>?): NewsDto {
         val newNews = NewsEntity.of(request)
 
         for (tagName in request.tags) {
@@ -67,11 +70,16 @@ class NewsServiceImpl(
             imageService.uploadImage(newNews, image)
         }
 
+        if(attachments != null) {
+            attachmentService.uploadAttachments(newNews, attachments)
+        }
+
         newsRepository.save(newNews)
 
         val imageURL = imageService.createImageURL(newNews.mainImage)
+        val attachments = attachmentService.createAttachments(newNews.attachments)
 
-        return NewsDto.of(newNews, imageURL, null)
+        return NewsDto.of(newNews, imageURL, attachments, null)
     }
 
     @Transactional
@@ -98,9 +106,9 @@ class NewsServiceImpl(
         }
 
         val imageURL = imageService.createImageURL(news.mainImage)
+        val attachments = attachmentService.createAttachments(news.attachments)
 
-
-        return NewsDto.of(news, imageURL, null)
+        return NewsDto.of(news, imageURL, attachments, null)
     }
 
     @Transactional

@@ -35,8 +35,9 @@ class NewsController(
     fun createNews(
         @Valid @RequestPart("request") request: NewsDto,
         @RequestPart("image") image: MultipartFile?,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ) : ResponseEntity<NewsDto> {
-        return ResponseEntity.ok(newsService.createNews(request,image))
+        return ResponseEntity.ok(newsService.createNews(request,image, attachments))
     }
 
     @PatchMapping("/{newsId}")

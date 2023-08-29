@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.seminar.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.ContentEntityType
+import com.wafflestudio.csereal.common.controller.ImageContentEntityType
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import jakarta.persistence.Column
@@ -49,7 +49,7 @@ class SeminarEntity(
 
     @OneToOne
     var mainImage: MainImageEntity? = null,
-): BaseTimeEntity(), ContentEntityType {
+): BaseTimeEntity(), ImageContentEntityType {
     override fun bringMainImage(): MainImageEntity? = mainImage
 
     companion object {
