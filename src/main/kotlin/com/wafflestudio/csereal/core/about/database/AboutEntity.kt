@@ -18,7 +18,7 @@ class AboutEntity(
     @OneToMany(mappedBy = "about", cascade = [CascadeType.ALL], orphanRemoval = true)
     val locations: MutableList<LocationEntity> = mutableListOf(),
 
-    @OneToOne(mappedBy = "about", cascade = [CascadeType.ALL])
+    @OneToOne
     var mainImage: ImageEntity? = null,
 
 ) : BaseTimeEntity(), ContentEntityType {

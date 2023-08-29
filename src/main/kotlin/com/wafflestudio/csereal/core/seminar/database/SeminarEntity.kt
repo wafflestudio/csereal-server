@@ -48,7 +48,7 @@ class SeminarEntity(
 
     var additionalNote: String?,
 
-    @OneToOne(mappedBy = "seminar", cascade = [CascadeType.ALL])
+    @OneToOne
     var mainImage: ImageEntity? = null,
 ): BaseTimeEntity(), ContentEntityType {
     override fun bringMainImage(): ImageEntity? = mainImage

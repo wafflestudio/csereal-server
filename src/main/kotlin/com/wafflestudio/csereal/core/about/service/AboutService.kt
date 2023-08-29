@@ -42,21 +42,25 @@ class AboutServiceImpl(
         }
         aboutRepository.save(newAbout)
 
-        return AboutDto.of(newAbout)
+        val imageURL = imageService.createImageURL(newAbout.mainImage)
+
+        return AboutDto.of(newAbout, imageURL)
     }
 
     @Transactional(readOnly = true)
     override fun readAbout(postType: String): AboutDto {
         val enumPostType = makeStringToEnum(postType)
         val about = aboutRepository.findByPostType(enumPostType)
+        val imageURL = imageService.createImageURL(about.mainImage)
 
-        return AboutDto.of(about)
+        return AboutDto.of(about, imageURL)
     }
 
     @Transactional(readOnly = true)
     override fun readAllClubs(): List<AboutDto> {
         val clubs = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.STUDENT_CLUBS).map {
-            AboutDto.of(it)
+            val imageURL = imageService.createImageURL(it.mainImage)
+            AboutDto.of(it, imageURL)
         }
 
         return clubs
@@ -65,7 +69,8 @@ class AboutServiceImpl(
     @Transactional(readOnly = true)
     override fun readAllFacilities(): List<AboutDto> {
         val facilities = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.FACILITIES).map {
-            AboutDto.of(it)
+            val imageURL = imageService.createImageURL(it.mainImage)
+            AboutDto.of(it, imageURL)
         }
 
         return facilities
@@ -74,7 +79,8 @@ class AboutServiceImpl(
     @Transactional(readOnly = true)
     override fun readAllDirections(): List<AboutDto> {
         val directions = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.DIRECTIONS).map {
-            AboutDto.of(it)
+            val imageURL = imageService.createImageURL(it.mainImage)
+            AboutDto.of(it, imageURL)
         }
 
         return directions

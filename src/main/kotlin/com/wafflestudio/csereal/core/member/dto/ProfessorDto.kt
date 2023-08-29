@@ -29,7 +29,7 @@ data class ProfessorDto(
 
 ) {
     companion object {
-        fun of(professorEntity: ProfessorEntity): ProfessorDto {
+        fun of(professorEntity: ProfessorEntity, imageURL: String?): ProfessorDto {
             return ProfessorDto(
                 id = professorEntity.id,
                 name = professorEntity.name,
@@ -47,14 +47,9 @@ data class ProfessorDto(
                 educations = professorEntity.educations.map { it.name },
                 researchAreas = professorEntity.researchAreas.map { it.name },
                 careers = professorEntity.careers.map { it.name },
-                imageURL = createImageURL(professorEntity.mainImage),
+                imageURL = imageURL,
             )
         }
 
-        private fun createImageURL(image: ImageEntity?) : String? {
-            return if(image != null) {
-                "http://cse-dev-waffle.bacchus.io/var/myapp/image/${image.filename}.${image.extension}"
-            } else null
-        }
     }
 }

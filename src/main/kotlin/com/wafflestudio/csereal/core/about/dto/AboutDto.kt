@@ -17,7 +17,7 @@ data class AboutDto(
     val imageURL: String?
 ) {
     companion object {
-        fun of(entity: AboutEntity) : AboutDto = entity.run {
+        fun of(entity: AboutEntity, imageURL: String?) : AboutDto = entity.run {
             AboutDto(
                 id = this.id,
                 name = this.name,
@@ -27,16 +27,8 @@ data class AboutDto(
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
                 locations = this.locations.map { it.name },
-                imageURL = createImageURL(this.mainImage)
+                imageURL = imageURL
             )
-        }
-
-        private fun createImageURL(image: ImageEntity?) : String? {
-            return if(image != null) {
-                "http://cse-dev-waffle.bacchus.io/var/myapp/image/${image.filename}.${image.extension}"
-            } else null
-
-
         }
     }
 }

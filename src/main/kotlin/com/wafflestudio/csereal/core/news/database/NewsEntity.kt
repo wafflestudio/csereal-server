@@ -22,7 +22,7 @@ class NewsEntity(
     // 새소식 작성란에도 "가장 위에 표시"가 있더라고요, 혹시 쓸지도 모르니까 남겼습니다
     var isPinned: Boolean,
 
-    @OneToOne(mappedBy = "news", cascade = [CascadeType.ALL])
+    @OneToOne
     var mainImage: ImageEntity? = null,
 
     @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL])

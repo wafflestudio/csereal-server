@@ -28,8 +28,9 @@ interface ImageService {
     fun uploadImage(
         contentEntityType: ContentEntityType,
         requestImage: MultipartFile,
-        setUUIDFilename: Boolean = true
+        setUUIDFilename: Boolean = false
     ): ImageDto
+    fun createImageURL(image: ImageEntity?) : String?
 }
 
 @Service
@@ -54,13 +55,13 @@ class ImageServiceImpl(
         }
 
         val timeMillis = System.currentTimeMillis()
-        val uuid : String? = if (setUUIDFilename) {
+        val originalFilename : String? = if (setUUIDFilename) {
             UUID.randomUUID().toString()
         } else {
-            requestImage.originalFilename
+            requestImage.name
         }
 
-        val filename = "${timeMillis}_$uuid"
+        val filename = "${originalFilename}_$timeMillis"
         val totalFilename = path + filename
         val saveFile = Paths.get("$totalFilename.$extension")
         requestImage.transferTo(saveFile)
@@ -73,7 +74,7 @@ class ImageServiceImpl(
             filename = filename,
             extension = extension,
             imagesOrder = 1,
-            size = requestImage.size
+            size = requestImage.size,
         )
 
         val thumbnail = ImageEntity(
@@ -95,34 +96,34 @@ class ImageServiceImpl(
         )
     }
 
-    fun connectImageToEntity(contentEntity: ContentEntityType, image: ImageEntity) {
+    @Transactional
+    override fun createImageURL(image: ImageEntity?) : String? {
+        return if(image != null) {
+            "http://cse-dev-waffle.bacchus.io/var/myapp/image/${image.filename}.${image.extension}"
+        } else null
+    }
+
+    private fun connectImageToEntity(contentEntity: ContentEntityType, image: ImageEntity) {
         when (contentEntity) {
             is NewsEntity -> {
                 contentEntity.mainImage = image
-                image.news = contentEntity
             }
             is SeminarEntity -> {
                 contentEntity.mainImage = image
-                image.seminar = contentEntity
             }
             is AboutEntity -> {
                 contentEntity.mainImage = image
-                image.about = contentEntity
             }
             is ProfessorEntity -> {
                 contentEntity.mainImage = image
-                image.professor = contentEntity
             }
             is StaffEntity -> {
                 contentEntity.mainImage = image
-                image.staff = contentEntity
             }
             else -> {
                 throw WrongMethodTypeException("해당하는 엔티티가 없습니다")
             }
         }
-
-
     }
 
 }

@@ -50,10 +50,12 @@ class NewsServiceImpl(
 
         if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.(newsId: $newsId)")
 
+        val imageURL = imageService.createImageURL(news.mainImage)
+
         val prevNext = newsRepository.findPrevNextId(newsId, tag, keyword)
             ?: throw CserealException.Csereal400("이전글 다음글이 존재하지 않습니다.(newsId=$newsId)")
 
-        return NewsDto.of(news, prevNext)
+        return NewsDto.of(news, imageURL, prevNext)
     }
 
     @Transactional
@@ -71,7 +73,9 @@ class NewsServiceImpl(
 
         newsRepository.save(newNews)
 
-        return NewsDto.of(newNews, null)
+        val imageURL = imageService.createImageURL(newNews.mainImage)
+
+        return NewsDto.of(newNews, imageURL, null)
     }
 
     @Transactional
@@ -97,7 +101,10 @@ class NewsServiceImpl(
             NewsTagEntity.createNewsTag(news,tag)
         }
 
-        return NewsDto.of(news, null)
+        val imageURL = imageService.createImageURL(news.mainImage)
+
+
+        return NewsDto.of(news, imageURL, null)
     }
 
     @Transactional

@@ -17,7 +17,7 @@ data class StaffDto(
     val imageURL: String? = null
 ) {
     companion object {
-        fun of(staffEntity: StaffEntity): StaffDto {
+        fun of(staffEntity: StaffEntity, imageURL: String?): StaffDto {
             return StaffDto(
                 id = staffEntity.id,
                 name = staffEntity.name,
@@ -26,14 +26,9 @@ data class StaffDto(
                 phone = staffEntity.phone,
                 email = staffEntity.email,
                 tasks = staffEntity.tasks.map { it.name },
-                imageURL = createImageURL(staffEntity.mainImage)
+                imageURL = imageURL
             )
         }
 
-        private fun createImageURL(image: ImageEntity?) : String? {
-            return if(image != null) {
-                "http://cse-dev-waffle.bacchus.io/var/myapp/image/${image.filename}.${image.extension}"
-            } else null
-        }
     }
 }

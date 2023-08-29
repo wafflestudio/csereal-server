@@ -21,21 +21,6 @@ class ImageEntity(
     val imagesOrder: Int,
     val size: Long,
 
-    @OneToOne @JoinColumn
-    var about: AboutEntity? = null,
-
-    @OneToOne @JoinColumn
-    var professor: ProfessorEntity? = null,
-
-    @OneToOne @JoinColumn
-    var staff: StaffEntity? = null,
-
-    @OneToOne @JoinColumn
-    var news: NewsEntity? = null,
-
-    @OneToOne @JoinColumn
-    var seminar: SeminarEntity? = null,
-
     ) : BaseTimeEntity() {
 
 }

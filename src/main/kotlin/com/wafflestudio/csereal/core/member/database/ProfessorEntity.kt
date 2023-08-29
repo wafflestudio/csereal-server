@@ -41,8 +41,9 @@ class ProfessorEntity(
     @OneToMany(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
     val careers: MutableList<CareerEntity> = mutableListOf(),
 
-    @OneToOne(mappedBy = "professor", cascade = [CascadeType.ALL])
+    @OneToOne
     var mainImage: ImageEntity? = null,
+
 ) : BaseTimeEntity(), ContentEntityType {
     override fun bringMainImage(): ImageEntity? = mainImage
 

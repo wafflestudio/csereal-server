@@ -21,7 +21,7 @@ class StaffEntity(
     @OneToMany(mappedBy = "staff", cascade = [CascadeType.ALL], orphanRemoval = true)
     val tasks: MutableList<TaskEntity> = mutableListOf(),
 
-    @OneToOne(mappedBy = "staff", cascade = [CascadeType.ALL])
+    @OneToOne
     var mainImage: ImageEntity? = null,
 
     ) : BaseTimeEntity(), ContentEntityType {

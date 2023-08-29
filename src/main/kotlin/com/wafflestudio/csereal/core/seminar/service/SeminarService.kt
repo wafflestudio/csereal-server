@@ -41,7 +41,10 @@ class SeminarServiceImpl(
 
         seminarRepository.save(newSeminar)
 
-        return SeminarDto.of(newSeminar, null)
+        val imageURL = imageService.createImageURL(newSeminar.mainImage)
+
+
+        return SeminarDto.of(newSeminar, imageURL, null)
     }
 
     @Transactional(readOnly = true)
@@ -51,9 +54,11 @@ class SeminarServiceImpl(
 
         if (seminar.isDeleted) throw CserealException.Csereal400("삭제된 세미나입니다. (seminarId: $seminarId)")
 
+        val imageURL = imageService.createImageURL(seminar.mainImage)
+
         val prevNext = seminarRepository.findPrevNextId(seminarId, keyword)
 
-        return SeminarDto.of(seminar, prevNext)
+        return SeminarDto.of(seminar, imageURL, prevNext)
     }
 
     @Transactional
@@ -64,7 +69,9 @@ class SeminarServiceImpl(
 
         seminar.update(request)
 
-        return SeminarDto.of(seminar, null)
+        val imageURL = imageService.createImageURL(seminar.mainImage)
+
+        return SeminarDto.of(seminar, imageURL, null)
     }
     @Transactional
     override fun deleteSeminar(seminarId: Long) {

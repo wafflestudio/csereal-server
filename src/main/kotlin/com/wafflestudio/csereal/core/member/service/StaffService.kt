@@ -41,14 +41,19 @@ class StaffServiceImpl(
 
         staffRepository.save(staff)
 
-        return StaffDto.of(staff)
+        val imageURL = imageService.createImageURL(staff.mainImage)
+
+        return StaffDto.of(staff, imageURL)
     }
 
     @Transactional(readOnly = true)
     override fun getStaff(staffId: Long): StaffDto {
         val staff = staffRepository.findByIdOrNull(staffId)
             ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. staffId: ${staffId}")
-        return StaffDto.of(staff)
+
+        val imageURL = imageService.createImageURL(staff.mainImage)
+
+        return StaffDto.of(staff, imageURL)
     }
 
     @Transactional(readOnly = true)
@@ -75,7 +80,9 @@ class StaffServiceImpl(
             TaskEntity.create(task, staff)
         }
 
-        return StaffDto.of(staff)
+        val imageURL = imageService.createImageURL(staff.mainImage)
+
+        return StaffDto.of(staff, imageURL)
     }
 
     override fun deleteStaff(staffId: Long) {

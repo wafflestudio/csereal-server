@@ -55,14 +55,19 @@ class ProfessorServiceImpl(
 
         professorRepository.save(professor)
 
-        return ProfessorDto.of(professor)
+        val imageURL = imageService.createImageURL(professor.mainImage)
+
+        return ProfessorDto.of(professor, imageURL)
     }
 
     @Transactional(readOnly = true)
     override fun getProfessor(professorId: Long): ProfessorDto {
         val professor = professorRepository.findByIdOrNull(professorId)
             ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다. professorId: ${professorId}")
-        return ProfessorDto.of(professor)
+
+        val imageURL = imageService.createImageURL(professor.mainImage)
+
+        return ProfessorDto.of(professor, imageURL)
     }
 
     @Transactional(readOnly = true)
@@ -133,7 +138,9 @@ class ProfessorServiceImpl(
             CareerEntity.create(career, professor)
         }
 
-        return ProfessorDto.of(professor)
+        val imageURL = imageService.createImageURL(professor.mainImage)
+
+        return ProfessorDto.of(professor, imageURL)
     }
 
     override fun deleteProfessor(professorId: Long) {
