@@ -17,9 +17,10 @@ data class NewsDto(
     val prevTitle: String?,
     val nextId: Long?,
     val nextTitle: String?,
+    val imageURL: String?,
 ) {
     companion object {
-        fun of(entity: NewsEntity, prevNext: Array<NewsEntity?>?) : NewsDto = entity.run {
+        fun of(entity: NewsEntity, imageURL: String?, prevNext: Array<NewsEntity?>?) : NewsDto = entity.run {
             NewsDto(
                 id = this.id,
                 title = this.title,
@@ -34,7 +35,7 @@ data class NewsDto(
                 prevTitle = prevNext?.get(0)?.title,
                 nextId = prevNext?.get(1)?.id,
                 nextTitle = prevNext?.get(1)?.title,
-
+                imageURL = imageURL,
             )
         }
     }

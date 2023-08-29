@@ -42,6 +42,12 @@ dependencies {
 	// 태그 제거
 	implementation("org.jsoup:jsoup:1.15.4")
 
+	// 이미지 업로드
+	implementation("commons-io:commons-io:2.11.0")
+
+	// 썸네일 보여주기
+	implementation("net.coobird:thumbnailator:0.4.19")
+
 }
 noArg {
 	annotation("jakarta.persistence.Entity")

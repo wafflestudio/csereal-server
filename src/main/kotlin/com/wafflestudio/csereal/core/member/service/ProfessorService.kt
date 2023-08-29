@@ -6,14 +6,14 @@ import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
 import com.wafflestudio.csereal.core.member.dto.SimpleProfessorDto
 import com.wafflestudio.csereal.core.research.database.LabRepository
+import com.wafflestudio.csereal.core.resource.mainImage.service.ImageService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 
 interface ProfessorService {
-
-    fun createProfessor(createProfessorRequest: ProfessorDto): ProfessorDto
-    fun getProfessor(professorId: Long): ProfessorDto
+    fun createProfessor(createProfessorRequest: ProfessorDto, image: MultipartFile?): ProfessorDto    fun getProfessor(professorId: Long): ProfessorDto
     fun getActiveProfessors(): ProfessorPageDto
     fun getInactiveProfessors(): List<SimpleProfessorDto>
     fun updateProfessor(professorId: Long, updateProfessorRequest: ProfessorDto): ProfessorDto
@@ -24,12 +24,11 @@ interface ProfessorService {
 @Transactional
 class ProfessorServiceImpl(
     private val labRepository: LabRepository,
-    private val professorRepository: ProfessorRepository
+    private val professorRepository: ProfessorRepository,
+    private val imageService: ImageService,
 ) : ProfessorService {
-
-    override fun createProfessor(createProfessorRequest: ProfessorDto): ProfessorDto {
+    override fun createProfessor(createProfessorRequest: ProfessorDto, image: MultipartFile?): ProfessorDto {
         val professor = ProfessorEntity.of(createProfessorRequest)
-
         if (createProfessorRequest.labId != null) {
             val lab = labRepository.findByIdOrNull(createProfessorRequest.labId)
                 ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다. LabId: ${createProfessorRequest.labId}")
@@ -48,16 +47,25 @@ class ProfessorServiceImpl(
             CareerEntity.create(career, professor)
         }
 
+        if(image != null) {
+            imageService.uploadImage(professor, image)
+        }
+
         professorRepository.save(professor)
 
-        return ProfessorDto.of(professor)
+        val imageURL = imageService.createImageURL(professor.mainImage)
+
+        return ProfessorDto.of(professor, imageURL)
     }
 
     @Transactional(readOnly = true)
     override fun getProfessor(professorId: Long): ProfessorDto {
         val professor = professorRepository.findByIdOrNull(professorId)
             ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다. professorId: ${professorId}")
-        return ProfessorDto.of(professor)
+
+        val imageURL = imageService.createImageURL(professor.mainImage)
+
+        return ProfessorDto.of(professor, imageURL)
     }
 
     @Transactional(readOnly = true)
@@ -68,14 +76,20 @@ class ProfessorServiceImpl(
                 "교육 및 연구 지도에 총력을 기울이고 있다.\n\n다수의 외국인 학부생, 대학원생이 재학 중에 있으며 매 학기 전공 필수 과목을 비롯한 " +
                 "30% 이상의 과목이 영어로 개설되고 있어 외국인 학생의 학업을 돕는 동시에 한국인 학생이 세계로 진출하는 초석이 되고 있다. 또한 " +
                 "CSE int’l Luncheon을 개최하여 학부 내 외국인 구성원의 화합과 생활의 불편함을 최소화하는 등 학부 차원에서 최선을 다하고 있다."
-        val professors = professorRepository.findByStatusNot(ProfessorStatus.INACTIVE).map { SimpleProfessorDto.of(it) }
+        val professors = professorRepository.findByStatusNot(ProfessorStatus.INACTIVE).map {
+            val imageURL = imageService.createImageURL(it.mainImage)
+            SimpleProfessorDto.of(it, imageURL)
+        }
             .sortedBy { it.name }
         return ProfessorPageDto(description, professors)
     }
 
     @Transactional(readOnly = true)
     override fun getInactiveProfessors(): List<SimpleProfessorDto> {
-        return professorRepository.findByStatus(ProfessorStatus.INACTIVE).map { SimpleProfessorDto.of(it) }
+        return professorRepository.findByStatus(ProfessorStatus.INACTIVE).map {
+            val imageURL = imageService.createImageURL(it.mainImage)
+            SimpleProfessorDto.of(it, imageURL)
+        }
             .sortedBy { it.name }
     }
 
@@ -128,7 +142,9 @@ class ProfessorServiceImpl(
             CareerEntity.create(career, professor)
         }
 
-        return ProfessorDto.of(professor)
+        val imageURL = imageService.createImageURL(professor.mainImage)
+
+        return ProfessorDto.of(professor, imageURL)
     }
 
     override fun deleteProfessor(professorId: Long) {

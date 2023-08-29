@@ -4,15 +4,16 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.news.database.*
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
+import com.wafflestudio.csereal.core.resource.mainImage.service.ImageService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
+import org.springframework.web.multipart.MultipartFile
 
 interface NewsService {
     fun searchNews(tag: List<String>?, keyword: String?, pageNum: Long): NewsSearchResponse
     fun readNews(newsId: Long, tag: List<String>?, keyword: String?): NewsDto
-    fun createNews(request: NewsDto): NewsDto
+    fun createNews(request: NewsDto, image: MultipartFile?): NewsDto
     fun updateNews(newsId: Long, request: NewsDto): NewsDto
     fun deleteNews(newsId: Long)
     fun enrollTag(tagName: String)
@@ -22,7 +23,8 @@ interface NewsService {
 class NewsServiceImpl(
     private val newsRepository: NewsRepository,
     private val tagInNewsRepository: TagInNewsRepository,
-    private val newsTagRepository: NewsTagRepository
+    private val newsTagRepository: NewsTagRepository,
+    private val imageService: ImageService,
 ) : NewsService {
     @Transactional(readOnly = true)
     override fun searchNews(
@@ -44,30 +46,32 @@ class NewsServiceImpl(
 
         if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.(newsId: $newsId)")
 
+        val imageURL = imageService.createImageURL(news.mainImage)
+
         val prevNext = newsRepository.findPrevNextId(newsId, tag, keyword)
             ?: throw CserealException.Csereal400("이전글 다음글이 존재하지 않습니다.(newsId=$newsId)")
 
-        return NewsDto.of(news, prevNext)
+        return NewsDto.of(news, imageURL, prevNext)
     }
 
     @Transactional
-    override fun createNews(request: NewsDto): NewsDto {
-        val newNews = NewsEntity(
-            title = request.title,
-            description = request.description,
-            isPublic = request.isPublic,
-            isSlide = request.isSlide,
-            isPinned = request.isPinned
-        )
+    override fun createNews(request: NewsDto, image: MultipartFile?): NewsDto {
+        val newNews = NewsEntity.of(request)
 
         for (tagName in request.tags) {
             val tag = tagInNewsRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
             NewsTagEntity.createNewsTag(newNews, tag)
         }
 
+        if(image != null) {
+            imageService.uploadImage(newNews, image)
+        }
+
         newsRepository.save(newNews)
 
-        return NewsDto.of(newNews, null)
+        val imageURL = imageService.createImageURL(newNews.mainImage)
+
+        return NewsDto.of(newNews, imageURL, null)
     }
 
     @Transactional
@@ -93,7 +97,10 @@ class NewsServiceImpl(
             NewsTagEntity.createNewsTag(news,tag)
         }
 
-        return NewsDto.of(news, null)
+        val imageURL = imageService.createImageURL(news.mainImage)
+
+
+        return NewsDto.of(news, imageURL, null)
     }
 
     @Transactional

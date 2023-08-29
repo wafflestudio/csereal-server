@@ -1,8 +1,10 @@
 package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.controller.ContentEntityType
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.research.database.LabEntity
+import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.*
 import java.time.LocalDate
 
@@ -39,8 +41,11 @@ class ProfessorEntity(
     @OneToMany(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
     val careers: MutableList<CareerEntity> = mutableListOf(),
 
-    var imageUri: String? = null
-) : BaseTimeEntity() {
+    @OneToOne
+    var mainImage: MainImageEntity? = null,
+
+) : BaseTimeEntity(), ContentEntityType {
+    override fun bringMainImage(): MainImageEntity? = mainImage
 
     companion object {
         fun of(professorDto: ProfessorDto): ProfessorEntity {
@@ -54,7 +59,7 @@ class ProfessorEntity(
                 phone = professorDto.phone,
                 fax = professorDto.fax,
                 email = professorDto.email,
-                website = professorDto.website
+                website = professorDto.website,
             )
         }
     }

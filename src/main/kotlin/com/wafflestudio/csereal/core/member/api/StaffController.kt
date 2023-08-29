@@ -4,14 +4,8 @@ import com.wafflestudio.csereal.core.member.dto.SimpleStaffDto
 import com.wafflestudio.csereal.core.member.dto.StaffDto
 import com.wafflestudio.csereal.core.member.service.StaffService
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @RequestMapping("/staff")
 @RestController
@@ -20,8 +14,11 @@ class StaffController(
 ) {
 
     @PostMapping
-    fun createStaff(@RequestBody createStaffRequest: StaffDto): ResponseEntity<StaffDto> {
-        return ResponseEntity.ok(staffService.createStaff(createStaffRequest))
+    fun createStaff(
+        @RequestPart("request") createStaffRequest: StaffDto,
+        @RequestPart("image") image: MultipartFile?,
+    ): ResponseEntity<StaffDto> {
+        return ResponseEntity.ok(staffService.createStaff(createStaffRequest,image))
     }
 
     @GetMapping("/{staffId}")

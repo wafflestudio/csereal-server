@@ -19,7 +19,6 @@ data class SeminarDto(
     val endTime: String?,
     val location: String,
     val host: String?,
-    // val profileImage: File,
     // val seminarFile: File,
     val additionalNote: String?,
     val isPublic: Boolean,
@@ -27,11 +26,12 @@ data class SeminarDto(
     val prevId: Long?,
     val prevTitle: String?,
     val nextId: Long?,
-    val nextTitle: String?
+    val nextTitle: String?,
+    val imageURL: String?,
 ) {
 
     companion object {
-        fun of(entity: SeminarEntity, prevNext: Array<SeminarEntity?>?): SeminarDto = entity.run {
+        fun of(entity: SeminarEntity, imageURL: String?, prevNext: Array<SeminarEntity?>?): SeminarDto = entity.run {
             SeminarDto(
                 id = this.id,
                 title = this.title,
@@ -55,7 +55,8 @@ data class SeminarDto(
                 prevId = prevNext?.get(0)?.id,
                 prevTitle = prevNext?.get(0)?.title,
                 nextId = prevNext?.get(1)?.id,
-                nextTitle = prevNext?.get(1)?.title
+                nextTitle = prevNext?.get(1)?.title,
+                imageURL = imageURL,
             )
         }
 
