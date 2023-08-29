@@ -28,7 +28,7 @@ class AboutEntity(
 
     ) : BaseTimeEntity(), ImageContentEntityType, AttachmentContentEntityType {
     override fun bringMainImage(): MainImageEntity? = mainImage
-    override fun bringAttachments(): List<AttachmentEntity>? = attachments
+    override fun bringAttachments(): List<AttachmentEntity> = attachments
 
     companion object {
         fun of(postType: AboutPostType, aboutDto: AboutDto): AboutEntity {

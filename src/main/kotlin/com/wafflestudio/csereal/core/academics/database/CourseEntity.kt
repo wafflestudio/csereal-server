@@ -2,7 +2,10 @@ package com.wafflestudio.csereal.core.academics.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.core.academics.dto.CourseDto
+import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
+import jakarta.persistence.OneToMany
 
 @Entity(name = "course")
 class CourseEntity(
@@ -22,8 +25,12 @@ class CourseEntity(
 
     var courseURL: String?,
 
-    var description: String?
-): BaseTimeEntity() {
+    var description: String?,
+
+    @OneToMany(mappedBy = "course", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+
+    ): BaseTimeEntity() {
     companion object {
         fun of(studentType: AcademicsStudentType, courseDto: CourseDto): CourseEntity {
             return CourseEntity(

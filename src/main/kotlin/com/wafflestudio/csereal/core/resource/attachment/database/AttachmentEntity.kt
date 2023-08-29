@@ -2,6 +2,8 @@ package com.wafflestudio.csereal.core.resource.attachment.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.core.about.database.AboutEntity
+import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
+import com.wafflestudio.csereal.core.academics.database.CourseEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import jakarta.persistence.*
@@ -27,6 +29,14 @@ class AttachmentEntity(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "about_id")
     var about: AboutEntity? = null,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "academics_id")
+    var academics: AcademicsEntity? = null,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")
+    var course: CourseEntity? = null,
 ) : BaseTimeEntity() {
 
 }
