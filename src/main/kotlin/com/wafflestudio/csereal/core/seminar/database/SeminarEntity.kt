@@ -1,9 +1,12 @@
 package com.wafflestudio.csereal.core.seminar.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.controller.ContentEntityType
+import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.OneToOne
 
 @Entity(name = "seminar")
 class SeminarEntity(
@@ -36,16 +39,18 @@ class SeminarEntity(
 
     var host: String?,
 
-    // var profileImage: File,
-
     // var seminarFile: File,
 
     var isPublic: Boolean,
 
     var isSlide: Boolean,
 
-    var additionalNote: String?
-): BaseTimeEntity() {
+    var additionalNote: String?,
+
+    @OneToOne
+    var mainImage: MainImageEntity? = null,
+): BaseTimeEntity(), ContentEntityType {
+    override fun bringMainImage(): MainImageEntity? = mainImage
 
     companion object {
         fun of(seminarDto: SeminarDto): SeminarEntity {
@@ -67,10 +72,9 @@ class SeminarEntity(
                 host = seminarDto.host,
                 additionalNote = seminarDto.additionalNote,
                 isPublic = seminarDto.isPublic,
-                isSlide = seminarDto.isSlide
+                isSlide = seminarDto.isSlide,
             )
         }
-
     }
 
     fun update(updateSeminarRequest: SeminarDto) {

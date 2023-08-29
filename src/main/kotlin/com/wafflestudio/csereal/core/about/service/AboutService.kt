@@ -6,11 +6,13 @@ import com.wafflestudio.csereal.core.about.database.AboutPostType
 import com.wafflestudio.csereal.core.about.database.AboutRepository
 import com.wafflestudio.csereal.core.about.database.LocationEntity
 import com.wafflestudio.csereal.core.about.dto.AboutDto
+import com.wafflestudio.csereal.core.resource.mainImage.service.ImageService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 
 interface AboutService {
-    fun createAbout(postType: String, request: AboutDto): AboutDto
+    fun createAbout(postType: String, request: AboutDto, image: MultipartFile?): AboutDto
     fun readAbout(postType: String): AboutDto
     fun readAllClubs() : List<AboutDto>
     fun readAllFacilities() : List<AboutDto>
@@ -19,10 +21,11 @@ interface AboutService {
 
 @Service
 class AboutServiceImpl(
-    private val aboutRepository: AboutRepository
+    private val aboutRepository: AboutRepository,
+    private val imageService: ImageService,
 ) : AboutService {
     @Transactional
-    override fun createAbout(postType: String, request: AboutDto): AboutDto {
+    override fun createAbout(postType: String, request: AboutDto, image: MultipartFile?): AboutDto {
         val enumPostType = makeStringToEnum(postType)
         val newAbout = AboutEntity.of(enumPostType, request)
 
@@ -32,23 +35,30 @@ class AboutServiceImpl(
             }
         }
 
+        if(image != null) {
+            imageService.uploadImage(newAbout, image)
+        }
         aboutRepository.save(newAbout)
 
-        return AboutDto.of(newAbout)
+        val imageURL = imageService.createImageURL(newAbout.mainImage)
+
+        return AboutDto.of(newAbout, imageURL)
     }
 
     @Transactional(readOnly = true)
     override fun readAbout(postType: String): AboutDto {
         val enumPostType = makeStringToEnum(postType)
         val about = aboutRepository.findByPostType(enumPostType)
+        val imageURL = imageService.createImageURL(about.mainImage)
 
-        return AboutDto.of(about)
+        return AboutDto.of(about, imageURL)
     }
 
     @Transactional(readOnly = true)
     override fun readAllClubs(): List<AboutDto> {
         val clubs = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.STUDENT_CLUBS).map {
-            AboutDto.of(it)
+            val imageURL = imageService.createImageURL(it.mainImage)
+            AboutDto.of(it, imageURL)
         }
 
         return clubs
@@ -57,7 +67,8 @@ class AboutServiceImpl(
     @Transactional(readOnly = true)
     override fun readAllFacilities(): List<AboutDto> {
         val facilities = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.FACILITIES).map {
-            AboutDto.of(it)
+            val imageURL = imageService.createImageURL(it.mainImage)
+            AboutDto.of(it, imageURL)
         }
 
         return facilities
@@ -66,7 +77,8 @@ class AboutServiceImpl(
     @Transactional(readOnly = true)
     override fun readAllDirections(): List<AboutDto> {
         val directions = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.DIRECTIONS).map {
-            AboutDto.of(it)
+            val imageURL = imageService.createImageURL(it.mainImage)
+            AboutDto.of(it, imageURL)
         }
 
         return directions

@@ -23,17 +23,19 @@ server:
     session:
       timeout: 7200 # 2시간
 
+
 springdoc:
   swagger-ui:
     path: index.html
   api-docs:
     path: /api-docs/json
 
-logging.level:
-  default: INFO
-  org:
-    springframework:
-      security: DEBUG
+servlet:
+  multipart:
+    enabled: true
+    max-request-size: 100MB
+    max-file-size: 10MB
+
 
 ---
 spring:
@@ -48,10 +50,26 @@ spring:
     show-sql: true
     open-in-view: false
 
+logging.level:
+  default: INFO
+  org:
+    springframework:
+      security: DEBUG
+
+csereal:
+  upload:
+    path: /app/image/
 ---
 spring:
   config.activate.on-profile: prod
   jpa:
     hibernate:
-      ddl-auto: create # TODO: change to validate (or none) when save actual data to server
+      ddl-auto: update # TODO: change to validate (or none) when save actual data to server
     open-in-view: false
+
+
+
+csereal:
+  upload:
+    path: /app/image/
+

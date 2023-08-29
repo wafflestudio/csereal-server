@@ -1,7 +1,9 @@
 package com.wafflestudio.csereal.core.about.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.controller.ContentEntityType
 import com.wafflestudio.csereal.core.about.dto.AboutDto
+import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.*
 
 @Entity(name = "about")
@@ -14,8 +16,14 @@ class AboutEntity(
     var year: Int?,
 
     @OneToMany(mappedBy = "about", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val locations: MutableList<LocationEntity> = mutableListOf()
-) : BaseTimeEntity() {
+    val locations: MutableList<LocationEntity> = mutableListOf(),
+
+    @OneToOne
+    var mainImage: MainImageEntity? = null,
+
+) : BaseTimeEntity(), ContentEntityType {
+    override fun bringMainImage(): MainImageEntity? = mainImage
+
     companion object {
         fun of(postType: AboutPostType, aboutDto: AboutDto): AboutEntity {
             return AboutEntity(

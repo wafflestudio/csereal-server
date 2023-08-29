@@ -6,6 +6,7 @@ import com.wafflestudio.csereal.core.member.dto.SimpleProfessorDto
 import com.wafflestudio.csereal.core.member.service.ProfessorService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @RequestMapping("/professor")
 @RestController
@@ -14,8 +15,11 @@ class ProfessorController(
 ) {
 
     @PostMapping
-    fun createProfessor(@RequestBody createProfessorRequest: ProfessorDto): ResponseEntity<ProfessorDto> {
-        return ResponseEntity.ok(professorService.createProfessor(createProfessorRequest))
+    fun createProfessor(
+        @RequestPart("request") createProfessorRequest: ProfessorDto,
+        @RequestPart("image") image: MultipartFile?,
+    ): ResponseEntity<ProfessorDto> {
+        return ResponseEntity.ok(professorService.createProfessor(createProfessorRequest, image))
     }
 
     @GetMapping("/{professorId}")

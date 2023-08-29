@@ -24,11 +24,11 @@ data class ProfessorDto(
     val researchAreas: List<String>,
     val careers: List<String>,
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    var imageUri: String? = null
+    var imageURL: String? = null
 
 ) {
     companion object {
-        fun of(professorEntity: ProfessorEntity): ProfessorDto {
+        fun of(professorEntity: ProfessorEntity, imageURL: String?): ProfessorDto {
             return ProfessorDto(
                 id = professorEntity.id,
                 name = professorEntity.name,
@@ -46,8 +46,9 @@ data class ProfessorDto(
                 educations = professorEntity.educations.map { it.name },
                 researchAreas = professorEntity.researchAreas.map { it.name },
                 careers = professorEntity.careers.map { it.name },
-                imageUri = professorEntity.imageUri
+                imageURL = imageURL,
             )
         }
+
     }
 }

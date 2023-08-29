@@ -6,6 +6,7 @@ import com.wafflestudio.csereal.core.seminar.service.SeminarService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @RequestMapping("/seminar")
 @RestController
@@ -21,10 +22,10 @@ class SeminarController (
     }
     @PostMapping
     fun createSeminar(
-        @Valid @RequestBody request: SeminarDto
+        @Valid @RequestPart("request") request: SeminarDto,
+        @RequestPart("image") image: MultipartFile?
     ) : ResponseEntity<SeminarDto> {
-        return ResponseEntity.ok(seminarService.createSeminar(request))
-    }
+        return ResponseEntity.ok(seminarService.createSeminar(request,image))    }
 
     @GetMapping("/{seminarId}")
     fun readSeminar(
