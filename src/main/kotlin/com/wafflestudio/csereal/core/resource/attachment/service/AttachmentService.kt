@@ -89,9 +89,11 @@ class AttachmentServiceImpl(
         when (contentEntity) {
             is NewsEntity -> {
                 contentEntity.attachments.add(attachment)
+                attachment.news = contentEntity
             }
             is SeminarEntity -> {
                 contentEntity.attachments.add(attachment)
+                attachment.seminar = contentEntity
             }
         }
     }

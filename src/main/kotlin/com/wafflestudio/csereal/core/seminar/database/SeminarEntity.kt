@@ -6,10 +6,7 @@ import com.wafflestudio.csereal.common.controller.ImageContentEntityType
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.OneToMany
-import jakarta.persistence.OneToOne
+import jakarta.persistence.*
 
 @Entity(name = "seminar")
 class SeminarEntity(
@@ -53,7 +50,7 @@ class SeminarEntity(
     @OneToOne
     var mainImage: MainImageEntity? = null,
 
-    @OneToMany
+    @OneToMany(mappedBy = "seminar", cascade = [CascadeType.ALL], orphanRemoval = true)
     var attachments: MutableList<AttachmentEntity> = mutableListOf(),
 
     ): BaseTimeEntity(), ImageContentEntityType, AttachmentContentEntityType {
