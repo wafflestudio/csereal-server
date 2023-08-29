@@ -6,7 +6,7 @@ services:
       args:
         PROFILE: ${PROFILE}
     ports:
-      - 80:8080
+      - 8080:8080
     environment:
       SPRING_DATASOURCE_URL: "jdbc:mysql://csereal_db_container:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
