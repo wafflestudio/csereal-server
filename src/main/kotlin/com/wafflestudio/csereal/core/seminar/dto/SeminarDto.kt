@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.seminar.dto
 
+import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 
 data class SeminarDto(
@@ -28,10 +29,11 @@ data class SeminarDto(
     val nextId: Long?,
     val nextTitle: String?,
     val imageURL: String?,
+    val attachments: List<AttachmentResponse>?,
 ) {
 
     companion object {
-        fun of(entity: SeminarEntity, imageURL: String?, prevNext: Array<SeminarEntity?>?): SeminarDto = entity.run {
+        fun of(entity: SeminarEntity, imageURL: String?, attachments: List<AttachmentResponse>?, prevNext: Array<SeminarEntity?>?): SeminarDto = entity.run {
             SeminarDto(
                 id = this.id,
                 title = this.title,
@@ -57,6 +59,7 @@ data class SeminarDto(
                 nextId = prevNext?.get(1)?.id,
                 nextTitle = prevNext?.get(1)?.title,
                 imageURL = imageURL,
+                attachments = attachments,
             )
         }
 

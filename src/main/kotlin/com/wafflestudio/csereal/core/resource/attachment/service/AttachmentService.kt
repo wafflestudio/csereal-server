@@ -6,6 +6,7 @@ import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEnti
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentRepository
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentDto
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
+import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import org.apache.commons.io.FilenameUtils
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -87,6 +88,9 @@ class AttachmentServiceImpl(
     private fun connectAttachmentToEntity(contentEntity: AttachmentContentEntityType, attachment: AttachmentEntity) {
         when (contentEntity) {
             is NewsEntity -> {
+                contentEntity.attachments.add(attachment)
+            }
+            is SeminarEntity -> {
                 contentEntity.attachments.add(attachment)
             }
         }

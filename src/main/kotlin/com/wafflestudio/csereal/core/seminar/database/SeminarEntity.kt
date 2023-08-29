@@ -1,11 +1,14 @@
 package com.wafflestudio.csereal.core.seminar.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.common.controller.ImageContentEntityType
+import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 
 @Entity(name = "seminar")
@@ -49,8 +52,13 @@ class SeminarEntity(
 
     @OneToOne
     var mainImage: MainImageEntity? = null,
-): BaseTimeEntity(), ImageContentEntityType {
+
+    @OneToMany
+    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+
+    ): BaseTimeEntity(), ImageContentEntityType, AttachmentContentEntityType {
     override fun bringMainImage(): MainImageEntity? = mainImage
+    override fun bringAttachments() = attachments
 
     companion object {
         fun of(seminarDto: SeminarDto): SeminarEntity {
