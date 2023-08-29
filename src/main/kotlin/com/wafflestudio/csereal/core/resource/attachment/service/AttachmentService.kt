@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.resource.attachment.service
 
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
+import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentRepository
@@ -89,9 +90,15 @@ class AttachmentServiceImpl(
         when (contentEntity) {
             is NewsEntity -> {
                 contentEntity.attachments.add(attachment)
+                attachment.news = contentEntity
             }
             is SeminarEntity -> {
                 contentEntity.attachments.add(attachment)
+                attachment.seminar = contentEntity
+            }
+            is AboutEntity -> {
+                contentEntity.attachments.add(attachment)
+                attachment.about = contentEntity
             }
         }
     }

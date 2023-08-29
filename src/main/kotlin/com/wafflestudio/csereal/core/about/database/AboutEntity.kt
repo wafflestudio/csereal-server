@@ -1,8 +1,10 @@
 package com.wafflestudio.csereal.core.about.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.common.controller.ImageContentEntityType
 import com.wafflestudio.csereal.core.about.dto.AboutDto
+import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.*
 
@@ -18,11 +20,15 @@ class AboutEntity(
     @OneToMany(mappedBy = "about", cascade = [CascadeType.ALL], orphanRemoval = true)
     val locations: MutableList<LocationEntity> = mutableListOf(),
 
+    @OneToMany(mappedBy = "")
+    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+
     @OneToOne
     var mainImage: MainImageEntity? = null,
 
-) : BaseTimeEntity(), ImageContentEntityType {
+    ) : BaseTimeEntity(), ImageContentEntityType, AttachmentContentEntityType {
     override fun bringMainImage(): MainImageEntity? = mainImage
+    override fun bringAttachments(): List<AttachmentEntity>? = attachments
 
     companion object {
         fun of(postType: AboutPostType, aboutDto: AboutDto): AboutEntity {

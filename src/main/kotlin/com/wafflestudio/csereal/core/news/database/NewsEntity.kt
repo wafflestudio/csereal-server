@@ -27,7 +27,7 @@ class NewsEntity(
     @OneToOne
     var mainImage: MainImageEntity? = null,
 
-    @OneToMany
+    @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL], orphanRemoval = true)
     var attachments: MutableList<AttachmentEntity> = mutableListOf(),
 
     @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL])
