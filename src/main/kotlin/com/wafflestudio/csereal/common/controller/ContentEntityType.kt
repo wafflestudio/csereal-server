@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.common.controller
 
-import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
+import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 
 interface ContentEntityType {
-    fun bringMainImage(): ImageEntity?
+    fun bringMainImage(): MainImageEntity?
 }

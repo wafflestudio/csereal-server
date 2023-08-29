@@ -1,7 +1,6 @@
 package com.wafflestudio.csereal.core.news.dto
 
 import com.wafflestudio.csereal.core.news.database.NewsEntity
-import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
 import java.time.LocalDateTime
 
 data class NewsDto(

@@ -3,7 +3,6 @@ package com.wafflestudio.csereal.core.member.dto
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
-import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
 import java.time.LocalDate
 
 data class ProfessorDto(

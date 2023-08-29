@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.resource.image.service
+package com.wafflestudio.csereal.core.resource.mainImage.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.controller.ContentEntityType
@@ -6,9 +6,9 @@ import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
-import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
-import com.wafflestudio.csereal.core.resource.image.database.ImageRepository
-import com.wafflestudio.csereal.core.resource.image.dto.ImageDto
+import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageRepository
+import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
+import com.wafflestudio.csereal.core.resource.mainImage.dto.MainImageDto
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import net.coobird.thumbnailator.Thumbnailator
 import org.springframework.beans.factory.annotation.Value
@@ -19,7 +19,6 @@ import org.apache.commons.io.FilenameUtils
 import java.lang.invoke.WrongMethodTypeException
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.*
 import kotlin.io.path.fileSize
 import kotlin.io.path.name
 
@@ -28,14 +27,13 @@ interface ImageService {
     fun uploadImage(
         contentEntityType: ContentEntityType,
         requestImage: MultipartFile,
-        setUUIDFilename: Boolean = false
-    ): ImageDto
-    fun createImageURL(image: ImageEntity?) : String?
+    ): MainImageDto
+    fun createImageURL(image: MainImageEntity?) : String?
 }
 
 @Service
 class ImageServiceImpl(
-    private val imageRepository: ImageRepository,
+    private val imageRepository: MainImageRepository,
     @Value("\${csereal.upload.path}")
     private val path: String,
 ) : ImageService {
@@ -44,24 +42,18 @@ class ImageServiceImpl(
     override fun uploadImage(
         contentEntity: ContentEntityType,
         requestImage: MultipartFile,
-        setUUIDFilename: Boolean,
-    ): ImageDto {
+    ): MainImageDto {
         Files.createDirectories(Paths.get(path))
 
         val extension = FilenameUtils.getExtension(requestImage.originalFilename)
 
         if(!listOf("jpg", "jpeg", "png").contains(extension)) {
-            throw CserealException.Csereal400("파일의 형식은 jpg, jpeg, png, gif 중 하나여야 합니다.")
+            throw CserealException.Csereal400("파일의 형식은 jpg, jpeg, png 중 하나여야 합니다.")
         }
 
         val timeMillis = System.currentTimeMillis()
-        val originalFilename : String? = if (setUUIDFilename) {
-            UUID.randomUUID().toString()
-        } else {
-            requestImage.name
-        }
 
-        val filename = "${originalFilename}_$timeMillis"
+        val filename = "${timeMillis}_${requestImage.originalFilename}"
         val totalFilename = path + filename
         val saveFile = Paths.get("$totalFilename.$extension")
         requestImage.transferTo(saveFile)
@@ -70,16 +62,14 @@ class ImageServiceImpl(
         val thumbnailFile = Paths.get("$totalThumbnailFilename.$extension")
         Thumbnailator.createThumbnail(saveFile.toFile(), thumbnailFile.toFile(), 100, 100);
 
-        val image = ImageEntity(
+        val image = MainImageEntity(
             filename = filename,
-            extension = extension,
             imagesOrder = 1,
             size = requestImage.size,
         )
 
-        val thumbnail = ImageEntity(
+        val thumbnail = MainImageEntity(
             filename = thumbnailFile.name,
-            extension = extension,
             imagesOrder = 1,
             size = thumbnailFile.fileSize()
         )
@@ -88,22 +78,21 @@ class ImageServiceImpl(
         imageRepository.save(image)
         imageRepository.save(thumbnail)
 
-        return ImageDto(
+        return MainImageDto(
             filename = filename,
-            extension = extension,
             imagesOrder = 1,
             size = requestImage.size
         )
     }
 
     @Transactional
-    override fun createImageURL(image: ImageEntity?) : String? {
+    override fun createImageURL(image: MainImageEntity?) : String? {
         return if(image != null) {
-            "http://cse-dev-waffle.bacchus.io/var/myapp/image/${image.filename}.${image.extension}"
+            "http://cse-dev-waffle.bacchus.io/image/${image.filename}"
         } else null
     }
 
-    private fun connectImageToEntity(contentEntity: ContentEntityType, image: ImageEntity) {
+    private fun connectImageToEntity(contentEntity: ContentEntityType, image: MainImageEntity) {
         when (contentEntity) {
             is NewsEntity -> {
                 contentEntity.mainImage = image

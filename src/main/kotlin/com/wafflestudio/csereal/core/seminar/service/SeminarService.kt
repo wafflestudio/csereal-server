@@ -1,9 +1,7 @@
 package com.wafflestudio.csereal.core.seminar.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
-import com.wafflestudio.csereal.core.resource.image.database.ImageRepository
-import com.wafflestudio.csereal.core.resource.image.service.ImageService
+import com.wafflestudio.csereal.core.resource.mainImage.service.ImageService
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import com.wafflestudio.csereal.core.seminar.database.SeminarRepository
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto

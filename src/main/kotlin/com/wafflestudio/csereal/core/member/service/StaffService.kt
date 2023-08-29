@@ -6,9 +6,7 @@ import com.wafflestudio.csereal.core.member.database.StaffRepository
 import com.wafflestudio.csereal.core.member.database.TaskEntity
 import com.wafflestudio.csereal.core.member.dto.SimpleStaffDto
 import com.wafflestudio.csereal.core.member.dto.StaffDto
-import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
-import com.wafflestudio.csereal.core.resource.image.database.ImageRepository
-import com.wafflestudio.csereal.core.resource.image.service.ImageService
+import com.wafflestudio.csereal.core.resource.mainImage.service.ImageService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -58,7 +56,10 @@ class StaffServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getAllStaff(): List<SimpleStaffDto> {
-        return staffRepository.findAll().map { SimpleStaffDto.of(it) }.sortedBy { it.name }
+        return staffRepository.findAll().map {
+            val imageURL = imageService.createImageURL(it.mainImage)
+            SimpleStaffDto.of(it, imageURL)
+        }.sortedBy { it.name }
     }
 
     override fun updateStaff(staffId: Long, updateStaffRequest: StaffDto): StaffDto {

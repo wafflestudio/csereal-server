@@ -4,15 +4,11 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.news.database.*
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
-import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
-import com.wafflestudio.csereal.core.resource.image.database.ImageRepository
-import com.wafflestudio.csereal.core.resource.image.dto.ImageDto
-import com.wafflestudio.csereal.core.resource.image.service.ImageService
+import com.wafflestudio.csereal.core.resource.mainImage.service.ImageService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
-import java.util.*
 
 interface NewsService {
     fun searchNews(tag: List<String>?, keyword: String?, pageNum: Long): NewsSearchResponse

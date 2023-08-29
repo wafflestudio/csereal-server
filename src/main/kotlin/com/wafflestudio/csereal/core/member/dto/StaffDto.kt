@@ -2,7 +2,6 @@ package com.wafflestudio.csereal.core.member.dto
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.wafflestudio.csereal.core.member.database.StaffEntity
-import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
 
 data class StaffDto(
     @JsonInclude(JsonInclude.Include.NON_NULL)

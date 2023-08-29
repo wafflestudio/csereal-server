@@ -2,7 +2,6 @@ package com.wafflestudio.csereal.core.about.dto
 
 
 import com.wafflestudio.csereal.core.about.database.AboutEntity
-import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
 import java.time.LocalDateTime
 
 data class AboutDto(

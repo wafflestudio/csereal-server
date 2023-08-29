@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.seminar.dto
 
-import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 
 data class SeminarDto(

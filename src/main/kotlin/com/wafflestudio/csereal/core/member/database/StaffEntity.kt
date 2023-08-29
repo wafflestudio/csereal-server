@@ -3,7 +3,7 @@ package com.wafflestudio.csereal.core.member.database
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.ContentEntityType
 import com.wafflestudio.csereal.core.member.dto.StaffDto
-import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
+import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
 import jakarta.persistence.OneToMany
@@ -22,10 +22,10 @@ class StaffEntity(
     val tasks: MutableList<TaskEntity> = mutableListOf(),
 
     @OneToOne
-    var mainImage: ImageEntity? = null,
+    var mainImage: MainImageEntity? = null,
 
     ) : BaseTimeEntity(), ContentEntityType {
-    override fun bringMainImage(): ImageEntity? = mainImage
+    override fun bringMainImage(): MainImageEntity? = mainImage
 
     companion object {
         fun of(staffDto: StaffDto): StaffEntity {

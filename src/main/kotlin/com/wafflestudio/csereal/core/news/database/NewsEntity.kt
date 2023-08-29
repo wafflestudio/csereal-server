@@ -3,7 +3,7 @@ package com.wafflestudio.csereal.core.news.database
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.ContentEntityType
 import com.wafflestudio.csereal.core.news.dto.NewsDto
-import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
+import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.*
 
 @Entity(name = "news")
@@ -23,7 +23,7 @@ class NewsEntity(
     var isPinned: Boolean,
 
     @OneToOne
-    var mainImage: ImageEntity? = null,
+    var mainImage: MainImageEntity? = null,
 
     @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL])
     var newsTags: MutableSet<NewsTagEntity> = mutableSetOf()

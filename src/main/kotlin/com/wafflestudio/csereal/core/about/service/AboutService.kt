@@ -6,9 +6,7 @@ import com.wafflestudio.csereal.core.about.database.AboutPostType
 import com.wafflestudio.csereal.core.about.database.AboutRepository
 import com.wafflestudio.csereal.core.about.database.LocationEntity
 import com.wafflestudio.csereal.core.about.dto.AboutDto
-import com.wafflestudio.csereal.core.resource.image.database.ImageEntity
-import com.wafflestudio.csereal.core.resource.image.database.ImageRepository
-import com.wafflestudio.csereal.core.resource.image.service.ImageService
+import com.wafflestudio.csereal.core.resource.mainImage.service.ImageService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
