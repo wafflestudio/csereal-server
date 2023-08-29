@@ -58,7 +58,7 @@ logging.level:
 
 csereal:
   upload:
-    path: /var/myapp/image/
+    path: /app/image/
 ---
 spring:
   config.activate.on-profile: prod
@@ -71,5 +71,5 @@ spring:
 
 csereal:
   upload:
-    path: /var/myapp/image/
+    path: /app/image/
 
