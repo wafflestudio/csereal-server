@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.resource.mainImage.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.controller.ContentEntityType
+import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
@@ -28,7 +29,8 @@ interface ImageService {
         contentEntityType: ContentEntityType,
         requestImage: MultipartFile,
     ): MainImageDto
-    fun createImageURL(image: MainImageEntity?) : String?
+
+    fun createImageURL(image: MainImageEntity?): String?
 }
 
 @Service
@@ -36,6 +38,7 @@ class ImageServiceImpl(
     private val imageRepository: MainImageRepository,
     @Value("\${csereal.upload.path}")
     private val path: String,
+    private val endpointProperties: EndpointProperties
 ) : ImageService {
 
     @Transactional
@@ -47,7 +50,7 @@ class ImageServiceImpl(
 
         val extension = FilenameUtils.getExtension(requestImage.originalFilename)
 
-        if(!listOf("jpg", "jpeg", "png").contains(extension)) {
+        if (!listOf("jpg", "jpeg", "png").contains(extension)) {
             throw CserealException.Csereal400("파일의 형식은 jpg, jpeg, png 중 하나여야 합니다.")
         }
 
@@ -86,9 +89,9 @@ class ImageServiceImpl(
     }
 
     @Transactional
-    override fun createImageURL(image: MainImageEntity?) : String? {
-        return if(image != null) {
-            "http://cse-dev-waffle.bacchus.io/image/${image.filename}"
+    override fun createImageURL(image: MainImageEntity?): String? {
+        return if (image != null) {
+            "${endpointProperties.backend}/image/${image.filename}"
         } else null
     }
 
@@ -97,18 +100,23 @@ class ImageServiceImpl(
             is NewsEntity -> {
                 contentEntity.mainImage = image
             }
+
             is SeminarEntity -> {
                 contentEntity.mainImage = image
             }
+
             is AboutEntity -> {
                 contentEntity.mainImage = image
             }
+
             is ProfessorEntity -> {
                 contentEntity.mainImage = image
             }
+
             is StaffEntity -> {
                 contentEntity.mainImage = image
             }
+
             else -> {
                 throw WrongMethodTypeException("해당하는 엔티티가 없습니다")
             }
