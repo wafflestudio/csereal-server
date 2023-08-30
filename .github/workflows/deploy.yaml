@@ -66,6 +66,7 @@ jobs:
                     echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
                     echo "PROFILE=prod" >> .env
                     echo "OIDC_CLIENT_SECRET_DEV=${{secrets.OIDC_CLIENT_SECRET_DEV}}" >> .env
+                    echo "URL=${{secrets.URL}}" >> .env
 
             -
                 name: SCP Command to Transfer Files
