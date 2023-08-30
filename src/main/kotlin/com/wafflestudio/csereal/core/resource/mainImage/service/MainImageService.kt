@@ -58,11 +58,11 @@ class ImageServiceImpl(
 
         val filename = "${timeMillis}_${requestImage.originalFilename}"
         val totalFilename = path + filename
-        val saveFile = Paths.get("$totalFilename.$extension")
+        val saveFile = Paths.get(totalFilename)
         requestImage.transferTo(saveFile)
 
         val totalThumbnailFilename = "${path}thumbnail_$filename"
-        val thumbnailFile = Paths.get("$totalThumbnailFilename.$extension")
+        val thumbnailFile = Paths.get(totalThumbnailFilename)
         Thumbnailator.createThumbnail(saveFile.toFile(), thumbnailFile.toFile(), 100, 100);
 
         val image = MainImageEntity(
@@ -91,7 +91,7 @@ class ImageServiceImpl(
     @Transactional
     override fun createImageURL(image: MainImageEntity?): String? {
         return if (image != null) {
-            "${endpointProperties.backend}/image/${image.filename}"
+            "${endpointProperties.backend}/file/${image.filename}"
         } else null
     }
 
