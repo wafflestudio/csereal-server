@@ -2,7 +2,6 @@ on:
   push:
     branches:
       - main
-      - cicd/https # TODO: Remove this branch
     paths:
         - docker-compose-db.yml
         - .github/workflows/database.yaml
