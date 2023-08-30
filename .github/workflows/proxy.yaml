@@ -2,7 +2,6 @@ on:
   push:
     branches:
       - main
-      - cicd/https
     paths:
       - docker-compose-caddy.yml
       - caddy/Caddyfile
