@@ -5,13 +5,15 @@ import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
 
-class CustomAuthenticationSuccessHandler : AuthenticationSuccessHandler {
+class CustomAuthenticationSuccessHandler(
+    private val frontendEndpoint: String
+) : AuthenticationSuccessHandler {
     override fun onAuthenticationSuccess(
         request: HttpServletRequest,
         response: HttpServletResponse,
         authentication: Authentication
     ) {
-        val redirectUrl = "http://cse-dev-waffle.bacchus.io:3000/"
+        val redirectUrl = "${frontendEndpoint}/login/success"
         response.sendRedirect(redirectUrl)
     }
 
