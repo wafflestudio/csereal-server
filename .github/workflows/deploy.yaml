@@ -2,6 +2,18 @@ on:
     push:
         branches:
             - main
+            - cicd/https # TODO: Remove this branch
+        paths:
+            - docker-compose-backend.yml
+            - Dockerfile
+            - gradle.properties
+            - gradlew
+            - gradlew.bat
+            - build.gradle.kts
+            - settings.gradle.kts
+            - src/**
+            - gradle/**
+            - .github/workflows/deploy.yaml
 
 jobs:
     build-and-deploy:
@@ -62,26 +74,19 @@ jobs:
                     host: ${{secrets.SSH_HOST}}
                     username: ${{secrets.SSH_USER}}
                     key: ${{secrets.SSH_KEY}}
-                    source: "docker-compose.yml, .env"
+                    source: "docker-compose-backend.yml, .env"
                     target: "~/app"
                     overwrite: true
             -
                 name: SSH Remote Commands
                 uses: appleboy/ssh-action@v1.0.0
-                env:
-                    MYSQL_ROOT_PASSWORD: ${{secrets.MYSQL_ROOT_PASSWORD}}
-                    MYSQL_USER: ${{secrets.MYSQL_USER}}
-                    MYSQL_PASSWORD: ${{secrets.MYSQL_PASSWORD}}
-                    MYSQL_DATABASE: ${{secrets.MYSQL_DATABASE}}
-                    PROFILE: "prod"
-                    OIDC_CLIENT_SECRET_DEV: ${{secrets.OIDC_CLIENT_SECRET_DEV}}
                 with:
                     host: ${{secrets.SSH_HOST}}
                     username: ${{secrets.SSH_USER}}
                     key: ${{secrets.SSH_KEY}}
-                    script: |
+                    script: | # TODO: Change to blue-green deployment
                         cd ~/app
                         source .env
-                        docker-compose down
+                        docker-compose -f docker-compose-backend.yml down
                         docker-compose pull
-                        docker-compose up -d
+                        docker-compose -f docker-compose-backend.yml up -d
