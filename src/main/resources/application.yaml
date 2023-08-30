@@ -23,6 +23,8 @@ server:
       timeout: 7200 # 2시간
 
 springdoc:
+  paths-to-match:
+    - /api/**
   swagger-ui:
     path: index.html
   api-docs:
