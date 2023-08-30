@@ -4,6 +4,8 @@
 	
 	# Backend
 	reverse_proxy /api/* host.docker.internal:8080 #host.docker.internal:8081 # For blue/green
+
+	# Swagger
 	reverse_proxy /swagger-ui/* host.docker.internal:8080 #host.docker.internal:8081 # For blue/green
-	reverse_proxy /api-docs/json host.docker.internal:8080 #host.docker.internal:8081 # For blue/green
+	reverse_proxy /api-docs/* host.docker.internal:8080 #host.docker.internal:8081 # For blue/green
 }
