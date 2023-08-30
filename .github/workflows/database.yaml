@@ -2,13 +2,13 @@ on:
   push:
     branches:
       - main
-        - cicd/https # TODO: Remove this branch
+      - cicd/https # TODO: Remove this branch
     paths:
         - docker-compose-db.yml
         - .github/workflows/database.yaml
 
 jobs:
-  build-and-deploy:
+  database-deploy:
     runs-on: ubuntu-latest
     permissions:
       packages: write
