@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.academics.api
 
 import com.wafflestudio.csereal.core.academics.dto.CourseDto
 import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
+import com.wafflestudio.csereal.core.academics.dto.ScholarshipPageResponse
 import com.wafflestudio.csereal.core.academics.service.AcademicsService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -46,7 +47,7 @@ class AcademicsController(
     @GetMapping("/{studentType}/courses")
     fun readAllCourses(
         @PathVariable studentType: String,
-    ) : ResponseEntity<List<CourseDto>> {
+    ): ResponseEntity<List<CourseDto>> {
         return ResponseEntity.ok(academicsService.readAllCourses(studentType))
     }
 
@@ -70,7 +71,7 @@ class AcademicsController(
     @GetMapping("/scholarship")
     fun readScholarship(
         @RequestParam name: String
-    ) : ResponseEntity<AcademicsDto> {
+    ): ResponseEntity<ScholarshipPageResponse> {
         return ResponseEntity.ok(academicsService.readScholarship(name))
     }
 

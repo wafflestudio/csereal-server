@@ -11,7 +11,6 @@ spring:
             client-id: waffle-dev-local-testing
             client-secret: ${OIDC_CLIENT_SECRET_DEV}
             authorization-grant-type: authorization_code
-            redirect-uri: http://cse-dev-waffle.bacchus.io/login/oauth2/code/idsnucse
             scope: openid, profile, email
         provider:
           idsnucse:
@@ -22,7 +21,6 @@ server:
   servlet:
     session:
       timeout: 7200 # 2시간
-
 
 springdoc:
   swagger-ui:
@@ -36,7 +34,6 @@ servlet:
     max-request-size: 100MB
     max-file-size: 10MB
 
-
 ---
 spring:
   config.activate.on-profile: local
@@ -49,6 +46,12 @@ spring:
       ddl-auto: update
     show-sql: true
     open-in-view: false
+  security:
+    oauth2:
+      client:
+        registration:
+          idsnucse:
+            redirect-uri: http://localhost:8080/login/oauth2/code/idsnucse
 
 logging.level:
   default: INFO
@@ -63,6 +66,10 @@ csereal_image:
 csereal_attachment:
   upload:
     path: /app/image/
+
+endpoint:
+  backend: http://localhost:8080
+  frontend: http://localhost:3000
 ---
 spring:
   config.activate.on-profile: prod
@@ -70,8 +77,12 @@ spring:
     hibernate:
       ddl-auto: update # TODO: change to validate (or none) when save actual data to server
     open-in-view: false
-
-
+  security:
+    oauth2:
+      client:
+        registration:
+          idsnucse:
+            redirect-uri: http://cse-dev-waffle.bacchus.io:8080/login/oauth2/code/idsnucse
 
 csereal_image:
   upload:
@@ -80,3 +91,7 @@ csereal_image:
 csereal_attachment:
   upload:
     path: /app/image/
+
+endpoint:
+  backend: http://cse-dev-waffle.bacchus.io:8080
+  frontend: http://cse-dev-waffle.bacchus.io:3000
