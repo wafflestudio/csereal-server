@@ -22,7 +22,7 @@ data class NewsDto(
     val attachments: List<AttachmentResponse>?,
 ) {
     companion object {
-        fun of(entity: NewsEntity, imageURL: String?, attachments: List<AttachmentResponse>?, prevNext: Array<NewsEntity?>?) : NewsDto = entity.run {
+        fun of(entity: NewsEntity, imageURL: String?, attachments: List<AttachmentResponse>, prevNext: Array<NewsEntity?>?) : NewsDto = entity.run {
             NewsDto(
                 id = this.id,
                 title = this.title,

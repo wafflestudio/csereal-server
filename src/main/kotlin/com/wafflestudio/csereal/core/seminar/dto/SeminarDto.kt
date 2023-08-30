@@ -33,7 +33,7 @@ data class SeminarDto(
 ) {
 
     companion object {
-        fun of(entity: SeminarEntity, imageURL: String?, attachments: List<AttachmentResponse>?, prevNext: Array<SeminarEntity?>?): SeminarDto = entity.run {
+        fun of(entity: SeminarEntity, imageURL: String?, attachments: List<AttachmentResponse>, prevNext: Array<SeminarEntity?>?): SeminarDto = entity.run {
             SeminarDto(
                 id = this.id,
                 title = this.title,

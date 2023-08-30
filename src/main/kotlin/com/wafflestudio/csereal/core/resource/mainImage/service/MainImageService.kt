@@ -58,7 +58,7 @@ class ImageServiceImpl(
 
         val filename = "${timeMillis}_${requestImage.originalFilename}"
         val totalFilename = path + filename
-        val saveFile = Paths.get("$totalFilename.$extension")
+        val saveFile = Paths.get(totalFilename)
         requestImage.transferTo(saveFile)
 
         val totalThumbnailFilename = "${path}thumbnail_$filename"

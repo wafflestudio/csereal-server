@@ -49,12 +49,12 @@ class NewsServiceImpl(
         if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.(newsId: $newsId)")
 
         val imageURL = imageService.createImageURL(news.mainImage)
-        val attachments = attachmentService.createAttachments(news.attachments)
+        val attachmentResponses = attachmentService.createAttachmentResponses(news.attachments)
 
         val prevNext = newsRepository.findPrevNextId(newsId, tag, keyword)
             ?: throw CserealException.Csereal400("이전글 다음글이 존재하지 않습니다.(newsId=$newsId)")
 
-        return NewsDto.of(news, imageURL, attachments, prevNext)
+        return NewsDto.of(news, imageURL, attachmentResponses, prevNext)
     }
 
     @Transactional
@@ -77,9 +77,9 @@ class NewsServiceImpl(
         newsRepository.save(newNews)
 
         val imageURL = imageService.createImageURL(newNews.mainImage)
-        val attachments = attachmentService.createAttachments(newNews.attachments)
+        val attachmentResponses = attachmentService.createAttachmentResponses(newNews.attachments)
 
-        return NewsDto.of(newNews, imageURL, attachments, null)
+        return NewsDto.of(newNews, imageURL, attachmentResponses, null)
     }
 
     @Transactional
@@ -106,9 +106,9 @@ class NewsServiceImpl(
         }
 
         val imageURL = imageService.createImageURL(news.mainImage)
-        val attachments = attachmentService.createAttachments(news.attachments)
+        val attachmentResponses = attachmentService.createAttachmentResponses(news.attachments)
 
-        return NewsDto.of(news, imageURL, attachments, null)
+        return NewsDto.of(news, imageURL, attachmentResponses, null)
     }
 
     @Transactional

@@ -18,7 +18,7 @@ data class AboutDto(
     val attachments: List<AttachmentResponse>?,
 ) {
     companion object {
-        fun of(entity: AboutEntity, imageURL: String?, attachments: List<AttachmentResponse>?) : AboutDto = entity.run {
+        fun of(entity: AboutEntity, imageURL: String?, attachments: List<AttachmentResponse>) : AboutDto = entity.run {
             AboutDto(
                 id = this.id,
                 name = this.name,

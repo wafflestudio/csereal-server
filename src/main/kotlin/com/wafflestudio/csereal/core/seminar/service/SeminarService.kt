@@ -46,9 +46,9 @@ class SeminarServiceImpl(
         seminarRepository.save(newSeminar)
 
         val imageURL = imageService.createImageURL(newSeminar.mainImage)
-        val attachments = attachmentService.createAttachments(newSeminar.attachments)
+        val attachmentResponses = attachmentService.createAttachmentResponses(newSeminar.attachments)
 
-        return SeminarDto.of(newSeminar, imageURL, attachments, null)
+        return SeminarDto.of(newSeminar, imageURL, attachmentResponses, null)
     }
 
     @Transactional(readOnly = true)
@@ -59,11 +59,11 @@ class SeminarServiceImpl(
         if (seminar.isDeleted) throw CserealException.Csereal400("삭제된 세미나입니다. (seminarId: $seminarId)")
 
         val imageURL = imageService.createImageURL(seminar.mainImage)
-        val attachments = attachmentService.createAttachments(seminar.attachments)
+        val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
 
         val prevNext = seminarRepository.findPrevNextId(seminarId, keyword)
 
-        return SeminarDto.of(seminar, imageURL, attachments, prevNext)
+        return SeminarDto.of(seminar, imageURL, attachmentResponses, prevNext)
     }
 
     @Transactional
@@ -75,10 +75,10 @@ class SeminarServiceImpl(
         seminar.update(request)
 
         val imageURL = imageService.createImageURL(seminar.mainImage)
-        val attachments = attachmentService.createAttachments(seminar.attachments)
+        val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
 
 
-        return SeminarDto.of(seminar, imageURL, attachments, null)
+        return SeminarDto.of(seminar, imageURL, attachmentResponses, null)
     }
     @Transactional
     override fun deleteSeminar(seminarId: Long) {

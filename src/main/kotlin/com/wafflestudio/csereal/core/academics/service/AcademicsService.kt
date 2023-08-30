@@ -42,10 +42,9 @@ class AcademicsServiceImpl(
 
         academicsRepository.save(newAcademics)
 
-        val attachments = attachmentService.createAttachments(newAcademics.attachments)
-
-
-        return AcademicsDto.of(newAcademics, attachments)
+        val attachmentResponses = attachmentService.createAttachmentResponses(newAcademics.attachments)
+        
+        return AcademicsDto.of(newAcademics, attachmentResponses)
     }
 
     @Transactional(readOnly = true)
@@ -56,9 +55,9 @@ class AcademicsServiceImpl(
 
         val academics = academicsRepository.findByStudentTypeAndPostType(enumStudentType, enumPostType)
 
-        val attachments = attachmentService.createAttachments(academics.attachments)
+        val attachmentResponses = attachmentService.createAttachmentResponses(academics.attachments)
 
-        return AcademicsDto.of(academics, attachments)
+        return AcademicsDto.of(academics, attachmentResponses)
     }
 
     @Transactional
@@ -66,11 +65,15 @@ class AcademicsServiceImpl(
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val course = CourseEntity.of(enumStudentType, request)
 
+        if(attachments != null) {
+            attachmentService.uploadAttachments(course, attachments)
+        }
+
         courseRepository.save(course)
 
-        val attachments = attachmentService.createAttachments(course.attachments)
+        val attachmentResponses = attachmentService.createAttachmentResponses(course.attachments)
 
-        return CourseDto.of(course, attachments)
+        return CourseDto.of(course, attachmentResponses)
     }
 
     @Transactional(readOnly = true)
@@ -78,8 +81,8 @@ class AcademicsServiceImpl(
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
 
         val courseDtoList = courseRepository.findAllByStudentTypeOrderByYearAsc(enumStudentType).map {
-            val attachments = attachmentService.createAttachments(it.attachments)
-            CourseDto.of(it, attachments)
+            val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+            CourseDto.of(it, attachmentResponses)
         }
         return courseDtoList
     }
@@ -87,9 +90,9 @@ class AcademicsServiceImpl(
     @Transactional(readOnly = true)
     override fun readCourse(name: String): CourseDto {
         val course = courseRepository.findByName(name)
-        val attachments = attachmentService.createAttachments(course.attachments)
+        val attachmentResponses = attachmentService.createAttachmentResponses(course.attachments)
 
-        return CourseDto.of(course, attachments)
+        return CourseDto.of(course, attachmentResponses)
     }
 
     @Transactional(readOnly = true)

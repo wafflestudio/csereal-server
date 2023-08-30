@@ -24,7 +24,7 @@ interface AttachmentService {
         requestAttachments: List<MultipartFile>,
     ): List<AttachmentDto>
 
-    fun createAttachments(attachments: List<AttachmentEntity>?): List<AttachmentResponse>?
+    fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse>
 }
 
 @Service
@@ -49,7 +49,7 @@ class AttachmentServiceImpl(
 
             val filename = "${timeMillis}_${requestAttachment.originalFilename}"
             val totalFilename = path + filename
-            val saveFile = Paths.get("$totalFilename.$extension")
+            val saveFile = Paths.get(totalFilename)
             requestAttachment.transferTo(saveFile)
 
             val attachment = AttachmentEntity(
@@ -73,7 +73,7 @@ class AttachmentServiceImpl(
     }
 
     @Transactional
-    override fun createAttachments(attachments: List<AttachmentEntity>?): List<AttachmentResponse>? {
+    override fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse> {
         val list = mutableListOf<AttachmentResponse>()
         if (attachments != null) {
             for (attachment in attachments) {
