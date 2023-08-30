@@ -285,3 +285,7 @@ db/
 
 # .env file
 .env
+
+# caddy server
+caddy/*
+!caddy/Caddyfile
