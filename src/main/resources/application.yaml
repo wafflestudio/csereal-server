@@ -59,13 +59,18 @@ logging.level:
     springframework:
       security: DEBUG
 
-csereal:
+csereal_image:
   upload:
     path: /app/image/
+
+csereal_attachment:
+  upload:
+    path: /app/attachment/
 
 endpoint:
   backend: http://localhost:8080
   frontend: http://localhost:3000
+
 ---
 spring:
   config.activate.on-profile: prod
@@ -80,9 +85,13 @@ spring:
           idsnucse:
             redirect-uri: http://cse-dev-waffle.bacchus.io:8080/login/oauth2/code/idsnucse
 
-csereal:
+csereal_image:
   upload:
     path: /app/image/
+
+csereal_attachment:
+  upload:
+    path: /app/attachment/
 
 endpoint:
   backend: http://cse-dev-waffle.bacchus.io:8080

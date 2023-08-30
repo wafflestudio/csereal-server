@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.about.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.ContentEntityType
+import com.wafflestudio.csereal.common.controller.ImageContentEntityType
 import com.wafflestudio.csereal.core.about.dto.AboutDto
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.*
@@ -21,7 +21,7 @@ class AboutEntity(
     @OneToOne
     var mainImage: MainImageEntity? = null,
 
-) : BaseTimeEntity(), ContentEntityType {
+) : BaseTimeEntity(), ImageContentEntityType {
     override fun bringMainImage(): MainImageEntity? = mainImage
 
     companion object {

@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.news.dto
 
 import com.wafflestudio.csereal.core.news.database.NewsEntity
+import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
 
 data class NewsDto(
@@ -18,9 +19,10 @@ data class NewsDto(
     val nextId: Long?,
     val nextTitle: String?,
     val imageURL: String?,
+    val attachments: List<AttachmentResponse>?,
 ) {
     companion object {
-        fun of(entity: NewsEntity, imageURL: String?, prevNext: Array<NewsEntity?>?) : NewsDto = entity.run {
+        fun of(entity: NewsEntity, imageURL: String?, attachments: List<AttachmentResponse>?, prevNext: Array<NewsEntity?>?) : NewsDto = entity.run {
             NewsDto(
                 id = this.id,
                 title = this.title,
@@ -36,6 +38,7 @@ data class NewsDto(
                 nextId = prevNext?.get(1)?.id,
                 nextTitle = prevNext?.get(1)?.title,
                 imageURL = imageURL,
+                attachments = attachments,
             )
         }
     }

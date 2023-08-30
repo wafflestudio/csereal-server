@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.resource.mainImage.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.controller.ContentEntityType
+import com.wafflestudio.csereal.common.controller.ImageContentEntityType
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
@@ -26,7 +26,7 @@ import kotlin.io.path.name
 
 interface ImageService {
     fun uploadImage(
-        contentEntityType: ContentEntityType,
+        contentEntityType: ImageContentEntityType,
         requestImage: MultipartFile,
     ): MainImageDto
 
@@ -36,14 +36,14 @@ interface ImageService {
 @Service
 class ImageServiceImpl(
     private val imageRepository: MainImageRepository,
-    @Value("\${csereal.upload.path}")
+    @Value("\${csereal_image.upload.path}")
     private val path: String,
     private val endpointProperties: EndpointProperties
 ) : ImageService {
 
     @Transactional
     override fun uploadImage(
-        contentEntity: ContentEntityType,
+        contentEntity: ImageContentEntityType,
         requestImage: MultipartFile,
     ): MainImageDto {
         Files.createDirectories(Paths.get(path))
@@ -95,7 +95,7 @@ class ImageServiceImpl(
         } else null
     }
 
-    private fun connectImageToEntity(contentEntity: ContentEntityType, image: MainImageEntity) {
+    private fun connectImageToEntity(contentEntity: ImageContentEntityType, image: MainImageEntity) {
         when (contentEntity) {
             is NewsEntity -> {
                 contentEntity.mainImage = image

@@ -1,8 +1,10 @@
 package com.wafflestudio.csereal.core.news.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.ContentEntityType
+import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
+import com.wafflestudio.csereal.common.controller.ImageContentEntityType
 import com.wafflestudio.csereal.core.news.dto.NewsDto
+import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.*
 
@@ -25,11 +27,16 @@ class NewsEntity(
     @OneToOne
     var mainImage: MainImageEntity? = null,
 
+    @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+
     @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL])
     var newsTags: MutableSet<NewsTagEntity> = mutableSetOf()
 
-): BaseTimeEntity(), ContentEntityType {
+): BaseTimeEntity(), ImageContentEntityType, AttachmentContentEntityType {
     override fun bringMainImage() = mainImage
+    override fun bringAttachments() = attachments
+
     companion object {
         fun of(newsDto: NewsDto): NewsEntity {
             return NewsEntity(

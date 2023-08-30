@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.seminar.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.ImageService
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import com.wafflestudio.csereal.core.seminar.database.SeminarRepository
@@ -13,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile
 
 interface SeminarService {
     fun searchSeminar(keyword: String?, pageNum: Long): SeminarSearchResponse
-    fun createSeminar(request: SeminarDto, image: MultipartFile?): SeminarDto
+    fun createSeminar(request: SeminarDto, image: MultipartFile?, attachments: List<MultipartFile>?): SeminarDto
     fun readSeminar(seminarId: Long, keyword: String?): SeminarDto
     fun updateSeminar(seminarId: Long, request: SeminarDto): SeminarDto
     fun deleteSeminar(seminarId: Long)
@@ -23,6 +24,7 @@ interface SeminarService {
 class SeminarServiceImpl(
     private val seminarRepository: SeminarRepository,
     private val imageService: ImageService,
+    private val attachmentService: AttachmentService,
 ) : SeminarService {
     @Transactional(readOnly = true)
     override fun searchSeminar(keyword: String?, pageNum: Long): SeminarSearchResponse {
@@ -30,19 +32,23 @@ class SeminarServiceImpl(
     }
 
     @Transactional
-    override fun createSeminar(request: SeminarDto, image: MultipartFile?): SeminarDto {
+    override fun createSeminar(request: SeminarDto, image: MultipartFile?, attachments: List<MultipartFile>?): SeminarDto {
         val newSeminar = SeminarEntity.of(request)
 
         if(image != null) {
             imageService.uploadImage(newSeminar, image)
         }
 
+        if(attachments != null) {
+            attachmentService.uploadAttachments(newSeminar, attachments)
+        }
+
         seminarRepository.save(newSeminar)
 
         val imageURL = imageService.createImageURL(newSeminar.mainImage)
+        val attachments = attachmentService.createAttachments(newSeminar.attachments)
 
-
-        return SeminarDto.of(newSeminar, imageURL, null)
+        return SeminarDto.of(newSeminar, imageURL, attachments, null)
     }
 
     @Transactional(readOnly = true)
@@ -53,10 +59,11 @@ class SeminarServiceImpl(
         if (seminar.isDeleted) throw CserealException.Csereal400("삭제된 세미나입니다. (seminarId: $seminarId)")
 
         val imageURL = imageService.createImageURL(seminar.mainImage)
+        val attachments = attachmentService.createAttachments(seminar.attachments)
 
         val prevNext = seminarRepository.findPrevNextId(seminarId, keyword)
 
-        return SeminarDto.of(seminar, imageURL, prevNext)
+        return SeminarDto.of(seminar, imageURL, attachments, prevNext)
     }
 
     @Transactional
@@ -68,8 +75,10 @@ class SeminarServiceImpl(
         seminar.update(request)
 
         val imageURL = imageService.createImageURL(seminar.mainImage)
+        val attachments = attachmentService.createAttachments(seminar.attachments)
 
-        return SeminarDto.of(seminar, imageURL, null)
+
+        return SeminarDto.of(seminar, imageURL, attachments, null)
     }
     @Transactional
     override fun deleteSeminar(seminarId: Long) {
