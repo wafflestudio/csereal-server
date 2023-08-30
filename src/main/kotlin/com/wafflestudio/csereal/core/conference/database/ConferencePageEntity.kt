@@ -12,6 +12,7 @@ class ConferencePageEntity(
     val author: UserEntity,
 
     @OneToMany(mappedBy = "conferencePage")
+    @OrderBy("code ASC")
     val conferences: List<ConferenceEntity> = mutableListOf()
 
 ) : BaseTimeEntity()
