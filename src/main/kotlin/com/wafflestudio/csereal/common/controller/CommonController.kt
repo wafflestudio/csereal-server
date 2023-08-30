@@ -3,9 +3,9 @@ package com.wafflestudio.csereal.common.controller
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
-@RestController("/api/v1")
+@RestController
 class CommonController {
-    @GetMapping("/helloworld")
+    @GetMapping("/api/helloworld")
     fun helloWorld(): String {
         return "Hello, world!"
     }
