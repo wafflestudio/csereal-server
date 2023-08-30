@@ -5,6 +5,9 @@ import com.wafflestudio.csereal.core.about.database.AboutPostType
 import com.wafflestudio.csereal.core.academics.database.*
 import com.wafflestudio.csereal.core.academics.dto.CourseDto
 import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
+import com.wafflestudio.csereal.core.academics.dto.ScholarshipPageResponse
+import com.wafflestudio.csereal.core.scholarship.database.ScholarshipRepository
+import com.wafflestudio.csereal.core.scholarship.dto.SimpleScholarshipDto
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -14,13 +17,14 @@ interface AcademicsService {
     fun createCourse(studentType: String, request: CourseDto): CourseDto
     fun readAllCourses(studentType: String): List<CourseDto>
     fun readCourse(name: String): CourseDto
-    fun readScholarship(name:String): AcademicsDto
+    fun readScholarship(name: String): ScholarshipPageResponse
 }
 
 @Service
 class AcademicsServiceImpl(
     private val academicsRepository: AcademicsRepository,
     private val courseRepository: CourseRepository,
+    private val scholarshipRepository: ScholarshipRepository
 ) : AcademicsService {
     @Transactional
     override fun createAcademics(studentType: String, postType: String, request: AcademicsDto): AcademicsDto {
@@ -73,15 +77,16 @@ class AcademicsServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readScholarship(name: String): AcademicsDto {
+    override fun readScholarship(name: String): ScholarshipPageResponse {
         val scholarship = academicsRepository.findByName(name)
+        val scholarships = scholarshipRepository.findAll()
 
-        return AcademicsDto.of(scholarship)
+        return ScholarshipPageResponse.of(scholarship, scholarships)
     }
 
-    private fun makeStringToAcademicsStudentType(postType: String) : AcademicsStudentType {
+    private fun makeStringToAcademicsStudentType(postType: String): AcademicsStudentType {
         try {
-            val upperPostType = postType.replace("-","_").uppercase()
+            val upperPostType = postType.replace("-", "_").uppercase()
             return AcademicsStudentType.valueOf(upperPostType)
 
         } catch (e: IllegalArgumentException) {
@@ -89,9 +94,9 @@ class AcademicsServiceImpl(
         }
     }
 
-    private fun makeStringToAcademicsPostType(postType: String) : AcademicsPostType {
+    private fun makeStringToAcademicsPostType(postType: String): AcademicsPostType {
         try {
-            val upperPostType = postType.replace("-","_").uppercase()
+            val upperPostType = postType.replace("-", "_").uppercase()
             return AcademicsPostType.valueOf(upperPostType)
 
         } catch (e: IllegalArgumentException) {
