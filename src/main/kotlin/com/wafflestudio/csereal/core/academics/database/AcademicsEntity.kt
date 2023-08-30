@@ -17,7 +17,6 @@ class AcademicsEntity(
     var name: String,
     var description: String,
     var year: Int?,
-    var isPublic: Boolean,
 
     @OneToMany(mappedBy = "academics", cascade = [CascadeType.ALL], orphanRemoval = true)
     var attachments: MutableList<AttachmentEntity> = mutableListOf(),
@@ -34,7 +33,6 @@ class AcademicsEntity(
                 name = academicsDto.name,
                 description = academicsDto.description,
                 year = academicsDto.year,
-                isPublic = academicsDto.isPublic,
             )
         }
     }

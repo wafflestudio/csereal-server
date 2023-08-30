@@ -6,11 +6,10 @@ import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 data class CourseDto(
     val id: Long,
     val classification: String,
-    val number: String,
+    val code: String,
     val name: String,
     val credit: Int,
-    val year: String,
-    val courseURL: String?,
+    val grade: String,
     val description: String?,
     val attachments: List<AttachmentResponse>?,
 ) {
@@ -19,11 +18,10 @@ data class CourseDto(
             CourseDto(
                 id = this.id,
                 classification = this.classification,
-                number = this.number,
+                code = this.code,
                 name = this.name,
                 credit = this.credit,
-                year = this.year,
-                courseURL = this.courseURL,
+                grade = this.grade,
                 description = this.description,
                 attachments = attachments,
             )

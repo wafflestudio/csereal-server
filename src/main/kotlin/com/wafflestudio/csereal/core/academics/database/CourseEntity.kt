@@ -15,15 +15,13 @@ class CourseEntity(
 
     var classification: String,
 
-    var number: String,
+    var code: String,
 
     var name: String,
 
     var credit: Int,
 
-    var year: String,
-
-    var courseURL: String?,
+    var grade: String,
 
     var description: String?,
 
@@ -36,11 +34,10 @@ class CourseEntity(
             return CourseEntity(
                 studentType = studentType,
                 classification = courseDto.classification,
-                number = courseDto.number,
+                code = courseDto.code,
                 name = courseDto.name.replace(" ","-"),
                 credit = courseDto.credit,
-                year = courseDto.year,
-                courseURL = courseDto.courseURL,
+                grade = courseDto.grade,
                 description = courseDto.description
             )
         }

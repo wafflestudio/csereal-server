@@ -11,7 +11,6 @@ data class AcademicsDto(
     val year: Int?,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
-    val isPublic: Boolean,
     val attachments: List<AttachmentResponse>?,
 ) {
     companion object {
@@ -23,7 +22,6 @@ data class AcademicsDto(
                 year = this.year,
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
-                isPublic = this.isPublic,
                 attachments = attachments,
             )
         }

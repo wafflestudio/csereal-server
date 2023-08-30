@@ -50,13 +50,7 @@ class NoticeServiceImpl(
 
     @Transactional
     override fun createNotice(request: NoticeDto): NoticeDto {
-        val newNotice = NoticeEntity(
-            title = request.title,
-            description = request.description,
-            isPublic = request.isPublic,
-            isSlide = request.isSlide,
-            isPinned = request.isPinned,
-        )
+        val newNotice = NoticeEntity.of(request)
 
         for (tagName in request.tags) {
             val tag = tagInNoticeRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")

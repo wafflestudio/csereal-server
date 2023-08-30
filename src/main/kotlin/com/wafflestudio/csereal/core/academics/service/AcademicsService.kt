@@ -73,7 +73,7 @@ class AcademicsServiceImpl(
     override fun readAllCourses(studentType: String): List<CourseDto> {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
 
-        val courseDtoList = courseRepository.findAllByStudentTypeOrderByYearAsc(enumStudentType).map {
+        val courseDtoList = courseRepository.findAllByStudentTypeOrderByNameAsc(enumStudentType).map {
             val attachments = attachmentService.createAttachments(it.attachments)
             CourseDto.of(it, attachments)
         }

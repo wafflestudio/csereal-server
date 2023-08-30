@@ -19,19 +19,27 @@ class NoticeEntity(
 
     var isPublic: Boolean,
 
-    var isSlide: Boolean,
-
     var isPinned: Boolean,
 
     @OneToMany(mappedBy = "notice", cascade = [CascadeType.ALL])
     var noticeTags: MutableSet<NoticeTagEntity> = mutableSetOf()
 ): BaseTimeEntity() {
 
+    companion object {
+        fun of(noticeDto: NoticeDto): NoticeEntity {
+            return NoticeEntity(
+                title = noticeDto.title,
+                description = noticeDto.description,
+                isPublic = noticeDto.isPublic,
+                isPinned = noticeDto.isPinned,
+            )
+        }
+    }
+
     fun update(updateNoticeRequest: NoticeDto) {
         this.title = updateNoticeRequest.title
         this.description = updateNoticeRequest.description
         this.isPublic = updateNoticeRequest.isPublic
-        this.isSlide = updateNoticeRequest.isSlide
         this.isPinned = updateNoticeRequest.isPinned
     }
 

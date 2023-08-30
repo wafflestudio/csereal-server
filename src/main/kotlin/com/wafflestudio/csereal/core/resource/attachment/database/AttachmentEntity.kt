@@ -10,7 +10,7 @@ import jakarta.persistence.*
 
 @Entity(name = "attachment")
 class AttachmentEntity(
-    val isDeleted : Boolean? = true,
+    val isDeleted : Boolean? = false,
 
     @Column(unique = true)
     val filename: String,
