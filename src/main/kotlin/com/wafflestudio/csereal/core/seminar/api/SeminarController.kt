@@ -23,10 +23,10 @@ class SeminarController (
     @PostMapping
     fun createSeminar(
         @Valid @RequestPart("request") request: SeminarDto,
-        @RequestPart("image") image: MultipartFile?,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
         @RequestPart("attachments") attachments: List<MultipartFile>?
     ) : ResponseEntity<SeminarDto> {
-        return ResponseEntity.ok(seminarService.createSeminar(request, image, attachments))
+        return ResponseEntity.ok(seminarService.createSeminar(request, mainImage, attachments))
     }
 
     @GetMapping("/{seminarId}")
