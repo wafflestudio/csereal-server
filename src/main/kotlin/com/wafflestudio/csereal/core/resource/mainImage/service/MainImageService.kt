@@ -23,8 +23,8 @@ import kotlin.io.path.fileSize
 import kotlin.io.path.name
 
 
-interface ImageService {
-    fun uploadImage(
+interface MainImageService {
+    fun uploadMainImage(
         contentEntityType: ImageContentEntityType,
         requestImage: MultipartFile,
     ): MainImageDto
@@ -32,15 +32,15 @@ interface ImageService {
 }
 
 @Service
-class ImageServiceImpl(
-    private val imageRepository: MainImageRepository,
-    @Value("\${csereal_image.upload.path}")
+class MainImageServiceImpl(
+    private val mainImageRepository: MainImageRepository,
+    @Value("\${csereal_mainImage.upload.path}")
     private val path: String,
-) : ImageService {
+) : MainImageService {
 
     @Transactional
-    override fun uploadImage(
-        contentEntity: ImageContentEntityType,
+    override fun uploadMainImage(
+        contentEntityType: ImageContentEntityType,
         requestImage: MultipartFile,
     ): MainImageDto {
         Files.createDirectories(Paths.get(path))
@@ -62,7 +62,7 @@ class ImageServiceImpl(
         val thumbnailFile = Paths.get("$totalThumbnailFilename.$extension")
         Thumbnailator.createThumbnail(saveFile.toFile(), thumbnailFile.toFile(), 100, 100);
 
-        val image = MainImageEntity(
+        val mainImage = MainImageEntity(
             filename = filename,
             imagesOrder = 1,
             size = requestImage.size,
@@ -74,9 +74,9 @@ class ImageServiceImpl(
             size = thumbnailFile.fileSize()
         )
 
-        connectImageToEntity(contentEntity, image)
-        imageRepository.save(image)
-        imageRepository.save(thumbnail)
+        connectMainImageToEntity(contentEntityType, mainImage)
+        mainImageRepository.save(mainImage)
+        mainImageRepository.save(thumbnail)
 
         return MainImageDto(
             filename = filename,
@@ -86,28 +86,28 @@ class ImageServiceImpl(
     }
 
     @Transactional
-    override fun createImageURL(image: MainImageEntity?) : String? {
-        return if(image != null) {
-            "http://cse-dev-waffle.bacchus.io/image/${image.filename}"
+    override fun createImageURL(mainImage: MainImageEntity?) : String? {
+        return if(mainImage != null) {
+            "http://cse-dev-waffle.bacchus.io/mainImage/${mainImage.filename}"
         } else null
     }
 
-    private fun connectImageToEntity(contentEntity: ImageContentEntityType, image: MainImageEntity) {
+    private fun connectMainImageToEntity(contentEntity: ImageContentEntityType, mainImage: MainImageEntity) {
         when (contentEntity) {
             is NewsEntity -> {
-                contentEntity.mainImage = image
+                contentEntity.mainImage = mainImage
             }
             is SeminarEntity -> {
-                contentEntity.mainImage = image
+                contentEntity.mainImage = mainImage
             }
             is AboutEntity -> {
-                contentEntity.mainImage = image
+                contentEntity.mainImage = mainImage
             }
             is ProfessorEntity -> {
-                contentEntity.mainImage = image
+                contentEntity.mainImage = mainImage
             }
             is StaffEntity -> {
-                contentEntity.mainImage = image
+                contentEntity.mainImage = mainImage
             }
             else -> {
                 throw WrongMethodTypeException("해당하는 엔티티가 없습니다")

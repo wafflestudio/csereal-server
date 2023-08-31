@@ -7,13 +7,13 @@ import com.wafflestudio.csereal.core.about.database.AboutRepository
 import com.wafflestudio.csereal.core.about.database.LocationEntity
 import com.wafflestudio.csereal.core.about.dto.AboutDto
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
-import com.wafflestudio.csereal.core.resource.mainImage.service.ImageService
+import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface AboutService {
-    fun createAbout(postType: String, request: AboutDto, image: MultipartFile?, attachments: List<MultipartFile>?): AboutDto
+    fun createAbout(postType: String, request: AboutDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): AboutDto
     fun readAbout(postType: String): AboutDto
     fun readAllClubs() : List<AboutDto>
     fun readAllFacilities() : List<AboutDto>
@@ -23,11 +23,11 @@ interface AboutService {
 @Service
 class AboutServiceImpl(
     private val aboutRepository: AboutRepository,
-    private val imageService: ImageService,
+    private val mainImageService: MainImageService,
     private val attachmentService: AttachmentService,
 ) : AboutService {
     @Transactional
-    override fun createAbout(postType: String, request: AboutDto, image: MultipartFile?, attachments: List<MultipartFile>?): AboutDto {
+    override fun createAbout(postType: String, request: AboutDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): AboutDto {
         val enumPostType = makeStringToEnum(postType)
         val newAbout = AboutEntity.of(enumPostType, request)
 
@@ -37,8 +37,8 @@ class AboutServiceImpl(
             }
         }
 
-        if(image != null) {
-            imageService.uploadImage(newAbout, image)
+        if(mainImage != null) {
+            mainImageService.uploadMainImage(newAbout, mainImage)
         }
 
         if(attachments != null) {
@@ -46,7 +46,7 @@ class AboutServiceImpl(
         }
         aboutRepository.save(newAbout)
 
-        val imageURL = imageService.createImageURL(newAbout.mainImage)
+        val imageURL = mainImageService.createImageURL(newAbout.mainImage)
         val attachments = attachmentService.createAttachments(newAbout.attachments)
 
         return AboutDto.of(newAbout, imageURL, attachments)
@@ -56,7 +56,7 @@ class AboutServiceImpl(
     override fun readAbout(postType: String): AboutDto {
         val enumPostType = makeStringToEnum(postType)
         val about = aboutRepository.findByPostType(enumPostType)
-        val imageURL = imageService.createImageURL(about.mainImage)
+        val imageURL = mainImageService.createImageURL(about.mainImage)
         val attachments = attachmentService.createAttachments(about.attachments)
 
 
@@ -66,7 +66,7 @@ class AboutServiceImpl(
     @Transactional(readOnly = true)
     override fun readAllClubs(): List<AboutDto> {
         val clubs = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.STUDENT_CLUBS).map {
-            val imageURL = imageService.createImageURL(it.mainImage)
+            val imageURL = mainImageService.createImageURL(it.mainImage)
             val attachments = attachmentService.createAttachments(it.attachments)
             AboutDto.of(it, imageURL, attachments)
         }
@@ -77,7 +77,7 @@ class AboutServiceImpl(
     @Transactional(readOnly = true)
     override fun readAllFacilities(): List<AboutDto> {
         val facilities = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.FACILITIES).map {
-            val imageURL = imageService.createImageURL(it.mainImage)
+            val imageURL = mainImageService.createImageURL(it.mainImage)
             val attachments = attachmentService.createAttachments(it.attachments)
             AboutDto.of(it, imageURL, attachments)
         }
@@ -88,7 +88,7 @@ class AboutServiceImpl(
     @Transactional(readOnly = true)
     override fun readAllDirections(): List<AboutDto> {
         val directions = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.DIRECTIONS).map {
-            val imageURL = imageService.createImageURL(it.mainImage)
+            val imageURL = mainImageService.createImageURL(it.mainImage)
             val attachments = attachmentService.createAttachments(it.attachments)
             AboutDto.of(it, imageURL, attachments)
         }
