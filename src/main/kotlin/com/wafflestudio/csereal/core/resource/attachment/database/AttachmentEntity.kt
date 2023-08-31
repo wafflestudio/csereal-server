@@ -25,7 +25,7 @@ class AttachmentEntity(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seminar_id")
     var seminar: SeminarEntity? = null,
-
+  
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "about_id")
     var about: AboutEntity? = null,

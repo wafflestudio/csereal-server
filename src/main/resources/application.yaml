@@ -65,11 +65,12 @@ csereal_image:
 
 csereal_attachment:
   upload:
-    path: /app/image/
+    path: /app/attachment/
 
 endpoint:
   backend: http://localhost:8080
   frontend: http://localhost:3000
+
 ---
 spring:
   config.activate.on-profile: prod
@@ -88,9 +89,10 @@ csereal_image:
   upload:
     path: /app/image/
 
+
 csereal_attachment:
   upload:
-    path: /app/image/
+    path: /app/attachment/
 
 endpoint:
   backend: http://cse-dev-waffle.bacchus.io:8080
