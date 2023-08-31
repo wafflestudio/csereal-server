@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
-@RequestMapping("/notice")
+@RequestMapping("/api/v1/notice")
 @RestController
 class NoticeController(
     private val noticeService: NoticeService,

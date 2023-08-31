@@ -19,7 +19,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-@RequestMapping("/reservation")
+@RequestMapping("/api/v1/reservation")
 @RestController
 class ReservationController(
     private val reservationService: ReservationService

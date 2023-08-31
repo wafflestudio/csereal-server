@@ -23,6 +23,8 @@ server:
       timeout: 7200 # 2시간
 
 springdoc:
+  paths-to-match:
+    - /api/**
   swagger-ui:
     path: index.html
   api-docs:
@@ -83,7 +85,7 @@ spring:
       client:
         registration:
           idsnucse:
-            redirect-uri: http://cse-dev-waffle.bacchus.io:8080/login/oauth2/code/idsnucse
+            redirect-uri: http://${URL}/login/oauth2/code/idsnucse
 
 csereal_image:
   upload:
@@ -94,5 +96,5 @@ csereal_attachment:
     path: /app/attachment/
 
 endpoint:
-  backend: http://cse-dev-waffle.bacchus.io:8080
-  frontend: http://cse-dev-waffle.bacchus.io:3000
+  backend: http://${URL}/api
+  frontend: http://${URL}

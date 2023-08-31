@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
-@RequestMapping("/admissions")
+@RequestMapping("/api/v1/admissions")
 @RestController
 class AdmissionsController(
     private val admissionsService: AdmissionsService

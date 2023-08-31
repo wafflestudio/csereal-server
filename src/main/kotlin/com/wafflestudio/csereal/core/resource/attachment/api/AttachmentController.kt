@@ -4,7 +4,7 @@ import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentServi
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-@RequestMapping("/attachment")
+@RequestMapping("/api/v1/attachment")
 @RestController
 class AttachmentController(
     private val attachmentService: AttachmentService
