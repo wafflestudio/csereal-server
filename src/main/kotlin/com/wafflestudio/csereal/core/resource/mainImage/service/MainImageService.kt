@@ -90,7 +90,7 @@ class MainImageServiceImpl(
     @Transactional
     override fun createImageURL(mainImage: MainImageEntity?): String? {
         return if (mainImage != null) {
-            "${endpointProperties.backend}/file/${mainImage.filename}"
+            "${endpointProperties.backend}/v1/file/${mainImage.filename}"
         } else null
     }
 

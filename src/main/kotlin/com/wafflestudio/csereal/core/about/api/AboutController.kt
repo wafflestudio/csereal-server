@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
-@RequestMapping("/about")
+@RequestMapping("/api/v1/about")
 @RestController
 class AboutController(
     private val aboutService: AboutService

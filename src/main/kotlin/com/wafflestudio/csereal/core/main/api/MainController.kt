@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RequestMapping
-@RestController
+@RestController("/api/v1")
 class MainController(
     private val mainService: MainService,
 ) {
