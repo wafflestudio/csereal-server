@@ -16,7 +16,7 @@ interface SeminarService {
     fun searchSeminar(keyword: String?, pageNum: Long): SeminarSearchResponse
     fun createSeminar(request: SeminarDto, image: MultipartFile?, attachments: List<MultipartFile>?): SeminarDto
     fun readSeminar(seminarId: Long, keyword: String?): SeminarDto
-    fun updateSeminar(seminarId: Long, request: SeminarDto): SeminarDto
+    fun updateSeminar(seminarId: Long, request: SeminarDto, image: MultipartFile?, attachments: List<MultipartFile>?): SeminarDto
     fun deleteSeminar(seminarId: Long)
 }
 
@@ -67,12 +67,21 @@ class SeminarServiceImpl(
     }
 
     @Transactional
-    override fun updateSeminar(seminarId: Long, request: SeminarDto): SeminarDto {
+    override fun updateSeminar(seminarId: Long, request: SeminarDto, image: MultipartFile?, attachments: List<MultipartFile>?): SeminarDto {
         val seminar: SeminarEntity = seminarRepository.findByIdOrNull(seminarId)
             ?: throw CserealException.Csereal404("존재하지 않는 세미나입니다")
         if(seminar.isDeleted) throw CserealException.Csereal404("삭제된 세미나입니다. (seminarId: $seminarId)")
 
         seminar.update(request)
+
+        if(image != null) {
+            imageService.uploadImage(seminar, image)
+        }
+
+        if(attachments != null) {
+            seminar.attachments.clear()
+            attachmentService.uploadAttachments(seminar, attachments)
+        }
 
         val imageURL = imageService.createImageURL(seminar.mainImage)
         val attachments = attachmentService.createAttachments(seminar.attachments)

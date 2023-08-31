@@ -15,7 +15,7 @@ interface NewsService {
     fun searchNews(tag: List<String>?, keyword: String?, pageNum: Long): NewsSearchResponse
     fun readNews(newsId: Long, tag: List<String>?, keyword: String?): NewsDto
     fun createNews(request: NewsDto, image: MultipartFile?, attachments: List<MultipartFile>?): NewsDto
-    fun updateNews(newsId: Long, request: NewsDto): NewsDto
+    fun updateNews(newsId: Long, request: NewsDto, image: MultipartFile?, attachments: List<MultipartFile>?): NewsDto
     fun deleteNews(newsId: Long)
     fun enrollTag(tagName: String)
 }
@@ -83,11 +83,20 @@ class NewsServiceImpl(
     }
 
     @Transactional
-    override fun updateNews(newsId: Long, request: NewsDto): NewsDto {
+    override fun updateNews(newsId: Long, request: NewsDto, image: MultipartFile?, attachments: List<MultipartFile>?): NewsDto {
         val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
             ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다. (newsId: $newsId)")
         if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.")
         news.update(request)
+
+        if(image != null) {
+            imageService.uploadImage(news, image)
+        }
+
+        if(attachments != null) {
+            news.attachments.clear()
+            attachmentService.uploadAttachments(news, attachments)
+        }
 
         val oldTags = news.newsTags.map { it.tag.name }
 

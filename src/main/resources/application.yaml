@@ -62,7 +62,7 @@ csereal_image:
 
 csereal_attachment:
   upload:
-    path: /app/image/
+    path: /app/attachment/
 ---
 spring:
   config.activate.on-profile: prod
@@ -79,4 +79,4 @@ csereal_image:
 
 csereal_attachment:
   upload:
-    path: /app/image/
+    path: /app/attachment/
