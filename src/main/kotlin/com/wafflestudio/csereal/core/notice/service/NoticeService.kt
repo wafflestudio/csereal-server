@@ -3,9 +3,15 @@ package com.wafflestudio.csereal.core.notice.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.notice.database.*
 import com.wafflestudio.csereal.core.notice.dto.*
+import com.wafflestudio.csereal.core.user.database.UserEntity
+import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.context.request.RequestAttributes
+import org.springframework.web.context.request.RequestContextHolder
 
 interface NoticeService {
     fun searchNotice(tag: List<String>?, keyword: String?, pageNum: Long): NoticeSearchResponse
@@ -20,7 +26,8 @@ interface NoticeService {
 class NoticeServiceImpl(
     private val noticeRepository: NoticeRepository,
     private val tagInNoticeRepository: TagInNoticeRepository,
-    private val noticeTagRepository: NoticeTagRepository
+    private val noticeTagRepository: NoticeTagRepository,
+    private val userRepository: UserRepository
 ) : NoticeService {
 
     @Transactional(readOnly = true)
@@ -28,9 +35,9 @@ class NoticeServiceImpl(
         tag: List<String>?,
         keyword: String?,
         pageNum: Long
-        ): NoticeSearchResponse {
-            return noticeRepository.searchNotice(tag, keyword, pageNum)
-        }
+    ): NoticeSearchResponse {
+        return noticeRepository.searchNotice(tag, keyword, pageNum)
+    }
 
     @Transactional(readOnly = true)
     override fun readNotice(
@@ -40,7 +47,7 @@ class NoticeServiceImpl(
     ): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
-        
+
         if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
 
         val prevNext = noticeRepository.findPrevNextId(noticeId, tag, keyword)
@@ -50,7 +57,25 @@ class NoticeServiceImpl(
 
     @Transactional
     override fun createNotice(request: NoticeDto): NoticeDto {
-        val newNotice = NoticeEntity.of(request)
+        var user = RequestContextHolder.getRequestAttributes()?.getAttribute(
+            "loggedInUser",
+            RequestAttributes.SCOPE_REQUEST
+        ) as UserEntity?
+
+        if (user == null) {
+            val oidcUser = SecurityContextHolder.getContext().authentication.principal as OidcUser
+            val username = oidcUser.idToken.getClaim<String>("username")
+
+            user = userRepository.findByUsername(username) ?: throw CserealException.Csereal404("재로그인이 필요합니다.")
+        }
+
+        val newNotice = NoticeEntity(
+            title = request.title,
+            description = request.description,
+            isPublic = request.isPublic,
+            isPinned = request.isPinned,
+            author = user
+        )
 
         for (tagName in request.tags) {
             val tag = tagInNoticeRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
@@ -76,20 +101,18 @@ class NoticeServiceImpl(
         val tagsToRemove = oldTags - request.tags
         val tagsToAdd = request.tags - oldTags
 
-        for(tagName in tagsToRemove) {
+        for (tagName in tagsToRemove) {
             val tagId = tagInNoticeRepository.findByName(tagName)!!.id
             notice.noticeTags.removeIf { it.tag.name == tagName }
             noticeTagRepository.deleteByNoticeIdAndTagId(noticeId, tagId)
         }
 
-        for(tagName in tagsToAdd) {
+        for (tagName in tagsToAdd) {
             val tag = tagInNoticeRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
             NoticeTagEntity.createNoticeTag(notice, tag)
         }
 
         return NoticeDto.of(notice, null)
-
-
 
 
     }

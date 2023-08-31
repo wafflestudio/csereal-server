@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.seminar.api
 
-import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
 import com.wafflestudio.csereal.core.seminar.service.SeminarService

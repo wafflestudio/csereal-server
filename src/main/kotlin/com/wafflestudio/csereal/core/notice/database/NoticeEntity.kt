@@ -2,10 +2,8 @@ package com.wafflestudio.csereal.core.notice.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.core.notice.dto.NoticeDto
-import jakarta.persistence.CascadeType
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.OneToMany
+import com.wafflestudio.csereal.core.user.database.UserEntity
+import jakarta.persistence.*
 
 
 @Entity(name = "notice")
@@ -22,20 +20,12 @@ class NoticeEntity(
     var isPinned: Boolean,
 
     @OneToMany(mappedBy = "notice", cascade = [CascadeType.ALL])
-    var noticeTags: MutableSet<NoticeTagEntity> = mutableSetOf()
-): BaseTimeEntity() {
+    var noticeTags: MutableSet<NoticeTagEntity> = mutableSetOf(),
 
-    companion object {
-        fun of(noticeDto: NoticeDto): NoticeEntity {
-            return NoticeEntity(
-                title = noticeDto.title,
-                description = noticeDto.description,
-                isPublic = noticeDto.isPublic,
-                isPinned = noticeDto.isPinned,
-            )
-        }
-    }
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "users_id")
+    val author: UserEntity
+) : BaseTimeEntity() {
     fun update(updateNoticeRequest: NoticeDto) {
         this.title = updateNoticeRequest.title
         this.description = updateNoticeRequest.description

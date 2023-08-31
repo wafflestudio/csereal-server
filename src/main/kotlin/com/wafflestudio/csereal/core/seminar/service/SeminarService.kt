@@ -47,7 +47,6 @@ class SeminarServiceImpl(
 
         val imageURL = mainImageService.createImageURL(newSeminar.mainImage)
         val attachments = attachmentService.createAttachments(newSeminar.attachments)
-
         return SeminarDto.of(newSeminar, imageURL, attachments, null)
     }
 

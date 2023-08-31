@@ -23,7 +23,6 @@ interface AttachmentService {
         contentEntityType: AttachmentContentEntityType,
         requestAttachments: List<MultipartFile>,
     ): List<AttachmentDto>
-
     fun createAttachments(attachments: List<AttachmentEntity>?): List<AttachmentResponse>?
 }
 

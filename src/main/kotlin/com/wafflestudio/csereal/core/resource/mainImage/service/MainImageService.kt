@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.resource.mainImage.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.controller.ImageContentEntityType
+import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
@@ -22,13 +23,13 @@ import java.nio.file.Paths
 import kotlin.io.path.fileSize
 import kotlin.io.path.name
 
-
 interface MainImageService {
     fun uploadMainImage(
         contentEntityType: ImageContentEntityType,
         requestImage: MultipartFile,
     ): MainImageDto
-    fun createImageURL(image: MainImageEntity?) : String?
+
+    fun createImageURL(image: MainImageEntity?): String?
 }
 
 @Service
@@ -36,6 +37,7 @@ class MainImageServiceImpl(
     private val mainImageRepository: MainImageRepository,
     @Value("\${csereal_mainImage.upload.path}")
     private val path: String,
+    private val endpointProperties: EndpointProperties
 ) : MainImageService {
 
     @Transactional
@@ -47,7 +49,7 @@ class MainImageServiceImpl(
 
         val extension = FilenameUtils.getExtension(requestImage.originalFilename)
 
-        if(!listOf("jpg", "jpeg", "png").contains(extension)) {
+        if (!listOf("jpg", "jpeg", "png").contains(extension)) {
             throw CserealException.Csereal400("파일의 형식은 jpg, jpeg, png 중 하나여야 합니다.")
         }
 
@@ -55,11 +57,11 @@ class MainImageServiceImpl(
 
         val filename = "${timeMillis}_${requestImage.originalFilename}"
         val totalFilename = path + filename
-        val saveFile = Paths.get("$totalFilename.$extension")
+        val saveFile = Paths.get(totalFilename)
         requestImage.transferTo(saveFile)
 
         val totalThumbnailFilename = "${path}thumbnail_$filename"
-        val thumbnailFile = Paths.get("$totalThumbnailFilename.$extension")
+        val thumbnailFile = Paths.get(totalThumbnailFilename)
         Thumbnailator.createThumbnail(saveFile.toFile(), thumbnailFile.toFile(), 100, 100);
 
         val mainImage = MainImageEntity(
@@ -86,9 +88,9 @@ class MainImageServiceImpl(
     }
 
     @Transactional
-    override fun createImageURL(mainImage: MainImageEntity?) : String? {
-        return if(mainImage != null) {
-            "http://cse-dev-waffle.bacchus.io/mainImage/${mainImage.filename}"
+    override fun createImageURL(mainImage: MainImageEntity?): String? {
+        return if (mainImage != null) {
+            "${endpointProperties.backend}/file/${mainImage.filename}"
         } else null
     }
 
@@ -97,18 +99,23 @@ class MainImageServiceImpl(
             is NewsEntity -> {
                 contentEntity.mainImage = mainImage
             }
+
             is SeminarEntity -> {
                 contentEntity.mainImage = mainImage
             }
+
             is AboutEntity -> {
                 contentEntity.mainImage = mainImage
             }
+
             is ProfessorEntity -> {
                 contentEntity.mainImage = mainImage
             }
+
             is StaffEntity -> {
                 contentEntity.mainImage = mainImage
             }
+
             else -> {
                 throw WrongMethodTypeException("해당하는 엔티티가 없습니다")
             }
