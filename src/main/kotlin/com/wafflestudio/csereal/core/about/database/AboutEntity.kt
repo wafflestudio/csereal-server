@@ -20,7 +20,7 @@ class AboutEntity(
     @OneToMany(mappedBy = "about", cascade = [CascadeType.ALL], orphanRemoval = true)
     val locations: MutableList<LocationEntity> = mutableListOf(),
 
-    @OneToMany(mappedBy = "")
+    @OneToMany(mappedBy = "about", cascade = [CascadeType.ALL], orphanRemoval = true)
     var attachments: MutableList<AttachmentEntity> = mutableListOf(),
 
     @OneToOne
