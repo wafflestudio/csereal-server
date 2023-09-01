@@ -29,7 +29,6 @@ interface MainImageService {
         contentEntityType: MainImageContentEntityType,
         requestImage: MultipartFile,
     ): MainImageDto
-
     fun createImageURL(image: MainImageEntity?): String?
 }
 
