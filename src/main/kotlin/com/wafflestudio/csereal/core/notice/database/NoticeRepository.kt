@@ -58,17 +58,20 @@ class NoticeRepositoryImpl(
 
         val noticeEntityList = jpaQuery.orderBy(noticeEntity.isPinned.desc())
             .orderBy(noticeEntity.createdAt.desc())
-            .offset(20*pageNum)  //로컬 테스트를 위해 잠시 5로 둘 것, 원래는 20
+            .offset(20*pageNum)
             .limit(20)
             .distinct()
             .fetch()
 
         val noticeSearchDtoList : List<NoticeSearchDto> = noticeEntityList.map {
+            val hasAttachment : Boolean = it.attachments.isNotEmpty()
+
             NoticeSearchDto(
                 id = it.id,
                 title = it.title,
                 createdAt = it.createdAt,
                 isPinned = it.isPinned,
+                hasAttachment = hasAttachment
             )
         }
 
