@@ -61,9 +61,9 @@ logging.level:
     springframework:
       security: DEBUG
 
-csereal_image:
+csereal_mainImage:
   upload:
-    path: /app/image/
+    path: /app/mainImage/
 
 csereal_attachment:
   upload:
@@ -87,9 +87,11 @@ spring:
           idsnucse:
             redirect-uri: http://${URL}/login/oauth2/code/idsnucse
 
-csereal_image:
+
+
+csereal_mainImage:
   upload:
-    path: /app/image/
+    path: /app/mainImage/
 
 csereal_attachment:
   upload:

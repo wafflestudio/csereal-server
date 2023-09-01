@@ -21,9 +21,6 @@ class NewsEntity(
 
     var isSlide: Boolean,
 
-    // 새소식 작성란에도 "가장 위에 표시"가 있더라고요, 혹시 쓸지도 모르니까 남겼습니다
-    var isPinned: Boolean,
-
     @OneToOne
     var mainImage: MainImageEntity? = null,
 
@@ -44,7 +41,6 @@ class NewsEntity(
                 description = newsDto.description,
                 isPublic = newsDto.isPublic,
                 isSlide = newsDto.isSlide,
-                isPinned = newsDto.isPinned,
             )
         }
     }
@@ -53,6 +49,5 @@ class NewsEntity(
         this.description = updateNewsRequest.description
         this.isPublic = updateNewsRequest.isPublic
         this.isSlide = updateNewsRequest.isSlide
-        this.isPinned = updateNewsRequest.isPinned
     }
 }

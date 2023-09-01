@@ -5,7 +5,7 @@ import com.wafflestudio.csereal.core.news.database.*
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
-import com.wafflestudio.csereal.core.resource.mainImage.service.ImageService
+import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -14,8 +14,8 @@ import org.springframework.web.multipart.MultipartFile
 interface NewsService {
     fun searchNews(tag: List<String>?, keyword: String?, pageNum: Long): NewsSearchResponse
     fun readNews(newsId: Long, tag: List<String>?, keyword: String?): NewsDto
-    fun createNews(request: NewsDto, image: MultipartFile?, attachments: List<MultipartFile>?): NewsDto
-    fun updateNews(newsId: Long, request: NewsDto): NewsDto
+    fun createNews(request: NewsDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): NewsDto
+    fun updateNews(newsId: Long, request: NewsDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): NewsDto
     fun deleteNews(newsId: Long)
     fun enrollTag(tagName: String)
 }
@@ -25,7 +25,7 @@ class NewsServiceImpl(
     private val newsRepository: NewsRepository,
     private val tagInNewsRepository: TagInNewsRepository,
     private val newsTagRepository: NewsTagRepository,
-    private val imageService: ImageService,
+    private val mainImageService: MainImageService,
     private val attachmentService: AttachmentService,
 ) : NewsService {
     @Transactional(readOnly = true)
@@ -48,7 +48,7 @@ class NewsServiceImpl(
 
         if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.(newsId: $newsId)")
 
-        val imageURL = imageService.createImageURL(news.mainImage)
+        val imageURL = mainImageService.createImageURL(news.mainImage)
         val attachments = attachmentService.createAttachments(news.attachments)
 
         val prevNext = newsRepository.findPrevNextId(newsId, tag, keyword)
@@ -58,7 +58,7 @@ class NewsServiceImpl(
     }
 
     @Transactional
-    override fun createNews(request: NewsDto, image: MultipartFile?, attachments: List<MultipartFile>?): NewsDto {
+    override fun createNews(request: NewsDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): NewsDto {
         val newNews = NewsEntity.of(request)
 
         for (tagName in request.tags) {
@@ -66,8 +66,12 @@ class NewsServiceImpl(
             NewsTagEntity.createNewsTag(newNews, tag)
         }
 
-        if(image != null) {
-            imageService.uploadImage(newNews, image)
+        if(mainImage != null) {
+            mainImageService.uploadMainImage(newNews, mainImage)
+        }
+
+        if(attachments != null) {
+            attachmentService.uploadAttachments(newNews, attachments)
         }
 
         if(attachments != null) {
@@ -76,18 +80,27 @@ class NewsServiceImpl(
 
         newsRepository.save(newNews)
 
-        val imageURL = imageService.createImageURL(newNews.mainImage)
+        val imageURL = mainImageService.createImageURL(newNews.mainImage)
         val attachments = attachmentService.createAttachments(newNews.attachments)
 
         return NewsDto.of(newNews, imageURL, attachments, null)
     }
 
     @Transactional
-    override fun updateNews(newsId: Long, request: NewsDto): NewsDto {
+    override fun updateNews(newsId: Long, request: NewsDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): NewsDto {
         val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
             ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다. (newsId: $newsId)")
         if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.")
         news.update(request)
+
+        if(mainImage != null) {
+            mainImageService.uploadMainImage(news, mainImage)
+        }
+
+        if(attachments != null) {
+            news.attachments.clear()
+            attachmentService.uploadAttachments(news, attachments)
+        }
 
         val oldTags = news.newsTags.map { it.tag.name }
 
@@ -105,7 +118,7 @@ class NewsServiceImpl(
             NewsTagEntity.createNewsTag(news,tag)
         }
 
-        val imageURL = imageService.createImageURL(news.mainImage)
+        val imageURL = mainImageService.createImageURL(news.mainImage)
         val attachments = attachmentService.createAttachments(news.attachments)
 
         return NewsDto.of(news, imageURL, attachments, null)

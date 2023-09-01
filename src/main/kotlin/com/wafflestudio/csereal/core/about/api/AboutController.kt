@@ -21,9 +21,10 @@ class AboutController(
     fun createAbout(
         @PathVariable postType: String,
         @Valid @RequestPart("request") request: AboutDto,
-        @RequestPart("image") image: MultipartFile?,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("attachments") attachments: List<MultipartFile>?,
     ) : ResponseEntity<AboutDto> {
-        return ResponseEntity.ok(aboutService.createAbout(postType, request, image))
+        return ResponseEntity.ok(aboutService.createAbout(postType, request, mainImage, attachments))
     }
 
     // read 목록이 하나

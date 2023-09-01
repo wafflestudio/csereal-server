@@ -21,14 +21,12 @@ class SeminarEntity(
     @Column(columnDefinition = "text")
     var introduction: String,
 
-    var category: String,
-
     // 연사 정보
     var name: String,
-    var speakerUrl: String?,
+    var speakerURL: String?,
     var speakerTitle: String?,
     var affiliation: String,
-    var affiliationUrl: String?,
+    var affiliationURL: String?,
 
     var startDate: String?,
     var startTime: String?,
@@ -39,11 +37,7 @@ class SeminarEntity(
 
     var host: String?,
 
-    // var seminarFile: File,
-
     var isPublic: Boolean,
-
-    var isSlide: Boolean,
 
     var additionalNote: String?,
 
@@ -63,12 +57,11 @@ class SeminarEntity(
                 title = seminarDto.title,
                 description = seminarDto.description,
                 introduction = seminarDto.introduction,
-                category = seminarDto.category,
                 name = seminarDto.name,
-                speakerUrl = seminarDto.speakerUrl,
+                speakerURL = seminarDto.speakerURL,
                 speakerTitle = seminarDto.speakerTitle,
                 affiliation = seminarDto.affiliation,
-                affiliationUrl = seminarDto.affiliationUrl,
+                affiliationURL = seminarDto.affiliationURL,
                 startDate = seminarDto.startDate,
                 startTime = seminarDto.startTime,
                 endDate = seminarDto.endDate,
@@ -77,7 +70,6 @@ class SeminarEntity(
                 host = seminarDto.host,
                 additionalNote = seminarDto.additionalNote,
                 isPublic = seminarDto.isPublic,
-                isSlide = seminarDto.isSlide,
             )
         }
     }
@@ -86,12 +78,11 @@ class SeminarEntity(
         title = updateSeminarRequest.title
         description = updateSeminarRequest.description
         introduction = updateSeminarRequest.introduction
-        category = updateSeminarRequest.category
         name = updateSeminarRequest.name
-        speakerUrl = updateSeminarRequest.speakerUrl
+        speakerURL = updateSeminarRequest.speakerURL
         speakerTitle = updateSeminarRequest.speakerTitle
         affiliation = updateSeminarRequest.affiliation
-        affiliationUrl = updateSeminarRequest.affiliationUrl
+        affiliationURL = updateSeminarRequest.affiliationURL
         startDate = updateSeminarRequest.startDate
         startTime = updateSeminarRequest.startTime
         endDate = updateSeminarRequest.endDate
@@ -100,6 +91,5 @@ class SeminarEntity(
         host = updateSeminarRequest.host
         additionalNote = updateSeminarRequest.additionalNote
         isPublic = updateSeminarRequest.isPublic
-        isSlide = updateSeminarRequest.isSlide
     }
 }

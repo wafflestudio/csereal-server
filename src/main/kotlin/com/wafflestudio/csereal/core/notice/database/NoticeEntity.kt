@@ -17,8 +17,6 @@ class NoticeEntity(
 
     var isPublic: Boolean,
 
-    var isSlide: Boolean,
-
     var isPinned: Boolean,
 
     @OneToMany(mappedBy = "notice", cascade = [CascadeType.ALL])
@@ -28,12 +26,10 @@ class NoticeEntity(
     @JoinColumn(name = "users_id")
     val author: UserEntity
 ) : BaseTimeEntity() {
-
     fun update(updateNoticeRequest: NoticeDto) {
         this.title = updateNoticeRequest.title
         this.description = updateNoticeRequest.description
         this.isPublic = updateNoticeRequest.isPublic
-        this.isSlide = updateNoticeRequest.isSlide
         this.isPinned = updateNoticeRequest.isPinned
     }
 

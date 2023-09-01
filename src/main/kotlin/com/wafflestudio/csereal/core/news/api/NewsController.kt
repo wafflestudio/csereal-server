@@ -34,18 +34,20 @@ class NewsController(
     @PostMapping
     fun createNews(
         @Valid @RequestPart("request") request: NewsDto,
-        @RequestPart("image") image: MultipartFile?,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
         @RequestPart("attachments") attachments: List<MultipartFile>?
     ) : ResponseEntity<NewsDto> {
-        return ResponseEntity.ok(newsService.createNews(request,image, attachments))
+        return ResponseEntity.ok(newsService.createNews(request,mainImage, attachments))
     }
 
     @PatchMapping("/{newsId}")
     fun updateNews(
         @PathVariable newsId: Long,
-        @Valid @RequestBody request: NewsDto,
+        @Valid @RequestPart("request") request: NewsDto,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ) : ResponseEntity<NewsDto> {
-        return ResponseEntity.ok(newsService.updateNews(newsId, request))
+        return ResponseEntity.ok(newsService.updateNews(newsId, request, mainImage, attachments))
     }
 
     @DeleteMapping("/{newsId}")

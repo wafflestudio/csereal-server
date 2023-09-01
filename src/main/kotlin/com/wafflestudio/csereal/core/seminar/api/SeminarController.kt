@@ -23,10 +23,10 @@ class SeminarController (
     @PostMapping
     fun createSeminar(
         @Valid @RequestPart("request") request: SeminarDto,
-        @RequestPart("image") image: MultipartFile?,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
         @RequestPart("attachments") attachments: List<MultipartFile>?
     ) : ResponseEntity<SeminarDto> {
-        return ResponseEntity.ok(seminarService.createSeminar(request, image, attachments))
+        return ResponseEntity.ok(seminarService.createSeminar(request, mainImage, attachments))
     }
 
     @GetMapping("/{seminarId}")
@@ -40,9 +40,11 @@ class SeminarController (
     @PatchMapping("/{seminarId}")
     fun updateSeminar(
         @PathVariable seminarId: Long,
-        @Valid @RequestBody request: SeminarDto,
+        @Valid @RequestPart("request") request: SeminarDto,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ) : ResponseEntity<SeminarDto> {
-        return ResponseEntity.ok(seminarService.updateSeminar(seminarId, request))
+        return ResponseEntity.ok(seminarService.updateSeminar(seminarId, request, mainImage, attachments))
     }
 
     @DeleteMapping("/{seminarId}")

@@ -6,14 +6,14 @@ import com.wafflestudio.csereal.core.member.database.StaffRepository
 import com.wafflestudio.csereal.core.member.database.TaskEntity
 import com.wafflestudio.csereal.core.member.dto.SimpleStaffDto
 import com.wafflestudio.csereal.core.member.dto.StaffDto
-import com.wafflestudio.csereal.core.resource.mainImage.service.ImageService
+import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface StaffService {
-    fun createStaff(createStaffRequest: StaffDto, image: MultipartFile?): StaffDto
+    fun createStaff(createStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto
     fun getStaff(staffId: Long): StaffDto
     fun getAllStaff(): List<SimpleStaffDto>
     fun updateStaff(staffId: Long, updateStaffRequest: StaffDto): StaffDto
@@ -24,22 +24,22 @@ interface StaffService {
 @Transactional
 class StaffServiceImpl(
     private val staffRepository: StaffRepository,
-    private val imageService: ImageService,
+    private val mainImageService: MainImageService,
 ) : StaffService {
-    override fun createStaff(createStaffRequest: StaffDto, image: MultipartFile?): StaffDto {
+    override fun createStaff(createStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto {
         val staff = StaffEntity.of(createStaffRequest)
 
         for (task in createStaffRequest.tasks) {
             TaskEntity.create(task, staff)
         }
 
-        if(image != null) {
-            imageService.uploadImage(staff, image)
+        if(mainImage != null) {
+            mainImageService.uploadMainImage(staff, mainImage)
         }
 
         staffRepository.save(staff)
 
-        val imageURL = imageService.createImageURL(staff.mainImage)
+        val imageURL = mainImageService.createImageURL(staff.mainImage)
 
         return StaffDto.of(staff, imageURL)
     }
@@ -49,7 +49,7 @@ class StaffServiceImpl(
         val staff = staffRepository.findByIdOrNull(staffId)
             ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. staffId: ${staffId}")
 
-        val imageURL = imageService.createImageURL(staff.mainImage)
+        val imageURL = mainImageService.createImageURL(staff.mainImage)
 
         return StaffDto.of(staff, imageURL)
     }
@@ -57,7 +57,7 @@ class StaffServiceImpl(
     @Transactional(readOnly = true)
     override fun getAllStaff(): List<SimpleStaffDto> {
         return staffRepository.findAll().map {
-            val imageURL = imageService.createImageURL(it.mainImage)
+            val imageURL = mainImageService.createImageURL(it.mainImage)
             SimpleStaffDto.of(it, imageURL)
         }.sortedBy { it.name }
     }
@@ -81,7 +81,7 @@ class StaffServiceImpl(
             TaskEntity.create(task, staff)
         }
 
-        val imageURL = imageService.createImageURL(staff.mainImage)
+        val imageURL = mainImageService.createImageURL(staff.mainImage)
 
         return StaffDto.of(staff, imageURL)
     }
