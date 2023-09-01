@@ -20,7 +20,11 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 interface AttachmentService {
-    fun uploadAttachments(
+    fun uploadAttachmentInLabEntity(
+        labEntity: LabEntity,
+        requestAttachment: MultipartFile
+    ): AttachmentDto
+    fun uploadAllAttachments(
         contentEntityType: AttachmentContentEntityType,
         requestAttachments: List<MultipartFile>,
     ): List<AttachmentDto>
@@ -33,8 +37,36 @@ class AttachmentServiceImpl(
     @Value("\${csereal_attachment.upload.path}")
     private val path: String,
 ) : AttachmentService {
+    override fun uploadAttachmentInLabEntity(labEntity: LabEntity, requestAttachment: MultipartFile): AttachmentDto {
+        Files.createDirectories(Paths.get(path))
+
+        val extension = FilenameUtils.getExtension(requestAttachment.originalFilename)
+
+        val timeMillis = System.currentTimeMillis()
+
+        val filename = "${timeMillis}_${requestAttachment.originalFilename}"
+        val totalFilename = path + filename
+        val saveFile = Paths.get("$totalFilename.$extension")
+        requestAttachment.transferTo(saveFile)
+
+        val attachment = AttachmentEntity(
+            filename = filename,
+            attachmentsOrder = 1,
+            size = requestAttachment.size,
+        )
+
+        labEntity.pdf = attachment
+        attachmentRepository.save(attachment)
+
+        return AttachmentDto(
+            filename = filename,
+            attachmentsOrder = 1,
+            size = requestAttachment.size
+        )
+
+    }
     @Transactional
-    override fun uploadAttachments(
+    override fun uploadAllAttachments(
         contentEntity: AttachmentContentEntityType,
         requestAttachments: List<MultipartFile>,
     ): List<AttachmentDto> {
@@ -109,10 +141,6 @@ class AttachmentServiceImpl(
             is CourseEntity -> {
                 contentEntity.attachments.add(attachment)
                 attachment.course = contentEntity
-            }
-            is LabEntity -> {
-                contentEntity.attachments.add(attachment)
-                attachment.lab = contentEntity
             }
         }
     }

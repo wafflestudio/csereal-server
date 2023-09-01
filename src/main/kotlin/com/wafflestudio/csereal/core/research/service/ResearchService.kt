@@ -18,7 +18,7 @@ interface ResearchService {
     fun readAllResearchGroups(): ResearchGroupResponse
     fun readAllResearchCenters(): List<ResearchDto>
     fun updateResearchDetail(researchId: Long, request: ResearchDto): ResearchDto
-    fun createLab(request: LabDto, attachments: List<MultipartFile>?): LabDto
+    fun createLab(request: LabDto, pdf: MultipartFile?): LabDto
     fun readAllLabs(): List<LabDto>
 }
 
@@ -101,7 +101,7 @@ class ResearchServiceImpl(
     }
 
     @Transactional
-    override fun createLab(request: LabDto, attachments: List<MultipartFile>?): LabDto {
+    override fun createLab(request: LabDto, pdf: MultipartFile?): LabDto {
         val researchGroup = researchRepository.findByName(request.group)
             ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = ${request.group}")
 
@@ -131,22 +131,25 @@ class ResearchServiceImpl(
             }
         }
 
-        if(attachments != null) {
-            attachmentService.uploadAttachments(newLab, attachments)
+        var pdfURL = ""
+        if(pdf != null) {
+            val attachmentDto = attachmentService.uploadAttachmentInLabEntity(newLab, pdf)
+            pdfURL = "http://cse-dev-waffle.bacchus.io/attachment/${attachmentDto.filename}"
         }
 
         labRepository.save(newLab)
 
-        val attachmentResponses = attachmentService.createAttachmentResponses(newLab.attachments)
-
-        labRepository.save(newLab)
-        return LabDto.of(newLab)
+        return LabDto.of(newLab, pdfURL)
     }
 
     @Transactional(readOnly = true)
     override fun readAllLabs(): List<LabDto> {
         val labs = labRepository.findAllByOrderByName().map {
-            LabDto.of(it)
+            var pdfURL = ""
+            if(it.pdf != null) {
+                pdfURL = "http://cse-dev-waffle.bacchus.io/attachment/${it.pdf!!.filename}"
+            }
+            LabDto.of(it, pdfURL)
         }
 
         return labs

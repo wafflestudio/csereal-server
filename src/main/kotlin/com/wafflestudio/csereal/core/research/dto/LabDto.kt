@@ -1,7 +1,6 @@
 package com.wafflestudio.csereal.core.research.dto
 
 import com.wafflestudio.csereal.core.research.database.LabEntity
-import com.wafflestudio.csereal.core.resource.introductionMaterial.dto.IntroductionMaterialDto
 
 data class LabDto(
     val id: Long,
@@ -10,13 +9,14 @@ data class LabDto(
     val location: String?,
     val tel: String?,
     val acronym: String?,
-    val introductionMaterials: IntroductionMaterialDto?,
+    val pdf: String?,
+    val youtube: String?,
     val group: String,
     val description: String?,
     val websiteURL: String?,
 ) {
     companion object {
-        fun of(entity: LabEntity): LabDto = entity.run {
+        fun of(entity: LabEntity, pdfURL: String): LabDto = entity.run {
             LabDto(
                 id = this.id,
                 name = this.name,
@@ -24,7 +24,8 @@ data class LabDto(
                 location = this.location,
                 tel = this.tel,
                 acronym = this.acronym,
-                introductionMaterials = IntroductionMaterialDto(this.pdf, this.youtube),
+                pdf = pdfURL,
+                youtube = this.youtube,
                 group = this.research.name,
                 description = this.description,
                 websiteURL = this.websiteURL,

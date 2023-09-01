@@ -40,7 +40,7 @@ class SeminarServiceImpl(
         }
 
         if(attachments != null) {
-            attachmentService.uploadAttachments(newSeminar, attachments)
+            attachmentService.uploadAllAttachments(newSeminar, attachments)
         }
 
         seminarRepository.save(newSeminar)
@@ -79,7 +79,7 @@ class SeminarServiceImpl(
 
         if(attachments != null) {
             seminar.attachments.clear()
-            attachmentService.uploadAttachments(seminar, attachments)
+            attachmentService.uploadAllAttachments(seminar, attachments)
         }
 
         val imageURL = mainImageService.createImageURL(seminar.mainImage)

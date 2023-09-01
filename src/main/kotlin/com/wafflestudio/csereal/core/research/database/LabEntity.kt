@@ -17,7 +17,10 @@ class LabEntity(
     val location: String?,
     val tel: String?,
     val acronym: String?,
-    val pdf: String?,
+
+    @OneToOne
+    var pdf: AttachmentEntity? = null,
+
     val youtube: String?,
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -27,11 +30,7 @@ class LabEntity(
     val description: String?,
     val websiteURL: String?,
 
-    @OneToMany(mappedBy = "lab", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
-
-) : BaseTimeEntity(), AttachmentContentEntityType {
-    override fun bringAttachments() = attachments
+) : BaseTimeEntity() {
     companion object {
         fun of(researchGroup: ResearchEntity, labDto: LabDto) : LabEntity {
             return LabEntity(
@@ -39,8 +38,7 @@ class LabEntity(
                 location = labDto.location,
                 tel = labDto.tel,
                 acronym = labDto.acronym,
-                pdf = labDto.introductionMaterials?.pdf,
-                youtube = labDto.introductionMaterials?.youtube,
+                youtube = labDto.youtube,
                 research = researchGroup,
                 description = labDto.description,
                 websiteURL = labDto.websiteURL,

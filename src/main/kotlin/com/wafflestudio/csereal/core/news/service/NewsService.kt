@@ -71,11 +71,11 @@ class NewsServiceImpl(
         }
 
         if(attachments != null) {
-            attachmentService.uploadAttachments(newNews, attachments)
+            attachmentService.uploadAllAttachments(newNews, attachments)
         }
 
         if(attachments != null) {
-            attachmentService.uploadAttachments(newNews, attachments)
+            attachmentService.uploadAllAttachments(newNews, attachments)
         }
 
         newsRepository.save(newNews)
@@ -99,7 +99,7 @@ class NewsServiceImpl(
 
         if(attachments != null) {
             news.attachments.clear()
-            attachmentService.uploadAttachments(news, attachments)
+            attachmentService.uploadAllAttachments(news, attachments)
         }
 
         val oldTags = news.newsTags.map { it.tag.name }

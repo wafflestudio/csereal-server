@@ -42,9 +42,9 @@ class ResearchController(
     @PostMapping("/lab")
     fun createLab(
         @Valid @RequestPart("request") request: LabDto,
-        @RequestPart("attachments") attachments: List<MultipartFile>?
+        @RequestPart("pdf") pdf: MultipartFile?
     ) : ResponseEntity<LabDto> {
-        return ResponseEntity.ok(researchService.createLab(request, attachments))
+        return ResponseEntity.ok(researchService.createLab(request, pdf))
     }
 
     @GetMapping("/labs")

@@ -42,7 +42,7 @@ class AboutServiceImpl(
         }
 
         if(attachments != null) {
-            attachmentService.uploadAttachments(newAbout, attachments)
+            attachmentService.uploadAllAttachments(newAbout, attachments)
         }
         aboutRepository.save(newAbout)
 
