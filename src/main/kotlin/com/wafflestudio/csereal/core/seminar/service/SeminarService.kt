@@ -75,11 +75,15 @@ class SeminarServiceImpl(
 
         if(mainImage != null) {
             mainImageService.uploadMainImage(seminar, mainImage)
+        } else {
+            seminar.mainImage = null
         }
 
         if(attachments != null) {
             seminar.attachments.clear()
             attachmentService.uploadAllAttachments(seminar, attachments)
+        } else {
+            seminar.attachments.clear()
         }
 
         val imageURL = mainImageService.createImageURL(seminar.mainImage)

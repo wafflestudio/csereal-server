@@ -108,6 +108,8 @@ class ProfessorServiceImpl(
 
         if(mainImage != null) {
             mainImageService.uploadMainImage(professor, mainImage)
+        } else {
+            professor.mainImage = null
         }
 
         // 학력 업데이트

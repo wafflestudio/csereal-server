@@ -114,6 +114,8 @@ class NoticeServiceImpl(
         if(attachments != null) {
             notice.attachments.clear()
             attachmentService.uploadAllAttachments(notice, attachments)
+        } else {
+            notice.attachments.clear()
         }
 
         val oldTags = notice.noticeTags.map { it.tag.name }
