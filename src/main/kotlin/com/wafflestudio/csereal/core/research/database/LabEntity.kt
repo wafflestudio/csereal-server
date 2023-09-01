@@ -1,13 +1,14 @@
 package com.wafflestudio.csereal.core.research.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.research.dto.LabDto
+import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import jakarta.persistence.*
 
 @Entity(name = "lab")
 class LabEntity(
-    
     val name: String,
 
     @OneToMany(mappedBy = "lab")
@@ -24,11 +25,13 @@ class LabEntity(
     var research: ResearchEntity,
 
     val description: String?,
-
     val websiteURL: String?,
-    val isPublic: Boolean,
 
-) : BaseTimeEntity() {
+    @OneToMany(mappedBy = "lab", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+
+) : BaseTimeEntity(), AttachmentContentEntityType {
+    override fun bringAttachments() = attachments
     companion object {
         fun of(researchGroup: ResearchEntity, labDto: LabDto) : LabEntity {
             return LabEntity(
@@ -41,7 +44,6 @@ class LabEntity(
                 research = researchGroup,
                 description = labDto.description,
                 websiteURL = labDto.websiteURL,
-                isPublic = labDto.isPublic,
             )
         }
     }

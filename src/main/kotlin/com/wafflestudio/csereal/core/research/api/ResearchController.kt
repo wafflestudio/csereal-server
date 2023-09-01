@@ -7,6 +7,7 @@ import com.wafflestudio.csereal.core.research.service.ResearchService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @RequestMapping("/api/v1/research")
 @RestController
@@ -40,9 +41,10 @@ class ResearchController(
 
     @PostMapping("/lab")
     fun createLab(
-        @Valid @RequestBody request: LabDto
+        @Valid @RequestPart("request") request: LabDto,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ) : ResponseEntity<LabDto> {
-        return ResponseEntity.ok(researchService.createLab(request))
+        return ResponseEntity.ok(researchService.createLab(request, attachments))
     }
 
     @GetMapping("/labs")

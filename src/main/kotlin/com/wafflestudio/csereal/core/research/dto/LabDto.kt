@@ -14,7 +14,6 @@ data class LabDto(
     val group: String,
     val description: String?,
     val websiteURL: String?,
-    val isPublic: Boolean,
 ) {
     companion object {
         fun of(entity: LabEntity): LabDto = entity.run {
@@ -29,7 +28,6 @@ data class LabDto(
                 group = this.research.name,
                 description = this.description,
                 websiteURL = this.websiteURL,
-                isPublic = this.isPublic
             )
         }
     }

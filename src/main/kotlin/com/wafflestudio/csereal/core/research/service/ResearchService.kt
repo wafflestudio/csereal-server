@@ -6,17 +6,18 @@ import com.wafflestudio.csereal.core.research.database.*
 import com.wafflestudio.csereal.core.research.dto.LabDto
 import com.wafflestudio.csereal.core.research.dto.ResearchDto
 import com.wafflestudio.csereal.core.research.dto.ResearchGroupResponse
+import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 
 interface ResearchService {
     fun createResearchDetail(request: ResearchDto): ResearchDto
     fun readAllResearchGroups(): ResearchGroupResponse
     fun readAllResearchCenters(): List<ResearchDto>
     fun updateResearchDetail(researchId: Long, request: ResearchDto): ResearchDto
-    fun createLab(request: LabDto): LabDto
-
+    fun createLab(request: LabDto, attachments: List<MultipartFile>?): LabDto
     fun readAllLabs(): List<LabDto>
 }
 
@@ -24,7 +25,8 @@ interface ResearchService {
 class ResearchServiceImpl(
     private val researchRepository: ResearchRepository,
     private val labRepository: LabRepository,
-    private val professorRepository: ProfessorRepository
+    private val professorRepository: ProfessorRepository,
+    private val attachmentService: AttachmentService,
 ) : ResearchService {
     @Transactional
     override fun createResearchDetail(request: ResearchDto): ResearchDto {
@@ -98,7 +100,7 @@ class ResearchServiceImpl(
     }
 
     @Transactional
-    override fun createLab(request: LabDto): LabDto {
+    override fun createLab(request: LabDto, attachments: List<MultipartFile>?): LabDto {
         val researchGroup = researchRepository.findByName(request.group)
             ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = ${request.group}")
 
@@ -117,6 +119,14 @@ class ResearchServiceImpl(
 
          */
         val newLab = LabEntity.of(researchGroup, request)
+
+        if(attachments != null) {
+            attachmentService.uploadAttachments(newLab, attachments)
+        }
+
+        labRepository.save(newLab)
+
+        val attachments = attachmentService.createAttachments(newLab.attachments)
 
         labRepository.save(newLab)
         return LabDto.of(newLab)

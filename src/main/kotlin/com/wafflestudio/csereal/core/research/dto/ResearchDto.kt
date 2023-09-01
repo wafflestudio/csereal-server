@@ -12,7 +12,6 @@ data class ResearchDto(
     val websiteURL: String?,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
-    val isPublic: Boolean,
     val labsId: List<Long>?
 ) {
     companion object {
@@ -25,7 +24,6 @@ data class ResearchDto(
                 websiteURL = this.websiteURL,
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
-                isPublic = this.isPublic,
                 labsId = this.labs.map { it.id }
             )
         }

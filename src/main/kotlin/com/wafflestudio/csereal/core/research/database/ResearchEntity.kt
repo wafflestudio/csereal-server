@@ -10,12 +10,8 @@ class ResearchEntity(
     var postType: ResearchPostType,
 
     var name: String,
-
     var description: String?,
-
     var websiteURL: String?,
-
-    var isPublic: Boolean,
 
     @OneToMany(mappedBy = "research", cascade = [CascadeType.ALL], orphanRemoval = true)
     var labs: MutableList<LabEntity> = mutableListOf()
@@ -27,7 +23,6 @@ class ResearchEntity(
                 name = researchDto.name,
                 description = researchDto.description,
                 websiteURL = researchDto.websiteURL,
-                isPublic = researchDto.isPublic
             )
         }
     }

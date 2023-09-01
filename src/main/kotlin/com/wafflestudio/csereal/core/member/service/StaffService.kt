@@ -71,7 +71,7 @@ class StaffServiceImpl(
         if(mainImage != null) {
             mainImageService.uploadMainImage(staff, mainImage)
         }
-        
+
         // 주요 업무 업데이트
         val oldTasks = staff.tasks.map { it.name }
 
