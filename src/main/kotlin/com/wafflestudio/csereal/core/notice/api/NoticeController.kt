@@ -7,6 +7,7 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @RequestMapping("/api/v1/notice")
 @RestController
@@ -31,20 +32,22 @@ class NoticeController(
         return ResponseEntity.ok(noticeService.readNotice(noticeId, tag, keyword))
     }
 
-    @AuthenticatedStaff
+   // @AuthenticatedStaff
     @PostMapping
     fun createNotice(
-        @Valid @RequestBody request: NoticeDto
+        @Valid @RequestPart("request") request: NoticeDto,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<NoticeDto> {
-        return ResponseEntity.ok(noticeService.createNotice(request))
+        return ResponseEntity.ok(noticeService.createNotice(request, attachments))
     }
 
     @PatchMapping("/{noticeId}")
     fun updateNotice(
         @PathVariable noticeId: Long,
-        @Valid @RequestBody request: NoticeDto,
+        @Valid @RequestPart("request") request: NoticeDto,
+        @RequestPart("attachments") attachments: List<MultipartFile>?,
     ): ResponseEntity<NoticeDto> {
-        return ResponseEntity.ok(noticeService.updateNotice(noticeId, request))
+        return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, attachments))
     }
 
     @DeleteMapping("/{noticeId}")

@@ -1,7 +1,9 @@
 package com.wafflestudio.csereal.core.notice.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.core.notice.dto.NoticeDto
+import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import jakarta.persistence.*
 
@@ -24,8 +26,14 @@ class NoticeEntity(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id")
-    val author: UserEntity
-) : BaseTimeEntity() {
+    val author: UserEntity? = null,
+
+    @OneToMany(mappedBy = "notice", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+
+) : BaseTimeEntity(), AttachmentContentEntityType {
+    override fun bringAttachments() = attachments
+
     fun update(updateNoticeRequest: NoticeDto) {
         this.title = updateNoticeRequest.title
         this.description = updateNoticeRequest.description
