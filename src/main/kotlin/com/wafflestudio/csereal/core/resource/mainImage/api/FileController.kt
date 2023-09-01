@@ -14,7 +14,7 @@ import java.nio.file.Paths
 import kotlin.text.Charsets.UTF_8
 
 
-@RequestMapping("/file")
+@RequestMapping("/api/v1/file")
 @RestController
 class FileController(
     @Value("\${csereal.upload.path}")
