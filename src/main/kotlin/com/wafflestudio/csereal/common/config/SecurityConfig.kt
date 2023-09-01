@@ -32,7 +32,7 @@ class SecurityConfig(
             .cors().and()
             .csrf().disable()
             .oauth2Login()
-            .loginPage("/oauth2/authorization/idsnucse")
+            .loginPage("/api/v1/login/oauth2/authorization/idsnucse")
             .userInfoEndpoint().oidcUserService(customOidcUserService).and()
             .successHandler(CustomAuthenticationSuccessHandler(endpointProperties.frontend)).and()
             .logout()
@@ -41,7 +41,7 @@ class SecurityConfig(
             .clearAuthentication(true)
             .deleteCookies("JSESSIONID").and()
             .authorizeHttpRequests()
-            .requestMatchers("/login").authenticated()
+            .requestMatchers("/api/v1/login").permitAll()
             .anyRequest().permitAll().and()
             .build()
     }
@@ -54,7 +54,7 @@ class SecurityConfig(
                 response: HttpServletResponse?,
                 authentication: Authentication?
             ) {
-                val redirectUrl = "${endpointProperties.frontend}/logout/success"
+                val redirectUrl = "${endpointProperties.frontend}/api/v1/logout/success"
                 super.setDefaultTargetUrl(redirectUrl)
                 super.onLogoutSuccess(request, response, authentication)
             }
