@@ -51,4 +51,11 @@ class ResearchController(
     fun readAllLabs() : ResponseEntity<List<LabDto>> {
         return ResponseEntity.ok(researchService.readAllLabs())
     }
+
+    @GetMapping("/lab/{labId}")
+    fun readLab(
+        @PathVariable labId: Long,
+    ) : ResponseEntity<LabDto> {
+        return ResponseEntity.ok(researchService.readLab(labId))
+    }
 }

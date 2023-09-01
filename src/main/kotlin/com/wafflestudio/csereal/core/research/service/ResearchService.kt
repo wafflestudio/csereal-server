@@ -7,6 +7,7 @@ import com.wafflestudio.csereal.core.research.dto.LabDto
 import com.wafflestudio.csereal.core.research.dto.LabProfessorResponse
 import com.wafflestudio.csereal.core.research.dto.ResearchDto
 import com.wafflestudio.csereal.core.research.dto.ResearchGroupResponse
+import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -20,6 +21,7 @@ interface ResearchService {
     fun updateResearchDetail(researchId: Long, request: ResearchDto): ResearchDto
     fun createLab(request: LabDto, pdf: MultipartFile?): LabDto
     fun readAllLabs(): List<LabDto>
+    fun readLab(labId: Long): LabDto
 }
 
 @Service
@@ -147,11 +149,27 @@ class ResearchServiceImpl(
         val labs = labRepository.findAllByOrderByName().map {
             var pdfURL = ""
             if(it.pdf != null) {
-                pdfURL = "http://cse-dev-waffle.bacchus.io/attachment/${it.pdf!!.filename}"
+                pdfURL = createPdfURL(it.pdf!!)
             }
             LabDto.of(it, pdfURL)
         }
 
         return labs
+    }
+
+    @Transactional
+    override fun readLab(labId: Long): LabDto {
+        val lab = labRepository.findByIdOrNull(labId)
+            ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$labId)")
+        var pdfURL = ""
+        if(lab.pdf != null) {
+            pdfURL = createPdfURL(lab.pdf!!)
+        }
+
+        return LabDto.of(lab, pdfURL)
+    }
+
+    private fun createPdfURL(pdf: AttachmentEntity) : String{
+        return "http://cse-dev-waffle.bacchus.io/attachment/${pdf.filename}"
     }
 }
