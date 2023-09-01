@@ -2,7 +2,7 @@ package com.wafflestudio.csereal.core.about.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
-import com.wafflestudio.csereal.common.controller.ImageContentEntityType
+import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
 import com.wafflestudio.csereal.core.about.dto.AboutDto
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
@@ -26,7 +26,7 @@ class AboutEntity(
     @OneToOne
     var mainImage: MainImageEntity? = null,
 
-    ) : BaseTimeEntity(), ImageContentEntityType, AttachmentContentEntityType {
+    ) : BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
     override fun bringMainImage(): MainImageEntity? = mainImage
     override fun bringAttachments(): List<AttachmentEntity> = attachments
 

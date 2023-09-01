@@ -6,6 +6,7 @@ import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
 import com.wafflestudio.csereal.core.academics.database.CourseEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.research.database.LabEntity
+import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import jakarta.persistence.*
 
@@ -42,6 +43,10 @@ class AttachmentEntity(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lab_id")
     var lab: LabEntity? = null,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "research_id")
+    var research: ResearchEntity? = null,
 ) : BaseTimeEntity() {
 
 }

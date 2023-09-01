@@ -16,46 +16,50 @@ class ResearchController(
 ) {
     @PostMapping
     fun createResearchDetail(
-        @Valid @RequestBody request: ResearchDto
-    ) : ResponseEntity<ResearchDto> {
-        return ResponseEntity.ok(researchService.createResearchDetail(request))
+        @Valid @RequestPart("request") request: ResearchDto,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
+    ): ResponseEntity<ResearchDto> {
+        return ResponseEntity.ok(researchService.createResearchDetail(request, mainImage, attachments))
     }
 
     @GetMapping("/groups")
-    fun readAllResearchGroups() : ResponseEntity<ResearchGroupResponse> {
+    fun readAllResearchGroups(): ResponseEntity<ResearchGroupResponse> {
         return ResponseEntity.ok(researchService.readAllResearchGroups())
     }
 
     @GetMapping("/centers")
-    fun readAllResearchCenters() : ResponseEntity<List<ResearchDto>> {
+    fun readAllResearchCenters(): ResponseEntity<List<ResearchDto>> {
         return ResponseEntity.ok(researchService.readAllResearchCenters())
     }
 
     @PatchMapping("/{researchId}")
     fun updateResearchDetail(
         @PathVariable researchId: Long,
-        @Valid @RequestBody request: ResearchDto
-    ) : ResponseEntity<ResearchDto> {
-        return ResponseEntity.ok(researchService.updateResearchDetail(researchId, request))
+        @Valid @RequestPart("request") request: ResearchDto,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
+    ): ResponseEntity<ResearchDto> {
+        return ResponseEntity.ok(researchService.updateResearchDetail(researchId, request, mainImage, attachments))
     }
 
     @PostMapping("/lab")
     fun createLab(
         @Valid @RequestPart("request") request: LabDto,
         @RequestPart("pdf") pdf: MultipartFile?
-    ) : ResponseEntity<LabDto> {
+    ): ResponseEntity<LabDto> {
         return ResponseEntity.ok(researchService.createLab(request, pdf))
     }
 
     @GetMapping("/labs")
-    fun readAllLabs() : ResponseEntity<List<LabDto>> {
+    fun readAllLabs(): ResponseEntity<List<LabDto>> {
         return ResponseEntity.ok(researchService.readAllLabs())
     }
 
     @GetMapping("/lab/{labId}")
     fun readLab(
         @PathVariable labId: Long,
-    ) : ResponseEntity<LabDto> {
+    ): ResponseEntity<LabDto> {
         return ResponseEntity.ok(researchService.readLab(labId))
     }
 }

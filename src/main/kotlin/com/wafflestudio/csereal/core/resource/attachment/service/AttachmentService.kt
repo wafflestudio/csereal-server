@@ -6,6 +6,7 @@ import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
 import com.wafflestudio.csereal.core.academics.database.CourseEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.research.database.LabEntity
+import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentRepository
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentDto
@@ -141,6 +142,10 @@ class AttachmentServiceImpl(
             is CourseEntity -> {
                 contentEntity.attachments.add(attachment)
                 attachment.course = contentEntity
+            }
+            is ResearchEntity -> {
+                contentEntity.attachments.add(attachment)
+                attachment.research = contentEntity
             }
         }
     }

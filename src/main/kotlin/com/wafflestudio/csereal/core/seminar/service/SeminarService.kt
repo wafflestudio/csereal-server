@@ -84,8 +84,7 @@ class SeminarServiceImpl(
 
         val imageURL = mainImageService.createImageURL(seminar.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
-
-
+        
         return SeminarDto.of(seminar, imageURL, attachmentResponses, null)
     }
     @Transactional
