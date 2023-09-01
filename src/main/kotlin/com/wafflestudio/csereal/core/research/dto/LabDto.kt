@@ -6,7 +6,7 @@ import com.wafflestudio.csereal.core.resource.introductionMaterial.dto.Introduct
 data class LabDto(
     val id: Long,
     val name: String,
-    val professors: List<String>?,
+    val professors: List<LabProfessorResponse>?,
     val location: String?,
     val tel: String?,
     val acronym: String?,
@@ -20,7 +20,7 @@ data class LabDto(
             LabDto(
                 id = this.id,
                 name = this.name,
-                professors = this.professors.map { it.name },
+                professors = this.professors.map { LabProfessorResponse(id = it.id, name = it.name) },
                 location = this.location,
                 tel = this.tel,
                 acronym = this.acronym,

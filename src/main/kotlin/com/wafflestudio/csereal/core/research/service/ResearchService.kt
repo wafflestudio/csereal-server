@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.research.database.*
 import com.wafflestudio.csereal.core.research.dto.LabDto
+import com.wafflestudio.csereal.core.research.dto.LabProfessorResponse
 import com.wafflestudio.csereal.core.research.dto.ResearchDto
 import com.wafflestudio.csereal.core.research.dto.ResearchGroupResponse
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
@@ -119,6 +120,16 @@ class ResearchServiceImpl(
 
          */
         val newLab = LabEntity.of(researchGroup, request)
+
+        if(request.professors != null) {
+            for(professor in request.professors) {
+                val professorEntity = professorRepository.findByIdOrNull(professor.id)
+                    ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다.(professorId = ${professor.id}")
+
+                newLab.professors.add(professorEntity)
+                professorEntity.lab = newLab
+            }
+        }
 
         if(attachments != null) {
             attachmentService.uploadAttachments(newLab, attachments)
