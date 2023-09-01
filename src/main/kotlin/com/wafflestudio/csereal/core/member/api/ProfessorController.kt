@@ -17,9 +17,9 @@ class ProfessorController(
     @PostMapping
     fun createProfessor(
         @RequestPart("request") createProfessorRequest: ProfessorDto,
-        @RequestPart("image") image: MultipartFile?,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
     ): ResponseEntity<ProfessorDto> {
-        return ResponseEntity.ok(professorService.createProfessor(createProfessorRequest, image))
+        return ResponseEntity.ok(professorService.createProfessor(createProfessorRequest, mainImage))
     }
 
     @GetMapping("/{professorId}")

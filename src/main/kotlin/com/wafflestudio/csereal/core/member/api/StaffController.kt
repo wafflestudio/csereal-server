@@ -16,9 +16,9 @@ class StaffController(
     @PostMapping
     fun createStaff(
         @RequestPart("request") createStaffRequest: StaffDto,
-        @RequestPart("image") image: MultipartFile?,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
     ): ResponseEntity<StaffDto> {
-        return ResponseEntity.ok(staffService.createStaff(createStaffRequest,image))
+        return ResponseEntity.ok(staffService.createStaff(createStaffRequest,mainImage))
     }
 
     @GetMapping("/{staffId}")

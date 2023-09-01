@@ -5,16 +5,18 @@ import com.wafflestudio.csereal.core.about.database.AboutPostType
 import com.wafflestudio.csereal.core.academics.database.*
 import com.wafflestudio.csereal.core.academics.dto.CourseDto
 import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
+import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.academics.dto.ScholarshipPageResponse
 import com.wafflestudio.csereal.core.scholarship.database.ScholarshipRepository
 import com.wafflestudio.csereal.core.scholarship.dto.SimpleScholarshipDto
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 
 interface AcademicsService {
-    fun createAcademics(studentType: String, postType: String, request: AcademicsDto): AcademicsDto
+    fun createAcademics(studentType: String, postType: String, request: AcademicsDto, attachments: List<MultipartFile>?): AcademicsDto
     fun readAcademics(studentType: String, postType: String): AcademicsDto
-    fun createCourse(studentType: String, request: CourseDto): CourseDto
+    fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto
     fun readAllCourses(studentType: String): List<CourseDto>
     fun readCourse(name: String): CourseDto
     fun readScholarship(name: String): ScholarshipPageResponse
@@ -24,18 +26,26 @@ interface AcademicsService {
 class AcademicsServiceImpl(
     private val academicsRepository: AcademicsRepository,
     private val courseRepository: CourseRepository,
+    private val attachmentService: AttachmentService,
     private val scholarshipRepository: ScholarshipRepository
 ) : AcademicsService {
     @Transactional
-    override fun createAcademics(studentType: String, postType: String, request: AcademicsDto): AcademicsDto {
+    override fun createAcademics(studentType: String, postType: String, request: AcademicsDto, attachments: List<MultipartFile>?): AcademicsDto {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val enumPostType = makeStringToAcademicsPostType(postType)
 
         val newAcademics = AcademicsEntity.of(enumStudentType, enumPostType, request)
 
+        if(attachments != null) {
+            attachmentService.uploadAttachments(newAcademics, attachments)
+        }
+
         academicsRepository.save(newAcademics)
 
-        return AcademicsDto.of(newAcademics)
+        val attachments = attachmentService.createAttachments(newAcademics.attachments)
+
+
+        return AcademicsDto.of(newAcademics, attachments)
     }
 
     @Transactional(readOnly = true)
@@ -46,25 +56,30 @@ class AcademicsServiceImpl(
 
         val academics = academicsRepository.findByStudentTypeAndPostType(enumStudentType, enumPostType)
 
-        return AcademicsDto.of(academics)
+        val attachments = attachmentService.createAttachments(academics.attachments)
+
+        return AcademicsDto.of(academics, attachments)
     }
 
     @Transactional
-    override fun createCourse(studentType: String, request: CourseDto): CourseDto {
+    override fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val course = CourseEntity.of(enumStudentType, request)
 
         courseRepository.save(course)
 
-        return CourseDto.of(course)
+        val attachments = attachmentService.createAttachments(course.attachments)
+
+        return CourseDto.of(course, attachments)
     }
 
     @Transactional(readOnly = true)
     override fun readAllCourses(studentType: String): List<CourseDto> {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
 
-        val courseDtoList = courseRepository.findAllByStudentTypeOrderByYearAsc(enumStudentType).map {
-            CourseDto.of(it)
+        val courseDtoList = courseRepository.findAllByStudentTypeOrderByNameAsc(enumStudentType).map {
+            val attachments = attachmentService.createAttachments(it.attachments)
+            CourseDto.of(it, attachments)
         }
         return courseDtoList
     }
@@ -72,8 +87,9 @@ class AcademicsServiceImpl(
     @Transactional(readOnly = true)
     override fun readCourse(name: String): CourseDto {
         val course = courseRepository.findByName(name)
+        val attachments = attachmentService.createAttachments(course.attachments)
 
-        return CourseDto.of(course)
+        return CourseDto.of(course, attachments)
     }
 
     @Transactional(readOnly = true)

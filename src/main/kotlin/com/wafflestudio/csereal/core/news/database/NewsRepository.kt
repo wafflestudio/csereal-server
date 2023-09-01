@@ -58,7 +58,7 @@ class NewsRepositoryImpl(
 
         val total = jpaQuery.distinct().fetch().size
 
-        val newsEntityList = jpaQuery.orderBy(newsEntity.isPinned.desc())
+        val newsEntityList = jpaQuery
             .orderBy(newsEntity.createdAt.desc())
             .offset(20*pageNum)  //로컬 테스트를 위해 잠시 5로 둘 것, 원래는 20
             .limit(20)
@@ -107,7 +107,6 @@ class NewsRepositoryImpl(
             .leftJoin(newsTagEntity).on(newsTagEntity.news.eq(newsEntity))
             .where(newsEntity.isDeleted.eq(false), newsEntity.isPublic.eq(true))
             .where(keywordBooleanBuilder).where(tagsBooleanBuilder)
-            .orderBy(newsEntity.isPinned.desc())
             .orderBy(newsEntity.createdAt.desc())
             .distinct()
             .fetch()

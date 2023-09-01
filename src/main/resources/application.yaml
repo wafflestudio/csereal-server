@@ -61,17 +61,14 @@ logging.level:
     springframework:
       security: DEBUG
 
-csereal:
+
+csereal_mainImage:
   upload:
-    path: ./attachment/
+    path: ./attachment
 
 csereal_attachment:
   upload:
-    path: ./attachment/
-
-csereal_image:
-  upload:
-    path: ./attachment/
+    path: ./attachment
 
 endpoint:
   backend: http://localhost:8080
@@ -91,9 +88,11 @@ spring:
           idsnucse:
             redirect-uri: http://${URL}/api/v1/login/oauth2/code/idsnucse
 
-csereal_image:
+
+
+csereal_mainImage:
   upload:
-    path: /app/image/
+    path: /app/mainImage/
 
 csereal_attachment:
   upload:

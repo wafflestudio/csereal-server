@@ -73,7 +73,6 @@ class NoticeServiceImpl(
             title = request.title,
             description = request.description,
             isPublic = request.isPublic,
-            isSlide = request.isSlide,
             isPinned = request.isPinned,
             author = user
         )

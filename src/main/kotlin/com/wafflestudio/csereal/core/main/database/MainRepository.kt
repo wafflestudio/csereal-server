@@ -34,7 +34,7 @@ class MainRepositoryImpl(
             )
         ).from(newsEntity)
             .where(newsEntity.isDeleted.eq(false), newsEntity.isPublic.eq(true), newsEntity.isSlide.eq(true))
-            .orderBy(newsEntity.isPinned.desc()).orderBy(newsEntity.createdAt.desc())
+            .orderBy(newsEntity.createdAt.desc())
             .limit(20).fetch()
     }
 
