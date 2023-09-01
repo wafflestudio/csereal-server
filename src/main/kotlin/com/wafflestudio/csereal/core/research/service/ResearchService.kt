@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.research.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.research.database.*
 import com.wafflestudio.csereal.core.research.dto.*
@@ -29,6 +30,7 @@ class ResearchServiceImpl(
     private val professorRepository: ProfessorRepository,
     private val mainImageService: MainImageService,
     private val attachmentService: AttachmentService,
+    private val endpointProperties: EndpointProperties,
 ) : ResearchService {
     @Transactional
     override fun createResearchDetail(request: ResearchDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): ResearchDto {
@@ -121,6 +123,7 @@ class ResearchServiceImpl(
         }
 
         if(attachments != null) {
+            research.attachments.clear()
             attachmentService.uploadAllAttachments(research, attachments)
         }
 
@@ -155,7 +158,7 @@ class ResearchServiceImpl(
         var pdfURL = ""
         if(pdf != null) {
             val attachmentDto = attachmentService.uploadAttachmentInLabEntity(newLab, pdf)
-            pdfURL = "http://cse-dev-waffle.bacchus.io/attachment/${attachmentDto.filename}"
+            pdfURL = "${endpointProperties.backend}/v1/attachment/${attachmentDto.filename}"
         }
 
         labRepository.save(newLab)
@@ -189,6 +192,6 @@ class ResearchServiceImpl(
     }
 
     private fun createPdfURL(pdf: AttachmentEntity) : String{
-        return "http://cse-dev-waffle.bacchus.io/attachment/${pdf.filename}"
+        return "${endpointProperties.backend}/v1/attachment/${pdf.filename}"
     }
 }

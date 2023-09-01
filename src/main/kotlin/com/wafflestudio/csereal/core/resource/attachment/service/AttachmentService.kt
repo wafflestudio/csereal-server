@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.resource.attachment.service
 
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
+import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
 import com.wafflestudio.csereal.core.academics.database.CourseEntity
@@ -38,6 +39,7 @@ class AttachmentServiceImpl(
     private val attachmentRepository: AttachmentRepository,
     @Value("\${csereal_attachment.upload.path}")
     private val path: String,
+    private val endpointProperties: EndpointProperties,
 ) : AttachmentService {
     override fun uploadAttachmentInLabEntity(labEntity: LabEntity, requestAttachment: MultipartFile): AttachmentDto {
         Files.createDirectories(Paths.get(path))
@@ -113,7 +115,7 @@ class AttachmentServiceImpl(
             for (attachment in attachments) {
                 val attachmentDto = AttachmentResponse(
                     name = attachment.filename,
-                    url = "http://cse-dev-waffle.bacchus.io/attachment/${attachment.filename}",
+                    url = "${endpointProperties.backend}/v1/attachment/${attachment.filename}",
                     bytes = attachment.size,
                 )
                 list.add(attachmentDto)
