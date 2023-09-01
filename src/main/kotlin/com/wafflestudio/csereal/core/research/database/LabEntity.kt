@@ -32,7 +32,7 @@ class LabEntity(
 
 ) : BaseTimeEntity() {
     companion object {
-        fun of(researchGroup: ResearchEntity, labDto: LabDto) : LabEntity {
+        fun of(labDto: LabDto, researchGroup: ResearchEntity) : LabEntity {
             return LabEntity(
                 name = labDto.name,
                 location = labDto.location,

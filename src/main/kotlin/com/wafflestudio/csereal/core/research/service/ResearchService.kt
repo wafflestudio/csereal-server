@@ -3,10 +3,7 @@ package com.wafflestudio.csereal.core.research.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.research.database.*
-import com.wafflestudio.csereal.core.research.dto.LabDto
-import com.wafflestudio.csereal.core.research.dto.LabProfessorResponse
-import com.wafflestudio.csereal.core.research.dto.ResearchDto
-import com.wafflestudio.csereal.core.research.dto.ResearchGroupResponse
+import com.wafflestudio.csereal.core.research.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import org.springframework.data.repository.findByIdOrNull
@@ -34,13 +31,13 @@ class ResearchServiceImpl(
     @Transactional
     override fun createResearchDetail(request: ResearchDto): ResearchDto {
         val newResearch = ResearchEntity.of(request)
-        if(request.labsId != null) {
+        if(request.labs != null) {
 
-            for(labId in request.labsId) {
-                val lab = labRepository.findByIdOrNull(labId)
-                    ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$labId)")
-                newResearch.labs.add(lab)
-                lab.research = newResearch
+            for(lab in request.labs) {
+                val labEntity = labRepository.findByIdOrNull(lab.id)
+                    ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=${lab.id})")
+                newResearch.labs.add(labEntity)
+                labEntity.research = newResearch
             }
         }
 
@@ -77,17 +74,17 @@ class ResearchServiceImpl(
         val research = researchRepository.findByIdOrNull(researchId)
             ?: throw CserealException.Csereal404("해당 게시글을 찾을 수 없습니다.(researchId=$researchId)")
 
-        if(request.labsId != null) {
-            for(labId in request.labsId) {
-                val lab = labRepository.findByIdOrNull(labId)
-                    ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$labId)")
+        if(request.labs != null) {
+            for(lab in request.labs) {
+                val labEntity = labRepository.findByIdOrNull(lab.id)
+                    ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=${lab.id})")
 
             }
 
             val oldLabs = research.labs.map { it.id }
 
-            val labsToRemove = oldLabs - request.labsId
-            val labsToAdd = request.labsId - oldLabs
+            val labsToRemove = oldLabs - request.labs.map { it.id }
+            val labsToAdd = request.labs.map { it.id } - oldLabs
 
             research.labs.removeIf { it.id in labsToRemove}
 
@@ -105,23 +102,13 @@ class ResearchServiceImpl(
     @Transactional
     override fun createLab(request: LabDto, pdf: MultipartFile?): LabDto {
         val researchGroup = researchRepository.findByName(request.group)
-            ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = ${request.group}")
+            ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = ${request.group})")
 
         if(researchGroup.postType != ResearchPostType.GROUPS) {
             throw CserealException.Csereal404("해당 게시글은 연구그룹이어야 합니다.")
         }
 
-        // get을 우선 구현하기 위해 빼겠습니다
-        /*
-        if(request.professorsId != null) {
-            for(professorId in request.professorsId) {
-                val professor = professorRepository.findByIdOrNull(professorId)
-                    ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다.(professorId = $professorId")
-            }
-        }
-
-         */
-        val newLab = LabEntity.of(researchGroup, request)
+        val newLab = LabEntity.of(request, researchGroup)
 
         if(request.professors != null) {
             for(professor in request.professors) {

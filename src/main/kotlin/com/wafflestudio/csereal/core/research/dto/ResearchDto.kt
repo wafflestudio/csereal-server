@@ -12,7 +12,7 @@ data class ResearchDto(
     val websiteURL: String?,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
-    val labsId: List<Long>?
+    val labs: List<ResearchLabResponse>?
 ) {
     companion object {
         fun of(entity: ResearchEntity) = entity.run {
@@ -24,7 +24,7 @@ data class ResearchDto(
                 websiteURL = this.websiteURL,
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
-                labsId = this.labs.map { it.id }
+                labs = this.labs.map { ResearchLabResponse(id = it.id, name = it.name) }
             )
         }
     }
