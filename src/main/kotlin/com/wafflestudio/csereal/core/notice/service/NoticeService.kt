@@ -21,6 +21,8 @@ interface NoticeService {
     fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
     fun updateNotice(noticeId: Long, request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
     fun deleteNotice(noticeId: Long)
+    fun unpinManyNotices(idList: List<Long>)
+    fun deleteManyNotices(idList: List<Long>)
     fun enrollTag(tagName: String)
 }
 
@@ -62,7 +64,6 @@ class NoticeServiceImpl(
 
     @Transactional
     override fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto {
-        /*
         var user = RequestContextHolder.getRequestAttributes()?.getAttribute(
             "loggedInUser",
             RequestAttributes.SCOPE_REQUEST
@@ -75,15 +76,13 @@ class NoticeServiceImpl(
             user = userRepository.findByUsername(username) ?: throw CserealException.Csereal404("재로그인이 필요합니다.")
         }
 
-         */
-
         val newNotice = NoticeEntity(
             title = request.title,
             description = request.description,
             isPublic = request.isPublic,
             isPinned = request.isPinned,
             isImportant = request.isImportant,
-           // author = user
+            author = user
         )
 
         for (tagName in request.tags) {
@@ -148,6 +147,23 @@ class NoticeServiceImpl(
 
         notice.isDeleted = true
 
+    }
+
+    @Transactional
+    override fun unpinManyNotices(idList: List<Long>) {
+        for(noticeId in idList) {
+            val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
+                ?: throw CserealException.Csereal404("존재하지 않는 공지사항을 입력하였습니다.(noticeId: $noticeId)")
+            notice.isPinned = false
+        }
+    }
+    @Transactional
+    override fun deleteManyNotices(idList: List<Long>) {
+        for(noticeId in idList) {
+            val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
+                ?: throw CserealException.Csereal404("존재하지 않는 공지사항을 입력하였습니다.(noticeId: $noticeId)")
+            notice.isDeleted = true
+        }
     }
 
     override fun enrollTag(tagName: String) {

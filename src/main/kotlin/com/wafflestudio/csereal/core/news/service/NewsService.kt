@@ -74,10 +74,6 @@ class NewsServiceImpl(
             attachmentService.uploadAllAttachments(newNews, attachments)
         }
 
-        if(attachments != null) {
-            attachmentService.uploadAllAttachments(newNews, attachments)
-        }
-
         newsRepository.save(newNews)
 
         val imageURL = mainImageService.createImageURL(newNews.mainImage)

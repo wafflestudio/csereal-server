@@ -22,7 +22,7 @@ class NoticeEntity(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id")
-    val author: UserEntity? = null,
+    val author: UserEntity,
 
     @OneToMany(mappedBy = "notice", cascade = [CascadeType.ALL], orphanRemoval = true)
     var attachments: MutableList<AttachmentEntity> = mutableListOf(),
