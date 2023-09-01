@@ -14,7 +14,7 @@ data class AcademicsDto(
     val attachments: List<AttachmentResponse>?,
 ) {
     companion object {
-        fun of(entity: AcademicsEntity, attachments: List<AttachmentResponse>?) : AcademicsDto = entity.run {
+        fun of(entity: AcademicsEntity, attachmentResponses: List<AttachmentResponse>) : AcademicsDto = entity.run {
             AcademicsDto(
                 id = this.id,
                 name = this.name,
@@ -22,7 +22,7 @@ data class AcademicsDto(
                 year = this.year,
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
-                attachments = attachments,
+                attachments = attachmentResponses,
             )
         }
     }

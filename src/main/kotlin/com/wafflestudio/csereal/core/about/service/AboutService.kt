@@ -47,9 +47,9 @@ class AboutServiceImpl(
         aboutRepository.save(newAbout)
 
         val imageURL = mainImageService.createImageURL(newAbout.mainImage)
-        val attachments = attachmentService.createAttachments(newAbout.attachments)
+        val attachmentResponses = attachmentService.createAttachmentResponses(newAbout.attachments)
 
-        return AboutDto.of(newAbout, imageURL, attachments)
+        return AboutDto.of(newAbout, imageURL, attachmentResponses)
     }
 
     @Transactional(readOnly = true)
@@ -57,18 +57,18 @@ class AboutServiceImpl(
         val enumPostType = makeStringToEnum(postType)
         val about = aboutRepository.findByPostType(enumPostType)
         val imageURL = mainImageService.createImageURL(about.mainImage)
-        val attachments = attachmentService.createAttachments(about.attachments)
+        val attachmentResponses = attachmentService.createAttachmentResponses(about.attachments)
 
 
-        return AboutDto.of(about, imageURL, attachments)
+        return AboutDto.of(about, imageURL, attachmentResponses)
     }
 
     @Transactional(readOnly = true)
     override fun readAllClubs(): List<AboutDto> {
         val clubs = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.STUDENT_CLUBS).map {
             val imageURL = mainImageService.createImageURL(it.mainImage)
-            val attachments = attachmentService.createAttachments(it.attachments)
-            AboutDto.of(it, imageURL, attachments)
+            val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+            AboutDto.of(it, imageURL, attachmentResponses)
         }
 
         return clubs
@@ -78,8 +78,8 @@ class AboutServiceImpl(
     override fun readAllFacilities(): List<AboutDto> {
         val facilities = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.FACILITIES).map {
             val imageURL = mainImageService.createImageURL(it.mainImage)
-            val attachments = attachmentService.createAttachments(it.attachments)
-            AboutDto.of(it, imageURL, attachments)
+            val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+            AboutDto.of(it, imageURL, attachmentResponses)
         }
 
         return facilities
@@ -89,7 +89,7 @@ class AboutServiceImpl(
     override fun readAllDirections(): List<AboutDto> {
         val directions = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.DIRECTIONS).map {
             val imageURL = mainImageService.createImageURL(it.mainImage)
-            val attachments = attachmentService.createAttachments(it.attachments)
+            val attachments = attachmentService.createAttachmentResponses(it.attachments)
             AboutDto.of(it, imageURL, attachments)
         }
 

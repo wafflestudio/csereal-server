@@ -24,7 +24,7 @@ interface AttachmentService {
         contentEntityType: AttachmentContentEntityType,
         requestAttachments: List<MultipartFile>,
     ): List<AttachmentDto>
-    fun createAttachments(attachments: List<AttachmentEntity>?): List<AttachmentResponse>?
+    fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse>
 }
 
 @Service
@@ -73,7 +73,7 @@ class AttachmentServiceImpl(
     }
 
     @Transactional
-    override fun createAttachments(attachments: List<AttachmentEntity>?): List<AttachmentResponse>? {
+    override fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse>{
         val list = mutableListOf<AttachmentResponse>()
         if (attachments != null) {
             for (attachment in attachments) {

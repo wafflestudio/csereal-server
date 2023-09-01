@@ -21,7 +21,7 @@ data class NewsDto(
     val attachments: List<AttachmentResponse>?,
 ) {
     companion object {
-        fun of(entity: NewsEntity, imageURL: String?, attachments: List<AttachmentResponse>?, prevNext: Array<NewsEntity?>?) : NewsDto = entity.run {
+        fun of(entity: NewsEntity, imageURL: String?, attachmentResponses: List<AttachmentResponse>, prevNext: Array<NewsEntity?>?) : NewsDto = entity.run {
             NewsDto(
                 id = this.id,
                 title = this.title,
@@ -36,7 +36,7 @@ data class NewsDto(
                 nextId = prevNext?.get(1)?.id,
                 nextTitle = prevNext?.get(1)?.title,
                 imageURL = imageURL,
-                attachments = attachments,
+                attachments = attachmentResponses,
             )
         }
     }

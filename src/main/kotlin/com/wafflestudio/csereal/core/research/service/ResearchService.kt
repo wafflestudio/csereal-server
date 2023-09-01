@@ -126,7 +126,7 @@ class ResearchServiceImpl(
 
         labRepository.save(newLab)
 
-        val attachments = attachmentService.createAttachments(newLab.attachments)
+        val attachmentResponses = attachmentService.createAttachmentResponses(newLab.attachments)
 
         labRepository.save(newLab)
         return LabDto.of(newLab)
