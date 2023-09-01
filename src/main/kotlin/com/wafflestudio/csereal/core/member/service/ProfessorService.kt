@@ -17,7 +17,7 @@ interface ProfessorService {
     fun getProfessor(professorId: Long): ProfessorDto
     fun getActiveProfessors(): ProfessorPageDto
     fun getInactiveProfessors(): List<SimpleProfessorDto>
-    fun updateProfessor(professorId: Long, updateProfessorRequest: ProfessorDto): ProfessorDto
+    fun updateProfessor(professorId: Long, updateProfessorRequest: ProfessorDto, mainImage: MultipartFile?): ProfessorDto
     fun deleteProfessor(professorId: Long)
 }
 
@@ -94,8 +94,7 @@ class ProfessorServiceImpl(
             .sortedBy { it.name }
     }
 
-    override fun updateProfessor(professorId: Long, updateProfessorRequest: ProfessorDto): ProfessorDto {
-
+    override fun updateProfessor(professorId: Long, updateProfessorRequest: ProfessorDto, mainImage: MultipartFile?): ProfessorDto {
         val professor = professorRepository.findByIdOrNull(professorId)
             ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다. professorId: ${professorId}")
 
@@ -106,6 +105,10 @@ class ProfessorServiceImpl(
         }
 
         professor.update(updateProfessorRequest)
+
+        if(mainImage != null) {
+            mainImageService.uploadMainImage(professor, mainImage)
+        }
 
         // 학력 업데이트
         val oldEducations = professor.educations.map { it.name }

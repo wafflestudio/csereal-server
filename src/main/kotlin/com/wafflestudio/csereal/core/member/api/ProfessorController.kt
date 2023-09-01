@@ -40,9 +40,10 @@ class ProfessorController(
     @PatchMapping("/{professorId}")
     fun updateProfessor(
         @PathVariable professorId: Long,
-        @RequestBody updateProfessorRequest: ProfessorDto
+        @RequestPart("request") updateProfessorRequest: ProfessorDto,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
     ): ResponseEntity<ProfessorDto> {
-        return ResponseEntity.ok(professorService.updateProfessor(professorId, updateProfessorRequest))
+        return ResponseEntity.ok(professorService.updateProfessor(professorId, updateProfessorRequest, mainImage))
     }
 
     @DeleteMapping("/{professorId}")

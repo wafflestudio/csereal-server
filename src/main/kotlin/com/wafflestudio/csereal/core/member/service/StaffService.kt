@@ -16,7 +16,7 @@ interface StaffService {
     fun createStaff(createStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto
     fun getStaff(staffId: Long): StaffDto
     fun getAllStaff(): List<SimpleStaffDto>
-    fun updateStaff(staffId: Long, updateStaffRequest: StaffDto): StaffDto
+    fun updateStaff(staffId: Long, updateStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto
     fun deleteStaff(staffId: Long)
 }
 
@@ -62,13 +62,16 @@ class StaffServiceImpl(
         }.sortedBy { it.name }
     }
 
-    override fun updateStaff(staffId: Long, updateStaffRequest: StaffDto): StaffDto {
-
+    override fun updateStaff(staffId: Long, updateStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto {
         val staff = staffRepository.findByIdOrNull(staffId)
             ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. staffId: ${staffId}")
 
         staff.update(updateStaffRequest)
 
+        if(mainImage != null) {
+            mainImageService.uploadMainImage(staff, mainImage)
+        }
+        
         // 주요 업무 업데이트
         val oldTasks = staff.tasks.map { it.name }
 
