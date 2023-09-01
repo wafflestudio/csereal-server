@@ -10,16 +10,12 @@ import jakarta.persistence.*
 
 @Entity(name = "notice")
 class NoticeEntity(
-
     var isDeleted: Boolean = false,
-
     var title: String,
-
     var description: String,
-
     var isPublic: Boolean,
-
     var isPinned: Boolean,
+    var isImportant: Boolean,
 
     @OneToMany(mappedBy = "notice", cascade = [CascadeType.ALL])
     var noticeTags: MutableSet<NoticeTagEntity> = mutableSetOf(),
@@ -39,6 +35,7 @@ class NoticeEntity(
         this.description = updateNoticeRequest.description
         this.isPublic = updateNoticeRequest.isPublic
         this.isPinned = updateNoticeRequest.isPinned
+        this.isImportant = updateNoticeRequest.isImportant
     }
 
 }
