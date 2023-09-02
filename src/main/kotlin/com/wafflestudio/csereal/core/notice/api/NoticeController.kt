@@ -32,7 +32,7 @@ class NoticeController(
         return ResponseEntity.ok(noticeService.readNotice(noticeId, tag, keyword))
     }
 
-  //  @AuthenticatedStaff
+    @AuthenticatedStaff
     @PostMapping
     fun createNotice(
         @Valid @RequestPart("request") request: NoticeDto,

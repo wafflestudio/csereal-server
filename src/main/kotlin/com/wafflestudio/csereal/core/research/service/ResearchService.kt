@@ -126,7 +126,7 @@ class ResearchServiceImpl(
 
         if(attachments != null) {
             research.attachments.clear()
-            attachmentService.uploadAllAttachments(research, attachments
+            attachmentService.uploadAllAttachments(research, attachments)
         } else {
             research.attachments.clear()
         }
