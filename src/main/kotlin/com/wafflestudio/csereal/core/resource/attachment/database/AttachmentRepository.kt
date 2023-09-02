@@ -5,4 +5,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface AttachmentRepository: JpaRepository<AttachmentEntity, Long> {
+    fun findByFilename(filename: String): AttachmentEntity
 }

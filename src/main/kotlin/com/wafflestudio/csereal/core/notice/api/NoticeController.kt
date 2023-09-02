@@ -32,7 +32,7 @@ class NoticeController(
         return ResponseEntity.ok(noticeService.readNotice(noticeId, tag, keyword))
     }
 
-    @AuthenticatedStaff
+  //  @AuthenticatedStaff
     @PostMapping
     fun createNotice(
         @Valid @RequestPart("request") request: NoticeDto,
@@ -59,15 +59,15 @@ class NoticeController(
 
     @PatchMapping
     fun unpinManyNotices(
-        @RequestBody idList: Map<String, List<Long>>
+        @RequestBody request: NoticeIdListRequest
     ) {
-        noticeService.unpinManyNotices(idList["id"]!!)
+        noticeService.unpinManyNotices(request.idList)
     }
     @DeleteMapping
     fun deleteManyNotices(
-        @RequestBody idList: Map<String, List<Long>>
+        @RequestBody request: NoticeIdListRequest
     ) {
-        noticeService.deleteManyNotices(idList["id"]!!)
+        noticeService.deleteManyNotices(request.idList)
     }
 
     @PostMapping("/tag")
