@@ -7,6 +7,8 @@ services:
         PROFILE: ${PROFILE}
     ports:
       - 8080:8080
+    volumes:
+      - ./cse-files:/app/cse-files
     environment:
       SPRING_DATASOURCE_URL: "jdbc:mysql://host.docker.internal:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
@@ -25,6 +27,8 @@ services:
 #        PROFILE: ${PROFILE}
 #    ports:
 #      - 8081:8080
+#    volumes:
+#      - ./cse-files:/app/cse-files
 #    environment:
 #      SPRING_DATASOURCE_URL: "jdbc:mysql://host.docker.internal:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"
 #      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
