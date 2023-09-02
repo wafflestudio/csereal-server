@@ -21,6 +21,8 @@ class NewsEntity(
 
     var isSlide: Boolean,
 
+    var isImportant: Boolean,
+
     @OneToOne
     var mainImage: MainImageEntity? = null,
 
@@ -41,6 +43,7 @@ class NewsEntity(
                 description = newsDto.description,
                 isPublic = newsDto.isPublic,
                 isSlide = newsDto.isSlide,
+                isImportant = newsDto.isImportant,
             )
         }
     }
@@ -49,5 +52,6 @@ class NewsEntity(
         this.description = updateNewsRequest.description
         this.isPublic = updateNewsRequest.isPublic
         this.isSlide = updateNewsRequest.isSlide
+        this.isImportant = updateNewsRequest.isImportant
     }
 }

@@ -120,11 +120,15 @@ class ResearchServiceImpl(
 
         if(mainImage != null) {
             mainImageService.uploadMainImage(research, mainImage)
+        } else {
+            research.mainImage = null
         }
 
         if(attachments != null) {
             research.attachments.clear()
             attachmentService.uploadAllAttachments(research, attachments)
+        } else {
+            research.attachments.clear()
         }
 
         val imageURL = mainImageService.createImageURL(research.mainImage)

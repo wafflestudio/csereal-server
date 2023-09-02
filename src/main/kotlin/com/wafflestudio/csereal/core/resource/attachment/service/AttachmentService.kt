@@ -6,6 +6,7 @@ import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
 import com.wafflestudio.csereal.core.academics.database.CourseEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
+import com.wafflestudio.csereal.core.notice.database.NoticeEntity
 import com.wafflestudio.csereal.core.research.database.LabEntity
 import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
@@ -31,6 +32,10 @@ interface AttachmentService {
         requestAttachments: List<MultipartFile>,
     ): List<AttachmentDto>
     fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse>
+    fun updateAttachmentResponses(
+        contentEntity: AttachmentContentEntityType,
+        attachmentsList: List<AttachmentResponse>
+    )
 }
 
 @Service
@@ -94,6 +99,7 @@ class AttachmentServiceImpl(
             )
 
             connectAttachmentToEntity(contentEntity, attachment)
+            //Todo: update에서도 uploadAllAttachments 사용, 이에 따른 attachmentsOrder에 대한 조정 필요
             attachmentRepository.save(attachment)
 
             attachmentsList.add(
@@ -112,15 +118,35 @@ class AttachmentServiceImpl(
         val list = mutableListOf<AttachmentResponse>()
         if (attachments != null) {
             for (attachment in attachments) {
-                val attachmentDto = AttachmentResponse(
-                    name = attachment.filename,
-                    url = "${endpointProperties.backend}/v1/attachment/${attachment.filename}",
-                    bytes = attachment.size,
-                )
-                list.add(attachmentDto)
+                if(attachment.isDeleted == false) {
+                    val attachmentDto = AttachmentResponse(
+                        name = attachment.filename,
+                        url = "${endpointProperties.backend}/v1/attachment/${attachment.filename}",
+                        bytes = attachment.size,
+                    )
+                    list.add(attachmentDto)
+                }
+
             }
         }
         return list
+    }
+
+    @Transactional
+    override fun updateAttachmentResponses(contentEntity: AttachmentContentEntityType, attachmentsList: List<AttachmentResponse>) {
+        val oldAttachments = contentEntity.bringAttachments().map { it.filename }
+
+        val attachmentsToRemove = oldAttachments - attachmentsList.map { it.name }
+
+        when(contentEntity) {
+            is SeminarEntity -> {
+                for (attachmentFilename in attachmentsToRemove) {
+                    val attachmentEntity = attachmentRepository.findByFilename(attachmentFilename)
+                    attachmentEntity.isDeleted = true
+                    attachmentEntity.seminar = null
+                }
+            }
+        }
     }
 
     private fun connectAttachmentToEntity(contentEntity: AttachmentContentEntityType, attachment: AttachmentEntity) {
@@ -128,6 +154,10 @@ class AttachmentServiceImpl(
             is NewsEntity -> {
                 contentEntity.attachments.add(attachment)
                 attachment.news = contentEntity
+            }
+            is NoticeEntity -> {
+                contentEntity.attachments.add(attachment)
+                attachment.notice = contentEntity
             }
             is SeminarEntity -> {
                 contentEntity.attachments.add(attachment)

@@ -91,11 +91,15 @@ class NewsServiceImpl(
 
         if(mainImage != null) {
             mainImageService.uploadMainImage(news, mainImage)
+        } else {
+            news.mainImage = null
         }
 
         if(attachments != null) {
             news.attachments.clear()
             attachmentService.uploadAllAttachments(news, attachments)
+        } else {
+            news.attachments.clear()
         }
 
         val oldTags = news.newsTags.map { it.tag.name }
