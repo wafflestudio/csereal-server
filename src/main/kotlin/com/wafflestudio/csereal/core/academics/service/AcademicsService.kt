@@ -5,6 +5,7 @@ import com.wafflestudio.csereal.core.about.database.AboutPostType
 import com.wafflestudio.csereal.core.academics.database.*
 import com.wafflestudio.csereal.core.academics.dto.CourseDto
 import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
+import com.wafflestudio.csereal.core.academics.dto.AcademicsYearResponse
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.academics.dto.ScholarshipPageResponse
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
@@ -20,6 +21,7 @@ interface AcademicsService {
     fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto
     fun readAllCourses(studentType: String): List<CourseDto>
     fun readCourse(name: String): CourseDto
+    fun readCourseChanges(studentType: String): List<AcademicsYearResponse>
     fun readScholarship(name: String): ScholarshipPageResponse
 }
 
@@ -95,6 +97,23 @@ class AcademicsServiceImpl(
         val attachmentResponses = attachmentService.createAttachmentResponses(course.attachments)
 
         return CourseDto.of(course, attachmentResponses)
+    }
+
+    @Transactional(readOnly = true)
+    override fun readCourseChanges(studentType: String): List<AcademicsYearResponse> {
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+
+        val courseChanges = academicsRepository.findAllByStudentTypeAndPostTypeOrderByYearDesc(enumStudentType, AcademicsPostType.COURSE_CHANGES)
+
+        val courseChangesResponse = courseChanges.map {
+            AcademicsYearResponse(
+                year = it.year!!,
+                description = it.description,
+                attachments = listOf()
+            )
+        }
+
+        return courseChangesResponse
     }
 
     @Transactional(readOnly = true)

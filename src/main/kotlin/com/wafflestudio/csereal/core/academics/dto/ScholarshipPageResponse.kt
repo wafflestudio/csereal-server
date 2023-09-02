@@ -15,7 +15,7 @@ class ScholarshipPageResponse(
         fun of(scholarship: AcademicsEntity, scholarships: List<ScholarshipEntity>): ScholarshipPageResponse {
             return ScholarshipPageResponse(
                 id = scholarship.id,
-                name = scholarship.name,
+                name = scholarship.name!!,
                 description = scholarship.description,
                 scholarships = scholarships.map { SimpleScholarshipDto.of(it) }
             )

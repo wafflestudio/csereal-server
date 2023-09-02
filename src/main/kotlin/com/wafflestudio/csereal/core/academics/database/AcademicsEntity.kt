@@ -14,7 +14,7 @@ class AcademicsEntity(
     @Enumerated(EnumType.STRING)
     var postType: AcademicsPostType,
 
-    var name: String,
+    var name: String?,
     var description: String,
     var year: Int?,
 

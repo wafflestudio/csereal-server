@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 data class AcademicsDto(
     val id: Long,
-    val name: String,
+    val name: String?,
     val description: String,
     val year: Int?,
     val createdAt: LocalDateTime?,

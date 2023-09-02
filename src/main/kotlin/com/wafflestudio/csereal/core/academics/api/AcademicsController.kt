@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.academics.api
 
 import com.wafflestudio.csereal.core.academics.dto.CourseDto
 import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
+import com.wafflestudio.csereal.core.academics.dto.AcademicsYearResponse
 import com.wafflestudio.csereal.core.academics.dto.ScholarshipPageResponse
 import com.wafflestudio.csereal.core.academics.service.AcademicsService
 import jakarta.validation.Valid
@@ -55,6 +56,13 @@ class AcademicsController(
         @RequestParam name: String
     ): ResponseEntity<CourseDto> {
         return ResponseEntity.ok(academicsService.readCourse(name))
+    }
+
+    @GetMapping("/{studentType}/course-changes")
+    fun readCourseChanges(
+        @PathVariable studentType: String,
+    ) : ResponseEntity<List<AcademicsYearResponse>> {
+        return ResponseEntity.ok(academicsService.readCourseChanges(studentType))
     }
 
     // 장학금
