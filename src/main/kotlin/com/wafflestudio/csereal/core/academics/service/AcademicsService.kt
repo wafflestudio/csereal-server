@@ -7,6 +7,7 @@ import com.wafflestudio.csereal.core.academics.dto.CourseDto
 import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.academics.dto.ScholarshipPageResponse
+import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.core.scholarship.database.ScholarshipRepository
 import com.wafflestudio.csereal.core.scholarship.dto.SimpleScholarshipDto
 import org.springframework.stereotype.Service
@@ -64,13 +65,17 @@ class AcademicsServiceImpl(
     @Transactional
     override fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val course = CourseEntity.of(enumStudentType, request)
+        val newCourse = CourseEntity.of(enumStudentType, request)
 
-        courseRepository.save(course)
+        if(attachments != null) {
+            attachmentService.uploadAllAttachments(newCourse, attachments)
+        }
 
-        val attachmentResponses = attachmentService.createAttachmentResponses(course.attachments)
+        courseRepository.save(newCourse)
 
-        return CourseDto.of(course, attachmentResponses)
+        val attachmentResponses = attachmentService.createAttachmentResponses(newCourse.attachments)
+
+        return CourseDto.of(newCourse, attachmentResponses)
     }
 
     @Transactional(readOnly = true)

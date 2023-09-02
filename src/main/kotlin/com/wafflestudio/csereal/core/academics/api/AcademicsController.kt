@@ -15,7 +15,6 @@ class AcademicsController(
     private val academicsService: AcademicsService
 ) {
 
-    //Todo: 이미지, 파일 추가 필요
     @PostMapping("/{studentType}/{postType}")
     fun createAcademics(
         @PathVariable studentType: String,

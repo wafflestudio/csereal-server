@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
+import com.wafflestudio.csereal.core.academics.database.CourseEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
@@ -119,6 +120,7 @@ class MainImageServiceImpl(
             is ResearchEntity -> {
                 contentEntity.mainImage = mainImage
             }
+
             else -> {
                 throw WrongMethodTypeException("해당하는 엔티티가 없습니다")
             }
