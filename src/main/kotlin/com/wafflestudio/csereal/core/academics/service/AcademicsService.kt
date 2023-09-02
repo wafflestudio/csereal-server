@@ -3,11 +3,9 @@ package com.wafflestudio.csereal.core.academics.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.about.database.AboutPostType
 import com.wafflestudio.csereal.core.academics.database.*
-import com.wafflestudio.csereal.core.academics.dto.CourseDto
-import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
-import com.wafflestudio.csereal.core.academics.dto.AcademicsYearResponse
+import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
-import com.wafflestudio.csereal.core.academics.dto.ScholarshipPageResponse
+import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.core.scholarship.database.ScholarshipRepository
 import com.wafflestudio.csereal.core.scholarship.dto.SimpleScholarshipDto
@@ -17,11 +15,11 @@ import org.springframework.web.multipart.MultipartFile
 
 interface AcademicsService {
     fun createAcademics(studentType: String, postType: String, request: AcademicsDto, attachments: List<MultipartFile>?): AcademicsDto
-    fun readAcademics(studentType: String, postType: String): AcademicsDto
+    fun readGuide(studentType: String): GuidePageResponse
+    fun readAcademicsYearResponses(studentType: String, postType: String): List<AcademicsYearResponse>
     fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto
     fun readAllCourses(studentType: String): List<CourseDto>
     fun readCourse(name: String): CourseDto
-    fun readCourseChanges(studentType: String): List<AcademicsYearResponse>
     fun readScholarship(name: String): ScholarshipPageResponse
 }
 
@@ -52,16 +50,36 @@ class AcademicsServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAcademics(studentType: String, postType: String): AcademicsDto {
+    override fun readGuide(studentType: String): GuidePageResponse {
 
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+
+        val academics = academicsRepository.findByStudentTypeAndPostType(enumStudentType, AcademicsPostType.GUIDE)
+
+        val guidePageResponse = GuidePageResponse(
+            description = academics.description,
+            attachments = attachmentService.createAttachmentResponses(academics.attachments)
+        )
+
+        return guidePageResponse
+    }
+
+    @Transactional(readOnly = true)
+    override fun readAcademicsYearResponses(studentType: String, postType: String): List<AcademicsYearResponse> {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val enumPostType = makeStringToAcademicsPostType(postType)
 
-        val academics = academicsRepository.findByStudentTypeAndPostType(enumStudentType, enumPostType)
+        val academicsEntityList = academicsRepository.findAllByStudentTypeAndPostTypeOrderByYearDesc(enumStudentType, enumPostType)
 
-        val attachmentResponses = attachmentService.createAttachmentResponses(academics.attachments)
+        val academicsYearResponses = academicsEntityList.map {
+            AcademicsYearResponse(
+                year = it.year!!,
+                description = it.description,
+                attachments = attachmentService.createAttachmentResponses(it.attachments)
+            )
+        }
 
-        return AcademicsDto.of(academics, attachmentResponses)
+        return academicsYearResponses
     }
 
     @Transactional
@@ -97,23 +115,6 @@ class AcademicsServiceImpl(
         val attachmentResponses = attachmentService.createAttachmentResponses(course.attachments)
 
         return CourseDto.of(course, attachmentResponses)
-    }
-
-    @Transactional(readOnly = true)
-    override fun readCourseChanges(studentType: String): List<AcademicsYearResponse> {
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-
-        val courseChanges = academicsRepository.findAllByStudentTypeAndPostTypeOrderByYearDesc(enumStudentType, AcademicsPostType.COURSE_CHANGES)
-
-        val courseChangesResponse = courseChanges.map {
-            AcademicsYearResponse(
-                year = it.year!!,
-                description = it.description,
-                attachments = listOf()
-            )
-        }
-
-        return courseChangesResponse
     }
 
     @Transactional(readOnly = true)

@@ -1,9 +1,6 @@
 package com.wafflestudio.csereal.core.academics.api
 
-import com.wafflestudio.csereal.core.academics.dto.CourseDto
-import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
-import com.wafflestudio.csereal.core.academics.dto.AcademicsYearResponse
-import com.wafflestudio.csereal.core.academics.dto.ScholarshipPageResponse
+import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.academics.service.AcademicsService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -26,12 +23,19 @@ class AcademicsController(
         return ResponseEntity.ok(academicsService.createAcademics(studentType, postType, request, attachments))
     }
 
+    @GetMapping("/{studentType}/guide")
+    fun readGuide(
+        @PathVariable studentType: String
+    ): ResponseEntity<GuidePageResponse> {
+        return ResponseEntity.ok(academicsService.readGuide(studentType))
+    }
+
     @GetMapping("/{studentType}/{postType}")
-    fun readAcademics(
+    fun readAcademicsYearResponses(
         @PathVariable studentType: String,
         @PathVariable postType: String,
-    ): ResponseEntity<AcademicsDto> {
-        return ResponseEntity.ok(academicsService.readAcademics(studentType, postType))
+    ): ResponseEntity<List<AcademicsYearResponse>> {
+        return ResponseEntity.ok(academicsService.readAcademicsYearResponses(studentType, postType))
     }
 
     //교과목 정보
@@ -62,9 +66,9 @@ class AcademicsController(
     fun readCourseChanges(
         @PathVariable studentType: String,
     ) : ResponseEntity<List<AcademicsYearResponse>> {
-        return ResponseEntity.ok(academicsService.readCourseChanges(studentType))
+        return ResponseEntity.ok(academicsService.readAcademicsYearResponses(studentType, "course-changes"))
     }
-
+    
     // 장학금
     @PostMapping("/{studentType}/scholarship")
     fun createScholarship(
