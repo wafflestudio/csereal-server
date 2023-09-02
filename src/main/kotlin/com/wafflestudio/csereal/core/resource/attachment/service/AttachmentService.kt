@@ -1,10 +1,13 @@
 package com.wafflestudio.csereal.core.resource.attachment.service
 
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
+import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
 import com.wafflestudio.csereal.core.academics.database.CourseEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
+import com.wafflestudio.csereal.core.research.database.LabEntity
+import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentRepository
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentDto
@@ -19,11 +22,15 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 interface AttachmentService {
-    fun uploadAttachments(
+    fun uploadAttachmentInLabEntity(
+        labEntity: LabEntity,
+        requestAttachment: MultipartFile
+    ): AttachmentDto
+    fun uploadAllAttachments(
         contentEntityType: AttachmentContentEntityType,
         requestAttachments: List<MultipartFile>,
     ): List<AttachmentDto>
-    fun createAttachments(attachments: List<AttachmentEntity>?): List<AttachmentResponse>?
+    fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse>
 }
 
 @Service
@@ -31,9 +38,38 @@ class AttachmentServiceImpl(
     private val attachmentRepository: AttachmentRepository,
     @Value("\${csereal_attachment.upload.path}")
     private val path: String,
+    private val endpointProperties: EndpointProperties,
 ) : AttachmentService {
+    override fun uploadAttachmentInLabEntity(labEntity: LabEntity, requestAttachment: MultipartFile): AttachmentDto {
+        Files.createDirectories(Paths.get(path))
+
+        val extension = FilenameUtils.getExtension(requestAttachment.originalFilename)
+
+        val timeMillis = System.currentTimeMillis()
+
+        val filename = "${timeMillis}_${requestAttachment.originalFilename}"
+        val totalFilename = path + filename
+        val saveFile = Paths.get("$totalFilename.$extension")
+        requestAttachment.transferTo(saveFile)
+
+        val attachment = AttachmentEntity(
+            filename = filename,
+            attachmentsOrder = 1,
+            size = requestAttachment.size,
+        )
+
+        labEntity.pdf = attachment
+        attachmentRepository.save(attachment)
+
+        return AttachmentDto(
+            filename = filename,
+            attachmentsOrder = 1,
+            size = requestAttachment.size
+        )
+
+    }
     @Transactional
-    override fun uploadAttachments(
+    override fun uploadAllAttachments(
         contentEntity: AttachmentContentEntityType,
         requestAttachments: List<MultipartFile>,
     ): List<AttachmentDto> {
@@ -72,13 +108,13 @@ class AttachmentServiceImpl(
     }
 
     @Transactional
-    override fun createAttachments(attachments: List<AttachmentEntity>?): List<AttachmentResponse>? {
+    override fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse>{
         val list = mutableListOf<AttachmentResponse>()
         if (attachments != null) {
             for (attachment in attachments) {
                 val attachmentDto = AttachmentResponse(
                     name = attachment.filename,
-                    url = "http://cse-dev-waffle.bacchus.io/attachment/${attachment.filename}",
+                    url = "${endpointProperties.backend}/v1/attachment/${attachment.filename}",
                     bytes = attachment.size,
                 )
                 list.add(attachmentDto)
@@ -108,6 +144,10 @@ class AttachmentServiceImpl(
             is CourseEntity -> {
                 contentEntity.attachments.add(attachment)
                 attachment.course = contentEntity
+            }
+            is ResearchEntity -> {
+                contentEntity.attachments.add(attachment)
+                attachment.research = contentEntity
             }
         }
     }

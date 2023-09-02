@@ -40,14 +40,14 @@ class SeminarServiceImpl(
         }
 
         if(attachments != null) {
-            attachmentService.uploadAttachments(newSeminar, attachments)
+            attachmentService.uploadAllAttachments(newSeminar, attachments)
         }
 
         seminarRepository.save(newSeminar)
 
         val imageURL = mainImageService.createImageURL(newSeminar.mainImage)
-        val attachments = attachmentService.createAttachments(newSeminar.attachments)
-        return SeminarDto.of(newSeminar, imageURL, attachments, null)
+        val attachmentResponses = attachmentService.createAttachmentResponses(newSeminar.attachments)
+        return SeminarDto.of(newSeminar, imageURL, attachmentResponses, null)
     }
 
     @Transactional(readOnly = true)
@@ -58,11 +58,11 @@ class SeminarServiceImpl(
         if (seminar.isDeleted) throw CserealException.Csereal400("삭제된 세미나입니다. (seminarId: $seminarId)")
 
         val imageURL = mainImageService.createImageURL(seminar.mainImage)
-        val attachments = attachmentService.createAttachments(seminar.attachments)
+        val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
 
         val prevNext = seminarRepository.findPrevNextId(seminarId, keyword)
 
-        return SeminarDto.of(seminar, imageURL, attachments, prevNext)
+        return SeminarDto.of(seminar, imageURL, attachmentResponses, prevNext)
     }
 
     @Transactional
@@ -79,14 +79,13 @@ class SeminarServiceImpl(
 
         if(attachments != null) {
             seminar.attachments.clear()
-            attachmentService.uploadAttachments(seminar, attachments)
+            attachmentService.uploadAllAttachments(seminar, attachments)
         }
 
         val imageURL = mainImageService.createImageURL(seminar.mainImage)
-        val attachments = attachmentService.createAttachments(seminar.attachments)
-
-
-        return SeminarDto.of(seminar, imageURL, attachments, null)
+        val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
+        
+        return SeminarDto.of(seminar, imageURL, attachmentResponses, null)
     }
     @Transactional
     override fun deleteSeminar(seminarId: Long) {

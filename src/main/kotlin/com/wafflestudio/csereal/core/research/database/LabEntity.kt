@@ -1,13 +1,14 @@
 package com.wafflestudio.csereal.core.research.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.research.dto.LabDto
+import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import jakarta.persistence.*
 
 @Entity(name = "lab")
 class LabEntity(
-    
     val name: String,
 
     @OneToMany(mappedBy = "lab")
@@ -16,7 +17,10 @@ class LabEntity(
     val location: String?,
     val tel: String?,
     val acronym: String?,
-    val pdf: String?,
+
+    @OneToOne
+    var pdf: AttachmentEntity? = null,
+
     val youtube: String?,
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -24,24 +28,20 @@ class LabEntity(
     var research: ResearchEntity,
 
     val description: String?,
-
     val websiteURL: String?,
-    val isPublic: Boolean,
 
 ) : BaseTimeEntity() {
     companion object {
-        fun of(researchGroup: ResearchEntity, labDto: LabDto) : LabEntity {
+        fun of(labDto: LabDto, researchGroup: ResearchEntity) : LabEntity {
             return LabEntity(
                 name = labDto.name,
                 location = labDto.location,
                 tel = labDto.tel,
                 acronym = labDto.acronym,
-                pdf = labDto.introductionMaterials?.pdf,
-                youtube = labDto.introductionMaterials?.youtube,
+                youtube = labDto.youtube,
                 research = researchGroup,
                 description = labDto.description,
                 websiteURL = labDto.websiteURL,
-                isPublic = labDto.isPublic,
             )
         }
     }

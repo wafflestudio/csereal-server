@@ -1,47 +1,65 @@
 package com.wafflestudio.csereal.core.research.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.research.database.*
-import com.wafflestudio.csereal.core.research.dto.LabDto
-import com.wafflestudio.csereal.core.research.dto.ResearchDto
-import com.wafflestudio.csereal.core.research.dto.ResearchGroupResponse
+import com.wafflestudio.csereal.core.research.dto.*
+import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
+import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
+import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 
 interface ResearchService {
-    fun createResearchDetail(request: ResearchDto): ResearchDto
+    fun createResearchDetail(request: ResearchDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): ResearchDto
     fun readAllResearchGroups(): ResearchGroupResponse
     fun readAllResearchCenters(): List<ResearchDto>
-    fun updateResearchDetail(researchId: Long, request: ResearchDto): ResearchDto
-    fun createLab(request: LabDto): LabDto
-
+    fun updateResearchDetail(researchId: Long, request: ResearchDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): ResearchDto
+    fun createLab(request: LabDto, pdf: MultipartFile?): LabDto
     fun readAllLabs(): List<LabDto>
+    fun readLab(labId: Long): LabDto
 }
 
 @Service
 class ResearchServiceImpl(
     private val researchRepository: ResearchRepository,
     private val labRepository: LabRepository,
-    private val professorRepository: ProfessorRepository
+    private val professorRepository: ProfessorRepository,
+    private val mainImageService: MainImageService,
+    private val attachmentService: AttachmentService,
+    private val endpointProperties: EndpointProperties,
 ) : ResearchService {
     @Transactional
-    override fun createResearchDetail(request: ResearchDto): ResearchDto {
+    override fun createResearchDetail(request: ResearchDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): ResearchDto {
         val newResearch = ResearchEntity.of(request)
-        if(request.labsId != null) {
 
-            for(labId in request.labsId) {
-                val lab = labRepository.findByIdOrNull(labId)
-                    ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$labId)")
-                newResearch.labs.add(lab)
-                lab.research = newResearch
+        if(request.labs != null) {
+
+            for(lab in request.labs) {
+                val labEntity = labRepository.findByIdOrNull(lab.id)
+                    ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=${lab.id})")
+                newResearch.labs.add(labEntity)
+                labEntity.research = newResearch
             }
+        }
+
+        if(mainImage != null) {
+            mainImageService.uploadMainImage(newResearch, mainImage)
+        }
+
+        if(attachments != null) {
+            attachmentService.uploadAllAttachments(newResearch, attachments)
         }
 
         researchRepository.save(newResearch)
 
-        return ResearchDto.of(newResearch)
+        val imageURL = mainImageService.createImageURL(newResearch.mainImage)
+        val attachmentResponses = attachmentService.createAttachmentResponses(newResearch.attachments)
+
+        return ResearchDto.of(newResearch, imageURL, attachmentResponses)
     }
 
     @Transactional(readOnly = true)
@@ -53,7 +71,10 @@ class ResearchServiceImpl(
                 "오늘도 인류가 꿈꾸는 행복하고 편리한 세상을 위해 변화와 혁신, 연구와 도전을 계속하고 있습니다."
 
         val researchGroups = researchRepository.findAllByPostTypeOrderByName(ResearchPostType.GROUPS).map {
-            ResearchDto.of(it)
+            val imageURL = mainImageService.createImageURL(it.mainImage)
+            val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+
+            ResearchDto.of(it, imageURL, attachmentResponses)
         }
 
         return ResearchGroupResponse(description, researchGroups)
@@ -62,27 +83,30 @@ class ResearchServiceImpl(
     @Transactional(readOnly = true)
     override fun readAllResearchCenters(): List<ResearchDto> {
         val researchCenters = researchRepository.findAllByPostTypeOrderByName(ResearchPostType.CENTERS).map {
-            ResearchDto.of(it)
+            val imageURL = mainImageService.createImageURL(it.mainImage)
+            val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+
+            ResearchDto.of(it, imageURL, attachmentResponses)
         }
 
         return researchCenters
     }
     @Transactional
-    override fun updateResearchDetail(researchId: Long, request: ResearchDto): ResearchDto {
+    override fun updateResearchDetail(researchId: Long, request: ResearchDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): ResearchDto {
         val research = researchRepository.findByIdOrNull(researchId)
             ?: throw CserealException.Csereal404("해당 게시글을 찾을 수 없습니다.(researchId=$researchId)")
 
-        if(request.labsId != null) {
-            for(labId in request.labsId) {
-                val lab = labRepository.findByIdOrNull(labId)
-                    ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$labId)")
+        if(request.labs != null) {
+            for(lab in request.labs) {
+                val labEntity = labRepository.findByIdOrNull(lab.id)
+                    ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=${lab.id})")
 
             }
 
             val oldLabs = research.labs.map { it.id }
 
-            val labsToRemove = oldLabs - request.labsId
-            val labsToAdd = request.labsId - oldLabs
+            val labsToRemove = oldLabs - request.labs.map { it.id }
+            val labsToAdd = request.labs.map { it.id } - oldLabs
 
             research.labs.removeIf { it.id in labsToRemove}
 
@@ -94,40 +118,80 @@ class ResearchServiceImpl(
             }
         }
 
-        return ResearchDto.of(research)
+        if(mainImage != null) {
+            mainImageService.uploadMainImage(research, mainImage)
+        }
+
+        if(attachments != null) {
+            research.attachments.clear()
+            attachmentService.uploadAllAttachments(research, attachments)
+        }
+
+        val imageURL = mainImageService.createImageURL(research.mainImage)
+        val attachmentResponses = attachmentService.createAttachmentResponses(research.attachments)
+
+
+        return ResearchDto.of(research, imageURL, attachmentResponses)
     }
 
     @Transactional
-    override fun createLab(request: LabDto): LabDto {
+    override fun createLab(request: LabDto, pdf: MultipartFile?): LabDto {
         val researchGroup = researchRepository.findByName(request.group)
-            ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = ${request.group}")
+            ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = ${request.group})")
 
         if(researchGroup.postType != ResearchPostType.GROUPS) {
             throw CserealException.Csereal404("해당 게시글은 연구그룹이어야 합니다.")
         }
 
-        // get을 우선 구현하기 위해 빼겠습니다
-        /*
-        if(request.professorsId != null) {
-            for(professorId in request.professorsId) {
-                val professor = professorRepository.findByIdOrNull(professorId)
-                    ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다.(professorId = $professorId")
+        val newLab = LabEntity.of(request, researchGroup)
+
+        if(request.professors != null) {
+            for(professor in request.professors) {
+                val professorEntity = professorRepository.findByIdOrNull(professor.id)
+                    ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다.(professorId = ${professor.id}")
+
+                newLab.professors.add(professorEntity)
+                professorEntity.lab = newLab
             }
         }
 
-         */
-        val newLab = LabEntity.of(researchGroup, request)
+        var pdfURL = ""
+        if(pdf != null) {
+            val attachmentDto = attachmentService.uploadAttachmentInLabEntity(newLab, pdf)
+            pdfURL = "${endpointProperties.backend}/v1/attachment/${attachmentDto.filename}"
+        }
 
         labRepository.save(newLab)
-        return LabDto.of(newLab)
+
+        return LabDto.of(newLab, pdfURL)
     }
 
     @Transactional(readOnly = true)
     override fun readAllLabs(): List<LabDto> {
         val labs = labRepository.findAllByOrderByName().map {
-            LabDto.of(it)
+            var pdfURL = ""
+            if(it.pdf != null) {
+                pdfURL = createPdfURL(it.pdf!!)
+            }
+            LabDto.of(it, pdfURL)
         }
 
         return labs
+    }
+
+    @Transactional
+    override fun readLab(labId: Long): LabDto {
+        val lab = labRepository.findByIdOrNull(labId)
+            ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$labId)")
+        var pdfURL = ""
+        if(lab.pdf != null) {
+            pdfURL = createPdfURL(lab.pdf!!)
+        }
+
+        return LabDto.of(lab, pdfURL)
+    }
+
+    private fun createPdfURL(pdf: AttachmentEntity) : String{
+        return "${endpointProperties.backend}/v1/attachment/${pdf.filename}"
     }
 }

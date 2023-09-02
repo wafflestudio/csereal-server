@@ -31,9 +31,12 @@ class StaffController(
         return ResponseEntity.ok(staffService.getAllStaff())
     }
 
-    @PatchMapping("/{staffId}")
-    fun updateStaff(@PathVariable staffId: Long, @RequestBody updateStaffRequest: StaffDto): ResponseEntity<StaffDto> {
-        return ResponseEntity.ok(staffService.updateStaff(staffId, updateStaffRequest))
+    fun updateStaff(
+        @PathVariable staffId: Long,
+        @RequestPart("request") updateStaffRequest: StaffDto,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
+    ): ResponseEntity<StaffDto> {
+        return ResponseEntity.ok(staffService.updateStaff(staffId, updateStaffRequest, mainImage))
     }
 
     @DeleteMapping("/{staffId}")

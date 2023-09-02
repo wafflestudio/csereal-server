@@ -1,12 +1,13 @@
 package com.wafflestudio.csereal.core.resource.mainImage.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.controller.ImageContentEntityType
+import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
+import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageRepository
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.resource.mainImage.dto.MainImageDto
@@ -25,10 +26,9 @@ import kotlin.io.path.name
 
 interface MainImageService {
     fun uploadMainImage(
-        contentEntityType: ImageContentEntityType,
+        contentEntityType: MainImageContentEntityType,
         requestImage: MultipartFile,
     ): MainImageDto
-
     fun createImageURL(image: MainImageEntity?): String?
 }
 
@@ -42,7 +42,7 @@ class MainImageServiceImpl(
 
     @Transactional
     override fun uploadMainImage(
-        contentEntityType: ImageContentEntityType,
+        contentEntityType: MainImageContentEntityType,
         requestImage: MultipartFile,
     ): MainImageDto {
         Files.createDirectories(Paths.get(path))
@@ -94,7 +94,7 @@ class MainImageServiceImpl(
         } else null
     }
 
-    private fun connectMainImageToEntity(contentEntity: ImageContentEntityType, mainImage: MainImageEntity) {
+    private fun connectMainImageToEntity(contentEntity: MainImageContentEntityType, mainImage: MainImageEntity) {
         when (contentEntity) {
             is NewsEntity -> {
                 contentEntity.mainImage = mainImage
@@ -116,6 +116,9 @@ class MainImageServiceImpl(
                 contentEntity.mainImage = mainImage
             }
 
+            is ResearchEntity -> {
+                contentEntity.mainImage = mainImage
+            }
             else -> {
                 throw WrongMethodTypeException("해당하는 엔티티가 없습니다")
             }
