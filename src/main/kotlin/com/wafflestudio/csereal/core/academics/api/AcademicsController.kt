@@ -12,7 +12,6 @@ import org.springframework.web.multipart.MultipartFile
 class AcademicsController(
     private val academicsService: AcademicsService
 ) {
-
     @PostMapping("/{studentType}/{postType}")
     fun createAcademics(
         @PathVariable studentType: String,
@@ -67,16 +66,6 @@ class AcademicsController(
         @PathVariable studentType: String,
     ) : ResponseEntity<List<AcademicsYearResponse>> {
         return ResponseEntity.ok(academicsService.readAcademicsYearResponses(studentType, "course-changes"))
-    }
-    
-    // 장학금
-    @PostMapping("/{studentType}/scholarship")
-    fun createScholarship(
-        @PathVariable studentType: String,
-        @Valid @RequestPart("request") request: AcademicsDto,
-        @RequestPart("attachments") attachments: List<MultipartFile>?,
-    ) : ResponseEntity<AcademicsDto> {
-        return ResponseEntity.ok(academicsService.createAcademics(studentType, "scholarship", request, attachments))
     }
 
     @GetMapping("/scholarship")
