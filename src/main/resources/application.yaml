@@ -70,6 +70,9 @@ csereal_attachment:
   upload:
     path: ./attachment
 
+oldFiles:
+  path: ./cse-files
+
 endpoint:
   backend: http://localhost:8080
   frontend: http://localhost:3000
@@ -89,7 +92,6 @@ spring:
             redirect-uri: http://${URL}/api/v1/login/oauth2/code/idsnucse
 
 
-
 csereal_mainImage:
   upload:
     path: /app/mainImage/
@@ -97,6 +99,9 @@ csereal_mainImage:
 csereal_attachment:
   upload:
     path: /app/attachment/
+
+oldFiles:
+  path: /app/cse-files
 
 endpoint:
   backend: http://${URL}/api
