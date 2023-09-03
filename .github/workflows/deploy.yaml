@@ -88,5 +88,5 @@ jobs:
                         cd ~/app
                         source .env
                         docker-compose -f docker-compose-backend.yml down
-                        docker-compose pull
+                        docker-compose -f docker-compose-backend.yml pull
                         docker-compose -f docker-compose-backend.yml up -d
