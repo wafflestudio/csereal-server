@@ -8,8 +8,9 @@ services:
     ports:
       - 8080:8080
     volumes:
-      - ./mainImage:/app/mainImage
+      - ./cse-files:/app/cse-files
       - ./attachment:/app/attachment
+
     environment:
       SPRING_DATASOURCE_URL: "jdbc:mysql://host.docker.internal:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
@@ -29,7 +30,7 @@ services:
 #    ports:
 #      - 8081:8080
 #    volumes:
-#      - ./mainImage:/app/mainImage
+#      - ./cse-files:/app/cse-files
 #      - ./attachment:/app/attachment
 #    environment:
 #      SPRING_DATASOURCE_URL: "jdbc:mysql://host.docker.internal:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"

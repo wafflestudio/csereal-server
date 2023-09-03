@@ -14,6 +14,7 @@ COPY ./build/libs/*.jar /app/app.jar
 # Make directories to mount
 RUN mkdir /app/mainImage
 RUN mkdir /app/attachment
+RUN mkdir /app/cse-files
 
 # Expose port 8080
 EXPOSE 8080
