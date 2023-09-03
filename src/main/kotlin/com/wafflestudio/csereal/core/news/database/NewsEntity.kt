@@ -15,6 +15,7 @@ class NewsEntity(
 
     var title: String,
 
+    @Column(columnDefinition = "text")
     var description: String,
 
     var isPublic: Boolean,
