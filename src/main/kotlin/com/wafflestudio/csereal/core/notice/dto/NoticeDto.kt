@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.notice.dto
 
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
+import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
 
 data class NoticeDto(
@@ -13,14 +14,16 @@ data class NoticeDto(
     val modifiedAt: LocalDateTime?,
     val isPublic: Boolean,
     val isPinned: Boolean,
+    val isImportant: Boolean,
     val prevId: Long?,
     val prevTitle: String?,
     val nextId: Long?,
-    val nextTitle: String?
+    val nextTitle: String?,
+    val attachments: List<AttachmentResponse>?,
 ) {
 
     companion object {
-        fun of(entity: NoticeEntity, prevNext: Array<NoticeEntity?>?): NoticeDto = entity.run {
+        fun of(entity: NoticeEntity, attachmentResponses: List<AttachmentResponse>, prevNext: Array<NoticeEntity?>?): NoticeDto = entity.run {
             NoticeDto(
                 id = this.id,
                 title = this.title,
@@ -31,10 +34,12 @@ data class NoticeDto(
                 modifiedAt = this.modifiedAt,
                 isPublic = this.isPublic,
                 isPinned = this.isPinned,
+                isImportant = this.isImportant,
                 prevId = prevNext?.get(0)?.id,
                 prevTitle = prevNext?.get(0)?.title,
                 nextId = prevNext?.get(1)?.id,
-                nextTitle = prevNext?.get(1)?.title
+                nextTitle = prevNext?.get(1)?.title,
+                attachments = attachmentResponses,
             )
         }
 

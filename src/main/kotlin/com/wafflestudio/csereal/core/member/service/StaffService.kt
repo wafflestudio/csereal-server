@@ -70,6 +70,8 @@ class StaffServiceImpl(
 
         if(mainImage != null) {
             mainImageService.uploadMainImage(staff, mainImage)
+        } else {
+            staff.mainImage = null
         }
 
         // 주요 업무 업데이트

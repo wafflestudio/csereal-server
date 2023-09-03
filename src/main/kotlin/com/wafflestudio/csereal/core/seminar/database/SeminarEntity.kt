@@ -38,6 +38,7 @@ class SeminarEntity(
     var host: String?,
 
     var isPublic: Boolean,
+    var isImportant: Boolean,
 
     var additionalNote: String?,
 
@@ -68,8 +69,9 @@ class SeminarEntity(
                 endTime = seminarDto.endTime,
                 location = seminarDto.location,
                 host = seminarDto.host,
-                additionalNote = seminarDto.additionalNote,
                 isPublic = seminarDto.isPublic,
+                isImportant = seminarDto.isImportant,
+                additionalNote = seminarDto.additionalNote,
             )
         }
     }
@@ -89,7 +91,8 @@ class SeminarEntity(
         endTime = updateSeminarRequest.endTime
         location = updateSeminarRequest.location
         host = updateSeminarRequest.host
-        additionalNote = updateSeminarRequest.additionalNote
         isPublic = updateSeminarRequest.isPublic
+        isImportant = updateSeminarRequest.isImportant
+        additionalNote = updateSeminarRequest.additionalNote
     }
 }

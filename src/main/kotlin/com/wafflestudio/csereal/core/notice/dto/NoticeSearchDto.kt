@@ -8,6 +8,7 @@ data class NoticeSearchDto @QueryProjection constructor(
     val title: String,
     val createdAt: LocalDateTime?,
     val isPinned: Boolean,
+    val hasAttachment: Boolean,
 ) {
 
 }
