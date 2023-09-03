@@ -52,7 +52,7 @@ class ReservationServiceImpl(
 
         val recurrenceId = UUID.randomUUID()
 
-        val numberOfWeeks = reserveRequest.recurringWeeks ?: 1
+        val numberOfWeeks = reserveRequest.recurringWeeks
 
         for (week in 0 until numberOfWeeks) {
             val start = reserveRequest.startTime.plusWeeks(week.toLong())
