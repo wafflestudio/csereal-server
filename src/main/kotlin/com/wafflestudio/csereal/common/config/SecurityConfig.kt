@@ -38,6 +38,7 @@ class SecurityConfig(
             .userInfoEndpoint().oidcUserService(customOidcUserService).and()
             .successHandler(CustomAuthenticationSuccessHandler(endpointProperties.frontend)).and()
             .logout()
+            .logoutUrl("/api/v1/logout")
             .logoutSuccessHandler(oidcLogoutSuccessHandler())
             .invalidateHttpSession(true)
             .clearAuthentication(true)
@@ -56,7 +57,7 @@ class SecurityConfig(
                 response: HttpServletResponse?,
                 authentication: Authentication?
             ) {
-                val redirectUrl = "${endpointProperties.frontend}/api/v1/logout/success"
+                val redirectUrl = "${endpointProperties.frontend}/logout/success"
                 super.setDefaultTargetUrl(redirectUrl)
                 super.onLogoutSuccess(request, response, authentication)
             }
