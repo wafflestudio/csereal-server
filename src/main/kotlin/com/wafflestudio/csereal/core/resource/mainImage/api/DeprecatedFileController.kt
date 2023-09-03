@@ -33,7 +33,6 @@ class DeprecatedFileController (
                 "/sites/default/files/**",
                 request.servletPath
             ).substringAfter("/sites/default/files/")
-
         val file = Paths.get(oldFilesPath, fileSubDir)
         val resource = UrlResource(file.toUri())
 

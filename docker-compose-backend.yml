@@ -16,6 +16,7 @@ services:
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       OIDC_CLIENT_SECRET_DEV: ${OIDC_CLIENT_SECRET_DEV}
+      URL: ${URL}
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: always
@@ -37,6 +38,7 @@ services:
 #      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
 #      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
 #      OIDC_CLIENT_SECRET_DEV: ${OIDC_CLIENT_SECRET_DEV}
+#      URL: ${URL}
 #    extra_hosts:
 #      - host.docker.internal:host-gateway
 #    restart: always
