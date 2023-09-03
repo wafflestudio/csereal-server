@@ -62,11 +62,9 @@ class AcademicsController(
         return ResponseEntity.ok(academicsService.readCourse(name))
     }
 
-    @GetMapping("/{studentType}/course-changes")
-    fun readCourseChanges(
-        @PathVariable studentType: String,
-    ) : ResponseEntity<List<AcademicsYearResponse>> {
-        return ResponseEntity.ok(academicsService.readAcademicsYearResponses(studentType, "course-changes"))
+    @GetMapping("/undergraduate/general-studies-requirements")
+    fun readGeneralStudiesRequirements() : ResponseEntity<GeneralStudiesPageResponse> {
+        return ResponseEntity.ok(academicsService.readGeneralStudies())
     }
 
     @PostMapping("/{studentType}/scholarshipDetail")

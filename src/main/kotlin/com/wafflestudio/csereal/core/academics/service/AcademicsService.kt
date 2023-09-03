@@ -15,6 +15,7 @@ interface AcademicsService {
     fun createAcademics(studentType: String, postType: String, request: AcademicsDto, attachments: List<MultipartFile>?): AcademicsDto
     fun readGuide(studentType: String): GuidePageResponse
     fun readAcademicsYearResponses(studentType: String, postType: String): List<AcademicsYearResponse>
+    fun readGeneralStudies(): GeneralStudiesPageResponse
     fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto
     fun readAllCourses(studentType: String): List<CourseDto>
     fun readCourse(name: String): CourseDto
@@ -74,6 +75,16 @@ class AcademicsServiceImpl(
         return academicsYearResponses
     }
 
+    override fun readGeneralStudies(): GeneralStudiesPageResponse {
+        val academicsEntity = academicsRepository.findByStudentTypeAndPostType(AcademicsStudentType.UNDERGRADUATE, AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS)
+        val subjectChangesList = academicsRepository.findAllByStudentTypeAndPostTypeOrderByTimeDesc(
+            AcademicsStudentType.UNDERGRADUATE,
+            AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS_SUBJECT_CHANGES
+        )
+
+        return GeneralStudiesPageResponse.of(academicsEntity, subjectChangesList)
+    }
+
     @Transactional
     override fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
@@ -124,8 +135,9 @@ class AcademicsServiceImpl(
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
 
         val academicsEntity = academicsRepository.findByStudentTypeAndPostType(enumStudentType, AcademicsPostType.SCHOLARSHIP)
-        val scholarships = scholarshipRepository.findAllByStudentType(enumStudentType)
-        return ScholarshipPageResponse.of(academicsEntity, scholarships)
+        val scholarshipEntityList = scholarshipRepository.findAllByStudentType(enumStudentType)
+
+        return ScholarshipPageResponse.of(academicsEntity, scholarshipEntityList)
     }
 
     @Transactional(readOnly = true)
