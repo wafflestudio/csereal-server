@@ -136,7 +136,7 @@ class NewsRepositoryImpl(
         return prevNext
     }
     private fun clean(description: String): String {
-        val summary = Jsoup.clean(description, Safelist.none())
-        return Parser.unescapeEntities(summary, false)
+        val cleanDescription = Jsoup.clean(description, Safelist.none())
+        return Parser.unescapeEntities(cleanDescription, false)
     }
 }
