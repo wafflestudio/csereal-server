@@ -30,10 +30,9 @@ class DeprecatedFileController (
     ): ResponseEntity<Resource> {
         // Extract path from pattern
         val fileSubDir = AntPathMatcher().extractPathWithinPattern(
-                "/api/sites/default/files/**",
+                "/sites/default/files/**",
                 request.servletPath
-            ).substringAfter("/api/sites/default/files/")
-
+            ).substringAfter("/sites/default/files/")
         val file = Paths.get(oldFilesPath, fileSubDir)
         val resource = UrlResource(file.toUri())
 
