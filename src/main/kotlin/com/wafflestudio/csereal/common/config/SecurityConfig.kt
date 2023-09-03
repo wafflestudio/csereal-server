@@ -57,7 +57,7 @@ class SecurityConfig(
                 response: HttpServletResponse?,
                 authentication: Authentication?
             ) {
-                val redirectUrl = "${endpointProperties.frontend}/api/v1/logout/success"
+                val redirectUrl = "${endpointProperties.frontend}/logout/success"
                 super.setDefaultTargetUrl(redirectUrl)
                 super.onLogoutSuccess(request, response, authentication)
             }
