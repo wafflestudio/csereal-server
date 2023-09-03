@@ -1,17 +1,17 @@
-package com.wafflestudio.csereal.core.scholarship.dto
+package com.wafflestudio.csereal.core.academics.dto
 
-import com.wafflestudio.csereal.core.scholarship.database.ScholarshipEntity
+import com.wafflestudio.csereal.core.academics.database.ScholarshipEntity
 
 data class ScholarshipDto(
     val id: Long,
-    val title: String,
+    val name: String,
     val description: String
 ) {
     companion object {
         fun of(scholarshipEntity: ScholarshipEntity): ScholarshipDto {
             return ScholarshipDto(
                 id = scholarshipEntity.id,
-                title = scholarshipEntity.title,
+                name = scholarshipEntity.name,
                 description = scholarshipEntity.description
             )
         }

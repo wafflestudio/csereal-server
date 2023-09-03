@@ -1,14 +1,12 @@
 package com.wafflestudio.csereal.core.academics.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.core.about.database.AboutPostType
 import com.wafflestudio.csereal.core.academics.database.*
 import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
-import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
-import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
-import com.wafflestudio.csereal.core.scholarship.database.ScholarshipRepository
-import com.wafflestudio.csereal.core.scholarship.dto.SimpleScholarshipDto
+import com.wafflestudio.csereal.core.academics.database.ScholarshipRepository
+import com.wafflestudio.csereal.core.academics.dto.ScholarshipDto
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
@@ -20,7 +18,8 @@ interface AcademicsService {
     fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto
     fun readAllCourses(studentType: String): List<CourseDto>
     fun readCourse(name: String): CourseDto
-    fun readScholarship(name: String): ScholarshipPageResponse
+    fun readAllScholarship(studentType: String): ScholarshipPageResponse
+    fun readScholarship(scholarshipId: Long): ScholarshipDto
 }
 
 @Service
@@ -54,14 +53,9 @@ class AcademicsServiceImpl(
 
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
 
-        val academics = academicsRepository.findByStudentTypeAndPostType(enumStudentType, AcademicsPostType.GUIDE)
-
-        val guidePageResponse = GuidePageResponse(
-            description = academics.description,
-            attachments = attachmentService.createAttachmentResponses(academics.attachments)
-        )
-
-        return guidePageResponse
+        val academicsEntity = academicsRepository.findByStudentTypeAndPostType(enumStudentType, AcademicsPostType.GUIDE)
+        val attachmentResponses = attachmentService.createAttachmentResponses(academicsEntity.attachments)
+        return GuidePageResponse.of(academicsEntity, attachmentResponses)
     }
 
     @Transactional(readOnly = true)
@@ -72,11 +66,8 @@ class AcademicsServiceImpl(
         val academicsEntityList = academicsRepository.findAllByStudentTypeAndPostTypeOrderByYearDesc(enumStudentType, enumPostType)
 
         val academicsYearResponses = academicsEntityList.map {
-            AcademicsYearResponse(
-                year = it.year!!,
-                description = it.description,
-                attachments = attachmentService.createAttachmentResponses(it.attachments)
-            )
+            val attachments = attachmentService.createAttachmentResponses(it.attachments)
+            AcademicsYearResponse.of(it, attachments)
         }
 
         return academicsYearResponses
@@ -117,12 +108,21 @@ class AcademicsServiceImpl(
         return CourseDto.of(course, attachmentResponses)
     }
 
-    @Transactional(readOnly = true)
-    override fun readScholarship(name: String): ScholarshipPageResponse {
-        val scholarship = academicsRepository.findByName(name)
-        val scholarships = scholarshipRepository.findAll()
 
-        return ScholarshipPageResponse.of(scholarship, scholarships)
+    @Transactional(readOnly = true)
+    override fun readAllScholarship(studentType: String): ScholarshipPageResponse {
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+
+        val academicsEntity = academicsRepository.findByStudentTypeAndPostType(enumStudentType, AcademicsPostType.SCHOLARSHIP)
+        val scholarships = scholarshipRepository.findAllByStudentType(enumStudentType)
+        return ScholarshipPageResponse.of(academicsEntity, scholarships)
+    }
+
+    @Transactional(readOnly = true)
+    override fun readScholarship(scholarshipId: Long): ScholarshipDto {
+        val scholarship = scholarshipRepository.findByIdOrNull(scholarshipId)
+            ?: throw CserealException.Csereal404("id: $scholarshipId 에 해당하는 장학제도를 찾을 수 없습니다")
+        return ScholarshipDto.of(scholarship)
     }
 
     private fun makeStringToAcademicsStudentType(postType: String): AcademicsStudentType {
