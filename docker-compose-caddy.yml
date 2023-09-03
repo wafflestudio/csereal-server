@@ -1,0 +1,16 @@
+services:
+  caddy:
+    container_name: csereal_caddy
+    image: caddy:2.7.4-alpine
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy/data:/data
+      - ./caddy/config:/config
+    environment:
+      URL: ${URL}
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: always

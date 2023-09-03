@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
-@RequestMapping("/professor")
+@RequestMapping("/api/v1/professor")
 @RestController
 class ProfessorController(
     private val professorService: ProfessorService
@@ -17,9 +17,9 @@ class ProfessorController(
     @PostMapping
     fun createProfessor(
         @RequestPart("request") createProfessorRequest: ProfessorDto,
-        @RequestPart("image") image: MultipartFile?,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
     ): ResponseEntity<ProfessorDto> {
-        return ResponseEntity.ok(professorService.createProfessor(createProfessorRequest, image))
+        return ResponseEntity.ok(professorService.createProfessor(createProfessorRequest, mainImage))
     }
 
     @GetMapping("/{professorId}")
@@ -40,9 +40,10 @@ class ProfessorController(
     @PatchMapping("/{professorId}")
     fun updateProfessor(
         @PathVariable professorId: Long,
-        @RequestBody updateProfessorRequest: ProfessorDto
+        @RequestPart("request") updateProfessorRequest: ProfessorDto,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
     ): ResponseEntity<ProfessorDto> {
-        return ResponseEntity.ok(professorService.updateProfessor(professorId, updateProfessorRequest))
+        return ResponseEntity.ok(professorService.updateProfessor(professorId, updateProfessorRequest, mainImage))
     }
 
     @DeleteMapping("/{professorId}")

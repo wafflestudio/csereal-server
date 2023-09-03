@@ -2,18 +2,14 @@ package com.wafflestudio.csereal.core.academics.api
 
 import com.wafflestudio.csereal.core.academics.dto.CourseDto
 import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
+import com.wafflestudio.csereal.core.academics.dto.ScholarshipPageResponse
 import com.wafflestudio.csereal.core.academics.service.AcademicsService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
-@RequestMapping("/academics")
+@RequestMapping("/api/v1/academics")
 @RestController
 class AcademicsController(
     private val academicsService: AcademicsService
@@ -24,9 +20,10 @@ class AcademicsController(
     fun createAcademics(
         @PathVariable studentType: String,
         @PathVariable postType: String,
-        @Valid @RequestBody request: AcademicsDto
+        @Valid @RequestPart("request") request: AcademicsDto,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ) : ResponseEntity<AcademicsDto> {
-        return ResponseEntity.ok(academicsService.createAcademics(studentType, postType, request))
+        return ResponseEntity.ok(academicsService.createAcademics(studentType, postType, request, attachments))
     }
 
     @GetMapping("/{studentType}/{postType}")
@@ -41,15 +38,16 @@ class AcademicsController(
     @PostMapping("/{studentType}/course")
     fun createCourse(
         @PathVariable studentType: String,
-        @Valid @RequestBody request: CourseDto
+        @Valid @RequestPart("request") request: CourseDto,
+        @RequestPart("attachments") attachments: List<MultipartFile>?,
     ) : ResponseEntity<CourseDto> {
-        return ResponseEntity.ok(academicsService.createCourse(studentType, request))
+        return ResponseEntity.ok(academicsService.createCourse(studentType, request, attachments))
     }
 
     @GetMapping("/{studentType}/courses")
     fun readAllCourses(
         @PathVariable studentType: String,
-    ) : ResponseEntity<List<CourseDto>> {
+    ): ResponseEntity<List<CourseDto>> {
         return ResponseEntity.ok(academicsService.readAllCourses(studentType))
     }
 
@@ -64,15 +62,16 @@ class AcademicsController(
     @PostMapping("/{studentType}/scholarship")
     fun createScholarship(
         @PathVariable studentType: String,
-        @Valid @RequestBody request: AcademicsDto
+        @Valid @RequestPart("request") request: AcademicsDto,
+        @RequestPart("attachments") attachments: List<MultipartFile>?,
     ) : ResponseEntity<AcademicsDto> {
-        return ResponseEntity.ok(academicsService.createAcademics(studentType, "scholarship", request))
+        return ResponseEntity.ok(academicsService.createAcademics(studentType, "scholarship", request, attachments))
     }
 
     @GetMapping("/scholarship")
     fun readScholarship(
         @RequestParam name: String
-    ) : ResponseEntity<AcademicsDto> {
+    ): ResponseEntity<ScholarshipPageResponse> {
         return ResponseEntity.ok(academicsService.readScholarship(name))
     }
 

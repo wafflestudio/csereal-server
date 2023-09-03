@@ -1,35 +1,34 @@
 package com.wafflestudio.csereal.core.research.dto
 
 import com.wafflestudio.csereal.core.research.database.LabEntity
-import com.wafflestudio.csereal.core.resource.introductionMaterial.dto.IntroductionMaterialDto
 
 data class LabDto(
     val id: Long,
     val name: String,
-    val professors: List<String>?,
+    val professors: List<LabProfessorResponse>?,
     val location: String?,
     val tel: String?,
     val acronym: String?,
-    val introductionMaterials: IntroductionMaterialDto?,
+    val pdf: String?,
+    val youtube: String?,
     val group: String,
     val description: String?,
     val websiteURL: String?,
-    val isPublic: Boolean,
 ) {
     companion object {
-        fun of(entity: LabEntity): LabDto = entity.run {
+        fun of(entity: LabEntity, pdfURL: String): LabDto = entity.run {
             LabDto(
                 id = this.id,
                 name = this.name,
-                professors = this.professors.map { it.name },
+                professors = this.professors.map { LabProfessorResponse(id = it.id, name = it.name) },
                 location = this.location,
                 tel = this.tel,
                 acronym = this.acronym,
-                introductionMaterials = IntroductionMaterialDto(this.pdf, this.youtube),
+                pdf = pdfURL,
+                youtube = this.youtube,
                 group = this.research.name,
                 description = this.description,
                 websiteURL = this.websiteURL,
-                isPublic = this.isPublic
             )
         }
     }

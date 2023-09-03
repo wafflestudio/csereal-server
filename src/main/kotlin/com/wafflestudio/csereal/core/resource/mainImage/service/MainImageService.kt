@@ -1,11 +1,13 @@
 package com.wafflestudio.csereal.core.resource.mainImage.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.controller.ContentEntityType
+import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
+import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
+import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageRepository
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.resource.mainImage.dto.MainImageDto
@@ -22,32 +24,32 @@ import java.nio.file.Paths
 import kotlin.io.path.fileSize
 import kotlin.io.path.name
 
-
-interface ImageService {
-    fun uploadImage(
-        contentEntityType: ContentEntityType,
+interface MainImageService {
+    fun uploadMainImage(
+        contentEntityType: MainImageContentEntityType,
         requestImage: MultipartFile,
     ): MainImageDto
-    fun createImageURL(image: MainImageEntity?) : String?
+    fun createImageURL(image: MainImageEntity?): String?
 }
 
 @Service
-class ImageServiceImpl(
-    private val imageRepository: MainImageRepository,
-    @Value("\${csereal.upload.path}")
+class MainImageServiceImpl(
+    private val mainImageRepository: MainImageRepository,
+    @Value("\${csereal_mainImage.upload.path}")
     private val path: String,
-) : ImageService {
+    private val endpointProperties: EndpointProperties
+) : MainImageService {
 
     @Transactional
-    override fun uploadImage(
-        contentEntity: ContentEntityType,
+    override fun uploadMainImage(
+        contentEntityType: MainImageContentEntityType,
         requestImage: MultipartFile,
     ): MainImageDto {
         Files.createDirectories(Paths.get(path))
 
         val extension = FilenameUtils.getExtension(requestImage.originalFilename)
 
-        if(!listOf("jpg", "jpeg", "png").contains(extension)) {
+        if (!listOf("jpg", "jpeg", "png").contains(extension)) {
             throw CserealException.Csereal400("파일의 형식은 jpg, jpeg, png 중 하나여야 합니다.")
         }
 
@@ -55,14 +57,14 @@ class ImageServiceImpl(
 
         val filename = "${timeMillis}_${requestImage.originalFilename}"
         val totalFilename = path + filename
-        val saveFile = Paths.get("$totalFilename.$extension")
+        val saveFile = Paths.get(totalFilename)
         requestImage.transferTo(saveFile)
 
         val totalThumbnailFilename = "${path}thumbnail_$filename"
-        val thumbnailFile = Paths.get("$totalThumbnailFilename.$extension")
+        val thumbnailFile = Paths.get(totalThumbnailFilename)
         Thumbnailator.createThumbnail(saveFile.toFile(), thumbnailFile.toFile(), 100, 100);
 
-        val image = MainImageEntity(
+        val mainImage = MainImageEntity(
             filename = filename,
             imagesOrder = 1,
             size = requestImage.size,
@@ -74,9 +76,9 @@ class ImageServiceImpl(
             size = thumbnailFile.fileSize()
         )
 
-        connectImageToEntity(contentEntity, image)
-        imageRepository.save(image)
-        imageRepository.save(thumbnail)
+        connectMainImageToEntity(contentEntityType, mainImage)
+        mainImageRepository.save(mainImage)
+        mainImageRepository.save(thumbnail)
 
         return MainImageDto(
             filename = filename,
@@ -86,28 +88,36 @@ class ImageServiceImpl(
     }
 
     @Transactional
-    override fun createImageURL(image: MainImageEntity?) : String? {
-        return if(image != null) {
-            "http://cse-dev-waffle.bacchus.io/image/${image.filename}"
+    override fun createImageURL(mainImage: MainImageEntity?): String? {
+        return if (mainImage != null) {
+            "${endpointProperties.backend}/v1/file/${mainImage.filename}"
         } else null
     }
 
-    private fun connectImageToEntity(contentEntity: ContentEntityType, image: MainImageEntity) {
+    private fun connectMainImageToEntity(contentEntity: MainImageContentEntityType, mainImage: MainImageEntity) {
         when (contentEntity) {
             is NewsEntity -> {
-                contentEntity.mainImage = image
+                contentEntity.mainImage = mainImage
             }
+
             is SeminarEntity -> {
-                contentEntity.mainImage = image
+                contentEntity.mainImage = mainImage
             }
+
             is AboutEntity -> {
-                contentEntity.mainImage = image
+                contentEntity.mainImage = mainImage
             }
+
             is ProfessorEntity -> {
-                contentEntity.mainImage = image
+                contentEntity.mainImage = mainImage
             }
+
             is StaffEntity -> {
-                contentEntity.mainImage = image
+                contentEntity.mainImage = mainImage
+            }
+
+            is ResearchEntity -> {
+                contentEntity.mainImage = mainImage
             }
             else -> {
                 throw WrongMethodTypeException("해당하는 엔티티가 없습니다")

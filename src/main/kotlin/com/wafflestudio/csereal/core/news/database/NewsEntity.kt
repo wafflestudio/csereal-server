@@ -1,8 +1,10 @@
 package com.wafflestudio.csereal.core.news.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.ContentEntityType
+import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
+import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
 import com.wafflestudio.csereal.core.news.dto.NewsDto
+import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.*
 
@@ -19,17 +21,21 @@ class NewsEntity(
 
     var isSlide: Boolean,
 
-    // 새소식 작성란에도 "가장 위에 표시"가 있더라고요, 혹시 쓸지도 모르니까 남겼습니다
-    var isPinned: Boolean,
+    var isImportant: Boolean,
 
     @OneToOne
     var mainImage: MainImageEntity? = null,
 
+    @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+
     @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL])
     var newsTags: MutableSet<NewsTagEntity> = mutableSetOf()
 
-): BaseTimeEntity(), ContentEntityType {
+): BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
     override fun bringMainImage() = mainImage
+    override fun bringAttachments() = attachments
+
     companion object {
         fun of(newsDto: NewsDto): NewsEntity {
             return NewsEntity(
@@ -37,7 +43,7 @@ class NewsEntity(
                 description = newsDto.description,
                 isPublic = newsDto.isPublic,
                 isSlide = newsDto.isSlide,
-                isPinned = newsDto.isPinned,
+                isImportant = newsDto.isImportant,
             )
         }
     }
@@ -46,6 +52,6 @@ class NewsEntity(
         this.description = updateNewsRequest.description
         this.isPublic = updateNewsRequest.isPublic
         this.isSlide = updateNewsRequest.isSlide
-        this.isPinned = updateNewsRequest.isPinned
+        this.isImportant = updateNewsRequest.isImportant
     }
 }

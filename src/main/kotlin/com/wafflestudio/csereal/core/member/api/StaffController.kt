@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
-@RequestMapping("/staff")
+@RequestMapping("/api/v1/staff")
 @RestController
 class StaffController(
     private val staffService: StaffService
@@ -16,9 +16,9 @@ class StaffController(
     @PostMapping
     fun createStaff(
         @RequestPart("request") createStaffRequest: StaffDto,
-        @RequestPart("image") image: MultipartFile?,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
     ): ResponseEntity<StaffDto> {
-        return ResponseEntity.ok(staffService.createStaff(createStaffRequest,image))
+        return ResponseEntity.ok(staffService.createStaff(createStaffRequest,mainImage))
     }
 
     @GetMapping("/{staffId}")
@@ -31,9 +31,12 @@ class StaffController(
         return ResponseEntity.ok(staffService.getAllStaff())
     }
 
-    @PatchMapping("/{staffId}")
-    fun updateStaff(@PathVariable staffId: Long, @RequestBody updateStaffRequest: StaffDto): ResponseEntity<StaffDto> {
-        return ResponseEntity.ok(staffService.updateStaff(staffId, updateStaffRequest))
+    fun updateStaff(
+        @PathVariable staffId: Long,
+        @RequestPart("request") updateStaffRequest: StaffDto,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
+    ): ResponseEntity<StaffDto> {
+        return ResponseEntity.ok(staffService.updateStaff(staffId, updateStaffRequest, mainImage))
     }
 
     @DeleteMapping("/{staffId}")

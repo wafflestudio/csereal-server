@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
-@RequestMapping("/news")
+@RequestMapping("/api/v1/news")
 @RestController
 class NewsController(
     private val newsService: NewsService,
@@ -34,17 +34,20 @@ class NewsController(
     @PostMapping
     fun createNews(
         @Valid @RequestPart("request") request: NewsDto,
-        @RequestPart("image") image: MultipartFile?,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ) : ResponseEntity<NewsDto> {
-        return ResponseEntity.ok(newsService.createNews(request,image))
+        return ResponseEntity.ok(newsService.createNews(request,mainImage, attachments))
     }
 
     @PatchMapping("/{newsId}")
     fun updateNews(
         @PathVariable newsId: Long,
-        @Valid @RequestBody request: NewsDto,
+        @Valid @RequestPart("request") request: NewsDto,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ) : ResponseEntity<NewsDto> {
-        return ResponseEntity.ok(newsService.updateNews(newsId, request))
+        return ResponseEntity.ok(newsService.updateNews(newsId, request, mainImage, attachments))
     }
 
     @DeleteMapping("/{newsId}")

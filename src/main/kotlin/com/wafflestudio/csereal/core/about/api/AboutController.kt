@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
-@RequestMapping("/about")
+@RequestMapping("/api/v1/about")
 @RestController
 class AboutController(
     private val aboutService: AboutService
@@ -21,9 +21,10 @@ class AboutController(
     fun createAbout(
         @PathVariable postType: String,
         @Valid @RequestPart("request") request: AboutDto,
-        @RequestPart("image") image: MultipartFile?,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("attachments") attachments: List<MultipartFile>?,
     ) : ResponseEntity<AboutDto> {
-        return ResponseEntity.ok(aboutService.createAbout(postType, request, image))
+        return ResponseEntity.ok(aboutService.createAbout(postType, request, mainImage, attachments))
     }
 
     // read 목록이 하나

@@ -1,0 +1,43 @@
+services:
+  green:
+    container_name: csereal_server_green
+    build:
+      context: ./
+      args:
+        PROFILE: ${PROFILE}
+    ports:
+      - 8080:8080
+    volumes:
+      - ./cse-files:/app/cse-files
+      - ./attachment:/app/attachment
+
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://host.docker.internal:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      OIDC_CLIENT_SECRET_DEV: ${OIDC_CLIENT_SECRET_DEV}
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: always
+    image: ghcr.io/wafflestudio/csereal-server/server_image:latest
+  # TODO: Activate after implementing health check
+#  blue:
+#    container_name: csereal_server_blue
+#    build:
+#      context: ./
+#      args:
+#        PROFILE: ${PROFILE}
+#    ports:
+#      - 8081:8080
+#    volumes:
+#      - ./cse-files:/app/cse-files
+#      - ./attachment:/app/attachment
+#    environment:
+#      SPRING_DATASOURCE_URL: "jdbc:mysql://host.docker.internal:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"
+#      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+#      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+#      OIDC_CLIENT_SECRET_DEV: ${OIDC_CLIENT_SECRET_DEV}
+#    extra_hosts:
+#      - host.docker.internal:host-gateway
+#    restart: always
+#    image: ghcr.io/wafflestudio/csereal-server/server_image:latest

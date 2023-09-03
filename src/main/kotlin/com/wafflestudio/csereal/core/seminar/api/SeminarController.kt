@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.seminar.api
 
+import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
 import com.wafflestudio.csereal.core.seminar.service.SeminarService
@@ -8,7 +9,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
-@RequestMapping("/seminar")
+@RequestMapping("/api/v1/seminar")
 @RestController
 class SeminarController (
     private val seminarService: SeminarService,
@@ -23,9 +24,11 @@ class SeminarController (
     @PostMapping
     fun createSeminar(
         @Valid @RequestPart("request") request: SeminarDto,
-        @RequestPart("image") image: MultipartFile?
+        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ) : ResponseEntity<SeminarDto> {
-        return ResponseEntity.ok(seminarService.createSeminar(request,image))    }
+        return ResponseEntity.ok(seminarService.createSeminar(request, mainImage, attachments))
+    }
 
     @GetMapping("/{seminarId}")
     fun readSeminar(
@@ -38,9 +41,12 @@ class SeminarController (
     @PatchMapping("/{seminarId}")
     fun updateSeminar(
         @PathVariable seminarId: Long,
-        @Valid @RequestBody request: SeminarDto,
+        @Valid @RequestPart("request") request: SeminarDto,
+        @RequestPart("newMainImage") newMainImage: MultipartFile?,
+        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?,
+        @RequestPart("attachmentsList") attachmentsList: List<AttachmentResponse>,
     ) : ResponseEntity<SeminarDto> {
-        return ResponseEntity.ok(seminarService.updateSeminar(seminarId, request))
+        return ResponseEntity.ok(seminarService.updateSeminar(seminarId, request, newMainImage, newAttachments, attachmentsList))
     }
 
     @DeleteMapping("/{seminarId}")
