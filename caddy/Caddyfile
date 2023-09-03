@@ -5,6 +5,9 @@
 	# Backend
 	reverse_proxy /api/* host.docker.internal:8080 #host.docker.internal:8081 # For blue/green
 
+	# Old file serving
+	reverse_proxy /sites/default/files/* host.docker.internal:8080 #host.docker.internal:8081 # For blue/green
+
     # Login
     reverse_proxy /login/oauth2/code/idsnucse host.docker.internal:8080 #host.docker.internal:8081 # For blue/green
     reverse_proxy /login/oauth2/code/idsnucse/* host.docker.internal:8080 #host.docker.internal:8081 # For blue/green
