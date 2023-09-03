@@ -38,6 +38,7 @@ class SecurityConfig(
             .userInfoEndpoint().oidcUserService(customOidcUserService).and()
             .successHandler(CustomAuthenticationSuccessHandler(endpointProperties.frontend)).and()
             .logout()
+            .logoutUrl("/api/v1/logout")
             .logoutSuccessHandler(oidcLogoutSuccessHandler())
             .invalidateHttpSession(true)
             .clearAuthentication(true)
