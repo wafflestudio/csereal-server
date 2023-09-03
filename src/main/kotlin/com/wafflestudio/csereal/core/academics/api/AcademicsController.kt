@@ -69,6 +69,14 @@ class AcademicsController(
         return ResponseEntity.ok(academicsService.readAcademicsYearResponses(studentType, "course-changes"))
     }
 
+    @PostMapping("/{studentType}/scholarshipDetail")
+    fun createScholarshipDetail(
+        @PathVariable studentType: String,
+        @Valid @RequestBody request: ScholarshipDto,
+    ) : ResponseEntity<ScholarshipDto> {
+        return ResponseEntity.ok(academicsService.createScholarshipDetail(studentType, request))
+    }
+
     @GetMapping("/{studentType}/scholarship")
     fun readAllScholarship(
         @PathVariable studentType: String

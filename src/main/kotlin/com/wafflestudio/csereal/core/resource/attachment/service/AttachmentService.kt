@@ -180,10 +180,6 @@ class AttachmentServiceImpl(
                 contentEntity.attachments.add(attachment)
                 attachment.research = contentEntity
             }
-            is ScholarshipEntity -> {
-                contentEntity.attachments.add(attachment)
-                attachment.scholarship = contentEntity
-            }
         }
     }
 }

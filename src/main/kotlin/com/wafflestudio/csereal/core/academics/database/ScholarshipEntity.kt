@@ -16,11 +16,7 @@ class ScholarshipEntity(
     @Column(columnDefinition = "text")
     val description: String,
 
-    @OneToMany(mappedBy = "scholarship", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
-
-) : BaseTimeEntity(), AttachmentContentEntityType {
-    override fun bringAttachments() = attachments
+) : BaseTimeEntity() {
 
     companion object {
         fun of(studentType: AcademicsStudentType, scholarshipDto: ScholarshipDto): ScholarshipEntity {

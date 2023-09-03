@@ -18,6 +18,7 @@ interface AcademicsService {
     fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto
     fun readAllCourses(studentType: String): List<CourseDto>
     fun readCourse(name: String): CourseDto
+    fun createScholarshipDetail(studentType: String, request: ScholarshipDto): ScholarshipDto
     fun readAllScholarship(studentType: String): ScholarshipPageResponse
     fun readScholarship(scholarshipId: Long): ScholarshipDto
 }
@@ -108,6 +109,15 @@ class AcademicsServiceImpl(
         return CourseDto.of(course, attachmentResponses)
     }
 
+    @Transactional
+    override fun createScholarshipDetail(studentType: String, request: ScholarshipDto): ScholarshipDto {
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val newScholarship = ScholarshipEntity.of(enumStudentType, request)
+
+        scholarshipRepository.save(newScholarship)
+
+        return ScholarshipDto.of(newScholarship)
+    }
 
     @Transactional(readOnly = true)
     override fun readAllScholarship(studentType: String): ScholarshipPageResponse {
