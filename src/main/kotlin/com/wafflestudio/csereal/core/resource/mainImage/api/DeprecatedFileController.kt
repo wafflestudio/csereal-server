@@ -17,7 +17,7 @@ import java.net.URLEncoder
 import java.nio.file.Paths
 
 @RestController
-@RequestMapping("/api/sites/default/files")
+@RequestMapping("/sites/default/files")
 class DeprecatedFileController (
         @Value("\${oldFiles.path}")
         private val oldFilesPath: String,
