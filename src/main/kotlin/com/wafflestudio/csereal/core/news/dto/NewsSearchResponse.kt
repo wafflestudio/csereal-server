@@ -4,7 +4,7 @@ import com.querydsl.core.annotations.QueryProjection
 import java.time.LocalDateTime
 
 class NewsSearchResponse @QueryProjection constructor(
-    val total: Int,
+    val total: Long,
     val searchList: List<NewsSearchDto>
 ) {
 }
