@@ -5,10 +5,12 @@ import com.querydsl.core.annotations.QueryProjection
 data class SeminarSearchDto @QueryProjection constructor(
     val id: Long,
     val title: String,
-    val startDate: String?,
-    val isYearLast: Boolean,
+    val description: String,
     val name: String,
-    val affiliation: String?,
-    val location: String
+    val affiliation: String,
+    val startDate: String?,
+    val location: String,
+    val imageURL: String?,
+    val isYearLast: Boolean,
 ) {
 }

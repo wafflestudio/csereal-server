@@ -11,11 +11,13 @@ data class ReservationDto(
     val purpose: String,
     val startTime: LocalDateTime,
     val endTime: LocalDateTime,
+    val recurringWeeks: Int = 1,
     val roomName: String?,
     val roomLocation: String,
     val userName: String,
     val contactEmail: String,
-    val contactPhone: String
+    val contactPhone: String,
+    val professor: String
 ) {
     companion object {
         fun of(reservationEntity: ReservationEntity): ReservationDto {
@@ -26,11 +28,13 @@ data class ReservationDto(
                 purpose = reservationEntity.purpose,
                 startTime = reservationEntity.startTime,
                 endTime = reservationEntity.endTime,
+                recurringWeeks = reservationEntity.recurringWeeks,
                 roomName = reservationEntity.room.name,
                 roomLocation = reservationEntity.room.location,
                 userName = reservationEntity.user.username,
                 contactEmail = reservationEntity.contactEmail,
-                contactPhone = reservationEntity.contactPhone
+                contactPhone = reservationEntity.contactPhone,
+                professor = reservationEntity.professor
             )
         }
     }

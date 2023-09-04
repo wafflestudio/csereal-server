@@ -30,6 +30,8 @@ class ReservationEntity(
     val purpose: String,
     val startTime: LocalDateTime,
     val endTime: LocalDateTime,
+    val professor: String,
+    val recurringWeeks: Int = 1,
 
     val recurrenceId: UUID? = null
 
@@ -61,6 +63,8 @@ class ReservationEntity(
                 purpose = reserveRequest.purpose,
                 startTime = start,
                 endTime = end,
+                professor = reserveRequest.professor,
+                recurringWeeks = reserveRequest.recurringWeeks,
                 recurrenceId = recurrenceId
             )
         }

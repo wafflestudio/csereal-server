@@ -3,9 +3,13 @@ package com.wafflestudio.csereal.core.seminar.database
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.core.seminar.database.QSeminarEntity.seminarEntity
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
+import org.jsoup.Jsoup
+import org.jsoup.parser.Parser
+import org.jsoup.safety.Safelist
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Component
 
@@ -21,6 +25,7 @@ interface CustomSeminarRepository {
 @Component
 class SeminarRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
+    private val mainImageService: MainImageService,
 ) : CustomSeminarRepository {
     override fun searchSeminar(keyword: String?, pageNum: Long): SeminarSearchResponse {
         val keywordBooleanBuilder = BooleanBuilder()
@@ -62,15 +67,19 @@ class SeminarRepositoryImpl(
                 isYearLast = true
             }
 
+            val imageURL = mainImageService.createImageURL(seminarEntityList[i].mainImage)
+
             seminarSearchDtoList.add(
                 SeminarSearchDto(
                     id = seminarEntityList[i].id,
                     title = seminarEntityList[i].title,
-                    startDate = seminarEntityList[i].startDate,
-                    isYearLast = isYearLast,
+                    description = clean(seminarEntityList[i].description),
                     name = seminarEntityList[i].name,
                     affiliation = seminarEntityList[i].affiliation,
-                    location = seminarEntityList[i].location
+                    startDate = seminarEntityList[i].startDate,
+                    location = seminarEntityList[i].location,
+                    imageURL = imageURL,
+                    isYearLast = isYearLast,
                 )
             )
         }
@@ -119,5 +128,10 @@ class SeminarRepositoryImpl(
 
         return prevNext
 
+    }
+
+    private fun clean(description: String): String {
+        val cleanDescription = Jsoup.clean(description, Safelist.none())
+        return Parser.unescapeEntities(cleanDescription, false)
     }
 }
