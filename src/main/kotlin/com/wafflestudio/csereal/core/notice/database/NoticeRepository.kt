@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Component
 
 interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepository {
+    fun findAllByIsImportant(isImportant: Boolean): List<NoticeEntity>
 }
 
 interface CustomNoticeRepository {

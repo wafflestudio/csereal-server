@@ -14,7 +14,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Component
 
 interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository {
-
+    fun findAllByIsImportant(isImportant: Boolean): List<NewsEntity>
 }
 
 interface CustomNewsRepository {

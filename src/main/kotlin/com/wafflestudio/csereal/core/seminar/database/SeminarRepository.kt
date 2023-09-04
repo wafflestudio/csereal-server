@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Component
 
 interface SeminarRepository : JpaRepository<SeminarEntity, Long>, CustomSeminarRepository {
+    fun findAllByIsImportant(isImportant: Boolean): List<SeminarEntity>
 }
 
 interface CustomSeminarRepository {
