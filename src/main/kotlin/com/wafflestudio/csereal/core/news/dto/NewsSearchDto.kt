@@ -6,7 +6,8 @@ import java.time.LocalDateTime
 data class NewsSearchDto @QueryProjection constructor(
     val id: Long,
     val title: String,
-    var summary: String,
+    var description: String,
     val createdAt: LocalDateTime?,
-    var tags: List<Long>?
+    var tags: List<String>?,
+    var imageURL: String?,
 )

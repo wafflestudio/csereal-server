@@ -7,6 +7,7 @@ import com.wafflestudio.csereal.core.news.database.QNewsEntity.newsEntity
 import com.wafflestudio.csereal.core.news.database.QNewsTagEntity.newsTagEntity
 import com.wafflestudio.csereal.core.news.dto.NewsSearchDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
+import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import org.jsoup.safety.Safelist
@@ -25,6 +26,7 @@ interface CustomNewsRepository {
 @Component
 class NewsRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
+    private val mainImageService: MainImageService,
 ) : CustomNewsRepository {
     override fun searchNews(tag: List<String>?, keyword: String?, pageNum: Long): NewsSearchResponse {
         val keywordBooleanBuilder = BooleanBuilder()
@@ -66,13 +68,15 @@ class NewsRepositoryImpl(
             .distinct()
             .fetch()
 
-        val newsSearchDtoList: List<NewsSearchDto> = newsEntityList.map {
+        val newsSearchDtoList : List<NewsSearchDto> = newsEntityList.map {
+            val imageURL = mainImageService.createImageURL(it.mainImage)
             NewsSearchDto(
                 id = it.id,
                 title = it.title,
-                summary = summary(it.description),
+                description = clean(it.description),
                 createdAt = it.createdAt,
-                tags = it.newsTags.map { newsTagEntity -> newsTagEntity.tag.id }
+                tags = it.newsTags.map { newsTagEntity -> newsTagEntity.tag.name },
+                imageURL = imageURL
             )
         }
         return NewsSearchResponse(total!!, newsSearchDtoList)
@@ -132,9 +136,9 @@ class NewsRepositoryImpl(
 
         return prevNext
     }
-
-    private fun summary(description: String): String {
-        val summary = Jsoup.clean(description, Safelist.none())
-        return Parser.unescapeEntities(summary, false)
+    
+    private fun clean(description: String): String {
+        val cleanDescription = Jsoup.clean(description, Safelist.none())
+        return Parser.unescapeEntities(cleanDescription, false)
     }
 }
