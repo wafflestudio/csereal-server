@@ -7,8 +7,9 @@ data class ReserveRequest(
     val title: String,
     val contactEmail: String,
     val contactPhone: String,
+    val professor: String,
     val purpose: String,
     val startTime: LocalDateTime,
     val endTime: LocalDateTime,
-    val recurringWeeks: Int? = null
+    val recurringWeeks: Int = 1
 )
