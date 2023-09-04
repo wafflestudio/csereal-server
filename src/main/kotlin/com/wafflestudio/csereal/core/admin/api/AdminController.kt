@@ -1,8 +1,6 @@
 package com.wafflestudio.csereal.core.admin.api
 
-import com.wafflestudio.csereal.core.admin.dto.ImportantResponse
-import com.wafflestudio.csereal.core.admin.dto.NewsIdListRequest
-import com.wafflestudio.csereal.core.admin.dto.SlideResponse
+import com.wafflestudio.csereal.core.admin.dto.*
 import com.wafflestudio.csereal.core.admin.service.AdminService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -24,11 +22,11 @@ class AdminController(
         return ResponseEntity.ok(adminService.readAllSlides(pageNum))
     }
 
-    @PatchMapping
+    @PatchMapping("/slide")
     fun unSlideManyNews(
         @RequestBody request: NewsIdListRequest
     ) {
-        adminService.unSlideManyNews(request.idList)
+        adminService.unSlideManyNews(request.newsIdList)
     }
 
     @GetMapping("/important")
@@ -37,5 +35,13 @@ class AdminController(
     ): ResponseEntity<List<ImportantResponse>> {
         return ResponseEntity.ok(adminService.readAllImportants(pageNum))
     }
+
+    @PatchMapping("/important")
+    fun makeNotImportants(
+        @RequestBody request: ImportantRequest
+    ) {
+        adminService.makeNotImportants(request.targetInfos)
+    }
+
 
 }

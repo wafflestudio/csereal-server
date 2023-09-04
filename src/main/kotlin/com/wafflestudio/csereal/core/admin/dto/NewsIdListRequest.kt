@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.admin.dto
 
 data class NewsIdListRequest(
-    val idList: List<Long>
+    val newsIdList: List<Long>
 ) {
 
 }
