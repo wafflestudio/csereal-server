@@ -29,13 +29,14 @@ interface MainImageService {
         contentEntityType: MainImageContentEntityType,
         requestImage: MultipartFile,
     ): MainImageDto
+
     fun createImageURL(image: MainImageEntity?): String?
 }
 
 @Service
 class MainImageServiceImpl(
     private val mainImageRepository: MainImageRepository,
-    @Value("\${csereal_mainImage.upload.path}")
+    @Value("\${csereal.upload.path}")
     private val path: String,
     private val endpointProperties: EndpointProperties
 ) : MainImageService {
@@ -119,6 +120,7 @@ class MainImageServiceImpl(
             is ResearchEntity -> {
                 contentEntity.mainImage = mainImage
             }
+
             else -> {
                 throw WrongMethodTypeException("해당하는 엔티티가 없습니다")
             }
