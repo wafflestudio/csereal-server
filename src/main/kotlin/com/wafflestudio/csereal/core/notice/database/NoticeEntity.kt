@@ -13,7 +13,7 @@ class NoticeEntity(
     var isDeleted: Boolean = false,
     var title: String,
 
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "mediumtext")
     var description: String,
 
     var isPublic: Boolean,
