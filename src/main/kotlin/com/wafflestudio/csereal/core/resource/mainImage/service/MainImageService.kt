@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
+import com.wafflestudio.csereal.core.academics.database.CourseEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
@@ -29,13 +30,14 @@ interface MainImageService {
         contentEntityType: MainImageContentEntityType,
         requestImage: MultipartFile,
     ): MainImageDto
+
     fun createImageURL(image: MainImageEntity?): String?
 }
 
 @Service
 class MainImageServiceImpl(
     private val mainImageRepository: MainImageRepository,
-    @Value("\${csereal_mainImage.upload.path}")
+    @Value("\${csereal.upload.path}")
     private val path: String,
     private val endpointProperties: EndpointProperties
 ) : MainImageService {
@@ -119,6 +121,7 @@ class MainImageServiceImpl(
             is ResearchEntity -> {
                 contentEntity.mainImage = mainImage
             }
+
             else -> {
                 throw WrongMethodTypeException("해당하는 엔티티가 없습니다")
             }

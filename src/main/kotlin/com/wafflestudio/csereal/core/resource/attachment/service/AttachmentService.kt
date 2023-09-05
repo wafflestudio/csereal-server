@@ -5,6 +5,7 @@ import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
 import com.wafflestudio.csereal.core.academics.database.CourseEntity
+import com.wafflestudio.csereal.core.academics.database.ScholarshipEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
 import com.wafflestudio.csereal.core.research.database.LabEntity
@@ -27,10 +28,12 @@ interface AttachmentService {
         labEntity: LabEntity,
         requestAttachment: MultipartFile
     ): AttachmentDto
+
     fun uploadAllAttachments(
         contentEntityType: AttachmentContentEntityType,
         requestAttachments: List<MultipartFile>,
     ): List<AttachmentDto>
+
     fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse>
     fun updateAttachmentResponses(
         contentEntity: AttachmentContentEntityType,
@@ -41,7 +44,7 @@ interface AttachmentService {
 @Service
 class AttachmentServiceImpl(
     private val attachmentRepository: AttachmentRepository,
-    @Value("\${csereal_attachment.upload.path}")
+    @Value("\${csereal.upload.path}")
     private val path: String,
     private val endpointProperties: EndpointProperties,
 ) : AttachmentService {
@@ -73,6 +76,7 @@ class AttachmentServiceImpl(
         )
 
     }
+
     @Transactional
     override fun uploadAllAttachments(
         contentEntity: AttachmentContentEntityType,
@@ -114,14 +118,14 @@ class AttachmentServiceImpl(
     }
 
     @Transactional
-    override fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse>{
+    override fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse> {
         val list = mutableListOf<AttachmentResponse>()
         if (attachments != null) {
             for (attachment in attachments) {
-                if(attachment.isDeleted == false) {
+                if (attachment.isDeleted == false) {
                     val attachmentDto = AttachmentResponse(
                         name = attachment.filename,
-                        url = "${endpointProperties.backend}/v1/attachment/${attachment.filename}",
+                        url = "${endpointProperties.backend}/v1/file/${attachment.filename}",
                         bytes = attachment.size,
                     )
                     list.add(attachmentDto)
@@ -133,12 +137,15 @@ class AttachmentServiceImpl(
     }
 
     @Transactional
-    override fun updateAttachmentResponses(contentEntity: AttachmentContentEntityType, attachmentsList: List<AttachmentResponse>) {
+    override fun updateAttachmentResponses(
+        contentEntity: AttachmentContentEntityType,
+        attachmentsList: List<AttachmentResponse>
+    ) {
         val oldAttachments = contentEntity.bringAttachments().map { it.filename }
 
         val attachmentsToRemove = oldAttachments - attachmentsList.map { it.name }
 
-        when(contentEntity) {
+        when (contentEntity) {
             is SeminarEntity -> {
                 for (attachmentFilename in attachmentsToRemove) {
                     val attachmentEntity = attachmentRepository.findByFilename(attachmentFilename)
@@ -155,26 +162,32 @@ class AttachmentServiceImpl(
                 contentEntity.attachments.add(attachment)
                 attachment.news = contentEntity
             }
+
             is NoticeEntity -> {
                 contentEntity.attachments.add(attachment)
                 attachment.notice = contentEntity
             }
+
             is SeminarEntity -> {
                 contentEntity.attachments.add(attachment)
                 attachment.seminar = contentEntity
             }
+
             is AboutEntity -> {
                 contentEntity.attachments.add(attachment)
                 attachment.about = contentEntity
             }
+
             is AcademicsEntity -> {
                 contentEntity.attachments.add(attachment)
                 attachment.academics = contentEntity
             }
+
             is CourseEntity -> {
                 contentEntity.attachments.add(attachment)
                 attachment.course = contentEntity
             }
+
             is ResearchEntity -> {
                 contentEntity.attachments.add(attachment)
                 attachment.research = contentEntity

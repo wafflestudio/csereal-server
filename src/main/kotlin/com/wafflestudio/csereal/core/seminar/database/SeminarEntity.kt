@@ -15,10 +15,10 @@ class SeminarEntity(
 
     var title: String,
 
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "mediumtext")
     var description: String,
 
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "mediumtext")
     var introduction: String,
 
     // 연사 정보
@@ -40,6 +40,7 @@ class SeminarEntity(
     var isPublic: Boolean,
     var isImportant: Boolean,
 
+    @Column(columnDefinition = "text")
     var additionalNote: String?,
 
     @OneToOne

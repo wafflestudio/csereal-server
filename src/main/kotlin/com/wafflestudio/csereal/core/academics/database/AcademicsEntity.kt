@@ -14,9 +14,10 @@ class AcademicsEntity(
     @Enumerated(EnumType.STRING)
     var postType: AcademicsPostType,
 
-    var name: String,
+    var name: String?,
     var description: String,
     var year: Int?,
+    var time: String?,
 
     @OneToMany(mappedBy = "academics", cascade = [CascadeType.ALL], orphanRemoval = true)
     var attachments: MutableList<AttachmentEntity> = mutableListOf(),
@@ -33,6 +34,7 @@ class AcademicsEntity(
                 name = academicsDto.name,
                 description = academicsDto.description,
                 year = academicsDto.year,
+                time = academicsDto.time,
             )
         }
     }

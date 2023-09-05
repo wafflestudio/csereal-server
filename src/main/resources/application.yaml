@@ -61,14 +61,9 @@ logging.level:
     springframework:
       security: DEBUG
 
-
-csereal_mainImage:
+csereal:
   upload:
-    path: ./attachment
-
-csereal_attachment:
-  upload:
-    path: ./attachment
+    path: ./files/
 
 oldFiles:
   path: ./cse-files
@@ -91,14 +86,9 @@ spring:
           idsnucse:
             redirect-uri: http://${URL}/api/v1/login/oauth2/code/idsnucse
 
-
-csereal_mainImage:
+csereal:
   upload:
-    path: /app/mainImage/
-
-csereal_attachment:
-  upload:
-    path: /app/attachment/
+    path: /app/files/
 
 oldFiles:
   path: /app/cse-files

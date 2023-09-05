@@ -1,9 +1,8 @@
 package com.wafflestudio.csereal.core.academics.api
 
-import com.wafflestudio.csereal.core.academics.dto.CourseDto
-import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
-import com.wafflestudio.csereal.core.academics.dto.ScholarshipPageResponse
+import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.academics.service.AcademicsService
+import com.wafflestudio.csereal.core.academics.dto.ScholarshipDto
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -14,8 +13,6 @@ import org.springframework.web.multipart.MultipartFile
 class AcademicsController(
     private val academicsService: AcademicsService
 ) {
-
-    //Todo: 이미지, 파일 추가 필요
     @PostMapping("/{studentType}/{postType}")
     fun createAcademics(
         @PathVariable studentType: String,
@@ -26,12 +23,19 @@ class AcademicsController(
         return ResponseEntity.ok(academicsService.createAcademics(studentType, postType, request, attachments))
     }
 
+    @GetMapping("/{studentType}/guide")
+    fun readGuide(
+        @PathVariable studentType: String
+    ): ResponseEntity<GuidePageResponse> {
+        return ResponseEntity.ok(academicsService.readGuide(studentType))
+    }
+
     @GetMapping("/{studentType}/{postType}")
-    fun readAcademics(
+    fun readAcademicsYearResponses(
         @PathVariable studentType: String,
         @PathVariable postType: String,
-    ): ResponseEntity<AcademicsDto> {
-        return ResponseEntity.ok(academicsService.readAcademics(studentType, postType))
+    ): ResponseEntity<List<AcademicsYearResponse>> {
+        return ResponseEntity.ok(academicsService.readAcademicsYearResponses(studentType, postType))
     }
 
     //교과목 정보
@@ -58,21 +62,29 @@ class AcademicsController(
         return ResponseEntity.ok(academicsService.readCourse(name))
     }
 
-    // 장학금
-    @PostMapping("/{studentType}/scholarship")
-    fun createScholarship(
-        @PathVariable studentType: String,
-        @Valid @RequestPart("request") request: AcademicsDto,
-        @RequestPart("attachments") attachments: List<MultipartFile>?,
-    ) : ResponseEntity<AcademicsDto> {
-        return ResponseEntity.ok(academicsService.createAcademics(studentType, "scholarship", request, attachments))
+    @GetMapping("/undergraduate/general-studies-requirements")
+    fun readGeneralStudiesRequirements() : ResponseEntity<GeneralStudiesPageResponse> {
+        return ResponseEntity.ok(academicsService.readGeneralStudies())
     }
 
-    @GetMapping("/scholarship")
-    fun readScholarship(
-        @RequestParam name: String
+    @PostMapping("/{studentType}/scholarshipDetail")
+    fun createScholarshipDetail(
+        @PathVariable studentType: String,
+        @Valid @RequestBody request: ScholarshipDto,
+    ) : ResponseEntity<ScholarshipDto> {
+        return ResponseEntity.ok(academicsService.createScholarshipDetail(studentType, request))
+    }
+
+    @GetMapping("/{studentType}/scholarship")
+    fun readAllScholarship(
+        @PathVariable studentType: String
     ): ResponseEntity<ScholarshipPageResponse> {
-        return ResponseEntity.ok(academicsService.readScholarship(name))
+        return ResponseEntity.ok(academicsService.readAllScholarship(studentType))
+    }
+
+    @GetMapping("/scholarship/{scholarshipId}")
+    fun getScholarship(@PathVariable scholarshipId: Long): ResponseEntity<ScholarshipDto> {
+        return ResponseEntity.ok(academicsService.readScholarship(scholarshipId))
     }
 
 }
