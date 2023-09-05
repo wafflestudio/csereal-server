@@ -49,20 +49,25 @@ class SeminarRepositoryImpl(
             .where(seminarEntity.isDeleted.eq(false))
             .where(keywordBooleanBuilder)
 
-        val total = jpaQuery.fetch().size
+        val countQuery = jpaQuery.clone()
+        val total = countQuery.select(seminarEntity.countDistinct()).fetchOne()
 
         val seminarEntityList = jpaQuery.orderBy(seminarEntity.createdAt.desc())
-            .offset(10*pageNum)
+            .offset(10 * pageNum)
             .limit(20)
             .fetch()
 
-        val seminarSearchDtoList : MutableList<SeminarSearchDto> = mutableListOf()
+        val seminarSearchDtoList: MutableList<SeminarSearchDto> = mutableListOf()
 
-        for(i: Int in 0 until seminarEntityList.size) {
+        for (i: Int in 0 until seminarEntityList.size) {
             var isYearLast = false
-            if(i == seminarEntityList.size-1) {
+            if (i == seminarEntityList.size - 1) {
                 isYearLast = true
-            } else if(seminarEntityList[i].startDate?.substring(0,4) != seminarEntityList[i+1].startDate?.substring(0,4)) {
+            } else if (seminarEntityList[i].startDate?.substring(0, 4) != seminarEntityList[i + 1].startDate?.substring(
+                    0,
+                    4
+                )
+            ) {
                 isYearLast = true
             }
 
@@ -83,8 +88,9 @@ class SeminarRepositoryImpl(
             )
         }
 
-        return SeminarSearchResponse(total, seminarSearchDtoList)
+        return SeminarSearchResponse(total!!, seminarSearchDtoList)
     }
+
     override fun findPrevNextId(seminarId: Long, keyword: String?): Array<SeminarEntity?>? {
         val keywordBooleanBuilder = BooleanBuilder()
 
