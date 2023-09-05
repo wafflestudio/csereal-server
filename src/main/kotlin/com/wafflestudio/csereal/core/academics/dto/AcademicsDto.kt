@@ -6,9 +6,10 @@ import java.time.LocalDateTime
 
 data class AcademicsDto(
     val id: Long,
-    val name: String,
+    val name: String?,
     val description: String,
     val year: Int?,
+    val time: String?,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
     val attachments: List<AttachmentResponse>?,
@@ -20,6 +21,7 @@ data class AcademicsDto(
                 name = this.name,
                 description = this.description,
                 year = this.year,
+                time = this.time,
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
                 attachments = attachmentResponses,

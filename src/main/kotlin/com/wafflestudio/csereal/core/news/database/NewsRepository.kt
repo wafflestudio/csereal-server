@@ -15,7 +15,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Component
 
 interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository {
-
+    fun findAllByIsImportant(isImportant: Boolean): List<NewsEntity>
 }
 
 interface CustomNewsRepository {
@@ -63,7 +63,7 @@ class NewsRepositoryImpl(
 
         val newsEntityList = jpaQuery
             .orderBy(newsEntity.createdAt.desc())
-            .offset(20 * pageNum)  //로컬 테스트를 위해 잠시 5로 둘 것, 원래는 20
+            .offset(20*pageNum)
             .limit(20)
             .distinct()
             .fetch()

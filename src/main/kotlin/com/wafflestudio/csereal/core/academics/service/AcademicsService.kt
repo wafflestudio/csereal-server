@@ -1,25 +1,27 @@
 package com.wafflestudio.csereal.core.academics.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.core.about.database.AboutPostType
 import com.wafflestudio.csereal.core.academics.database.*
-import com.wafflestudio.csereal.core.academics.dto.CourseDto
-import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
+import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
-import com.wafflestudio.csereal.core.academics.dto.ScholarshipPageResponse
-import com.wafflestudio.csereal.core.scholarship.database.ScholarshipRepository
-import com.wafflestudio.csereal.core.scholarship.dto.SimpleScholarshipDto
+import com.wafflestudio.csereal.core.academics.database.ScholarshipRepository
+import com.wafflestudio.csereal.core.academics.dto.ScholarshipDto
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface AcademicsService {
     fun createAcademics(studentType: String, postType: String, request: AcademicsDto, attachments: List<MultipartFile>?): AcademicsDto
-    fun readAcademics(studentType: String, postType: String): AcademicsDto
+    fun readGuide(studentType: String): GuidePageResponse
+    fun readAcademicsYearResponses(studentType: String, postType: String): List<AcademicsYearResponse>
+    fun readGeneralStudies(): GeneralStudiesPageResponse
     fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto
     fun readAllCourses(studentType: String): List<CourseDto>
     fun readCourse(name: String): CourseDto
-    fun readScholarship(name: String): ScholarshipPageResponse
+    fun createScholarshipDetail(studentType: String, request: ScholarshipDto): ScholarshipDto
+    fun readAllScholarship(studentType: String): ScholarshipPageResponse
+    fun readScholarship(scholarshipId: Long): ScholarshipDto
 }
 
 @Service
@@ -49,28 +51,54 @@ class AcademicsServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAcademics(studentType: String, postType: String): AcademicsDto {
+    override fun readGuide(studentType: String): GuidePageResponse {
 
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+
+        val academicsEntity = academicsRepository.findByStudentTypeAndPostType(enumStudentType, AcademicsPostType.GUIDE)
+        val attachmentResponses = attachmentService.createAttachmentResponses(academicsEntity.attachments)
+        return GuidePageResponse.of(academicsEntity, attachmentResponses)
+    }
+
+    @Transactional(readOnly = true)
+    override fun readAcademicsYearResponses(studentType: String, postType: String): List<AcademicsYearResponse> {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val enumPostType = makeStringToAcademicsPostType(postType)
 
-        val academics = academicsRepository.findByStudentTypeAndPostType(enumStudentType, enumPostType)
+        val academicsEntityList = academicsRepository.findAllByStudentTypeAndPostTypeOrderByYearDesc(enumStudentType, enumPostType)
 
-        val attachmentResponses = attachmentService.createAttachmentResponses(academics.attachments)
+        val academicsYearResponses = academicsEntityList.map {
+            val attachments = attachmentService.createAttachmentResponses(it.attachments)
+            AcademicsYearResponse.of(it, attachments)
+        }
 
-        return AcademicsDto.of(academics, attachmentResponses)
+        return academicsYearResponses
+    }
+
+    override fun readGeneralStudies(): GeneralStudiesPageResponse {
+        val academicsEntity = academicsRepository.findByStudentTypeAndPostType(AcademicsStudentType.UNDERGRADUATE, AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS)
+        val subjectChangesList = academicsRepository.findAllByStudentTypeAndPostTypeOrderByTimeDesc(
+            AcademicsStudentType.UNDERGRADUATE,
+            AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS_SUBJECT_CHANGES
+        )
+
+        return GeneralStudiesPageResponse.of(academicsEntity, subjectChangesList)
     }
 
     @Transactional
     override fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val course = CourseEntity.of(enumStudentType, request)
+        val newCourse = CourseEntity.of(enumStudentType, request)
 
-        courseRepository.save(course)
+        if(attachments != null) {
+            attachmentService.uploadAllAttachments(newCourse, attachments)
+        }
 
-        val attachmentResponses = attachmentService.createAttachmentResponses(course.attachments)
+        courseRepository.save(newCourse)
 
-        return CourseDto.of(course, attachmentResponses)
+        val attachmentResponses = attachmentService.createAttachmentResponses(newCourse.attachments)
+
+        return CourseDto.of(newCourse, attachmentResponses)
     }
 
     @Transactional(readOnly = true)
@@ -92,12 +120,31 @@ class AcademicsServiceImpl(
         return CourseDto.of(course, attachmentResponses)
     }
 
-    @Transactional(readOnly = true)
-    override fun readScholarship(name: String): ScholarshipPageResponse {
-        val scholarship = academicsRepository.findByName(name)
-        val scholarships = scholarshipRepository.findAll()
+    @Transactional
+    override fun createScholarshipDetail(studentType: String, request: ScholarshipDto): ScholarshipDto {
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val newScholarship = ScholarshipEntity.of(enumStudentType, request)
 
-        return ScholarshipPageResponse.of(scholarship, scholarships)
+        scholarshipRepository.save(newScholarship)
+
+        return ScholarshipDto.of(newScholarship)
+    }
+
+    @Transactional(readOnly = true)
+    override fun readAllScholarship(studentType: String): ScholarshipPageResponse {
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+
+        val academicsEntity = academicsRepository.findByStudentTypeAndPostType(enumStudentType, AcademicsPostType.SCHOLARSHIP)
+        val scholarshipEntityList = scholarshipRepository.findAllByStudentType(enumStudentType)
+
+        return ScholarshipPageResponse.of(academicsEntity, scholarshipEntityList)
+    }
+
+    @Transactional(readOnly = true)
+    override fun readScholarship(scholarshipId: Long): ScholarshipDto {
+        val scholarship = scholarshipRepository.findByIdOrNull(scholarshipId)
+            ?: throw CserealException.Csereal404("id: $scholarshipId 에 해당하는 장학제도를 찾을 수 없습니다")
+        return ScholarshipDto.of(scholarship)
     }
 
     private fun makeStringToAcademicsStudentType(postType: String): AcademicsStudentType {
