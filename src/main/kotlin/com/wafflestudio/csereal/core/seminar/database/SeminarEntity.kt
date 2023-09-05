@@ -40,6 +40,7 @@ class SeminarEntity(
     var isPublic: Boolean,
     var isImportant: Boolean,
 
+    @Column(columnDefinition = "text")
     var additionalNote: String?,
 
     @OneToOne
