@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 data class AdmissionsDto(
     val id: Long,
-    val title: String,
+    val pageName: String,
     val description: String,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
@@ -14,7 +14,7 @@ data class AdmissionsDto(
         fun of(entity: AdmissionsEntity) : AdmissionsDto = entity.run {
             AdmissionsDto(
                 id = this.id,
-                title = this.title,
+                pageName = this.pageName,
                 description = this.description,
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,

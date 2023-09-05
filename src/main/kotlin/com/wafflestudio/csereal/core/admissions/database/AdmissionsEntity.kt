@@ -10,14 +10,14 @@ import jakarta.persistence.Enumerated
 class AdmissionsEntity(
     @Enumerated(EnumType.STRING)
     val postType: AdmissionsPostType,
-    val title: String,
+    val pageName: String,
     val description: String,
 ): BaseTimeEntity() {
     companion object {
         fun of(postType: AdmissionsPostType, admissionsDto: AdmissionsDto) : AdmissionsEntity {
             return AdmissionsEntity(
                 postType = postType,
-                title = admissionsDto.title,
+                pageName = admissionsDto.pageName,
                 description = admissionsDto.description,
             )
         }
