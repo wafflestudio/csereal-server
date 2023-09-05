@@ -17,7 +17,7 @@ import kotlin.text.Charsets.UTF_8
 @RequestMapping("/api/v1/file")
 @RestController
 class FileController(
-    @Value("\${csereal_mainImage.upload.path}")
+    @Value("\${csereal.upload.path}")
     private val uploadPath: String
 ) {
 

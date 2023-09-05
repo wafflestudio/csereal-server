@@ -30,13 +30,14 @@ interface MainImageService {
         contentEntityType: MainImageContentEntityType,
         requestImage: MultipartFile,
     ): MainImageDto
+
     fun createImageURL(image: MainImageEntity?): String?
 }
 
 @Service
 class MainImageServiceImpl(
     private val mainImageRepository: MainImageRepository,
-    @Value("\${csereal_mainImage.upload.path}")
+    @Value("\${csereal.upload.path}")
     private val path: String,
     private val endpointProperties: EndpointProperties
 ) : MainImageService {

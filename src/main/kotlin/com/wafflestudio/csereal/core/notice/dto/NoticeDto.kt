@@ -8,7 +8,7 @@ data class NoticeDto(
     val id: Long,
     val title: String,
     val description: String,
-    val author: String,
+    val author: String?,
     val tags: List<String>,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
@@ -23,7 +23,11 @@ data class NoticeDto(
 ) {
 
     companion object {
-        fun of(entity: NoticeEntity, attachmentResponses: List<AttachmentResponse>, prevNext: Array<NoticeEntity?>?): NoticeDto = entity.run {
+        fun of(
+            entity: NoticeEntity,
+            attachmentResponses: List<AttachmentResponse>,
+            prevNext: Array<NoticeEntity?>?
+        ): NoticeDto = entity.run {
             NoticeDto(
                 id = this.id,
                 title = this.title,
