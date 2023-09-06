@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.notice.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.cleanTextFromHtml
 import com.wafflestudio.csereal.core.notice.database.*
 import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
@@ -79,6 +80,7 @@ class NoticeServiceImpl(
         val newNotice = NoticeEntity(
             title = request.title,
             description = request.description,
+            plainTextDescription = cleanTextFromHtml(request.description),
             isPublic = request.isPublic,
             isPinned = request.isPinned,
             isImportant = request.isImportant,
