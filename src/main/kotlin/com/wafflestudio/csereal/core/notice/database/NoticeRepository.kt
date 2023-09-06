@@ -28,13 +28,12 @@ class NoticeRepositoryImpl(
         val jpaQuery = createCommonQuery(tag, keyword)
 
         val countQuery = jpaQuery.clone()
-        val total = countQuery.select(noticeEntity.count()).fetchOne()
+        val total = countQuery.select(noticeEntity.countDistinct()).fetchOne()
 
         val noticeEntityList = jpaQuery.orderBy(noticeEntity.isPinned.desc())
             .orderBy(noticeEntity.createdAt.desc())
             .offset(20 * pageNum)
             .limit(20)
-            .distinct()
             .fetch()
 
         val noticeSearchDtoList: List<NoticeSearchDto> = noticeEntityList.map {
