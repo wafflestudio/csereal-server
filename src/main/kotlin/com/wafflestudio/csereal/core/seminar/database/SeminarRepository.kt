@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.seminar.database
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.cleanTextFromHtml
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.core.seminar.database.QSeminarEntity.seminarEntity
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchDto
@@ -78,7 +79,7 @@ class SeminarRepositoryImpl(
                 SeminarSearchDto(
                     id = seminarEntityList[i].id,
                     title = seminarEntityList[i].title,
-                    description = clean(seminarEntityList[i].description),
+                    description = cleanTextFromHtml(seminarEntityList[i].description),
                     name = seminarEntityList[i].name,
                     affiliation = seminarEntityList[i].affiliation,
                     startDate = seminarEntityList[i].startDate,
@@ -134,10 +135,5 @@ class SeminarRepositoryImpl(
 
         return prevNext
 
-    }
-
-    private fun clean(description: String): String {
-        val cleanDescription = Jsoup.clean(description, Safelist.none())
-        return Parser.unescapeEntities(cleanDescription, false)
     }
 }
