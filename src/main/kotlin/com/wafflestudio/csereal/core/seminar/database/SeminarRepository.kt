@@ -8,9 +8,6 @@ import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.core.seminar.database.QSeminarEntity.seminarEntity
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
-import org.jsoup.Jsoup
-import org.jsoup.parser.Parser
-import org.jsoup.safety.Safelist
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Component
 

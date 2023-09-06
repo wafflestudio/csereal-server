@@ -9,9 +9,6 @@ import com.wafflestudio.csereal.core.news.database.QNewsTagEntity.newsTagEntity
 import com.wafflestudio.csereal.core.news.dto.NewsSearchDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
-import org.jsoup.Jsoup
-import org.jsoup.parser.Parser
-import org.jsoup.safety.Safelist
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Component
 
