@@ -14,6 +14,10 @@ class NoticeEntity(
     var title: String,
     @Column(columnDefinition = "mediumtext")
     var description: String,
+
+    @Column(columnDefinition = "mediumtext")
+    var plainTextDescription: String,
+
     var isPublic: Boolean,
     var isPinned: Boolean,
     var isImportant: Boolean,
