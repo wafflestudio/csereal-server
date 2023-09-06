@@ -3,14 +3,12 @@ package com.wafflestudio.csereal.core.news.database
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.cleanTextFromHtml
 import com.wafflestudio.csereal.core.news.database.QNewsEntity.newsEntity
 import com.wafflestudio.csereal.core.news.database.QNewsTagEntity.newsTagEntity
 import com.wafflestudio.csereal.core.news.dto.NewsSearchDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
-import org.jsoup.Jsoup
-import org.jsoup.parser.Parser
-import org.jsoup.safety.Safelist
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Component
 
@@ -73,7 +71,7 @@ class NewsRepositoryImpl(
             NewsSearchDto(
                 id = it.id,
                 title = it.title,
-                description = clean(it.description),
+                description = cleanTextFromHtml(it.description),
                 createdAt = it.createdAt,
                 tags = it.newsTags.map { newsTagEntity -> newsTagEntity.tag.name },
                 imageURL = imageURL
@@ -135,10 +133,5 @@ class NewsRepositoryImpl(
         }
 
         return prevNext
-    }
-    
-    private fun clean(description: String): String {
-        val cleanDescription = Jsoup.clean(description, Safelist.none())
-        return Parser.unescapeEntities(cleanDescription, false)
     }
 }
