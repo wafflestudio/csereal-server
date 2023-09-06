@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.notice.database
 
 import com.querydsl.core.BooleanBuilder
+import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.notice.database.QNoticeEntity.noticeEntity
@@ -24,39 +25,10 @@ class NoticeRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
 ) : CustomNoticeRepository {
     override fun searchNotice(tag: List<String>?, keyword: String?, pageNum: Long): NoticeSearchResponse {
-        val keywordBooleanBuilder = BooleanBuilder()
-        val tagsBooleanBuilder = BooleanBuilder()
-
-        if (!keyword.isNullOrEmpty()) {
-
-            val keywordList = keyword.split("[^a-zA-Z0-9가-힣]".toRegex())
-            keywordList.forEach {
-                if (it.length == 1) {
-                    throw CserealException.Csereal400("각각의 키워드는 한글자 이상이어야 합니다.")
-                } else {
-                    keywordBooleanBuilder.and(
-                        noticeEntity.title.contains(it)
-                            .or(noticeEntity.description.contains(it))
-                    )
-                }
-            }
-
-        }
-        if (!tag.isNullOrEmpty()) {
-            tag.forEach {
-                tagsBooleanBuilder.or(
-                    noticeTagEntity.tag.name.eq(it)
-                )
-            }
-        }
-
-        val jpaQuery = queryFactory.select(noticeEntity).from(noticeEntity)
-            .leftJoin(noticeTagEntity).on(noticeTagEntity.notice.eq(noticeEntity))
-            .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPublic.eq(true))
-            .where(keywordBooleanBuilder).where(tagsBooleanBuilder)
+        val jpaQuery = createCommonQuery(tag, keyword)
 
         val countQuery = jpaQuery.clone()
-        val total = countQuery.select(noticeEntity.countDistinct()).fetchOne()
+        val total = countQuery.select(noticeEntity.count()).fetchOne()
 
         val noticeEntityList = jpaQuery.orderBy(noticeEntity.isPinned.desc())
             .orderBy(noticeEntity.createdAt.desc())
@@ -81,6 +53,48 @@ class NoticeRepositoryImpl(
     }
 
     override fun findPrevNextId(noticeId: Long, tag: List<String>?, keyword: String?): Array<NoticeEntity?>? {
+
+        val current = queryFactory.selectFrom(noticeEntity)
+            .where(noticeEntity.id.eq(noticeId))
+            .fetchOne()
+
+        val previous = if (current!!.isPinned) {
+            createCommonQuery(tag, keyword)
+                .where(noticeEntity.createdAt.lt(current.createdAt).and(noticeEntity.isPinned.isTrue))
+                .orderBy(noticeEntity.createdAt.desc())
+                .fetchFirst()
+                ?: createCommonQuery(tag, keyword)
+                    .where(noticeEntity.isPinned.isFalse)
+                    .orderBy(noticeEntity.createdAt.desc())
+                    .fetchFirst()
+        } else {
+            createCommonQuery(tag, keyword)
+                .where(noticeEntity.createdAt.lt(current.createdAt).and(noticeEntity.isPinned.isFalse))
+                .orderBy(noticeEntity.createdAt.desc())
+                .fetchFirst()
+        }
+
+        val next = if (current.isPinned) {
+            createCommonQuery(tag, keyword)
+                .where(noticeEntity.createdAt.gt(current.createdAt).and(noticeEntity.isPinned.isTrue))
+                .orderBy(noticeEntity.createdAt.asc())
+                .fetchFirst()
+        } else {
+            createCommonQuery(tag, keyword)
+                .where(noticeEntity.createdAt.gt(current.createdAt).and(noticeEntity.isPinned.isFalse))
+                .orderBy(noticeEntity.createdAt.asc())
+                .fetchFirst()
+                ?: createCommonQuery(tag, keyword)
+                    .where(noticeEntity.isPinned.isTrue)
+                    .orderBy(noticeEntity.createdAt.asc())
+                    .fetchFirst()
+        }
+
+        return arrayOf(previous, next)
+
+    }
+
+    private fun createCommonQuery(tag: List<String>?, keyword: String?): JPAQuery<NoticeEntity> {
         val keywordBooleanBuilder = BooleanBuilder()
         val tagsBooleanBuilder = BooleanBuilder()
 
@@ -106,34 +120,10 @@ class NoticeRepositoryImpl(
             }
         }
 
-        val noticeSearchDtoList = queryFactory.select(noticeEntity).from(noticeEntity)
+        return queryFactory.selectFrom(noticeEntity)
             .leftJoin(noticeTagEntity).on(noticeTagEntity.notice.eq(noticeEntity))
             .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPublic.eq(true))
-            .where(keywordBooleanBuilder).where(tagsBooleanBuilder)
-            .orderBy(noticeEntity.isPinned.desc())
-            .orderBy(noticeEntity.createdAt.desc())
-            .distinct()
-            .fetch()
-
-        val findingId = noticeSearchDtoList.indexOfFirst { it.id == noticeId }
-
-        val prevNext: Array<NoticeEntity?>?
-        if (findingId == -1) {
-            prevNext = arrayOf(null, null)
-        } else if (findingId != 0 && findingId != noticeSearchDtoList.size - 1) {
-            prevNext = arrayOf(noticeSearchDtoList[findingId + 1], noticeSearchDtoList[findingId - 1])
-        } else if (findingId == 0) {
-            if (noticeSearchDtoList.size == 1) {
-                prevNext = arrayOf(null, null)
-            } else {
-                prevNext = arrayOf(noticeSearchDtoList[1], null)
-            }
-        } else {
-            prevNext = arrayOf(null, noticeSearchDtoList[noticeSearchDtoList.size - 2])
-        }
-
-        return prevNext
-
+            .where(keywordBooleanBuilder, tagsBooleanBuilder).distinct()
     }
 
 }
