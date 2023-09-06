@@ -138,8 +138,6 @@ class NoticeServiceImpl(
         val attachmentResponses = attachmentService.createAttachmentResponses(notice.attachments)
 
         return NoticeDto.of(notice, attachmentResponses, null)
-
-
     }
 
     @Transactional

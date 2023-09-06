@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.notice.database
 
+import com.wafflestudio.csereal.common.cleanTextFromHtml
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.core.notice.dto.NoticeDto
@@ -36,6 +37,11 @@ class NoticeEntity(
     override fun bringAttachments() = attachments
 
     fun update(updateNoticeRequest: NoticeDto) {
+        // Update plainTextDescription if description is changed
+        if (updateNoticeRequest.description != this.description) {
+            this.plainTextDescription = cleanTextFromHtml(updateNoticeRequest.description)
+        }
+
         this.title = updateNoticeRequest.title
         this.description = updateNoticeRequest.description
         this.isPublic = updateNoticeRequest.isPublic
