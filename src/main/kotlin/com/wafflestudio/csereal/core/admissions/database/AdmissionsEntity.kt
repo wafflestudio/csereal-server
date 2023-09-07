@@ -14,10 +14,10 @@ class AdmissionsEntity(
     val description: String,
 ): BaseTimeEntity() {
     companion object {
-        fun of(postType: AdmissionsPostType, admissionsDto: AdmissionsDto) : AdmissionsEntity {
+        fun of(postType: AdmissionsPostType, pageName: String, admissionsDto: AdmissionsDto) : AdmissionsEntity {
             return AdmissionsEntity(
                 postType = postType,
-                pageName = admissionsDto.pageName,
+                pageName = pageName,
                 description = admissionsDto.description,
             )
         }
