@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.seminar.database
 
+import com.wafflestudio.csereal.common.cleanTextFromHtml
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
@@ -19,7 +20,13 @@ class SeminarEntity(
     var description: String,
 
     @Column(columnDefinition = "mediumtext")
+    var plainTextDescription: String,
+
+    @Column(columnDefinition = "mediumtext")
     var introduction: String,
+
+    @Column(columnDefinition = "mediumtext")
+    var plainTextIntroduction: String,
 
     // 연사 정보
     var name: String,
@@ -42,6 +49,9 @@ class SeminarEntity(
 
     @Column(columnDefinition = "text")
     var additionalNote: String?,
+
+    @Column(columnDefinition = "text")
+    var plainTextAdditionalNote: String?,
 
     @OneToOne
     var mainImage: MainImageEntity? = null,
