@@ -40,7 +40,7 @@ servlet:
 spring:
   config.activate.on-profile: local
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/csereal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
+    url: jdbc:mysql://127.0.0.1:3307/csereal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
     username: root
     password: password
   jpa:
@@ -96,3 +96,45 @@ oldFiles:
 endpoint:
   backend: http://${URL}/api
   frontend: http://${URL}
+
+---
+spring:
+  config.activate.on-profile: test
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;MODE=MYSQL;DB_CLOSE_DELAY=-1;
+    username: sa
+    password:
+  jpa:
+    database: h2
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+  h2:
+    console:
+      enabled: true
+  security:
+    oauth2:
+      client:
+        registration:
+          idsnucse:
+            redirect-uri: http://localhost:8080/api/v1/login/oauth2/code/idsnucse
+
+logging.level:
+  default: INFO
+  org:
+    springframework:
+      security: DEBUG
+
+csereal:
+  upload:
+    path: ./files/
+
+oldFiles:
+  path: ./cse-files
+
+endpoint:
+  backend: http://localhost:8080
+  frontend: http://localhost:3000
