@@ -95,8 +95,22 @@ class SeminarEntity(
     }
 
     fun update(updateSeminarRequest: SeminarDto) {
+        if (updateSeminarRequest.description != description) {
+            description = updateSeminarRequest.description
+            plainTextDescription = cleanTextFromHtml(updateSeminarRequest.description)
+        }
+
+        if (updateSeminarRequest.introduction != introduction) {
+            introduction = updateSeminarRequest.introduction
+            plainTextIntroduction = cleanTextFromHtml(updateSeminarRequest.introduction)
+        }
+
+        if (updateSeminarRequest.additionalNote != additionalNote) {
+            additionalNote = updateSeminarRequest.additionalNote
+            plainTextAdditionalNote = updateSeminarRequest.additionalNote?.let { cleanTextFromHtml(it) }
+        }
+
         title = updateSeminarRequest.title
-        description = updateSeminarRequest.description
         introduction = updateSeminarRequest.introduction
         name = updateSeminarRequest.name
         speakerURL = updateSeminarRequest.speakerURL
@@ -111,6 +125,5 @@ class SeminarEntity(
         host = updateSeminarRequest.host
         isPublic = updateSeminarRequest.isPublic
         isImportant = updateSeminarRequest.isImportant
-        additionalNote = updateSeminarRequest.additionalNote
     }
 }
