@@ -24,7 +24,7 @@ class NoticeServiceTest(
         private val noticeRepository: NoticeRepository,
 ) : BehaviorSpec() {
     init {
-        beforeSpec {
+        beforeContainer {
             userRepository.save(
                     UserEntity(
                             "username",
@@ -36,7 +36,7 @@ class NoticeServiceTest(
             )
         }
 
-        afterSpec {
+        afterContainer {
             noticeRepository.deleteAll()
             userRepository.deleteAll()
         }
