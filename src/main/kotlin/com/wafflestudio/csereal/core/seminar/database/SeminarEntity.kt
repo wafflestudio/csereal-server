@@ -65,10 +65,16 @@ class SeminarEntity(
 
     companion object {
         fun of(seminarDto: SeminarDto): SeminarEntity {
+            val plainTextDescription = cleanTextFromHtml(seminarDto.description)
+            val palinTextIntroduction = cleanTextFromHtml(seminarDto.introduction)
+            val plainTextAdditionalNote = seminarDto.additionalNote?.let { cleanTextFromHtml(it) }
+
             return SeminarEntity(
                 title = seminarDto.title,
                 description = seminarDto.description,
+                plainTextDescription = plainTextDescription,
                 introduction = seminarDto.introduction,
+                plainTextIntroduction = palinTextIntroduction,
                 name = seminarDto.name,
                 speakerURL = seminarDto.speakerURL,
                 speakerTitle = seminarDto.speakerTitle,
@@ -83,6 +89,7 @@ class SeminarEntity(
                 isPublic = seminarDto.isPublic,
                 isImportant = seminarDto.isImportant,
                 additionalNote = seminarDto.additionalNote,
+                plainTextAdditionalNote = plainTextAdditionalNote,
             )
         }
     }
