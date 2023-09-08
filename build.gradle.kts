@@ -33,6 +33,20 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
 
+    // kotest
+    testImplementation("io.kotest:kotest-runner-junit5-jvm:5.7.1")
+    testImplementation("io.kotest:kotest-assertions-core-jvm:5.7.1")
+    testImplementation("io.kotest:kotest-property-jvm:5.7.1")
+    implementation("io.kotest.extensions:kotest-extensions-spring:1.1.3")
+
+    // mockk
+    testImplementation("io.mockk:mockk:1.13.7")
+    testImplementation("com.ninja-squad:springmockk:4.0.2")
+
+    // h2 database
+    implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    testImplementation("com.h2database:h2")
+
     //queryDsl
     implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
     kapt("com.querydsl:querydsl-apt:5.0.0:jakarta")
@@ -79,4 +93,5 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    systemProperty("spring.profiles.active", "test")
 }
