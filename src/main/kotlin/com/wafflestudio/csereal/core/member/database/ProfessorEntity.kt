@@ -87,6 +87,10 @@ class ProfessorEntity(
 
 }
 
-enum class ProfessorStatus {
-    ACTIVE, INACTIVE, VISITING
+enum class ProfessorStatus (
+    val krValue: String
+){
+    ACTIVE("교수"),
+    INACTIVE("역대 교수"),
+    VISITING("객원교수");
 }
