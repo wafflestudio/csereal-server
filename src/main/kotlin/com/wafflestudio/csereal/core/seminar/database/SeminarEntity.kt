@@ -36,9 +36,7 @@ class SeminarEntity(
     var affiliationURL: String?,
 
     var startDate: String?,
-    var startTime: String?,
     var endDate: String?,
-    var endTime: String?,
 
     var location: String,
 
@@ -81,9 +79,7 @@ class SeminarEntity(
                 affiliation = seminarDto.affiliation,
                 affiliationURL = seminarDto.affiliationURL,
                 startDate = seminarDto.startDate,
-                startTime = seminarDto.startTime,
                 endDate = seminarDto.endDate,
-                endTime = seminarDto.endTime,
                 location = seminarDto.location,
                 host = seminarDto.host,
                 isPublic = seminarDto.isPublic,
@@ -118,9 +114,7 @@ class SeminarEntity(
         affiliation = updateSeminarRequest.affiliation
         affiliationURL = updateSeminarRequest.affiliationURL
         startDate = updateSeminarRequest.startDate
-        startTime = updateSeminarRequest.startTime
         endDate = updateSeminarRequest.endDate
-        endTime = updateSeminarRequest.endTime
         location = updateSeminarRequest.location
         host = updateSeminarRequest.host
         isPublic = updateSeminarRequest.isPublic
