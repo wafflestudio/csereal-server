@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.seminar.database
 
+import com.wafflestudio.csereal.common.cleanTextFromHtml
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
@@ -19,7 +20,13 @@ class SeminarEntity(
     var description: String,
 
     @Column(columnDefinition = "mediumtext")
+    var plainTextDescription: String,
+
+    @Column(columnDefinition = "mediumtext")
     var introduction: String,
+
+    @Column(columnDefinition = "mediumtext")
+    var plainTextIntroduction: String,
 
     // 연사 정보
     var name: String,
@@ -41,6 +48,9 @@ class SeminarEntity(
     @Column(columnDefinition = "text")
     var additionalNote: String?,
 
+    @Column(columnDefinition = "text")
+    var plainTextAdditionalNote: String?,
+
     @OneToOne
     var mainImage: MainImageEntity? = null,
 
@@ -53,10 +63,16 @@ class SeminarEntity(
 
     companion object {
         fun of(seminarDto: SeminarDto): SeminarEntity {
+            val plainTextDescription = cleanTextFromHtml(seminarDto.description)
+            val palinTextIntroduction = cleanTextFromHtml(seminarDto.introduction)
+            val plainTextAdditionalNote = seminarDto.additionalNote?.let { cleanTextFromHtml(it) }
+
             return SeminarEntity(
                 title = seminarDto.title,
                 description = seminarDto.description,
+                plainTextDescription = plainTextDescription,
                 introduction = seminarDto.introduction,
+                plainTextIntroduction = palinTextIntroduction,
                 name = seminarDto.name,
                 speakerURL = seminarDto.speakerURL,
                 speakerTitle = seminarDto.speakerTitle,
@@ -69,13 +85,28 @@ class SeminarEntity(
                 isPublic = seminarDto.isPublic,
                 isImportant = seminarDto.isImportant,
                 additionalNote = seminarDto.additionalNote,
+                plainTextAdditionalNote = plainTextAdditionalNote,
             )
         }
     }
 
     fun update(updateSeminarRequest: SeminarDto) {
+        if (updateSeminarRequest.description != description) {
+            description = updateSeminarRequest.description
+            plainTextDescription = cleanTextFromHtml(updateSeminarRequest.description)
+        }
+
+        if (updateSeminarRequest.introduction != introduction) {
+            introduction = updateSeminarRequest.introduction
+            plainTextIntroduction = cleanTextFromHtml(updateSeminarRequest.introduction)
+        }
+
+        if (updateSeminarRequest.additionalNote != additionalNote) {
+            additionalNote = updateSeminarRequest.additionalNote
+            plainTextAdditionalNote = updateSeminarRequest.additionalNote?.let { cleanTextFromHtml(it) }
+        }
+
         title = updateSeminarRequest.title
-        description = updateSeminarRequest.description
         introduction = updateSeminarRequest.introduction
         name = updateSeminarRequest.name
         speakerURL = updateSeminarRequest.speakerURL
@@ -88,6 +119,5 @@ class SeminarEntity(
         host = updateSeminarRequest.host
         isPublic = updateSeminarRequest.isPublic
         isImportant = updateSeminarRequest.isImportant
-        additionalNote = updateSeminarRequest.additionalNote
     }
 }

@@ -52,6 +52,8 @@ class ProfessorServiceImpl(
             mainImageService.uploadMainImage(professor, mainImage)
         }
 
+        professor.memberSearch = MemberSearchEntity.create(professor)
+
         professorRepository.save(professor)
 
         val imageURL = mainImageService.createImageURL(professor.mainImage)
@@ -147,6 +149,9 @@ class ProfessorServiceImpl(
         for (career in careersToAdd) {
             CareerEntity.create(career, professor)
         }
+
+        // 검색 엔티티 업데이트
+        professor.memberSearch!!.update(professor)
 
         val imageURL = mainImageService.createImageURL(professor.mainImage)
 
