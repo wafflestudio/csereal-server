@@ -45,9 +45,7 @@ class SeminarServiceTest (
                     affiliation = "affiliation",
                     affiliationURL = "affiliationURL",
                     startDate = "startDate",
-                    startTime = "startTime",
                     endDate = "endDate",
-                    endTime = "endTime",
                     location = "location",
                     host = "host",
                     additionalNote = """
@@ -105,9 +103,7 @@ class SeminarServiceTest (
                             affiliation = "affiliation",
                             affiliationURL = "affiliationURL",
                             startDate = "startDate",
-                            startTime = "startTime",
                             endDate = "endDate",
-                            endTime = "endTime",
                             location = "location",
                             host = "host",
                             additionalNote = """
