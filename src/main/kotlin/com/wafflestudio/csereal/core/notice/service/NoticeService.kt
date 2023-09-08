@@ -6,6 +6,7 @@ import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
@@ -16,8 +17,14 @@ import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.multipart.MultipartFile
 
 interface NoticeService {
-    fun searchNotice(tag: List<String>?, keyword: String?, pageNum: Long): NoticeSearchResponse
-    fun readNotice(noticeId: Long, tag: List<String>?, keyword: String?): NoticeDto
+    fun searchNotice(
+        tag: List<String>?,
+        keyword: String?,
+        pageable: Pageable,
+        usePageBtn: Boolean
+    ): NoticeSearchResponse
+
+    fun readNotice(noticeId: Long): NoticeDto
     fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
     fun updateNotice(noticeId: Long, request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
     fun deleteNotice(noticeId: Long)
@@ -39,27 +46,25 @@ class NoticeServiceImpl(
     override fun searchNotice(
         tag: List<String>?,
         keyword: String?,
-        pageNum: Long
+        pageable: Pageable,
+        usePageBtn: Boolean
     ): NoticeSearchResponse {
-        return noticeRepository.searchNotice(tag, keyword, pageNum)
+        return noticeRepository.searchNotice(tag, keyword, pageable, usePageBtn)
     }
 
     @Transactional(readOnly = true)
-    override fun readNotice(
-        noticeId: Long,
-        tag: List<String>?,
-        keyword: String?
-    ): NoticeDto {
-        val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
+    override fun readNotice(noticeId: Long): NoticeDto {
+        val notice = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
 
         if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
 
         val attachmentResponses = attachmentService.createAttachmentResponses(notice.attachments)
 
-        val prevNext = noticeRepository.findPrevNextId(noticeId, tag, keyword)
+        val prevNotice = noticeRepository.findFirstByCreatedAtLessThanOrderByCreatedAtDesc(notice.createdAt!!)
+        val nextNotice = noticeRepository.findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(notice.createdAt!!)
 
-        return NoticeDto.of(notice, attachmentResponses, prevNext)
+        return NoticeDto.of(notice, attachmentResponses, prevNotice, nextNotice)
     }
 
     @Transactional
@@ -90,7 +95,7 @@ class NoticeServiceImpl(
             NoticeTagEntity.createNoticeTag(newNotice, tag)
         }
 
-        if(attachments != null) {
+        if (attachments != null) {
             attachmentService.uploadAllAttachments(newNotice, attachments)
         }
 
@@ -98,7 +103,7 @@ class NoticeServiceImpl(
 
         val attachmentResponses = attachmentService.createAttachmentResponses(newNotice.attachments)
 
-        return NoticeDto.of(newNotice, attachmentResponses, null)
+        return NoticeDto.of(newNotice, attachmentResponses)
 
     }
 
@@ -110,7 +115,7 @@ class NoticeServiceImpl(
 
         notice.update(request)
 
-        if(attachments != null) {
+        if (attachments != null) {
             notice.attachments.clear()
             attachmentService.uploadAllAttachments(notice, attachments)
         } else {
@@ -135,7 +140,7 @@ class NoticeServiceImpl(
 
         val attachmentResponses = attachmentService.createAttachmentResponses(notice.attachments)
 
-        return NoticeDto.of(notice, attachmentResponses, null)
+        return NoticeDto.of(notice, attachmentResponses)
 
 
     }
@@ -151,15 +156,16 @@ class NoticeServiceImpl(
 
     @Transactional
     override fun unpinManyNotices(idList: List<Long>) {
-        for(noticeId in idList) {
+        for (noticeId in idList) {
             val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
                 ?: throw CserealException.Csereal404("존재하지 않는 공지사항을 입력하였습니다.(noticeId: $noticeId)")
             notice.isPinned = false
         }
     }
+
     @Transactional
     override fun deleteManyNotices(idList: List<Long>) {
-        for(noticeId in idList) {
+        for (noticeId in idList) {
             val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
                 ?: throw CserealException.Csereal404("존재하지 않는 공지사항을 입력하였습니다.(noticeId: $noticeId)")
             notice.isDeleted = true

@@ -26,7 +26,8 @@ data class NoticeDto(
         fun of(
             entity: NoticeEntity,
             attachmentResponses: List<AttachmentResponse>,
-            prevNext: Array<NoticeEntity?>?
+            prevNotice: NoticeEntity? = null,
+            nextNotice: NoticeEntity? = null
         ): NoticeDto = entity.run {
             NoticeDto(
                 id = this.id,
@@ -39,10 +40,10 @@ data class NoticeDto(
                 isPublic = this.isPublic,
                 isPinned = this.isPinned,
                 isImportant = this.isImportant,
-                prevId = prevNext?.get(0)?.id,
-                prevTitle = prevNext?.get(0)?.title,
-                nextId = prevNext?.get(1)?.id,
-                nextTitle = prevNext?.get(1)?.title,
+                prevId = prevNotice?.id,
+                prevTitle = prevNotice?.title,
+                nextId = nextNotice?.id,
+                nextTitle = nextNotice?.title,
                 attachments = attachmentResponses,
             )
         }

@@ -1,99 +1,44 @@
 package com.wafflestudio.csereal.core.notice.database
 
 import com.querydsl.core.BooleanBuilder
-import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.notice.database.QNoticeEntity.noticeEntity
 import com.wafflestudio.csereal.core.notice.database.QNoticeTagEntity.noticeTagEntity
 import com.wafflestudio.csereal.core.notice.dto.NoticeSearchDto
 import com.wafflestudio.csereal.core.notice.dto.NoticeSearchResponse
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
+import kotlin.math.ceil
 
 interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepository {
     fun findAllByIsImportant(isImportant: Boolean): List<NoticeEntity>
+    fun findFirstByCreatedAtLessThanOrderByCreatedAtDesc(timestamp: LocalDateTime): NoticeEntity?
+    fun findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(timestamp: LocalDateTime): NoticeEntity?
 }
 
 interface CustomNoticeRepository {
-    fun searchNotice(tag: List<String>?, keyword: String?, pageNum: Long): NoticeSearchResponse
-    fun findPrevNextId(noticeId: Long, tag: List<String>?, keyword: String?): Array<NoticeEntity?>?
+    fun searchNotice(
+        tag: List<String>?,
+        keyword: String?,
+        pageable: Pageable,
+        usePageBtn: Boolean
+    ): NoticeSearchResponse
 }
 
 @Component
 class NoticeRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
 ) : CustomNoticeRepository {
-    override fun searchNotice(tag: List<String>?, keyword: String?, pageNum: Long): NoticeSearchResponse {
-        val jpaQuery = createCommonQuery(tag, keyword)
-
-        val countQuery = jpaQuery.clone()
-        val total = countQuery.select(noticeEntity.countDistinct()).fetchOne()
-
-        val noticeEntityList = jpaQuery.orderBy(noticeEntity.isPinned.desc())
-            .orderBy(noticeEntity.createdAt.desc())
-            .offset(20 * pageNum)
-            .limit(20)
-            .fetch()
-
-        val noticeSearchDtoList: List<NoticeSearchDto> = noticeEntityList.map {
-            val hasAttachment: Boolean = it.attachments.isNotEmpty()
-
-            NoticeSearchDto(
-                id = it.id,
-                title = it.title,
-                createdAt = it.createdAt,
-                isPinned = it.isPinned,
-                hasAttachment = hasAttachment
-            )
-        }
-
-        return NoticeSearchResponse(total!!, noticeSearchDtoList)
-    }
-
-    override fun findPrevNextId(noticeId: Long, tag: List<String>?, keyword: String?): Array<NoticeEntity?>? {
-
-        val current = queryFactory.selectFrom(noticeEntity)
-            .where(noticeEntity.id.eq(noticeId))
-            .fetchOne()
-
-        val previous = if (current!!.isPinned) {
-            createCommonQuery(tag, keyword)
-                .where(noticeEntity.createdAt.lt(current.createdAt).and(noticeEntity.isPinned.isTrue))
-                .orderBy(noticeEntity.createdAt.desc())
-                .fetchFirst()
-                ?: createCommonQuery(tag, keyword)
-                    .where(noticeEntity.isPinned.isFalse)
-                    .orderBy(noticeEntity.createdAt.desc())
-                    .fetchFirst()
-        } else {
-            createCommonQuery(tag, keyword)
-                .where(noticeEntity.createdAt.lt(current.createdAt).and(noticeEntity.isPinned.isFalse))
-                .orderBy(noticeEntity.createdAt.desc())
-                .fetchFirst()
-        }
-
-        val next = if (current.isPinned) {
-            createCommonQuery(tag, keyword)
-                .where(noticeEntity.createdAt.gt(current.createdAt).and(noticeEntity.isPinned.isTrue))
-                .orderBy(noticeEntity.createdAt.asc())
-                .fetchFirst()
-        } else {
-            createCommonQuery(tag, keyword)
-                .where(noticeEntity.createdAt.gt(current.createdAt).and(noticeEntity.isPinned.isFalse))
-                .orderBy(noticeEntity.createdAt.asc())
-                .fetchFirst()
-                ?: createCommonQuery(tag, keyword)
-                    .where(noticeEntity.isPinned.isTrue)
-                    .orderBy(noticeEntity.createdAt.asc())
-                    .fetchFirst()
-        }
-
-        return arrayOf(previous, next)
-
-    }
-
-    private fun createCommonQuery(tag: List<String>?, keyword: String?): JPAQuery<NoticeEntity> {
+    override fun searchNotice(
+        tag: List<String>?,
+        keyword: String?,
+        pageable: Pageable,
+        usePageBtn: Boolean
+    ): NoticeSearchResponse {
         val keywordBooleanBuilder = BooleanBuilder()
         val tagsBooleanBuilder = BooleanBuilder()
 
@@ -119,10 +64,62 @@ class NoticeRepositoryImpl(
             }
         }
 
-        return queryFactory.selectFrom(noticeEntity)
+        val jpaQuery = queryFactory.selectFrom(noticeEntity)
             .leftJoin(noticeTagEntity).on(noticeTagEntity.notice.eq(noticeEntity))
             .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPublic.eq(true))
-            .where(keywordBooleanBuilder, tagsBooleanBuilder).distinct()
+            .where(keywordBooleanBuilder, tagsBooleanBuilder)
+
+        var total = 0
+        var pageRequest = pageable
+
+        if (usePageBtn) {
+            val countQuery = jpaQuery.clone()
+            total = countQuery.select(noticeEntity.countDistinct()).fetchOne()!!.toInt()
+            pageRequest = exchangePageRequest(pageable, total)
+        } else {
+            total = 10 * pageable.pageSize // 10개 페이지 고정
+        }
+
+        val noticeEntityList = jpaQuery
+            .orderBy(noticeEntity.isPinned.desc())
+            .orderBy(noticeEntity.createdAt.desc())
+            .offset(pageRequest.offset)
+            .limit(pageRequest.pageSize.toLong())
+            .distinct()
+            .fetch()
+
+        val noticeSearchDtoList: List<NoticeSearchDto> = noticeEntityList.map {
+            val hasAttachment: Boolean = it.attachments.isNotEmpty()
+
+            NoticeSearchDto(
+                id = it.id,
+                title = it.title,
+                createdAt = it.createdAt,
+                isPinned = it.isPinned,
+                hasAttachment = hasAttachment
+            )
+        }
+
+        return NoticeSearchResponse(total, noticeSearchDtoList)
+
+    }
+
+    private fun exchangePageRequest(pageable: Pageable, total: Int): Pageable {
+        /**
+         *  요청한 페이지 번호가 기존 데이터 사이즈 초과할 경우 마지막 페이지 데이터 반환
+         */
+
+        val pageNum = pageable.pageNumber
+        val pageSize = pageable.pageSize
+        val requestCount = (pageNum - 1) * pageSize
+
+        if (total > requestCount) {
+            return pageable
+        }
+
+        val requestPageNum = ceil(total.toDouble() / pageNum).toInt()
+        return PageRequest.of(requestPageNum, pageSize)
+
     }
 
 }
