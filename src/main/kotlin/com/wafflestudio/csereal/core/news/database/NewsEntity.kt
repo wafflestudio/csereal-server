@@ -18,6 +18,9 @@ class NewsEntity(
     @Column(columnDefinition = "mediumtext")
     var description: String,
 
+    @Column(columnDefinition = "mediumtext")
+    var plainTextDescription: String,
+
     var isPublic: Boolean,
 
     var isSlide: Boolean,
