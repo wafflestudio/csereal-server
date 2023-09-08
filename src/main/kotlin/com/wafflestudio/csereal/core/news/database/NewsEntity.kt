@@ -1,9 +1,9 @@
 package com.wafflestudio.csereal.core.news.database
 
-import com.wafflestudio.csereal.common.cleanTextFromHtml
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
+import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
@@ -37,7 +37,7 @@ class NewsEntity(
     @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL])
     var newsTags: MutableSet<NewsTagEntity> = mutableSetOf()
 
-): BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
+) : BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
     override fun bringMainImage() = mainImage
     override fun bringAttachments() = attachments
 
@@ -53,6 +53,7 @@ class NewsEntity(
             )
         }
     }
+
     fun update(updateNewsRequest: NewsDto) {
         if (updateNewsRequest.description != this.description) {
             this.description = updateNewsRequest.description
