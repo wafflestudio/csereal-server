@@ -24,7 +24,9 @@ class StaffEntity(
     @OneToOne
     var mainImage: MainImageEntity? = null,
 
-    ) : BaseTimeEntity(), MainImageContentEntityType {
+    @OneToOne(mappedBy = "staff", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var memberSearch: MemberSearchEntity? = null,
+) : BaseTimeEntity(), MainImageContentEntityType {
     override fun bringMainImage(): MainImageEntity? = mainImage
 
     companion object {
