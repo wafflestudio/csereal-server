@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.news.database
 
+import com.wafflestudio.csereal.common.cleanTextFromHtml
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
@@ -17,6 +18,9 @@ class NewsEntity(
 
     @Column(columnDefinition = "mediumtext")
     var description: String,
+
+    @Column(columnDefinition = "mediumtext")
+    var plainTextDescription: String,
 
     var isPublic: Boolean,
 
@@ -42,6 +46,7 @@ class NewsEntity(
             return NewsEntity(
                 title = newsDto.title,
                 description = newsDto.description,
+                plainTextDescription = cleanTextFromHtml(newsDto.description),
                 isPublic = newsDto.isPublic,
                 isSlide = newsDto.isSlide,
                 isImportant = newsDto.isImportant,
@@ -49,8 +54,12 @@ class NewsEntity(
         }
     }
     fun update(updateNewsRequest: NewsDto) {
+        if (updateNewsRequest.description != this.description) {
+            this.description = updateNewsRequest.description
+            this.plainTextDescription = cleanTextFromHtml(updateNewsRequest.description)
+        }
+
         this.title = updateNewsRequest.title
-        this.description = updateNewsRequest.description
         this.isPublic = updateNewsRequest.isPublic
         this.isSlide = updateNewsRequest.isSlide
         this.isImportant = updateNewsRequest.isImportant
