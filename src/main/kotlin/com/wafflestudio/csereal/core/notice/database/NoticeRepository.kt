@@ -69,15 +69,15 @@ class NoticeRepositoryImpl(
             .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPublic.eq(true))
             .where(keywordBooleanBuilder, tagsBooleanBuilder)
 
-        var total = 0
+        val total: Long
         var pageRequest = pageable
 
         if (usePageBtn) {
             val countQuery = jpaQuery.clone()
-            total = countQuery.select(noticeEntity.countDistinct()).fetchOne()!!.toInt()
+            total = countQuery.select(noticeEntity.countDistinct()).fetchOne()!!
             pageRequest = exchangePageRequest(pageable, total)
         } else {
-            total = 10 * pageable.pageSize // 10개 페이지 고정
+            total = (10 * pageable.pageSize).toLong() // 10개 페이지 고정
         }
 
         val noticeEntityList = jpaQuery
@@ -104,7 +104,7 @@ class NoticeRepositoryImpl(
 
     }
 
-    private fun exchangePageRequest(pageable: Pageable, total: Int): Pageable {
+    private fun exchangePageRequest(pageable: Pageable, total: Long): Pageable {
         /**
          *  요청한 페이지 번호가 기존 데이터 사이즈 초과할 경우 마지막 페이지 데이터 반환
          */
