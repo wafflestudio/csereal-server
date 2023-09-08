@@ -44,6 +44,8 @@ class ProfessorEntity(
     @OneToOne
     var mainImage: MainImageEntity? = null,
 
+    @OneToOne(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var memberSearch: MemberSearchEntity? = null,
 ) : BaseTimeEntity(), MainImageContentEntityType {
     override fun bringMainImage(): MainImageEntity? = mainImage
 
