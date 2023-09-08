@@ -76,7 +76,7 @@ class SeminarRepositoryImpl(
                 SeminarSearchDto(
                     id = seminarEntityList[i].id,
                     title = seminarEntityList[i].title,
-                    description = cleanTextFromHtml(seminarEntityList[i].description),
+                    description = seminarEntityList[i].plainTextDescription,
                     name = seminarEntityList[i].name,
                     affiliation = seminarEntityList[i].affiliation,
                     startDate = seminarEntityList[i].startDate,
