@@ -71,7 +71,7 @@ class NewsRepositoryImpl(
             NewsSearchDto(
                 id = it.id,
                 title = it.title,
-                description = cleanTextFromHtml(it.description),
+                description = it.plainTextDescription,
                 createdAt = it.createdAt,
                 tags = it.newsTags.map { newsTagEntity -> newsTagEntity.tag.name },
                 imageURL = imageURL
