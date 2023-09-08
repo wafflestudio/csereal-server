@@ -18,11 +18,11 @@ class SeminarController(
     @GetMapping
     fun searchSeminar(
         @RequestParam(required = false) keyword: String?,
-        @RequestParam(required = false, defaultValue = "1") pageNum: Int,
-        @RequestParam(required = false, defaultValue = "false") usePageBtn: Boolean
+        @RequestParam(required = false, defaultValue = "1") pageNum: Int
     ): ResponseEntity<SeminarSearchResponse> {
         val pageSize = 10
         val pageRequest = PageRequest.of(pageNum - 1, pageSize)
+        val usePageBtn = pageNum != 1
         return ResponseEntity.ok(seminarService.searchSeminar(keyword, pageRequest, usePageBtn))
     }
 
