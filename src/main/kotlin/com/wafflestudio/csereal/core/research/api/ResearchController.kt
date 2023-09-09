@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.research.api
 
+import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.research.dto.LabDto
 import com.wafflestudio.csereal.core.research.dto.ResearchDto
 import com.wafflestudio.csereal.core.research.dto.ResearchGroupResponse
@@ -14,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile
 class ResearchController(
     private val researchService: ResearchService
 ) {
+    @AuthenticatedStaff
     @PostMapping
     fun createResearchDetail(
         @Valid @RequestPart("request") request: ResearchDto,
@@ -33,6 +35,7 @@ class ResearchController(
         return ResponseEntity.ok(researchService.readAllResearchCenters())
     }
 
+    @AuthenticatedStaff
     @PatchMapping("/{researchId}")
     fun updateResearchDetail(
         @PathVariable researchId: Long,
@@ -43,6 +46,7 @@ class ResearchController(
         return ResponseEntity.ok(researchService.updateResearchDetail(researchId, request, mainImage, attachments))
     }
 
+    @AuthenticatedStaff
     @PostMapping("/lab")
     fun createLab(
         @Valid @RequestPart("request") request: LabDto,

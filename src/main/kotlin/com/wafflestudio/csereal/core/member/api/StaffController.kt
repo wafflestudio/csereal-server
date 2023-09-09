@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.member.api
 
+import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.member.dto.SimpleStaffDto
 import com.wafflestudio.csereal.core.member.dto.StaffDto
 import com.wafflestudio.csereal.core.member.service.StaffService
@@ -13,12 +14,13 @@ class StaffController(
     private val staffService: StaffService
 ) {
 
+    @AuthenticatedStaff
     @PostMapping
     fun createStaff(
         @RequestPart("request") createStaffRequest: StaffDto,
         @RequestPart("mainImage") mainImage: MultipartFile?,
     ): ResponseEntity<StaffDto> {
-        return ResponseEntity.ok(staffService.createStaff(createStaffRequest,mainImage))
+        return ResponseEntity.ok(staffService.createStaff(createStaffRequest, mainImage))
     }
 
     @GetMapping("/{staffId}")
@@ -31,6 +33,7 @@ class StaffController(
         return ResponseEntity.ok(staffService.getAllStaff())
     }
 
+    @AuthenticatedStaff
     fun updateStaff(
         @PathVariable staffId: Long,
         @RequestPart("request") updateStaffRequest: StaffDto,
@@ -39,6 +42,7 @@ class StaffController(
         return ResponseEntity.ok(staffService.updateStaff(staffId, updateStaffRequest, mainImage))
     }
 
+    @AuthenticatedStaff
     @DeleteMapping("/{staffId}")
     fun deleteStaff(@PathVariable staffId: Long): ResponseEntity<Any> {
         staffService.deleteStaff(staffId)
