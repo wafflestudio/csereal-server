@@ -27,14 +27,11 @@ interface NoticeService {
 
     fun readNotice(noticeId: Long): NoticeDto
     fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
-    /*
     fun updateNotice(noticeId: Long, request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
     fun deleteNotice(noticeId: Long)
     fun unpinManyNotices(idList: List<Long>)
     fun deleteManyNotices(idList: List<Long>)
     fun enrollTag(tagName: String)
-
-     */
 }
 
 @Service
@@ -112,7 +109,6 @@ class NoticeServiceImpl(
         return NoticeDto.of(newNotice, attachmentResponses)
 
     }
-    /*
 
     @Transactional
     override fun updateNotice(noticeId: Long, request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto {
@@ -131,18 +127,17 @@ class NoticeServiceImpl(
 
         val oldTags = notice.noticeTags.map { it.tag.name }
 
-        val tagsToRemove = oldTags - request.tags
-        val tagsToAdd = request.tags - oldTags
+        val tagsToRemove = oldTags - request.tags.map { TagInNoticeEnum.getTagEnum(it) }
+        val tagsToAdd = request.tags.map { TagInNoticeEnum.getTagEnum(it) } - oldTags
 
-        for (tagRequest in tagsToRemove) {
-            val tagName = TagInNotice.valueOf(tagRequest)
-            val tagId = tagInNoticeRepository.findByName(tagName)!!.id
-            notice.noticeTags.removeIf { it.tag.name == tagName }
+        for (tagEnum in tagsToRemove) {
+            val tagId = tagInNoticeRepository.findByName(tagEnum)!!.id
+            notice.noticeTags.removeIf { it.tag.name == tagEnum }
             noticeTagRepository.deleteByNoticeIdAndTagId(noticeId, tagId)
         }
 
-        for (tagName in tagsToAdd) {
-            val tag = tagInNoticeRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
+        for (tagEnum in tagsToAdd) {
+            val tag = tagInNoticeRepository.findByName(tagEnum) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
             NoticeTagEntity.createNoticeTag(notice, tag)
         }
 
@@ -178,15 +173,12 @@ class NoticeServiceImpl(
         }
     }
 
-
-
     override fun enrollTag(tagName: String) {
         val newTag = TagInNoticeEntity(
-            name = tagName
+            name = TagInNoticeEnum.getTagEnum(tagName)
         )
         tagInNoticeRepository.save(newTag)
     }
 
-     */
 
 }
