@@ -8,15 +8,16 @@ import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import com.wafflestudio.csereal.core.seminar.database.SeminarRepository
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface SeminarService {
-    fun searchSeminar(keyword: String?, pageNum: Long): SeminarSearchResponse
+    fun searchSeminar(keyword: String?, pageable: Pageable, usePageBtn: Boolean): SeminarSearchResponse
     fun createSeminar(request: SeminarDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): SeminarDto
-    fun readSeminar(seminarId: Long, keyword: String?): SeminarDto
+    fun readSeminar(seminarId: Long): SeminarDto
     fun updateSeminar(
         seminarId: Long,
         request: SeminarDto,
@@ -35,8 +36,8 @@ class SeminarServiceImpl(
     private val attachmentService: AttachmentService,
 ) : SeminarService {
     @Transactional(readOnly = true)
-    override fun searchSeminar(keyword: String?, pageNum: Long): SeminarSearchResponse {
-        return seminarRepository.searchSeminar(keyword, pageNum)
+    override fun searchSeminar(keyword: String?, pageable: Pageable, usePageBtn: Boolean): SeminarSearchResponse {
+        return seminarRepository.searchSeminar(keyword, pageable, usePageBtn)
     }
 
     @Transactional
@@ -59,11 +60,11 @@ class SeminarServiceImpl(
 
         val imageURL = mainImageService.createImageURL(newSeminar.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(newSeminar.attachments)
-        return SeminarDto.of(newSeminar, imageURL, attachmentResponses, null)
+        return SeminarDto.of(newSeminar, imageURL, attachmentResponses)
     }
 
     @Transactional(readOnly = true)
-    override fun readSeminar(seminarId: Long, keyword: String?): SeminarDto {
+    override fun readSeminar(seminarId: Long): SeminarDto {
         val seminar: SeminarEntity = seminarRepository.findByIdOrNull(seminarId)
             ?: throw CserealException.Csereal404("존재하지 않는 세미나입니다.(seminarId: $seminarId)")
 
@@ -72,9 +73,10 @@ class SeminarServiceImpl(
         val imageURL = mainImageService.createImageURL(seminar.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
 
-        val prevNext = seminarRepository.findPrevNextId(seminarId, keyword)
+        val prevSeminar = seminarRepository.findFirstByCreatedAtLessThanOrderByCreatedAtDesc(seminar.createdAt!!)
+        val nextSeminar = seminarRepository.findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(seminar.createdAt!!)
 
-        return SeminarDto.of(seminar, imageURL, attachmentResponses, prevNext)
+        return SeminarDto.of(seminar, imageURL, attachmentResponses, prevSeminar, nextSeminar)
     }
 
     @Transactional
@@ -108,7 +110,7 @@ class SeminarServiceImpl(
         }
 
         val imageURL = mainImageService.createImageURL(seminar.mainImage)
-        return SeminarDto.of(seminar, imageURL, attachmentResponses, null)
+        return SeminarDto.of(seminar, imageURL, attachmentResponses)
     }
 
     @Transactional

@@ -40,7 +40,7 @@ servlet:
 spring:
   config.activate.on-profile: local
   datasource:
-    url: jdbc:mysql://127.0.0.1:3307/csereal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
+    url: jdbc:mysql://127.0.0.1:3306/csereal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
     username: root
     password: password
   jpa:
@@ -84,7 +84,7 @@ spring:
       client:
         registration:
           idsnucse:
-            redirect-uri: http://${URL}/api/v1/login/oauth2/code/idsnucse
+            redirect-uri: https://${URL}/api/v1/login/oauth2/code/idsnucse
 
 csereal:
   upload:
@@ -94,8 +94,8 @@ oldFiles:
   path: /app/cse-files
 
 endpoint:
-  backend: http://${URL}/api
-  frontend: http://${URL}
+  backend: https://${URL}/api
+  frontend: https://${URL}
 
 ---
 spring:
