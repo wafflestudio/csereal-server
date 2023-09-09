@@ -27,11 +27,14 @@ interface NoticeService {
 
     fun readNotice(noticeId: Long): NoticeDto
     fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
+    /*
     fun updateNotice(noticeId: Long, request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
     fun deleteNotice(noticeId: Long)
     fun unpinManyNotices(idList: List<Long>)
     fun deleteManyNotices(idList: List<Long>)
     fun enrollTag(tagName: String)
+
+     */
 }
 
 @Service
@@ -92,9 +95,10 @@ class NoticeServiceImpl(
             author = user
         )
 
-        for (tagName in request.tags) {
-            val tag = tagInNoticeRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
-            NoticeTagEntity.createNoticeTag(newNotice, tag)
+        for (tag in request.tags) {
+            val tagEnum = TagInNoticeEnum.getTagEnum(tag)
+            val tagEntity = tagInNoticeRepository.findByName(tagEnum) ?: tagInNoticeRepository.save(TagInNoticeEntity(name = tagEnum))
+            NoticeTagEntity.createNoticeTag(newNotice, tagEntity)
         }
 
         if (attachments != null) {
@@ -108,6 +112,7 @@ class NoticeServiceImpl(
         return NoticeDto.of(newNotice, attachmentResponses)
 
     }
+    /*
 
     @Transactional
     override fun updateNotice(noticeId: Long, request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto {
@@ -129,7 +134,8 @@ class NoticeServiceImpl(
         val tagsToRemove = oldTags - request.tags
         val tagsToAdd = request.tags - oldTags
 
-        for (tagName in tagsToRemove) {
+        for (tagRequest in tagsToRemove) {
+            val tagName = TagInNotice.valueOf(tagRequest)
             val tagId = tagInNoticeRepository.findByName(tagName)!!.id
             notice.noticeTags.removeIf { it.tag.name == tagName }
             noticeTagRepository.deleteByNoticeIdAndTagId(noticeId, tagId)
@@ -172,6 +178,8 @@ class NoticeServiceImpl(
         }
     }
 
+
+
     override fun enrollTag(tagName: String) {
         val newTag = TagInNoticeEntity(
             name = tagName
@@ -179,5 +187,6 @@ class NoticeServiceImpl(
         tagInNoticeRepository.save(newTag)
     }
 
-    //TODO: 이미지 등록, 글쓴이 함께 조회
+     */
+
 }

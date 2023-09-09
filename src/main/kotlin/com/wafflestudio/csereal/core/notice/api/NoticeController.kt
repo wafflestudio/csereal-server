@@ -43,6 +43,7 @@ class NoticeController(
         return ResponseEntity.ok(noticeService.createNotice(request, attachments))
     }
 
+    /*
     @PatchMapping("/{noticeId}")
     fun updateNotice(
         @PathVariable noticeId: Long,
@@ -80,4 +81,6 @@ class NoticeController(
         noticeService.enrollTag(tagName["name"]!!)
         return ResponseEntity<String>("등록되었습니다. (tagName: ${tagName["name"]})", HttpStatus.OK)
     }
+
+    */
 }

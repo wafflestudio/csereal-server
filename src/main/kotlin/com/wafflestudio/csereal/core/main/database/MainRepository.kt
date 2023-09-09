@@ -2,17 +2,16 @@ package com.wafflestudio.csereal.core.main.database
 
 import com.querydsl.core.types.Projections
 import com.querydsl.jpa.impl.JPAQueryFactory
-import com.wafflestudio.csereal.core.admin.dto.ImportantResponse
 import com.wafflestudio.csereal.core.main.dto.MainImportantResponse
 import com.wafflestudio.csereal.core.main.dto.MainNoticeResponse
 import com.wafflestudio.csereal.core.main.dto.MainSlideResponse
-import com.wafflestudio.csereal.core.main.dto.NoticesResponse
 import com.wafflestudio.csereal.core.news.database.NewsRepository
 import com.wafflestudio.csereal.core.news.database.QNewsEntity.newsEntity
 import com.wafflestudio.csereal.core.notice.database.NoticeRepository
 import com.wafflestudio.csereal.core.notice.database.QNoticeEntity.noticeEntity
 import com.wafflestudio.csereal.core.notice.database.QNoticeTagEntity.noticeTagEntity
 import com.wafflestudio.csereal.core.notice.database.QTagInNoticeEntity.tagInNoticeEntity
+import com.wafflestudio.csereal.core.notice.database.TagInNoticeEnum
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.core.seminar.database.SeminarRepository
 
@@ -21,7 +20,7 @@ import org.springframework.stereotype.Component
 interface MainRepository {
     fun readMainSlide(): List<MainSlideResponse>
     fun readMainNoticeTotal(): List<MainNoticeResponse>
-    fun readMainNoticeTag(tag: String): List<MainNoticeResponse>
+    fun readMainNoticeTag(tagEnum: TagInNoticeEnum): List<MainNoticeResponse>
     fun readMainImportant(): List<MainImportantResponse>
 }
 
@@ -64,7 +63,7 @@ class MainRepositoryImpl(
             .limit(6).fetch()
     }
 
-    override fun readMainNoticeTag(tag: String): List<MainNoticeResponse> {
+    override fun readMainNoticeTag(tagEnum: TagInNoticeEnum): List<MainNoticeResponse> {
         return queryFactory.select(
             Projections.constructor(
                 MainNoticeResponse::class.java,
@@ -75,7 +74,7 @@ class MainRepositoryImpl(
         ).from(noticeTagEntity)
             .rightJoin(noticeEntity).on(noticeTagEntity.notice.eq(noticeEntity))
             .rightJoin(tagInNoticeEntity).on(noticeTagEntity.tag.eq(tagInNoticeEntity))
-            .where(noticeTagEntity.tag.name.eq(tag))
+            .where(noticeTagEntity.tag.name.eq(tagEnum))
             .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPublic.eq(true))
             .orderBy(noticeEntity.isPinned.desc()).orderBy(noticeEntity.createdAt.desc())
             .limit(6).distinct().fetch()
