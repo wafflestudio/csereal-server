@@ -94,7 +94,7 @@ class NoticeServiceImpl(
 
         for (tag in request.tags) {
             val tagEnum = TagInNoticeEnum.getTagEnum(tag)
-            val tagEntity = tagInNoticeRepository.findByName(tagEnum) ?: tagInNoticeRepository.save(TagInNoticeEntity(name = tagEnum))
+            val tagEntity = tagInNoticeRepository.findByName(tagEnum)
             NoticeTagEntity.createNoticeTag(newNotice, tagEntity)
         }
 
