@@ -35,7 +35,7 @@ data class MemberSearchResponseElement(
                                 memberType = MemberSearchType.STAFF
                         )
                     else -> throw CserealException.Csereal401(
-                            "MemberSearchEntity must have either professor or staff"
+                            "MemberSearchEntity는 professor 혹은 staff 중 하나와만 연결되어있어야 합니다."
                         )
                 }
     }
