@@ -84,7 +84,7 @@ spring:
       client:
         registration:
           idsnucse:
-            redirect-uri: http://${URL}/api/v1/login/oauth2/code/idsnucse
+            redirect-uri: https://${URL}/api/v1/login/oauth2/code/idsnucse
 
 csereal:
   upload:
@@ -94,5 +94,47 @@ oldFiles:
   path: /app/cse-files
 
 endpoint:
-  backend: http://${URL}/api
-  frontend: http://${URL}
+  backend: https://${URL}/api
+  frontend: https://${URL}
+
+---
+spring:
+  config.activate.on-profile: test
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;MODE=MYSQL;DB_CLOSE_DELAY=-1;
+    username: sa
+    password:
+  jpa:
+    database: h2
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+  h2:
+    console:
+      enabled: true
+  security:
+    oauth2:
+      client:
+        registration:
+          idsnucse:
+            redirect-uri: http://localhost:8080/api/v1/login/oauth2/code/idsnucse
+
+logging.level:
+  default: INFO
+  org:
+    springframework:
+      security: DEBUG
+
+csereal:
+  upload:
+    path: ./files/
+
+oldFiles:
+  path: ./cse-files
+
+endpoint:
+  backend: http://localhost:8080
+  frontend: http://localhost:3000

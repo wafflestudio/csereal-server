@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.common
+package com.wafflestudio.csereal.common.utils
 
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser

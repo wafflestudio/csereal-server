@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
 import com.wafflestudio.csereal.core.news.service.NewsService
 import jakarta.validation.Valid
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -18,17 +19,19 @@ class NewsController(
     fun searchNews(
         @RequestParam(required = false) tag: List<String>?,
         @RequestParam(required = false) keyword: String?,
-        @RequestParam(required = false, defaultValue = "0") pageNum:Long
-    ) : ResponseEntity<NewsSearchResponse> {
-        return ResponseEntity.ok(newsService.searchNews(tag, keyword, pageNum))
+        @RequestParam(required = false, defaultValue = "1") pageNum: Int
+    ): ResponseEntity<NewsSearchResponse> {
+        val pageSize = 10
+        val pageRequest = PageRequest.of(pageNum - 1, pageSize)
+        val usePageBtn = pageNum != 1
+        return ResponseEntity.ok(newsService.searchNews(tag, keyword, pageRequest, usePageBtn))
     }
+
     @GetMapping("/{newsId}")
     fun readNews(
-        @PathVariable newsId: Long,
-        @RequestParam(required = false) tag : List<String>?,
-        @RequestParam(required = false) keyword: String?,
-    ) : ResponseEntity<NewsDto> {
-        return ResponseEntity.ok(newsService.readNews(newsId, tag, keyword))
+        @PathVariable newsId: Long
+    ): ResponseEntity<NewsDto> {
+        return ResponseEntity.ok(newsService.readNews(newsId))
     }
 
     @PostMapping
@@ -36,8 +39,8 @@ class NewsController(
         @Valid @RequestPart("request") request: NewsDto,
         @RequestPart("mainImage") mainImage: MultipartFile?,
         @RequestPart("attachments") attachments: List<MultipartFile>?
-    ) : ResponseEntity<NewsDto> {
-        return ResponseEntity.ok(newsService.createNews(request,mainImage, attachments))
+    ): ResponseEntity<NewsDto> {
+        return ResponseEntity.ok(newsService.createNews(request, mainImage, attachments))
     }
 
     @PatchMapping("/{newsId}")
@@ -46,7 +49,7 @@ class NewsController(
         @Valid @RequestPart("request") request: NewsDto,
         @RequestPart("mainImage") mainImage: MultipartFile?,
         @RequestPart("attachments") attachments: List<MultipartFile>?
-    ) : ResponseEntity<NewsDto> {
+    ): ResponseEntity<NewsDto> {
         return ResponseEntity.ok(newsService.updateNews(newsId, request, mainImage, attachments))
     }
 
@@ -60,7 +63,7 @@ class NewsController(
     @PostMapping("/tag")
     fun enrollTag(
         @RequestBody tagName: Map<String, String>
-    ) : ResponseEntity<String> {
+    ): ResponseEntity<String> {
         newsService.enrollTag(tagName["name"]!!)
         return ResponseEntity<String>("등록되었습니다. (tagName: ${tagName["name"]})", HttpStatus.OK)
     }

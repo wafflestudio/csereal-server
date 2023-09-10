@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.notice.database
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.utils.FixedPageRequest
 import com.wafflestudio.csereal.core.notice.database.QNoticeEntity.noticeEntity
 import com.wafflestudio.csereal.core.notice.database.QNoticeTagEntity.noticeTagEntity
 import com.wafflestudio.csereal.core.notice.dto.NoticeSearchDto
@@ -76,7 +77,7 @@ class NoticeRepositoryImpl(
         if (usePageBtn) {
             val countQuery = jpaQuery.clone()
             total = countQuery.select(noticeEntity.countDistinct()).fetchOne()!!
-            pageRequest = exchangePageRequest(pageable, total)
+            pageRequest = FixedPageRequest(pageable, total)
         } else {
             total = (10 * pageable.pageSize).toLong() // 10개 페이지 고정
         }
@@ -102,24 +103,6 @@ class NoticeRepositoryImpl(
         }
 
         return NoticeSearchResponse(total, noticeSearchDtoList)
-
-    }
-
-    private fun exchangePageRequest(pageable: Pageable, total: Long): Pageable {
-        /**
-         *  요청한 페이지 번호가 기존 데이터 사이즈 초과할 경우 마지막 페이지 데이터 반환
-         */
-
-        val pageNum = pageable.pageNumber
-        val pageSize = pageable.pageSize
-        val requestCount = (pageNum - 1) * pageSize
-
-        if (total > requestCount) {
-            return pageable
-        }
-
-        val requestPageNum = ceil(total.toDouble() / pageNum).toInt()
-        return PageRequest.of(requestPageNum, pageSize)
 
     }
 
