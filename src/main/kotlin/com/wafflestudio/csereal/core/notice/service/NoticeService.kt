@@ -86,15 +86,16 @@ class NoticeServiceImpl(
             title = request.title,
             description = request.description,
             plainTextDescription = cleanTextFromHtml(request.description),
-            isPublic = request.isPublic,
+            isPrivate = request.isPrivate,
             isPinned = request.isPinned,
             isImportant = request.isImportant,
             author = user
         )
 
-        for (tagName in request.tags) {
-            val tag = tagInNoticeRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
-            NoticeTagEntity.createNoticeTag(newNotice, tag)
+        for (tag in request.tags) {
+            val tagEnum = TagInNoticeEnum.getTagEnum(tag)
+            val tagEntity = tagInNoticeRepository.findByName(tagEnum)
+            NoticeTagEntity.createNoticeTag(newNotice, tagEntity)
         }
 
         if (attachments != null) {
@@ -126,17 +127,17 @@ class NoticeServiceImpl(
 
         val oldTags = notice.noticeTags.map { it.tag.name }
 
-        val tagsToRemove = oldTags - request.tags
-        val tagsToAdd = request.tags - oldTags
+        val tagsToRemove = oldTags - request.tags.map { TagInNoticeEnum.getTagEnum(it) }
+        val tagsToAdd = request.tags.map { TagInNoticeEnum.getTagEnum(it) } - oldTags
 
-        for (tagName in tagsToRemove) {
-            val tagId = tagInNoticeRepository.findByName(tagName)!!.id
-            notice.noticeTags.removeIf { it.tag.name == tagName }
+        for (tagEnum in tagsToRemove) {
+            val tagId = tagInNoticeRepository.findByName(tagEnum)!!.id
+            notice.noticeTags.removeIf { it.tag.name == tagEnum }
             noticeTagRepository.deleteByNoticeIdAndTagId(noticeId, tagId)
         }
 
-        for (tagName in tagsToAdd) {
-            val tag = tagInNoticeRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
+        for (tagEnum in tagsToAdd) {
+            val tag = tagInNoticeRepository.findByName(tagEnum) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
             NoticeTagEntity.createNoticeTag(notice, tag)
         }
 
@@ -174,10 +175,10 @@ class NoticeServiceImpl(
 
     override fun enrollTag(tagName: String) {
         val newTag = TagInNoticeEntity(
-            name = tagName
+            name = TagInNoticeEnum.getTagEnum(tagName)
         )
         tagInNoticeRepository.save(newTag)
     }
 
-    //TODO: 이미지 등록, 글쓴이 함께 조회
+
 }

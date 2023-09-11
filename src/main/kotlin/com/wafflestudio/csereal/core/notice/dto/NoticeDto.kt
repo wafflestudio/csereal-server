@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.notice.dto
 
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
+import com.wafflestudio.csereal.core.notice.database.TagInNoticeEnum
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
 
@@ -12,7 +13,7 @@ data class NoticeDto(
     val tags: List<String>,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
-    val isPublic: Boolean,
+    val isPrivate: Boolean,
     val isPinned: Boolean,
     val isImportant: Boolean,
     val prevId: Long?,
@@ -34,10 +35,10 @@ data class NoticeDto(
                 title = this.title,
                 description = this.description,
                 author = this.author.name,
-                tags = this.noticeTags.map { it.tag.name },
+                tags = this.noticeTags.map { it.tag.name.name },
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
-                isPublic = this.isPublic,
+                isPrivate = this.isPrivate,
                 isPinned = this.isPinned,
                 isImportant = this.isImportant,
                 prevId = prevNotice?.id,
