@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional
 interface MemberSearchService {
     fun searchTopMember(keyword: String, number: Int): MemberSearchTopResponse
     fun searchMember(keyword: String, pageSize: Int, pageNum: Int): MemberSearchPageResponse
+
 }
 
 @Service
