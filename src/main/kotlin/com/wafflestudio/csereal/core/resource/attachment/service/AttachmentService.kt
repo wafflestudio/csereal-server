@@ -124,7 +124,7 @@ class AttachmentServiceImpl(
             for (attachment in attachments) {
                 if (attachment.isDeleted == false) {
                     val attachmentDto = AttachmentResponse(
-                        name = attachment.filename,
+                        name = attachment.filename.substringAfter("_"),
                         url = "${endpointProperties.backend}/v1/file/${attachment.filename}",
                         bytes = attachment.size,
                     )
