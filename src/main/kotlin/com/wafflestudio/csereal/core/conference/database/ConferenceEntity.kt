@@ -1,10 +1,8 @@
 package com.wafflestudio.csereal.core.conference.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
-import jakarta.persistence.Entity
-import jakarta.persistence.FetchType
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
+import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
+import jakarta.persistence.*
 
 @Entity(name = "conference")
 class ConferenceEntity(
@@ -21,5 +19,3 @@ class ConferenceEntity(
         var researchSearch: ResearchSearchEntity? = null,
 ) : BaseTimeEntity() {
 }
-
-) : BaseTimeEntity()
