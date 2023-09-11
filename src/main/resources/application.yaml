@@ -16,6 +16,11 @@ spring:
           idsnucse:
             issuer-uri: https://id-dev.bacchus.io/o
             jwk-set-uri: https://id-dev.bacchus.io/o/jwks
+  servlet:
+    multipart:
+      enabled: true
+      max-request-size: 100MB
+      max-file-size: 10MB
 
 server:
   servlet:
@@ -29,12 +34,6 @@ springdoc:
     path: index.html
   api-docs:
     path: /api-docs/json
-
-servlet:
-  multipart:
-    enabled: true
-    max-request-size: 100MB
-    max-file-size: 10MB
 
 ---
 spring:
