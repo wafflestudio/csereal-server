@@ -59,8 +59,9 @@ class NoticeRepositoryImpl(
         }
         if (!tag.isNullOrEmpty()) {
             tag.forEach {
+                val tagEnum = TagInNoticeEnum.getTagEnum(it)
                 tagsBooleanBuilder.or(
-                    noticeTagEntity.tag.name.eq(it)
+                    noticeTagEntity.tag.name.eq(tagEnum)
                 )
             }
         }

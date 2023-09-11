@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.notice.dto
 
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
+import com.wafflestudio.csereal.core.notice.database.TagInNoticeEnum
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
 
@@ -34,7 +35,7 @@ data class NoticeDto(
                 title = this.title,
                 description = this.description,
                 author = this.author.name,
-                tags = this.noticeTags.map { it.tag.name },
+                tags = this.noticeTags.map { it.tag.name.name },
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
                 isPublic = this.isPublic,
