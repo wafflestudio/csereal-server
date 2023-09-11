@@ -19,7 +19,7 @@ class NoticeEntity(
     @Column(columnDefinition = "mediumtext")
     var plainTextDescription: String,
 
-    var isPublic: Boolean,
+    var isPrivate: Boolean,
     var isPinned: Boolean,
     var isImportant: Boolean,
 
@@ -44,7 +44,7 @@ class NoticeEntity(
 
         this.title = updateNoticeRequest.title
         this.description = updateNoticeRequest.description
-        this.isPublic = updateNoticeRequest.isPublic
+        this.isPrivate = updateNoticeRequest.isPrivate
         this.isPinned = updateNoticeRequest.isPinned
         this.isImportant = updateNoticeRequest.isImportant
     }
