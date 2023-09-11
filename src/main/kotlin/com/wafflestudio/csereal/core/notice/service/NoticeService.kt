@@ -131,14 +131,14 @@ class NoticeServiceImpl(
         val tagsToAdd = request.tags.map { TagInNoticeEnum.getTagEnum(it) } - oldTags
 
         for (tagEnum in tagsToRemove) {
-            val tagId = tagInNoticeRepository.findByName(tagEnum)!!.id
+            val tagId = tagInNoticeRepository.findByName(tagEnum).id
             notice.noticeTags.removeIf { it.tag.name == tagEnum }
             noticeTagRepository.deleteByNoticeIdAndTagId(noticeId, tagId)
         }
 
         for (tagEnum in tagsToAdd) {
-            val tag = tagInNoticeRepository.findByName(tagEnum) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
-            NoticeTagEntity.createNoticeTag(notice, tag)
+            val tagId = tagInNoticeRepository.findByName(tagEnum)
+            NoticeTagEntity.createNoticeTag(notice, tagId)
         }
 
         val attachmentResponses = attachmentService.createAttachmentResponses(notice.attachments)

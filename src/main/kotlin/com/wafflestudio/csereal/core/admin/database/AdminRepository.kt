@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component
 
 interface AdminRepository {
     fun readAllSlides(pageNum: Long): List<SlideResponse>
-    fun readAllImportants(pageNum: Long): List<ImportantResponse>
 }
 
 @Component
@@ -30,9 +29,5 @@ class AdminRepositoryImpl(
             .offset(40*pageNum)
             .limit(40)
             .fetch()
-    }
-
-    override fun readAllImportants(pageNum: Long): List<ImportantResponse> {
-        TODO("Not yet implemented")
     }
 }
