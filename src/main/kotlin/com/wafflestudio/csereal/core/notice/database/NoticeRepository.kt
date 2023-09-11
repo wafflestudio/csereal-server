@@ -101,7 +101,6 @@ class NoticeRepositoryImpl(
                 hasAttachment = hasAttachment
             )
         }
-
         return NoticeSearchResponse(total, noticeSearchDtoList)
     }
 }
