@@ -16,15 +16,13 @@ data class SeminarDto(
     val affiliation: String,
     val affiliationURL: String?,
     val startDate: String?,
-    val startTime: String?,
     val endDate: String?,
-    val endTime: String?,
     val location: String,
     val host: String?,
     val additionalNote: String?,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
-    val isPublic: Boolean,
+    val isPrivate: Boolean,
     val isImportant: Boolean,
     val prevId: Long?,
     val prevTitle: String?,
@@ -35,7 +33,13 @@ data class SeminarDto(
 ) {
 
     companion object {
-        fun of(entity: SeminarEntity, imageURL: String?, attachmentResponses: List<AttachmentResponse>, prevNext: Array<SeminarEntity?>?): SeminarDto = entity.run {
+        fun of(
+            entity: SeminarEntity,
+            imageURL: String?,
+            attachmentResponses: List<AttachmentResponse>,
+            prevSeminar: SeminarEntity? = null,
+            nextSeminar: SeminarEntity? = null
+        ): SeminarDto = entity.run {
             SeminarDto(
                 id = this.id,
                 title = this.title,
@@ -47,20 +51,18 @@ data class SeminarDto(
                 affiliation = this.affiliation,
                 affiliationURL = this.affiliationURL,
                 startDate = this.startDate,
-                startTime = this.startTime,
                 endDate = this.endDate,
-                endTime = this.endTime,
                 location = this.location,
                 host = this.host,
                 additionalNote = this.additionalNote,
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
-                isPublic = this.isPublic,
+                isPrivate = this.isPrivate,
                 isImportant = this.isImportant,
-                prevId = prevNext?.get(0)?.id,
-                prevTitle = prevNext?.get(0)?.title,
-                nextId = prevNext?.get(1)?.id,
-                nextTitle = prevNext?.get(1)?.title,
+                prevId = prevSeminar?.id,
+                prevTitle = prevSeminar?.title,
+                nextId = nextSeminar?.id,
+                nextTitle = nextSeminar?.title,
                 imageURL = imageURL,
                 attachments = attachmentResponses,
             )

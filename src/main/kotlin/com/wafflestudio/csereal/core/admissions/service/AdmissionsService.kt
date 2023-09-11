@@ -24,7 +24,13 @@ class AdmissionsServiceImpl(
     override fun createUndergraduateAdmissions(postType: String, request: AdmissionsDto): AdmissionsDto {
         val enumPostType = makeStringToAdmissionsPostType(postType)
 
-        val newAdmissions = AdmissionsEntity.of(enumPostType, request)
+        val pageName = when(enumPostType) {
+            AdmissionsPostType.UNDERGRADUATE_EARLY_ADMISSION -> "수시 모집"
+            AdmissionsPostType.UNDERGRADUATE_REGULAR_ADMISSION -> "정시 모집"
+            else -> throw CserealException.Csereal404("해당하는 페이지를 찾을 수 없습니다.")
+        }
+
+        val newAdmissions = AdmissionsEntity.of(enumPostType, pageName, request)
 
         admissionsRepository.save(newAdmissions)
 
@@ -33,7 +39,7 @@ class AdmissionsServiceImpl(
 
     @Transactional
     override fun createGraduateAdmissions(request: AdmissionsDto): AdmissionsDto {
-        val newAdmissions: AdmissionsEntity = AdmissionsEntity.of(AdmissionsPostType.GRADUATE, request)
+        val newAdmissions: AdmissionsEntity = AdmissionsEntity.of(AdmissionsPostType.GRADUATE, "전기/후기 모집", request)
 
         admissionsRepository.save(newAdmissions)
 

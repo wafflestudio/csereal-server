@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.core.member.database.MemberSearchEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.member.database.StaffRepository
 import com.wafflestudio.csereal.core.member.database.TaskEntity
@@ -36,6 +37,8 @@ class StaffServiceImpl(
         if(mainImage != null) {
             mainImageService.uploadMainImage(staff, mainImage)
         }
+
+        staff.memberSearch = MemberSearchEntity.create(staff)
 
         staffRepository.save(staff)
 
@@ -85,6 +88,9 @@ class StaffServiceImpl(
         for (task in tasksToAdd) {
             TaskEntity.create(task, staff)
         }
+
+        // 검색 엔티티 업데이트
+        staff.memberSearch?.update(staff)
 
         val imageURL = mainImageService.createImageURL(staff.mainImage)
 

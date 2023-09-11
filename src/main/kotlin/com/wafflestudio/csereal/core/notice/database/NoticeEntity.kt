@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.notice.database
 
+import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.core.notice.dto.NoticeDto
@@ -14,7 +15,11 @@ class NoticeEntity(
     var title: String,
     @Column(columnDefinition = "mediumtext")
     var description: String,
-    var isPublic: Boolean,
+
+    @Column(columnDefinition = "mediumtext")
+    var plainTextDescription: String,
+
+    var isPrivate: Boolean,
     var isPinned: Boolean,
     var isImportant: Boolean,
 
@@ -28,13 +33,18 @@ class NoticeEntity(
     @OneToMany(mappedBy = "notice", cascade = [CascadeType.ALL], orphanRemoval = true)
     var attachments: MutableList<AttachmentEntity> = mutableListOf(),
 
-) : BaseTimeEntity(), AttachmentContentEntityType {
+    ) : BaseTimeEntity(), AttachmentContentEntityType {
     override fun bringAttachments() = attachments
 
     fun update(updateNoticeRequest: NoticeDto) {
+        // Update plainTextDescription if description is changed
+        if (updateNoticeRequest.description != this.description) {
+            this.plainTextDescription = cleanTextFromHtml(updateNoticeRequest.description)
+        }
+
         this.title = updateNoticeRequest.title
         this.description = updateNoticeRequest.description
-        this.isPublic = updateNoticeRequest.isPublic
+        this.isPrivate = updateNoticeRequest.isPrivate
         this.isPinned = updateNoticeRequest.isPinned
         this.isImportant = updateNoticeRequest.isImportant
     }

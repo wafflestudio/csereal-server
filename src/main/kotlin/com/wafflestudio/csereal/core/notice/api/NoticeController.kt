@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.notice.service.NoticeService
 import jakarta.validation.Valid
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -18,18 +19,19 @@ class NoticeController(
     fun searchNotice(
         @RequestParam(required = false) tag: List<String>?,
         @RequestParam(required = false) keyword: String?,
-        @RequestParam(required = false, defaultValue = "0") pageNum: Long
+        @RequestParam(required = false, defaultValue = "1") pageNum: Int
     ): ResponseEntity<NoticeSearchResponse> {
-        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageNum))
+        val pageSize = 20
+        val pageRequest = PageRequest.of(pageNum - 1, pageSize)
+        val usePageBtn = pageNum != 1
+        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn))
     }
 
     @GetMapping("/{noticeId}")
     fun readNotice(
-        @PathVariable noticeId: Long,
-        @RequestParam(required = false) tag: List<String>?,
-        @RequestParam(required = false) keyword: String?,
+        @PathVariable noticeId: Long
     ): ResponseEntity<NoticeDto> {
-        return ResponseEntity.ok(noticeService.readNotice(noticeId, tag, keyword))
+        return ResponseEntity.ok(noticeService.readNotice(noticeId))
     }
 
     @AuthenticatedStaff
@@ -63,6 +65,7 @@ class NoticeController(
     ) {
         noticeService.unpinManyNotices(request.idList)
     }
+
     @DeleteMapping
     fun deleteManyNotices(
         @RequestBody request: NoticeIdListRequest

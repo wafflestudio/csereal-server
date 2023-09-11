@@ -11,7 +11,7 @@ data class NewsDto(
     val tags: List<String>,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
-    val isPublic: Boolean,
+    val isPrivate: Boolean,
     val isSlide: Boolean,
     val isImportant: Boolean,
     val prevId: Long?,
@@ -22,7 +22,13 @@ data class NewsDto(
     val attachments: List<AttachmentResponse>?,
 ) {
     companion object {
-        fun of(entity: NewsEntity, imageURL: String?, attachmentResponses: List<AttachmentResponse>, prevNext: Array<NewsEntity?>?) : NewsDto = entity.run {
+        fun of(
+            entity: NewsEntity,
+            imageURL: String?,
+            attachmentResponses: List<AttachmentResponse>,
+            prevNews: NewsEntity? = null,
+            nextNews: NewsEntity? = null
+        ): NewsDto = entity.run {
             NewsDto(
                 id = this.id,
                 title = this.title,
@@ -30,13 +36,13 @@ data class NewsDto(
                 tags = this.newsTags.map { it.tag.name },
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
-                isPublic = this.isPublic,
+                isPrivate = this.isPrivate,
                 isSlide = this.isSlide,
                 isImportant = this.isImportant,
-                prevId = prevNext?.get(0)?.id,
-                prevTitle = prevNext?.get(0)?.title,
-                nextId = prevNext?.get(1)?.id,
-                nextTitle = prevNext?.get(1)?.title,
+                prevId = prevNews?.id,
+                prevTitle = prevNews?.title,
+                nextId = nextNews?.id,
+                nextTitle = nextNews?.title,
                 imageURL = imageURL,
                 attachments = attachmentResponses,
             )

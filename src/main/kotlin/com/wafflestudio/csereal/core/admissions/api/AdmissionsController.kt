@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.RestController
 class AdmissionsController(
     private val admissionsService: AdmissionsService
 ) {
-    @PostMapping("/undergraduate")
+    @PostMapping("/undergraduate/{postType}")
     fun createUndergraduateAdmissions(
-        @RequestParam postType: String,
+        @PathVariable postType: String,
         @Valid @RequestBody request: AdmissionsDto
     ) : AdmissionsDto {
         return admissionsService.createUndergraduateAdmissions(postType, request)
@@ -32,9 +32,9 @@ class AdmissionsController(
         return admissionsService.createGraduateAdmissions(request)
     }
 
-    @GetMapping("/undergraduate")
+    @GetMapping("/undergraduate/{postType}")
     fun readUndergraduateAdmissions(
-        @RequestParam postType: String
+        @PathVariable postType: String
     ) : ResponseEntity<AdmissionsDto> {
         return ResponseEntity.ok(admissionsService.readUndergraduateAdmissions(postType))
     }

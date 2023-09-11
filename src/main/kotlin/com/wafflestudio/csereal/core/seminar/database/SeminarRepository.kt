@@ -3,23 +3,25 @@ package com.wafflestudio.csereal.core.seminar.database
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.utils.FixedPageRequest
+import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.core.seminar.database.QSeminarEntity.seminarEntity
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
-import org.jsoup.Jsoup
-import org.jsoup.parser.Parser
-import org.jsoup.safety.Safelist
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
 
 interface SeminarRepository : JpaRepository<SeminarEntity, Long>, CustomSeminarRepository {
     fun findAllByIsImportant(isImportant: Boolean): List<SeminarEntity>
+    fun findFirstByCreatedAtLessThanOrderByCreatedAtDesc(timestamp: LocalDateTime): SeminarEntity?
+    fun findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(timestamp: LocalDateTime): SeminarEntity?
 }
 
 interface CustomSeminarRepository {
-    fun searchSeminar(keyword: String?, pageNum: Long): SeminarSearchResponse
-    fun findPrevNextId(seminarId: Long, keyword: String?): Array<SeminarEntity?>?
+    fun searchSeminar(keyword: String?, pageable: Pageable, usePageBtn: Boolean): SeminarSearchResponse
 }
 
 @Component
@@ -27,7 +29,7 @@ class SeminarRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
     private val mainImageService: MainImageService,
 ) : CustomSeminarRepository {
-    override fun searchSeminar(keyword: String?, pageNum: Long): SeminarSearchResponse {
+    override fun searchSeminar(keyword: String?, pageable: Pageable, usePageBtn: Boolean): SeminarSearchResponse {
         val keywordBooleanBuilder = BooleanBuilder()
 
         if (!keyword.isNullOrEmpty()) {
@@ -46,16 +48,25 @@ class SeminarRepositoryImpl(
             }
         }
 
-        val jpaQuery = queryFactory.select(seminarEntity).from(seminarEntity)
+        val jpaQuery = queryFactory.selectFrom(seminarEntity)
             .where(seminarEntity.isDeleted.eq(false))
             .where(keywordBooleanBuilder)
 
-        val countQuery = jpaQuery.clone()
-        val total = countQuery.select(seminarEntity.countDistinct()).fetchOne()
+        val total: Long
+        var pageRequest = pageable
 
-        val seminarEntityList = jpaQuery.orderBy(seminarEntity.createdAt.desc())
-            .offset(10 * pageNum)
-            .limit(20)
+        if (usePageBtn) {
+            val countQuery = jpaQuery.clone()
+            total = countQuery.select(seminarEntity.count()).fetchOne()!!
+            pageRequest = FixedPageRequest(pageable, total)
+        } else {
+            total = (10 * pageable.pageSize).toLong() // 10개 페이지 고정
+        }
+
+        val seminarEntityList = jpaQuery
+            .orderBy(seminarEntity.createdAt.desc())
+            .offset(pageRequest.offset)
+            .limit(pageRequest.pageSize.toLong())
             .fetch()
 
         val seminarSearchDtoList: MutableList<SeminarSearchDto> = mutableListOf()
@@ -78,7 +89,7 @@ class SeminarRepositoryImpl(
                 SeminarSearchDto(
                     id = seminarEntityList[i].id,
                     title = seminarEntityList[i].title,
-                    description = clean(seminarEntityList[i].description),
+                    description = seminarEntityList[i].plainTextDescription,
                     name = seminarEntityList[i].name,
                     affiliation = seminarEntityList[i].affiliation,
                     startDate = seminarEntityList[i].startDate,
@@ -90,54 +101,5 @@ class SeminarRepositoryImpl(
         }
 
         return SeminarSearchResponse(total!!, seminarSearchDtoList)
-    }
-
-    override fun findPrevNextId(seminarId: Long, keyword: String?): Array<SeminarEntity?>? {
-        val keywordBooleanBuilder = BooleanBuilder()
-
-        if (!keyword.isNullOrEmpty()) {
-            val keywordList = keyword.split("[^a-zA-Z0-9가-힣]".toRegex())
-            keywordList.forEach {
-                if (it.length == 1) {
-                    throw CserealException.Csereal400("각각의 키워드는 한글자 이상이어야 합니다.")
-                } else {
-                    keywordBooleanBuilder.and(
-                        seminarEntity.title.contains(it)
-                            .or(seminarEntity.description.contains(it))
-                    )
-                }
-            }
-        }
-        val seminarSearchDtoList = queryFactory.select(seminarEntity).from(seminarEntity)
-            .where(seminarEntity.isDeleted.eq(false), seminarEntity.isPublic.eq(true))
-            .where(keywordBooleanBuilder)
-            .orderBy(seminarEntity.createdAt.desc())
-            .fetch()
-
-        val findingId = seminarSearchDtoList.indexOfFirst { it.id == seminarId }
-
-        val prevNext: Array<SeminarEntity?>?
-
-        if (findingId == -1) {
-            return null
-        } else if (findingId != 0 && findingId != seminarSearchDtoList.size - 1) {
-            prevNext = arrayOf(seminarSearchDtoList[findingId + 1], seminarSearchDtoList[findingId - 1])
-        } else if (findingId == 0) {
-            if (seminarSearchDtoList.size == 1) {
-                prevNext = arrayOf(null, null)
-            } else {
-                prevNext = arrayOf(seminarSearchDtoList[1], null)
-            }
-        } else {
-            prevNext = arrayOf(null, seminarSearchDtoList[seminarSearchDtoList.size - 2])
-        }
-
-        return prevNext
-
-    }
-
-    private fun clean(description: String): String {
-        val cleanDescription = Jsoup.clean(description, Safelist.none())
-        return Parser.unescapeEntities(cleanDescription, false)
     }
 }
