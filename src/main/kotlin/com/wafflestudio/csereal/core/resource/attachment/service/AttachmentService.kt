@@ -1,11 +1,11 @@
 package com.wafflestudio.csereal.core.resource.attachment.service
 
+import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
 import com.wafflestudio.csereal.core.academics.database.CourseEntity
-import com.wafflestudio.csereal.core.academics.database.ScholarshipEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
 import com.wafflestudio.csereal.core.research.database.LabEntity
@@ -17,6 +17,7 @@ import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import org.apache.commons.io.FilenameUtils
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
@@ -35,10 +36,12 @@ interface AttachmentService {
     ): List<AttachmentDto>
 
     fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse>
-    fun updateAttachmentResponses(
-        contentEntity: AttachmentContentEntityType,
-        attachmentsList: List<AttachmentResponse>
-    )
+//    fun updateAttachmentResponses(
+//        contentEntity: AttachmentContentEntityType,
+//        attachmentsList: List<AttachmentResponse>
+//    )
+
+    fun deleteAttachments(ids: List<Long>)
 }
 
 @Service
@@ -124,6 +127,7 @@ class AttachmentServiceImpl(
             for (attachment in attachments) {
                 if (attachment.isDeleted == false) {
                     val attachmentDto = AttachmentResponse(
+                        id = attachment.id,
                         name = attachment.filename.substringAfter("_"),
                         url = "${endpointProperties.backend}/v1/file/${attachment.filename}",
                         bytes = attachment.size,
@@ -136,25 +140,35 @@ class AttachmentServiceImpl(
         return list
     }
 
+//    @Transactional
+//    override fun updateAttachmentResponses(
+//        contentEntity: AttachmentContentEntityType,
+//        attachmentsList: List<AttachmentResponse>
+//    ) {
+//        val oldAttachments = contentEntity.bringAttachments().map { it.filename }
+//
+//        val attachmentsToRemove = oldAttachments - attachmentsList.map { it.name }
+//
+//        when (contentEntity) {
+//            is SeminarEntity -> {
+//                for (attachmentFilename in attachmentsToRemove) {
+//                    val attachmentEntity = attachmentRepository.findByFilename(attachmentFilename)
+//                    attachmentEntity.isDeleted = true
+//                    attachmentEntity.seminar = null
+//                }
+//            }
+//        }
+//    }
+
     @Transactional
-    override fun updateAttachmentResponses(
-        contentEntity: AttachmentContentEntityType,
-        attachmentsList: List<AttachmentResponse>
-    ) {
-        val oldAttachments = contentEntity.bringAttachments().map { it.filename }
-
-        val attachmentsToRemove = oldAttachments - attachmentsList.map { it.name }
-
-        when (contentEntity) {
-            is SeminarEntity -> {
-                for (attachmentFilename in attachmentsToRemove) {
-                    val attachmentEntity = attachmentRepository.findByFilename(attachmentFilename)
-                    attachmentEntity.isDeleted = true
-                    attachmentEntity.seminar = null
-                }
-            }
+    override fun deleteAttachments(ids: List<Long>) {
+        for (id in ids) {
+            val attachment = attachmentRepository.findByIdOrNull(id)
+                ?: throw CserealException.Csereal404("id:${id}인 첨부파일을 찾을 수 없습니다.")
+            attachment.isDeleted = true
         }
     }
+
 
     private fun connectAttachmentToEntity(contentEntity: AttachmentContentEntityType, attachment: AttachmentEntity) {
         when (contentEntity) {
