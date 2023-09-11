@@ -4,7 +4,6 @@ import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
-import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.core.seminar.database.QSeminarEntity.seminarEntity
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchDto
@@ -75,11 +74,7 @@ class SeminarRepositoryImpl(
             var isYearLast = false
             if (i == seminarEntityList.size - 1) {
                 isYearLast = true
-            } else if (seminarEntityList[i].startDate?.substring(0, 4) != seminarEntityList[i + 1].startDate?.substring(
-                    0,
-                    4
-                )
-            ) {
+            } else if (seminarEntityList[i].startDate?.year != seminarEntityList[i + 1].startDate?.year) {
                 isYearLast = true
             }
 
@@ -100,6 +95,6 @@ class SeminarRepositoryImpl(
             )
         }
 
-        return SeminarSearchResponse(total!!, seminarSearchDtoList)
+        return SeminarSearchResponse(total, seminarSearchDtoList)
     }
 }
