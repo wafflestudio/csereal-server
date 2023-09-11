@@ -62,7 +62,7 @@ class NewsRepositoryImpl(
 
         val jpaQuery = queryFactory.select(newsEntity).from(newsEntity)
             .leftJoin(newsTagEntity).on(newsTagEntity.news.eq(newsEntity))
-            .where(newsEntity.isDeleted.eq(false), newsEntity.isPublic.eq(true))
+            .where(newsEntity.isDeleted.eq(false))
             .where(keywordBooleanBuilder).where(tagsBooleanBuilder)
 
         val total: Long

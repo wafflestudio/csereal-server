@@ -49,7 +49,7 @@ class SeminarRepositoryImpl(
         }
 
         val jpaQuery = queryFactory.selectFrom(seminarEntity)
-            .where(seminarEntity.isDeleted.eq(false), seminarEntity.isPublic.eq(true))
+            .where(seminarEntity.isDeleted.eq(false))
             .where(keywordBooleanBuilder)
 
         val total: Long
