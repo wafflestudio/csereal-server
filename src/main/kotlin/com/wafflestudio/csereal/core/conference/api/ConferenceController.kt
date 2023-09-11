@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-@RequestMapping("/conference")
+@RequestMapping("/api/v1/conference")
 @RestController
 class ConferenceController(
     private val conferenceService: ConferenceService
