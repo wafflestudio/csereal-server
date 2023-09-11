@@ -40,4 +40,11 @@ class ResearchEntity(
             )
         }
     }
+
+    fun updateWithoutLabImageAttachment(researchDto: ResearchDto) {
+        this.postType = researchDto.postType
+        this.name = researchDto.name
+        this.description = researchDto.description
+    }
+
 }
