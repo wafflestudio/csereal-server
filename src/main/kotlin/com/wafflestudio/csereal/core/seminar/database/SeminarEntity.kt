@@ -8,6 +8,7 @@ import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEnti
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import jakarta.persistence.*
+import java.time.LocalDateTime
 
 @Entity(name = "seminar")
 class SeminarEntity(
@@ -35,8 +36,8 @@ class SeminarEntity(
     var affiliation: String,
     var affiliationURL: String?,
 
-    var startDate: String?,
-    var endDate: String?,
+    var startDate: LocalDateTime?,
+    var endDate: LocalDateTime?,
 
     var location: String,
 
