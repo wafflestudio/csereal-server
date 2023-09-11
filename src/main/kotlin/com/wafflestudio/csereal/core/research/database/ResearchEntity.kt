@@ -25,6 +25,8 @@ class ResearchEntity(
     @OneToMany(mappedBy = "research", cascade = [CascadeType.ALL], orphanRemoval = true)
     var attachments: MutableList<AttachmentEntity> = mutableListOf(),
 
+    @OneToOne(mappedBy = "research", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var researchSearch: ResearchSearchEntity? = null,
     ) : BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
     override fun bringMainImage() = mainImage
     override fun bringAttachments() = attachments

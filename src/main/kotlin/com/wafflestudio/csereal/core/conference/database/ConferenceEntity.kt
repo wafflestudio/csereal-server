@@ -8,12 +8,18 @@ import jakarta.persistence.ManyToOne
 
 @Entity(name = "conference")
 class ConferenceEntity(
-    val code: String,
-    val abbreviation: String,
-    val name: String,
+        var isDeleted: Boolean = false,
+        var code: String,
+        var abbreviation: String,
+        var name: String,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "conference_page_id")
-    val conferencePage: ConferencePageEntity
+        @ManyToOne(fetch = FetchType.LAZY)
+        @JoinColumn(name = "conference_page_id")
+        val conferencePage: ConferencePageEntity,
+
+        @OneToOne(mappedBy = "conferenceElement", cascade = [CascadeType.ALL], orphanRemoval = true)
+        var researchSearch: ResearchSearchEntity? = null,
+) : BaseTimeEntity() {
+}
 
 ) : BaseTimeEntity()
