@@ -142,7 +142,7 @@ class AboutServiceImpl(
                 )
             )
         }
-        val companyList = companyRepository.findAllOrderByYearDesc().map {
+        val companyList = companyRepository.findAllByOrderByYearDesc().map {
             CompanyDto(
                 name = it.name,
                 url = it.url,
