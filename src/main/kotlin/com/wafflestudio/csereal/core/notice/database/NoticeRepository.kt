@@ -8,10 +8,17 @@ import com.wafflestudio.csereal.core.notice.database.QNoticeEntity.noticeEntity
 import com.wafflestudio.csereal.core.notice.database.QNoticeTagEntity.noticeTagEntity
 import com.wafflestudio.csereal.core.notice.dto.NoticeSearchDto
 import com.wafflestudio.csereal.core.notice.dto.NoticeSearchResponse
+import com.wafflestudio.csereal.core.user.database.Role
+import com.wafflestudio.csereal.core.user.database.UserEntity
+import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.stereotype.Component
+import org.springframework.web.context.request.RequestAttributes
+import org.springframework.web.context.request.RequestContextHolder
 import java.time.LocalDateTime
 import kotlin.math.ceil
 
@@ -33,6 +40,7 @@ interface CustomNoticeRepository {
 @Component
 class NoticeRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
+    private val userRepository: UserRepository,
 ) : CustomNoticeRepository {
     override fun searchNotice(
         tag: List<String>?,
@@ -40,8 +48,25 @@ class NoticeRepositoryImpl(
         pageable: Pageable,
         usePageBtn: Boolean
     ): NoticeSearchResponse {
+        var user = RequestContextHolder.getRequestAttributes()?.getAttribute(
+            "loggedInUser",
+            RequestAttributes.SCOPE_REQUEST
+        ) as UserEntity?
+
+        if (user == null) {
+            val oidcUser = SecurityContextHolder.getContext().authentication.principal as OidcUser
+            val username = oidcUser.idToken.getClaim<String>("username")
+
+            if(userRepository.findByUsername(username) == null)  {
+                user = null
+            } else {
+                user = userRepository.findByUsername(username)
+            }
+        }
+
         val keywordBooleanBuilder = BooleanBuilder()
         val tagsBooleanBuilder = BooleanBuilder()
+        val isPrivateBooleanBuilder = BooleanBuilder()
 
         if (!keyword.isNullOrEmpty()) {
             val keywordList = keyword.split("[^a-zA-Z0-9가-힣]".toRegex())
@@ -66,10 +91,16 @@ class NoticeRepositoryImpl(
             }
         }
 
+        if(user?.role != Role.ROLE_STAFF) {
+            isPrivateBooleanBuilder.or(
+                noticeEntity.isPrivate.eq(false)
+            )
+        }
+
         val jpaQuery = queryFactory.selectFrom(noticeEntity)
             .leftJoin(noticeTagEntity).on(noticeTagEntity.notice.eq(noticeEntity))
             .where(noticeEntity.isDeleted.eq(false))
-            .where(keywordBooleanBuilder, tagsBooleanBuilder)
+            .where(keywordBooleanBuilder, tagsBooleanBuilder, isPrivateBooleanBuilder)
 
         val total: Long
         var pageRequest = pageable
