@@ -25,7 +25,7 @@ class AdminRepositoryImpl(
                 newsEntity.createdAt
             )
         ).from(newsEntity)
-            .where(newsEntity.isDeleted.eq(false), newsEntity.isPublic.eq(true), newsEntity.isSlide.eq(true))
+            .where(newsEntity.isDeleted.eq(false), newsEntity.isPrivate.eq(false), newsEntity.isSlide.eq(true))
             .orderBy(newsEntity.createdAt.desc())
             .offset(40*pageNum)
             .limit(40)

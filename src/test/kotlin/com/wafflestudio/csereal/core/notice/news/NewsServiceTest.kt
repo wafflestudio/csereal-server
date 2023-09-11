@@ -33,7 +33,7 @@ class NewsServiceTest(
                     tags = emptyList(),
                     createdAt = null,
                     modifiedAt = null,
-                    isPublic = false,
+                    isPrivate = false,
                     isSlide = false,
                     isImportant = false,
                     prevId = null,
@@ -69,7 +69,7 @@ class NewsServiceTest(
                             <h3>Goodbye, World!</h3>
                             """.trimIndent(),
                             plainTextDescription = "Hello, World! This is news description. Goodbye, World!",
-                            isPublic = false,
+                            isPrivate = false,
                             isSlide = false,
                             isImportant = false,
                     )

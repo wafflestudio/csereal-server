@@ -68,7 +68,7 @@ class NoticeServiceTest(
                     tags = emptyList(),
                     createdAt = null,
                     modifiedAt = null,
-                    isPublic = false,
+                    isPrivate = false,
                     isPinned = false,
                     isImportant = false,
                     prevId = null,
@@ -102,7 +102,7 @@ class NoticeServiceTest(
                                     <h3>Goodbye, World!</h3>
                                 """.trimIndent(),
                             plainTextDescription = "Hello, World! This is a test notice. Goodbye, World!",
-                            isPublic = false,
+                            isPrivate = false,
                             isPinned = false,
                             isImportant = false,
                             author = userRepository.findByUsername("username")!!,

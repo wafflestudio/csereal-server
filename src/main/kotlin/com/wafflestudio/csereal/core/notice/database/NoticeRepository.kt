@@ -68,7 +68,7 @@ class NoticeRepositoryImpl(
 
         val jpaQuery = queryFactory.selectFrom(noticeEntity)
             .leftJoin(noticeTagEntity).on(noticeTagEntity.notice.eq(noticeEntity))
-            .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPublic.eq(true))
+            .where(noticeEntity.isDeleted.eq(false))
             .where(keywordBooleanBuilder, tagsBooleanBuilder)
 
         val total: Long
@@ -103,7 +103,5 @@ class NoticeRepositoryImpl(
         }
 
         return NoticeSearchResponse(total, noticeSearchDtoList)
-
     }
-
 }

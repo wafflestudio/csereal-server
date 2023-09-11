@@ -22,7 +22,7 @@ class NewsEntity(
     @Column(columnDefinition = "mediumtext")
     var plainTextDescription: String,
 
-    var isPublic: Boolean,
+    var isPrivate: Boolean,
 
     var isSlide: Boolean,
 
@@ -47,7 +47,7 @@ class NewsEntity(
                 title = newsDto.title,
                 description = newsDto.description,
                 plainTextDescription = cleanTextFromHtml(newsDto.description),
-                isPublic = newsDto.isPublic,
+                isPrivate = newsDto.isPrivate,
                 isSlide = newsDto.isSlide,
                 isImportant = newsDto.isImportant,
             )
@@ -61,7 +61,7 @@ class NewsEntity(
         }
 
         this.title = updateNewsRequest.title
-        this.isPublic = updateNewsRequest.isPublic
+        this.isPrivate = updateNewsRequest.isPrivate
         this.isSlide = updateNewsRequest.isSlide
         this.isImportant = updateNewsRequest.isImportant
     }

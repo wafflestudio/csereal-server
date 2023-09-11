@@ -7,7 +7,6 @@ class SubjectChangesDto(
     val description: String,
 ) {
     companion object {
-        
         fun of(entity: AcademicsEntity) = entity.run {
             SubjectChangesDto(
                 time = this.time!!,

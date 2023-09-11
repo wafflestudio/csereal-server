@@ -86,7 +86,7 @@ class NoticeServiceImpl(
             title = request.title,
             description = request.description,
             plainTextDescription = cleanTextFromHtml(request.description),
-            isPublic = request.isPublic,
+            isPrivate = request.isPrivate,
             isPinned = request.isPinned,
             isImportant = request.isImportant,
             author = user

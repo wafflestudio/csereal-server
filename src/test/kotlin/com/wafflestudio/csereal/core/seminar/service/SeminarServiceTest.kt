@@ -55,7 +55,7 @@ class SeminarServiceTest (
                         """.trimIndent(),
                     createdAt = null,
                     modifiedAt = null,
-                    isPublic = false,
+                    isPrivate = false,
                     isImportant = false,
                     prevId = null,
                     prevTitle = null,
@@ -112,7 +112,7 @@ class SeminarServiceTest (
                                     <h3>Goodbye, World!</h3>
                                 """.trimIndent(),
                             plainTextAdditionalNote = "Hello, World! This is seminar additionalNote. Goodbye, World!",
-                            isPublic = false,
+                            isPrivate = false,
                             isImportant = false,
                     )
             )
