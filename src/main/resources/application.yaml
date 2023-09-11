@@ -48,6 +48,9 @@ spring:
       ddl-auto: update
     show-sql: true
     open-in-view: false
+    properties:
+      hibernate:
+        dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
   security:
     oauth2:
       client:
@@ -79,6 +82,9 @@ spring:
     hibernate:
       ddl-auto: update # TODO: change to validate (or none) when save actual data to server
     open-in-view: false
+    properties:
+      hibernate:
+        dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
   security:
     oauth2:
       client:
@@ -112,6 +118,9 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
   h2:
     console:
       enabled: true
