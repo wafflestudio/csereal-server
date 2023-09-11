@@ -33,9 +33,8 @@ class MainRepositoryImpl(
     private val seminarRepository: SeminarRepository,
 ) : MainRepository {
     override fun readMainSlide(): List<MainSlideResponse> {
-        val newsEntityList = queryFactory.select(newsEntity).from(newsEntity)
+        val newsEntityList = queryFactory.selectFrom(newsEntity)
             .where(newsEntity.isDeleted.eq(false), newsEntity.isPrivate.eq(false), newsEntity.isSlide.eq(true))
-
             .orderBy(newsEntity.createdAt.desc())
             .limit(20).fetch()
 
