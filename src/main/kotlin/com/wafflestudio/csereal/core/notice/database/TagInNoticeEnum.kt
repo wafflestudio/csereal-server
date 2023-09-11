@@ -4,11 +4,11 @@ import com.wafflestudio.csereal.common.CserealException
 
 enum class TagInNoticeEnum {
     CLASS, SCHOLARSHIP, UNDERGRADUATE, GRADUATE, MINOR, REGISTRATIONS, ADMISSIONS, GRADUATIONS,
-    RECRUIT, STUDENT_EXCHANGE, EVENTS_PROGRAMS, FOREIGN;
+    RECRUIT, STUDENT_EXCHANGE, INNER_EVENTS_PROGRAMS, OUTER_EVENTS_PROGRAMS, FOREIGN;
 
     companion object {
-        fun getTagEnum(t: String) : TagInNoticeEnum{
-            return when(t) {
+        fun getTagEnum(t: String): TagInNoticeEnum {
+            return when (t) {
                 "수업" -> CLASS
                 "장학" -> SCHOLARSHIP
                 "학사(학부)" -> UNDERGRADUATE
@@ -19,7 +19,8 @@ enum class TagInNoticeEnum {
                 "졸업" -> GRADUATIONS
                 "채용정보" -> RECRUIT
                 "교환학생/유학" -> STUDENT_EXCHANGE
-                "행사/프로그램" -> EVENTS_PROGRAMS
+                "내부행사/프로그램" -> INNER_EVENTS_PROGRAMS
+                "외부행사/프로그램" -> OUTER_EVENTS_PROGRAMS
                 "foreign" -> FOREIGN
                 else -> throw CserealException.Csereal404("태그를 찾을 수 없습니다")
             }
