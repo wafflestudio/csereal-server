@@ -103,7 +103,5 @@ class NoticeRepositoryImpl(
         }
 
         return NoticeSearchResponse(total, noticeSearchDtoList)
-
     }
-
 }

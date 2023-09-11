@@ -100,6 +100,6 @@ class SeminarRepositoryImpl(
             )
         }
 
-        return SeminarSearchResponse(total, seminarSearchDtoList)
+        return SeminarSearchResponse(total!!, seminarSearchDtoList)
     }
 }

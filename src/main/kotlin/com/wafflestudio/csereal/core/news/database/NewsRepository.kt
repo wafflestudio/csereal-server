@@ -94,6 +94,6 @@ class NewsRepositoryImpl(
                 imageURL = imageURL
             )
         }
-        return NewsSearchResponse(total, newsSearchDtoList)
+        return NewsSearchResponse(total!!, newsSearchDtoList)
     }
 }
