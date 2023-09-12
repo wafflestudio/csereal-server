@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.news.api
 
+import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
 import com.wafflestudio.csereal.core.news.service.NewsService
@@ -34,6 +35,7 @@ class NewsController(
         return ResponseEntity.ok(newsService.readNews(newsId))
     }
 
+    @AuthenticatedStaff
     @PostMapping
     fun createNews(
         @Valid @RequestPart("request") request: NewsDto,
@@ -43,6 +45,7 @@ class NewsController(
         return ResponseEntity.ok(newsService.createNews(request, mainImage, attachments))
     }
 
+    @AuthenticatedStaff
     @PatchMapping("/{newsId}")
     fun updateNews(
         @PathVariable newsId: Long,
@@ -53,6 +56,7 @@ class NewsController(
         return ResponseEntity.ok(newsService.updateNews(newsId, request, mainImage, attachments))
     }
 
+    @AuthenticatedStaff
     @DeleteMapping("/{newsId}")
     fun deleteNews(
         @PathVariable newsId: Long
@@ -60,6 +64,7 @@ class NewsController(
         newsService.deleteNews(newsId)
     }
 
+    @AuthenticatedStaff
     @PostMapping("/tag")
     fun enrollTag(
         @RequestBody tagName: Map<String, String>

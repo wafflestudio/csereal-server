@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.academics.api
 
+import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.academics.service.AcademicsService
 import com.wafflestudio.csereal.core.academics.dto.ScholarshipDto
@@ -13,13 +14,14 @@ import org.springframework.web.multipart.MultipartFile
 class AcademicsController(
     private val academicsService: AcademicsService
 ) {
+    @AuthenticatedStaff
     @PostMapping("/{studentType}/{postType}")
     fun createAcademics(
         @PathVariable studentType: String,
         @PathVariable postType: String,
         @Valid @RequestPart("request") request: AcademicsDto,
         @RequestPart("attachments") attachments: List<MultipartFile>?
-    ) : ResponseEntity<AcademicsDto> {
+    ): ResponseEntity<AcademicsDto> {
         return ResponseEntity.ok(academicsService.createAcademics(studentType, postType, request, attachments))
     }
 
@@ -39,12 +41,13 @@ class AcademicsController(
     }
 
     //교과목 정보
+    @AuthenticatedStaff
     @PostMapping("/{studentType}/course")
     fun createCourse(
         @PathVariable studentType: String,
         @Valid @RequestPart("request") request: CourseDto,
         @RequestPart("attachments") attachments: List<MultipartFile>?,
-    ) : ResponseEntity<CourseDto> {
+    ): ResponseEntity<CourseDto> {
         return ResponseEntity.ok(academicsService.createCourse(studentType, request, attachments))
     }
 
@@ -63,15 +66,16 @@ class AcademicsController(
     }
 
     @GetMapping("/undergraduate/general-studies-requirements")
-    fun readGeneralStudiesRequirements() : ResponseEntity<GeneralStudiesPageResponse> {
+    fun readGeneralStudiesRequirements(): ResponseEntity<GeneralStudiesPageResponse> {
         return ResponseEntity.ok(academicsService.readGeneralStudies())
     }
 
+    @AuthenticatedStaff
     @PostMapping("/{studentType}/scholarshipDetail")
     fun createScholarshipDetail(
         @PathVariable studentType: String,
         @Valid @RequestBody request: ScholarshipDto,
-    ) : ResponseEntity<ScholarshipDto> {
+    ): ResponseEntity<ScholarshipDto> {
         return ResponseEntity.ok(academicsService.createScholarshipDetail(studentType, request))
     }
 

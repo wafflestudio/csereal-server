@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.member.api
 
+import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
 import com.wafflestudio.csereal.core.member.dto.SimpleProfessorDto
@@ -14,6 +15,7 @@ class ProfessorController(
     private val professorService: ProfessorService
 ) {
 
+    @AuthenticatedStaff
     @PostMapping
     fun createProfessor(
         @RequestPart("request") createProfessorRequest: ProfessorDto,
@@ -37,6 +39,7 @@ class ProfessorController(
         return ResponseEntity.ok(professorService.getInactiveProfessors())
     }
 
+    @AuthenticatedStaff
     @PatchMapping("/{professorId}")
     fun updateProfessor(
         @PathVariable professorId: Long,
@@ -46,6 +49,7 @@ class ProfessorController(
         return ResponseEntity.ok(professorService.updateProfessor(professorId, updateProfessorRequest, mainImage))
     }
 
+    @AuthenticatedStaff
     @DeleteMapping("/{professorId}")
     fun deleteProfessor(@PathVariable professorId: Long): ResponseEntity<Any> {
         professorService.deleteProfessor(professorId)

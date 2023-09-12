@@ -57,6 +57,7 @@ class NoticeController(
         return ResponseEntity.ok(noticeService.createNotice(request, attachments))
     }
 
+    @AuthenticatedStaff
     @PatchMapping("/{noticeId}")
     fun updateNotice(
         @PathVariable noticeId: Long,
@@ -66,6 +67,7 @@ class NoticeController(
         return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, attachments))
     }
 
+    @AuthenticatedStaff
     @DeleteMapping("/{noticeId}")
     fun deleteNotice(
         @PathVariable noticeId: Long
@@ -73,6 +75,7 @@ class NoticeController(
         noticeService.deleteNotice(noticeId)
     }
 
+    @AuthenticatedStaff
     @PatchMapping
     fun unpinManyNotices(
         @RequestBody request: NoticeIdListRequest
@@ -80,6 +83,7 @@ class NoticeController(
         noticeService.unpinManyNotices(request.idList)
     }
 
+    @AuthenticatedStaff
     @DeleteMapping
     fun deleteManyNotices(
         @RequestBody request: NoticeIdListRequest
@@ -87,6 +91,7 @@ class NoticeController(
         noticeService.deleteManyNotices(request.idList)
     }
 
+    @AuthenticatedStaff
     @PostMapping("/tag")
     fun enrollTag(
         @RequestBody tagName: Map<String, String>
