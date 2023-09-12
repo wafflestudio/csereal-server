@@ -36,12 +36,12 @@ interface ResearchService {
 
 @Service
 class ResearchServiceImpl(
-    private val researchRepository: ResearchRepository,
-    private val labRepository: LabRepository,
-    private val professorRepository: ProfessorRepository,
-    private val mainImageService: MainImageService,
-    private val attachmentService: AttachmentService,
-    private val endpointProperties: EndpointProperties,
+        private val researchRepository: ResearchRepository,
+        private val labRepository: LabRepository,
+        private val professorRepository: ProfessorRepository,
+        private val mainImageService: MainImageService,
+        private val attachmentService: AttachmentService,
+        private val endpointProperties: EndpointProperties,
 ) : ResearchService {
     @Transactional
     override fun createResearchDetail(
@@ -68,6 +68,8 @@ class ResearchServiceImpl(
         if (attachments != null) {
             attachmentService.uploadAllAttachments(newResearch, attachments)
         }
+
+        newResearch.researchSearch = ResearchSearchEntity.create(newResearch)
 
         researchRepository.save(newResearch)
 
@@ -155,6 +157,12 @@ class ResearchServiceImpl(
         val imageURL = mainImageService.createImageURL(research.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(research.attachments)
 
+        research.updateWithoutLabImageAttachment(request)
+
+        research.researchSearch?.update(research)
+                ?: let {
+                    research.researchSearch = ResearchSearchEntity.create(research)
+                }
 
         return ResearchDto.of(research, imageURL, attachmentResponses)
     }
@@ -185,6 +193,8 @@ class ResearchServiceImpl(
             val attachmentDto = attachmentService.uploadAttachmentInLabEntity(newLab, pdf)
             pdfURL = "${endpointProperties.backend}/v1/file/${attachmentDto.filename}"
         }
+
+        newLab.researchSearch = ResearchSearchEntity.create(newLab)
 
         labRepository.save(newLab)
 
