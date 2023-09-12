@@ -1,7 +1,6 @@
 package com.wafflestudio.csereal.core.seminar.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
@@ -23,7 +22,7 @@ interface SeminarService {
         request: SeminarDto,
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?,
-        attachmentsList: List<AttachmentResponse>,
+        deleteIds: List<Long>,
     ): SeminarDto
 
     fun deleteSeminar(seminarId: Long)
@@ -85,7 +84,7 @@ class SeminarServiceImpl(
         request: SeminarDto,
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?,
-        attachmentsList: List<AttachmentResponse>,
+        deleteIds: List<Long>,
     ): SeminarDto {
         val seminar: SeminarEntity = seminarRepository.findByIdOrNull(seminarId)
             ?: throw CserealException.Csereal404("존재하지 않는 세미나입니다")
@@ -94,20 +93,17 @@ class SeminarServiceImpl(
         seminar.update(request)
 
         if (newMainImage != null) {
-            seminar.mainImage!!.isDeleted = true
+            seminar.mainImage?.isDeleted = true
             mainImageService.uploadMainImage(seminar, newMainImage)
         }
 
-        var attachmentResponses: List<AttachmentResponse> = listOf()
+        attachmentService.deleteAttachments(deleteIds)
 
         if (newAttachments != null) {
-            attachmentService.updateAttachmentResponses(seminar, attachmentsList)
             attachmentService.uploadAllAttachments(seminar, newAttachments)
-
-            attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
-        } else {
-            attachmentService.updateAttachmentResponses(seminar, attachmentsList)
         }
+
+        val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
 
         val imageURL = mainImageService.createImageURL(seminar.mainImage)
         return SeminarDto.of(seminar, imageURL, attachmentResponses)
