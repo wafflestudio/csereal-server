@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.about.api
 
 import com.wafflestudio.csereal.core.about.dto.AboutDto
+import com.wafflestudio.csereal.core.about.dto.CompanyDto
+import com.wafflestudio.csereal.core.about.dto.FutureCareersPage
 import com.wafflestudio.csereal.core.about.service.AboutService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -49,6 +51,10 @@ class AboutController(
     @GetMapping("/directions")
     fun readAllDirections() : ResponseEntity<List<AboutDto>> {
         return ResponseEntity.ok(aboutService.readAllDirections())
+    }
+    @GetMapping("/future-careers")
+    fun readFutureCareers(): ResponseEntity<FutureCareersPage> {
+        return ResponseEntity.ok(aboutService.readFutureCareers())
     }
 
 }

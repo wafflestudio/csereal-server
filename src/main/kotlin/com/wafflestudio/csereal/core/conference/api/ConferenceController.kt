@@ -7,7 +7,7 @@ import com.wafflestudio.csereal.core.conference.service.ConferenceService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
-@RequestMapping("/conference")
+@RequestMapping("/api/v1/conference")
 @RestController
 class ConferenceController(
     private val conferenceService: ConferenceService
