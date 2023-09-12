@@ -22,7 +22,8 @@ interface NoticeService {
         tag: List<String>?,
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean
+        usePageBtn: Boolean,
+        isStaff: Boolean
     ): NoticeSearchResponse
 
     fun readNotice(noticeId: Long): NoticeDto
@@ -48,9 +49,10 @@ class NoticeServiceImpl(
         tag: List<String>?,
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean
+        usePageBtn: Boolean,
+        isStaff: Boolean
     ): NoticeSearchResponse {
-        return noticeRepository.searchNotice(tag, keyword, pageable, usePageBtn)
+        return noticeRepository.searchNotice(tag, keyword, pageable, usePageBtn, isStaff)
     }
 
     @Transactional(readOnly = true)
