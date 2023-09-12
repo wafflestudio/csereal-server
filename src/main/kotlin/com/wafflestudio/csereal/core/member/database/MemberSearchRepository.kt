@@ -1,8 +1,8 @@
 package com.wafflestudio.csereal.core.member.database
 
-import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
+import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.core.member.database.QMemberSearchEntity.memberSearchEntity
 import com.wafflestudio.csereal.core.member.database.QProfessorEntity.professorEntity
 import com.wafflestudio.csereal.core.member.database.QStaffEntity.staffEntity
@@ -21,6 +21,7 @@ interface MemberSearchRepositoryCustom {
 @Repository
 class MemberSearchRepositoryCustomImpl (
         private val queryFactory: JPAQueryFactory,
+        private val commonRepository: CommonRepository,
 ): MemberSearchRepositoryCustom {
 
     override fun searchTopMember(keyword: String, number: Int): List<MemberSearchEntity> {
@@ -42,16 +43,11 @@ class MemberSearchRepositoryCustomImpl (
         return queryResult to total
     }
 
-    fun searchFullTextTemplate(keyword: String) =
-        Expressions.numberTemplate(
-                Double::class.javaObjectType,
-                "function('match',{0},{1})",
-                memberSearchEntity.content,
-                keyword
-        )
-
     fun searchQuery(keyword: String): JPAQuery<MemberSearchEntity> {
-        val searchDoublTemplate = searchFullTextTemplate(keyword)
+        val searchDoubleTemplate = commonRepository.searchFullSingleTextTemplate(
+                keyword,
+                memberSearchEntity.content
+            )
 
         return queryFactory.select(
                 memberSearchEntity
@@ -64,12 +60,15 @@ class MemberSearchRepositoryCustomImpl (
                         memberSearchEntity.staff, staffEntity
                 ).fetchJoin()
                 .where(
-                        searchDoublTemplate.gt(0.0)
+                        searchDoubleTemplate.gt(0.0)
                 )
     }
 
     fun getSearchCount(keyword: String): Long {
-        val searchDoubleTemplate = searchFullTextTemplate(keyword)
+        val searchDoubleTemplate = commonRepository.searchFullSingleTextTemplate(
+                keyword,
+                memberSearchEntity.content
+        )
 
         return queryFactory.select(
                 memberSearchEntity
