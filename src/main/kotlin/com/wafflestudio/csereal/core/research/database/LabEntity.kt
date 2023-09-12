@@ -4,31 +4,35 @@ import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.research.dto.LabDto
+import com.wafflestudio.csereal.core.research.dto.LabUpdateRequest
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import jakarta.persistence.*
 
 @Entity(name = "lab")
 class LabEntity(
-    val name: String,
+    var name: String,
 
     @OneToMany(mappedBy = "lab")
     val professors: MutableSet<ProfessorEntity> = mutableSetOf(),
 
-    val location: String?,
-    val tel: String?,
-    val acronym: String?,
+    var location: String?,
+    var tel: String?,
+    var acronym: String?,
 
     @OneToOne
     var pdf: AttachmentEntity? = null,
 
-    val youtube: String?,
+    var youtube: String?,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "research_id")
     var research: ResearchEntity,
 
-    val description: String?,
-    val websiteURL: String?,
+    var description: String?,
+    var websiteURL: String?,
+
+    @OneToOne(mappedBy = "lab", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var researchSearch: ResearchSearchEntity? = null,
 
 ) : BaseTimeEntity() {
     companion object {
@@ -44,5 +48,15 @@ class LabEntity(
                 websiteURL = labDto.websiteURL,
             )
         }
+    }
+
+    fun updateWithoutProfessor(labUpdateRequest: LabUpdateRequest) {
+        this.name = labUpdateRequest.name
+        this.location = labUpdateRequest.location
+        this.tel = labUpdateRequest.tel
+        this.acronym = labUpdateRequest.acronym
+        this.youtube = labUpdateRequest.youtube
+        this.description = labUpdateRequest.description
+        this.websiteURL = labUpdateRequest.websiteURL
     }
 }

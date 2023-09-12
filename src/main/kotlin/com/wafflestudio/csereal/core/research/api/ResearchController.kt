@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.research.api
 
+import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.research.dto.LabDto
+import com.wafflestudio.csereal.core.research.dto.LabUpdateRequest
 import com.wafflestudio.csereal.core.research.dto.ResearchDto
 import com.wafflestudio.csereal.core.research.dto.ResearchGroupResponse
 import com.wafflestudio.csereal.core.research.service.ResearchService
@@ -14,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile
 class ResearchController(
     private val researchService: ResearchService
 ) {
+    @AuthenticatedStaff
     @PostMapping
     fun createResearchDetail(
         @Valid @RequestPart("request") request: ResearchDto,
@@ -33,6 +36,7 @@ class ResearchController(
         return ResponseEntity.ok(researchService.readAllResearchCenters())
     }
 
+    @AuthenticatedStaff
     @PatchMapping("/{researchId}")
     fun updateResearchDetail(
         @PathVariable researchId: Long,
@@ -43,6 +47,7 @@ class ResearchController(
         return ResponseEntity.ok(researchService.updateResearchDetail(researchId, request, mainImage, attachments))
     }
 
+    @AuthenticatedStaff
     @PostMapping("/lab")
     fun createLab(
         @Valid @RequestPart("request") request: LabDto,
@@ -61,5 +66,18 @@ class ResearchController(
         @PathVariable labId: Long,
     ): ResponseEntity<LabDto> {
         return ResponseEntity.ok(researchService.readLab(labId))
+    }
+
+    /**
+     * Research Group 수정은 일단 제외하였음.
+     */
+    @AuthenticatedStaff
+    @PatchMapping("/lab/{labId}")
+    fun updateLab(
+            @PathVariable labId: Long,
+            @Valid @RequestPart("request") request: LabUpdateRequest,
+            @RequestPart("pdf") pdf: MultipartFile?
+    ): ResponseEntity<LabDto> {
+        return ResponseEntity.ok(researchService.updateLab(labId, request, pdf))
     }
 }

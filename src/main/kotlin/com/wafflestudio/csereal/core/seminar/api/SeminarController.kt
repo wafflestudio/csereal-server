@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.seminar.api
 
+import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
@@ -26,6 +27,7 @@ class SeminarController(
         return ResponseEntity.ok(seminarService.searchSeminar(keyword, pageRequest, usePageBtn))
     }
 
+    @AuthenticatedStaff
     @PostMapping
     fun createSeminar(
         @Valid @RequestPart("request") request: SeminarDto,
@@ -42,13 +44,14 @@ class SeminarController(
         return ResponseEntity.ok(seminarService.readSeminar(seminarId))
     }
 
+    @AuthenticatedStaff
     @PatchMapping("/{seminarId}")
     fun updateSeminar(
         @PathVariable seminarId: Long,
         @Valid @RequestPart("request") request: SeminarDto,
         @RequestPart("newMainImage") newMainImage: MultipartFile?,
         @RequestPart("newAttachments") newAttachments: List<MultipartFile>?,
-        @RequestPart("attachmentsList") attachmentsList: List<AttachmentResponse>,
+        @RequestPart("deleteIds") deleteIds: List<Long>,
     ): ResponseEntity<SeminarDto> {
         return ResponseEntity.ok(
             seminarService.updateSeminar(
@@ -56,11 +59,12 @@ class SeminarController(
                 request,
                 newMainImage,
                 newAttachments,
-                attachmentsList
+                deleteIds
             )
         )
     }
 
+    @AuthenticatedStaff
     @DeleteMapping("/{seminarId}")
     fun deleteSeminar(
         @PathVariable seminarId: Long
