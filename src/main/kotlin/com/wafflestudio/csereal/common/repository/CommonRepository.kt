@@ -9,6 +9,10 @@ interface CommonRepository {
     fun searchFullDoubleTextTemplate(keyword: String, field1: Any, field2: Any): NumberTemplate<Double>
     fun searchFullTripleTextTemplate(keyword: String, field1: Any, field2: Any, field3: Any): NumberTemplate<Double>
     fun searchFullQuadrapleTextTemplate(keyword: String, field1: Any, field2: Any, field3: Any, field4: Any): NumberTemplate<Double>
+    fun searchFullQuintupleTextTemplate(keyword: String, field1: Any, field2: Any, field3: Any, field4: Any, field5: Any): NumberTemplate<Double>
+    fun searchFullSextupleTextTemplate(keyword: String, field1: Any, field2: Any, field3: Any, field4: Any, field5: Any, field6: Any): NumberTemplate<Double>
+    fun searchFullSeptupleTextTemplate(keyword: String, field1: Any, field2: Any, field3: Any, field4: Any, field5: Any, field6: Any, field7: Any): NumberTemplate<Double>
+    fun searchFullOctupleTextTemplate(keyword: String, field1: Any, field2: Any, field3: Any, field4: Any, field5: Any, field6: Any, field7: Any, field8: Any): NumberTemplate<Double>
 }
 
 @Repository
@@ -57,11 +61,95 @@ class CommonRepositoryImpl: CommonRepository {
             field4: Any,
     ) = Expressions.numberTemplate(
             Double::class.javaObjectType,
-            "function('match3',{0},{1},{2},{3},{4})",
+            "function('match4',{0},{1},{2},{3},{4})",
             field1,
             field2,
             field3,
             field4,
+            keyword
+    )
+
+    override fun searchFullQuintupleTextTemplate(
+            keyword: String,
+            field1: Any,
+            field2: Any,
+            field3: Any,
+            field4: Any,
+            field5: Any,
+    ) = Expressions.numberTemplate(
+            Double::class.javaObjectType,
+            "function('match5',{0},{1},{2},{3},{4},{5})",
+            field1,
+            field2,
+            field3,
+            field4,
+            field5,
+            keyword
+    )
+
+    override fun searchFullSextupleTextTemplate(
+            keyword: String,
+            field1: Any,
+            field2: Any,
+            field3: Any,
+            field4: Any,
+            field5: Any,
+            field6: Any,
+    ) = Expressions.numberTemplate(
+            Double::class.javaObjectType,
+            "function('match6',{0},{1},{2},{3},{4},{5},{6})",
+            field1,
+            field2,
+            field3,
+            field4,
+            field5,
+            field6,
+            keyword
+    )
+
+    override fun searchFullSeptupleTextTemplate(
+            keyword: String,
+            field1: Any,
+            field2: Any,
+            field3: Any,
+            field4: Any,
+            field5: Any,
+            field6: Any,
+            field7: Any,
+    ) = Expressions.numberTemplate(
+            Double::class.javaObjectType,
+            "function('match7',{0},{1},{2},{3},{4},{5},{6},{7})",
+            field1,
+            field2,
+            field3,
+            field4,
+            field5,
+            field6,
+            field7,
+            keyword
+    )
+
+    override fun searchFullOctupleTextTemplate(
+            keyword: String,
+            field1: Any,
+            field2: Any,
+            field3: Any,
+            field4: Any,
+            field5: Any,
+            field6: Any,
+            field7: Any,
+            field8: Any,
+    ) = Expressions.numberTemplate(
+            Double::class.javaObjectType,
+            "function('match8',{0},{1},{2},{3},{4},{5},{6},{7},{8})",
+            field1,
+            field2,
+            field3,
+            field4,
+            field5,
+            field6,
+            field7,
+            field8,
             keyword
     )
 }
