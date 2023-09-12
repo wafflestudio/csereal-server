@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.research.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
+import com.wafflestudio.csereal.core.member.service.ProfessorService
 import com.wafflestudio.csereal.core.research.database.*
 import com.wafflestudio.csereal.core.research.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
@@ -32,6 +33,7 @@ interface ResearchService {
     fun createLab(request: LabDto, pdf: MultipartFile?): LabDto
     fun readAllLabs(): List<LabDto>
     fun readLab(labId: Long): LabDto
+    fun updateLab(labId: Long, request: LabUpdateRequest, pdf: MultipartFile?): LabDto
 }
 
 @Service
@@ -229,4 +231,57 @@ class ResearchServiceImpl(
     private fun createPdfURL(pdf: AttachmentEntity): String {
         return "${endpointProperties.backend}/v1/file/${pdf.filename}"
     }
+
+    @Transactional
+    override fun updateLab(labId: Long, request: LabUpdateRequest, pdf: MultipartFile?): LabDto {
+        val labEntity = labRepository.findByIdOrNull(labId)
+            ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$labId)")
+
+        labEntity.updateWithoutProfessor(request)
+
+        // update professor
+        val removedProfessorIds = labEntity.professors.map { it.id } - request.professorIds
+        val addedProfessorIds = request.professorIds - labEntity.professors.map { it.id }
+
+        removedProfessorIds.forEach {
+            val professor = professorRepository.findByIdOrNull(it)
+                    ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다.(professorId=$it)")
+            labEntity.professors.remove(
+                    professor
+            )
+            professor.lab = null
+        }
+
+        addedProfessorIds.forEach {
+            val professor = professorRepository.findByIdOrNull(it)
+                    ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다.(professorId=$it)")
+            labEntity.professors.add(
+                    professor
+            )
+            professor.lab = labEntity
+        }
+
+        // update pdf
+        if (request.pdfModified) {
+            labEntity.pdf?.let { attachmentService.deleteAttachment(it) }
+
+            pdf?.let {
+                val attachmentDto = attachmentService.uploadAttachmentInLabEntity(labEntity, it)
+            }
+        }
+
+        // update researchSearch
+        labEntity.researchSearch?.update(labEntity)
+                ?: let {
+                    labEntity.researchSearch = ResearchSearchEntity.create(labEntity)
+                }
+
+        return LabDto.of(
+                labEntity,
+                labEntity.pdf?.let {
+                        createPdfURL(it)
+                    } ?: ""
+        )
+    }
+
 }
