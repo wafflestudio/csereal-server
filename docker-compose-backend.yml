@@ -9,7 +9,7 @@ services:
       - 8080:8080
     volumes:
       - ./cse-files:/app/cse-files
-      - ./attachment:/app/attachment
+      - ./files:/app/files
 
     environment:
       SPRING_DATASOURCE_URL: "jdbc:mysql://host.docker.internal:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"
