@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.seminar.database
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.core.seminar.database.QSeminarEntity.seminarEntity
@@ -27,24 +28,23 @@ interface CustomSeminarRepository {
 class SeminarRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
     private val mainImageService: MainImageService,
+    private val commonRepository: CommonRepository,
 ) : CustomSeminarRepository {
     override fun searchSeminar(keyword: String?, pageable: Pageable, usePageBtn: Boolean): SeminarSearchResponse {
         val keywordBooleanBuilder = BooleanBuilder()
 
         if (!keyword.isNullOrEmpty()) {
-            val keywordList = keyword.split("[^a-zA-Z0-9가-힣]".toRegex())
-            keywordList.forEach {
-                if (it.length == 1) {
-                    throw CserealException.Csereal400("각각의 키워드는 한글자 이상이어야 합니다.")
-                } else {
-                    keywordBooleanBuilder.and(
-                        seminarEntity.title.contains(it)
-                            .or(seminarEntity.name.contains(it))
-                            .or(seminarEntity.affiliation.contains(it))
-                            .or(seminarEntity.location.contains(it))
-                    )
-                }
-            }
+            val booleanTemplate = commonRepository.searchFullSeptupleTextTemplate(
+                    keyword,
+                    seminarEntity.title,
+                    seminarEntity.name,
+                    seminarEntity.affiliation,
+                    seminarEntity.location,
+                    seminarEntity.plainTextDescription,
+                    seminarEntity.plainTextIntroduction,
+                    seminarEntity.plainTextAdditionalNote,
+            )
+            keywordBooleanBuilder.and(booleanTemplate.gt(0.0))
         }
 
         val jpaQuery = queryFactory.selectFrom(seminarEntity)

@@ -2,7 +2,8 @@ package com.wafflestudio.csereal.core.notice.database
 
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
-import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.repository.CommonRepository
+import com.wafflestudio.csereal.common.repository.CommonRepositoryImpl
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
 import com.wafflestudio.csereal.core.notice.database.QNoticeEntity.noticeEntity
 import com.wafflestudio.csereal.core.notice.database.QNoticeTagEntity.noticeTagEntity
@@ -11,7 +12,6 @@ import com.wafflestudio.csereal.core.notice.dto.NoticeSearchResponse
 import com.wafflestudio.csereal.core.user.database.Role
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
-import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.security.core.context.SecurityContextHolder
@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component
 import org.springframework.web.context.request.RequestAttributes
 import org.springframework.web.context.request.RequestContextHolder
 import java.time.LocalDateTime
-import kotlin.math.ceil
 
 interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepository {
     fun findAllByIsImportant(isImportant: Boolean): List<NoticeEntity>
@@ -40,8 +39,9 @@ interface CustomNoticeRepository {
 
 @Component
 class NoticeRepositoryImpl(
-    private val queryFactory: JPAQueryFactory,
-    private val userRepository: UserRepository,
+        private val queryFactory: JPAQueryFactory,
+        private val userRepository: UserRepository,
+        private val commonRepository: CommonRepository,
 ) : CustomNoticeRepository {
     override fun searchNotice(
         tag: List<String>?,
@@ -55,19 +55,14 @@ class NoticeRepositoryImpl(
         val isPrivateBooleanBuilder = BooleanBuilder()
 
         if (!keyword.isNullOrEmpty()) {
-            val keywordList = keyword.split("[^a-zA-Z0-9가-힣]".toRegex())
-            keywordList.forEach {
-                if (it.length == 1) {
-                    throw CserealException.Csereal400("각각의 키워드는 한글자 이상이어야 합니다.")
-                } else {
-                    keywordBooleanBuilder.and(
-                        noticeEntity.title.contains(it)
-                            .or(noticeEntity.description.contains(it))
-                    )
-                }
-
-            }
+            val booleanTemplate = commonRepository.searchFullDoubleTextTemplate(
+                    keyword,
+                    noticeEntity.title,
+                    noticeEntity.plainTextDescription,
+            )
+            keywordBooleanBuilder.and(booleanTemplate.gt(0.0))
         }
+
         if (!tag.isNullOrEmpty()) {
             tag.forEach {
                 val tagEnum = TagInNoticeEnum.getTagEnum(it)

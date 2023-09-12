@@ -1,5 +1,7 @@
 package com.wafflestudio.csereal.core.seminar.api
 
+import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
+import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
 import com.wafflestudio.csereal.core.seminar.service.SeminarService
@@ -25,6 +27,7 @@ class SeminarController(
         return ResponseEntity.ok(seminarService.searchSeminar(keyword, pageRequest, usePageBtn))
     }
 
+    @AuthenticatedStaff
     @PostMapping
     fun createSeminar(
         @Valid @RequestPart("request") request: SeminarDto,
@@ -41,6 +44,7 @@ class SeminarController(
         return ResponseEntity.ok(seminarService.readSeminar(seminarId))
     }
 
+    @AuthenticatedStaff
     @PatchMapping("/{seminarId}")
     fun updateSeminar(
         @PathVariable seminarId: Long,
@@ -60,6 +64,7 @@ class SeminarController(
         )
     }
 
+    @AuthenticatedStaff
     @DeleteMapping("/{seminarId}")
     fun deleteSeminar(
         @PathVariable seminarId: Long

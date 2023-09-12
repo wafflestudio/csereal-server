@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.news.database
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.news.database.QNewsEntity.newsEntity
@@ -29,6 +30,7 @@ interface CustomNewsRepository {
 class NewsRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
     private val mainImageService: MainImageService,
+    private val commonRepository: CommonRepository,
 ) : CustomNewsRepository {
     override fun searchNews(
         tag: List<String>?,
@@ -40,17 +42,12 @@ class NewsRepositoryImpl(
         val tagsBooleanBuilder = BooleanBuilder()
 
         if (!keyword.isNullOrEmpty()) {
-            val keywordList = keyword.split("[^a-zA-Z0-9가-힣]".toRegex())
-            keywordList.forEach {
-                if (it.length == 1) {
-                    throw CserealException.Csereal400("각각의 키워드는 한글자 이상이어야 합니다.")
-                } else {
-                    keywordBooleanBuilder.and(
-                        newsEntity.title.contains(it)
-                            .or(newsEntity.description.contains(it))
-                    )
-                }
-            }
+            val booleanTemplate = commonRepository.searchFullDoubleTextTemplate(
+                keyword,
+                newsEntity.title,
+                newsEntity.plainTextDescription,
+            )
+            keywordBooleanBuilder.and(booleanTemplate.gt(0.0))
         }
         if (!tag.isNullOrEmpty()) {
             tag.forEach {

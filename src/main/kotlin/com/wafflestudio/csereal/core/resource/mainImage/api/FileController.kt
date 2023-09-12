@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.resource.mainImage.api
 
+import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
@@ -53,6 +54,7 @@ class FileController(
         }
     }
 
+    @AuthenticatedStaff
     @DeleteMapping("/{filename:.+}")
     fun deleteFile(@PathVariable filename: String): ResponseEntity<Any> {
         val file = Paths.get(uploadPath, filename)
