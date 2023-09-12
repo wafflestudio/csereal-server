@@ -1,11 +1,11 @@
 package com.wafflestudio.csereal.core.main.dto
 
-import com.querydsl.core.annotations.QueryProjection
 import java.time.LocalDateTime
 
-data class NoticeResponse @QueryProjection constructor(
+data class MainImportantResponse(
     val id: Long,
     val title: String,
     val createdAt: LocalDateTime?,
-){
+    val category: String,
+) {
 }

@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.news.dto
 
 import com.wafflestudio.csereal.core.news.database.NewsEntity
+import com.wafflestudio.csereal.core.news.database.TagInNewsEnum
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
 
@@ -11,7 +12,7 @@ data class NewsDto(
     val tags: List<String>,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
-    val isPublic: Boolean,
+    val isPrivate: Boolean,
     val isSlide: Boolean,
     val isImportant: Boolean,
     val prevId: Long?,
@@ -33,10 +34,10 @@ data class NewsDto(
                 id = this.id,
                 title = this.title,
                 description = this.description,
-                tags = this.newsTags.map { it.tag.name },
+                tags = this.newsTags.map { TagInNewsEnum.getTagString(it.tag.name) },
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
-                isPublic = this.isPublic,
+                isPrivate = this.isPrivate,
                 isSlide = this.isSlide,
                 isImportant = this.isImportant,
                 prevId = prevNews?.id,

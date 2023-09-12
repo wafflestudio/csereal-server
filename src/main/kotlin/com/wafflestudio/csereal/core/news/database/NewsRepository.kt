@@ -54,15 +54,16 @@ class NewsRepositoryImpl(
         }
         if (!tag.isNullOrEmpty()) {
             tag.forEach {
+                val tagEnum = TagInNewsEnum.getTagEnum(it)
                 tagsBooleanBuilder.or(
-                    newsTagEntity.tag.name.eq(it)
+                    newsTagEntity.tag.name.eq(tagEnum)
                 )
             }
         }
 
-        val jpaQuery = queryFactory.select(newsEntity).from(newsEntity)
+        val jpaQuery = queryFactory.selectFrom(newsEntity)
             .leftJoin(newsTagEntity).on(newsTagEntity.news.eq(newsEntity))
-            .where(newsEntity.isDeleted.eq(false), newsEntity.isPublic.eq(true))
+            .where(newsEntity.isDeleted.eq(false))
             .where(keywordBooleanBuilder).where(tagsBooleanBuilder)
 
         val total: Long
@@ -90,10 +91,10 @@ class NewsRepositoryImpl(
                 title = it.title,
                 description = it.plainTextDescription,
                 createdAt = it.createdAt,
-                tags = it.newsTags.map { newsTagEntity -> newsTagEntity.tag.name },
+                tags = it.newsTags.map { newsTagEntity -> TagInNewsEnum.getTagString(newsTagEntity.tag.name) },
                 imageURL = imageURL
             )
         }
-        return NewsSearchResponse(total, newsSearchDtoList)
+        return NewsSearchResponse(total!!, newsSearchDtoList)
     }
 }

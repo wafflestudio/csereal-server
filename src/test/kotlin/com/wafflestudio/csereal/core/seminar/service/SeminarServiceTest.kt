@@ -9,13 +9,14 @@ import io.kotest.matchers.shouldNotBe
 import jakarta.transaction.Transactional
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.repository.findByIdOrNull
+import java.time.LocalDateTime
 
 @SpringBootTest
 @Transactional
-class SeminarServiceTest (
+class SeminarServiceTest(
     private val seminarService: SeminarService,
     private val seminarRepository: SeminarRepository,
-): BehaviorSpec() {
+) : BehaviorSpec() {
     init {
 
         beforeContainer {
@@ -27,42 +28,42 @@ class SeminarServiceTest (
 
         Given("세미나를 생성하려고 할 때") {
             val seminarDTO = SeminarDto(
-                    id = -1,
-                    title = "title",
-                    description = """
+                id = -1,
+                title = "title",
+                description = """
                         <h1>Hello, World!</h1>
                         <p>This is seminar description.</p>
                         <h3>Goodbye, World!</h3>
                         """.trimIndent(),
-                    introduction = """
+                introduction = """
                         <h1>Hello, World!</h1>
                         <p>This is seminar introduction.</p>
                         <h3>Goodbye, World!</h3>
                         """.trimIndent(),
-                    name = "name",
-                    speakerURL = "speakerURL",
-                    speakerTitle = "speakerTitle",
-                    affiliation = "affiliation",
-                    affiliationURL = "affiliationURL",
-                    startDate = "startDate",
-                    endDate = "endDate",
-                    location = "location",
-                    host = "host",
-                    additionalNote = """
+                name = "name",
+                speakerURL = "speakerURL",
+                speakerTitle = "speakerTitle",
+                affiliation = "affiliation",
+                affiliationURL = "affiliationURL",
+                startDate = LocalDateTime.now(),
+                endDate = LocalDateTime.now(),
+                location = "location",
+                host = "host",
+                additionalNote = """
                             <h1>Hello, World!</h1>
                             <p>This is seminar additionalNote.</p>
                             <h3>Goodbye, World!</h3>
                         """.trimIndent(),
-                    createdAt = null,
-                    modifiedAt = null,
-                    isPublic = false,
-                    isImportant = false,
-                    prevId = null,
-                    prevTitle = null,
-                    nextId = null,
-                    nextTitle = null,
-                    imageURL = null,
-                    attachments = null
+                createdAt = null,
+                modifiedAt = null,
+                isPrivate = false,
+                isImportant = false,
+                prevId = null,
+                prevTitle = null,
+                nextId = null,
+                nextTitle = null,
+                imageURL = null,
+                attachments = null
             )
             When("간단한 세미나 DTO가 주어지면") {
                 val resultSeminarDTO = seminarService.createSeminar(seminarDTO, null, null)
@@ -83,58 +84,58 @@ class SeminarServiceTest (
 
         Given("기존 간단한 세미나의 Description을 수정하려고 할 때") {
             val originalSeminar = seminarRepository.save(
-                    SeminarEntity(
-                            title = "title",
-                            description = """
+                SeminarEntity(
+                    title = "title",
+                    description = """
                                 <h1>Hello, World!</h1>
                                 <p>This is seminar description.</p>
                                 <h3>Goodbye, World!</h3>
                                 """.trimIndent(),
-                            plainTextDescription = "Hello, World! This is seminar description. Goodbye, World!",
-                            introduction = """
+                    plainTextDescription = "Hello, World! This is seminar description. Goodbye, World!",
+                    introduction = """
                                 <h1>Hello, World!</h1>
                                 <p>This is seminar introduction.</p>
                                 <h3>Goodbye, World!</h3>
                                 """.trimIndent(),
-                            plainTextIntroduction = "Hello, World! This is seminar introduction. Goodbye, World!",
-                            name = "name",
-                            speakerURL = "speakerURL",
-                            speakerTitle = "speakerTitle",
-                            affiliation = "affiliation",
-                            affiliationURL = "affiliationURL",
-                            startDate = "startDate",
-                            endDate = "endDate",
-                            location = "location",
-                            host = "host",
-                            additionalNote = """
+                    plainTextIntroduction = "Hello, World! This is seminar introduction. Goodbye, World!",
+                    name = "name",
+                    speakerURL = "speakerURL",
+                    speakerTitle = "speakerTitle",
+                    affiliation = "affiliation",
+                    affiliationURL = "affiliationURL",
+                    startDate = LocalDateTime.now(),
+                    endDate = LocalDateTime.now(),
+                    location = "location",
+                    host = "host",
+                    additionalNote = """
                                     <h1>Hello, World!</h1>
                                     <p>This is seminar additionalNote.</p>
                                     <h3>Goodbye, World!</h3>
                                 """.trimIndent(),
-                            plainTextAdditionalNote = "Hello, World! This is seminar additionalNote. Goodbye, World!",
-                            isPublic = false,
-                            isImportant = false,
-                    )
+                    plainTextAdditionalNote = "Hello, World! This is seminar additionalNote. Goodbye, World!",
+                    isPrivate = false,
+                    isImportant = false,
+                )
             )
             val originalId = originalSeminar.id
 
             When("수정된 DTO를 이용하여 수정하면") {
                 val modifiedSeminarDTO = SeminarDto.of(
-                        originalSeminar, null, emptyList(), null
+                    originalSeminar, null, emptyList(), null
                 ).copy(
-                        description = """
+                    description = """
                                 <h1>Hello, World!</h1>
                                 <p>This is modified seminar description.</p>
                                 <h3>Goodbye, World!</h3>
                                 <p>And this is a new line.</p>
                             """.trimIndent(),
-                        introduction = """
+                    introduction = """
                                 <h1>Hello, World!</h1>
                                 <p>This is modified seminar introduction.</p>
                                 <h3>Goodbye, World!</h3>
                                 <p>And this is a new line.</p>
                             """.trimIndent(),
-                        additionalNote = """
+                    additionalNote = """
                                 <h1>Hello, World!</h1>
                                 <p>This is modified seminar additionalNote.</p>
                                 <h3>Goodbye, World!</h3>
@@ -143,11 +144,11 @@ class SeminarServiceTest (
                 )
 
                 val modifiedSeminarDto = seminarService.updateSeminar(
-                        originalSeminar.id,
-                        modifiedSeminarDTO,
-                        null,
-                        null,
-                        emptyList()
+                    originalSeminar.id,
+                    modifiedSeminarDTO,
+                    null,
+                    null,
+                    emptyList()
                 )
 
                 Then("같은 Entity가 수정되어야 한다.") {

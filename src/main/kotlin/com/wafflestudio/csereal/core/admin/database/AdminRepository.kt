@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component
 
 interface AdminRepository {
     fun readAllSlides(pageNum: Long): List<SlideResponse>
-    fun readAllImportants(pageNum: Long): List<ImportantResponse>
 }
 
 @Component
@@ -25,14 +24,10 @@ class AdminRepositoryImpl(
                 newsEntity.createdAt
             )
         ).from(newsEntity)
-            .where(newsEntity.isDeleted.eq(false), newsEntity.isPublic.eq(true), newsEntity.isSlide.eq(true))
+            .where(newsEntity.isDeleted.eq(false), newsEntity.isPrivate.eq(false), newsEntity.isSlide.eq(true))
             .orderBy(newsEntity.createdAt.desc())
             .offset(40*pageNum)
             .limit(40)
             .fetch()
-    }
-
-    override fun readAllImportants(pageNum: Long): List<ImportantResponse> {
-        TODO("Not yet implemented")
     }
 }

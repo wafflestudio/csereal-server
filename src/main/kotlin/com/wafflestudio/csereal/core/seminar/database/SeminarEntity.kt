@@ -8,6 +8,7 @@ import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEnti
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import jakarta.persistence.*
+import java.time.LocalDateTime
 
 @Entity(name = "seminar")
 class SeminarEntity(
@@ -35,14 +36,14 @@ class SeminarEntity(
     var affiliation: String,
     var affiliationURL: String?,
 
-    var startDate: String?,
-    var endDate: String?,
+    var startDate: LocalDateTime?,
+    var endDate: LocalDateTime?,
 
     var location: String,
 
     var host: String?,
 
-    var isPublic: Boolean,
+    var isPrivate: Boolean,
     var isImportant: Boolean,
 
     @Column(columnDefinition = "text")
@@ -82,7 +83,7 @@ class SeminarEntity(
                 endDate = seminarDto.endDate,
                 location = seminarDto.location,
                 host = seminarDto.host,
-                isPublic = seminarDto.isPublic,
+                isPrivate = seminarDto.isPrivate,
                 isImportant = seminarDto.isImportant,
                 additionalNote = seminarDto.additionalNote,
                 plainTextAdditionalNote = plainTextAdditionalNote,
@@ -117,7 +118,7 @@ class SeminarEntity(
         endDate = updateSeminarRequest.endDate
         location = updateSeminarRequest.location
         host = updateSeminarRequest.host
-        isPublic = updateSeminarRequest.isPublic
+        isPrivate = updateSeminarRequest.isPrivate
         isImportant = updateSeminarRequest.isImportant
     }
 }

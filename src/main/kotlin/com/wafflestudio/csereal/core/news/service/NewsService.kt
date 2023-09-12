@@ -65,9 +65,10 @@ class NewsServiceImpl(
     override fun createNews(request: NewsDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): NewsDto {
         val newNews = NewsEntity.of(request)
 
-        for (tagName in request.tags) {
-            val tag = tagInNewsRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
-            NewsTagEntity.createNewsTag(newNews, tag)
+        for (tag in request.tags) {
+            val tagEnum = TagInNewsEnum.getTagEnum(tag)
+            val tagEntity = tagInNewsRepository.findByName(tagEnum)
+            NewsTagEntity.createNewsTag(newNews, tagEntity)
         }
 
         if (mainImage != null) {
@@ -113,18 +114,18 @@ class NewsServiceImpl(
 
         val oldTags = news.newsTags.map { it.tag.name }
 
-        val tagsToRemove = oldTags - request.tags
-        val tagsToAdd = request.tags - oldTags
+        val tagsToRemove = oldTags - request.tags.map { TagInNewsEnum.getTagEnum(it) }
+        val tagsToAdd = request.tags.map { TagInNewsEnum.getTagEnum(it) } - oldTags
 
-        for (tagName in tagsToRemove) {
-            val tagId = tagInNewsRepository.findByName(tagName)!!.id
-            news.newsTags.removeIf { it.tag.name == tagName }
+        for (tagEnum in tagsToRemove) {
+            val tagId = tagInNewsRepository.findByName(tagEnum).id
+            news.newsTags.removeIf { it.tag.name == tagEnum }
             newsTagRepository.deleteByNewsIdAndTagId(newsId, tagId)
         }
 
-        for (tagName in tagsToAdd) {
-            val tag = tagInNewsRepository.findByName(tagName) ?: throw CserealException.Csereal404("해당하는 태그가 없습니다")
-            NewsTagEntity.createNewsTag(news, tag)
+        for (tagEnum in tagsToAdd) {
+            val tagId = tagInNewsRepository.findByName(tagEnum)
+            NewsTagEntity.createNewsTag(news, tagId)
         }
 
         val imageURL = mainImageService.createImageURL(news.mainImage)
@@ -143,7 +144,7 @@ class NewsServiceImpl(
 
     override fun enrollTag(tagName: String) {
         val newTag = TagInNewsEntity(
-            name = tagName
+            name = TagInNewsEnum.getTagEnum(tagName)
         )
         tagInNewsRepository.save(newTag)
     }
