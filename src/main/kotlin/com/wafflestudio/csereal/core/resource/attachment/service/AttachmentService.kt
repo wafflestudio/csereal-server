@@ -39,6 +39,8 @@ interface AttachmentService {
         contentEntity: AttachmentContentEntityType,
         attachmentsList: List<AttachmentResponse>
     )
+
+    fun deleteAttachment(attachment: AttachmentEntity)
 }
 
 @Service
@@ -193,5 +195,17 @@ class AttachmentServiceImpl(
                 attachment.research = contentEntity
             }
         }
+    }
+
+    @Transactional
+    override fun deleteAttachment(attachment: AttachmentEntity) {
+        attachment.isDeleted = true
+        attachment.news = null
+        attachment.notice = null
+        attachment.seminar = null
+        attachment.about = null
+        attachment.academics = null
+        attachment.course = null
+        attachment.research = null
     }
 }

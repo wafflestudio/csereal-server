@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.research.dto.LabDto
+import com.wafflestudio.csereal.core.research.dto.LabUpdateRequest
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import jakarta.persistence.*
 
@@ -47,5 +48,15 @@ class LabEntity(
                 websiteURL = labDto.websiteURL,
             )
         }
+    }
+
+    fun updateWithoutProfessor(labUpdateRequest: LabUpdateRequest) {
+        this.name = labUpdateRequest.name
+        this.location = labUpdateRequest.location
+        this.tel = labUpdateRequest.tel
+        this.acronym = labUpdateRequest.acronym
+        this.youtube = labUpdateRequest.youtube
+        this.description = labUpdateRequest.description
+        this.websiteURL = labUpdateRequest.websiteURL
     }
 }
