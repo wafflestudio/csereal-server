@@ -8,6 +8,7 @@ interface CommonRepository {
     fun searchFullSingleTextTemplate(keyword: String, field: Any): NumberTemplate<Double>
     fun searchFullDoubleTextTemplate(keyword: String, field1: Any, field2: Any): NumberTemplate<Double>
     fun searchFullTripleTextTemplate(keyword: String, field1: Any, field2: Any, field3: Any): NumberTemplate<Double>
+    fun searchFullQuadrapleTextTemplate(keyword: String, field1: Any, field2: Any, field3: Any, field4: Any): NumberTemplate<Double>
 }
 
 @Repository
@@ -45,6 +46,22 @@ class CommonRepositoryImpl: CommonRepository {
             field1,
             field2,
             field3,
+            keyword
+    )
+
+    override fun searchFullQuadrapleTextTemplate(
+            keyword: String,
+            field1: Any,
+            field2: Any,
+            field3: Any,
+            field4: Any,
+    ) = Expressions.numberTemplate(
+            Double::class.javaObjectType,
+            "function('match3',{0},{1},{2},{3},{4})",
+            field1,
+            field2,
+            field3,
+            field4,
             keyword
     )
 }
