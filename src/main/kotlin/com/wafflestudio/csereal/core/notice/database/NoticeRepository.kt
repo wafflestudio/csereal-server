@@ -32,7 +32,8 @@ interface CustomNoticeRepository {
         tag: List<String>?,
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean
+        usePageBtn: Boolean,
+        isStaff: Boolean
     ): NoticeSearchResponse
 }
 
@@ -46,7 +47,8 @@ class NoticeRepositoryImpl(
         tag: List<String>?,
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean
+        usePageBtn: Boolean,
+        isStaff: Boolean
     ): NoticeSearchResponse {
         var user = RequestContextHolder.getRequestAttributes()?.getAttribute(
             "loggedInUser",
@@ -63,7 +65,6 @@ class NoticeRepositoryImpl(
                 user = userRepository.findByUsername(username)
             }
         }
-
         val keywordBooleanBuilder = BooleanBuilder()
         val tagsBooleanBuilder = BooleanBuilder()
         val isPrivateBooleanBuilder = BooleanBuilder()
@@ -86,7 +87,7 @@ class NoticeRepositoryImpl(
             }
         }
 
-        if(user?.role != Role.ROLE_STAFF) {
+        if (!isStaff) {
             isPrivateBooleanBuilder.or(
                 noticeEntity.isPrivate.eq(false)
             )

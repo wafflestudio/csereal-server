@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.seminar.api
 
-import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
 import com.wafflestudio.csereal.core.seminar.service.SeminarService
@@ -48,7 +47,7 @@ class SeminarController(
         @Valid @RequestPart("request") request: SeminarDto,
         @RequestPart("newMainImage") newMainImage: MultipartFile?,
         @RequestPart("newAttachments") newAttachments: List<MultipartFile>?,
-        @RequestPart("attachmentsList") attachmentsList: List<AttachmentResponse>,
+        @RequestPart("deleteIds") deleteIds: List<Long>,
     ): ResponseEntity<SeminarDto> {
         return ResponseEntity.ok(
             seminarService.updateSeminar(
@@ -56,7 +55,7 @@ class SeminarController(
                 request,
                 newMainImage,
                 newAttachments,
-                attachmentsList
+                deleteIds
             )
         )
     }
