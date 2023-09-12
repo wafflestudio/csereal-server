@@ -15,7 +15,9 @@ data class ConferencePage(
                 createdAt = conferencePageEntity.createdAt!!,
                 modifiedAt = conferencePageEntity.modifiedAt!!,
                 author = conferencePageEntity.author.name,
-                conferenceList = conferencePageEntity.conferences.map { ConferenceDto.of(it) }
+                conferenceList = conferencePageEntity.conferences.map {
+                        ConferenceDto.of(it)
+                    }.sortedBy { it.code }
             )
         }
     }

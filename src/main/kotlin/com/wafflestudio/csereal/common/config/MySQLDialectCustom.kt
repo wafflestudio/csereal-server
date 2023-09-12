@@ -33,6 +33,12 @@ class MySQLDialectCustom: MySQLDialect(
                     "match (?1, ?2, ?3) against (?4 in boolean mode)",
                     basicTypeRegistry.resolve(StandardBasicTypes.DOUBLE)
             )
+
+            functionRegistry.registerPattern(
+                    "match4",
+                    "match (?1, ?2, ?3, ?4) against (?5 in boolean mode)",
+                    basicTypeRegistry.resolve(StandardBasicTypes.DOUBLE)
+            )
         }
     }
 }

@@ -9,10 +9,10 @@ class ConferencePageEntity(
 
     @OneToOne
     @JoinColumn(name = "author_id")
-    val author: UserEntity,
+    var author: UserEntity,
 
-    @OneToMany(mappedBy = "conferencePage")
+    @OneToMany(mappedBy = "conferencePage", cascade = [CascadeType.ALL], orphanRemoval = true)
     @OrderBy("code ASC")
-    val conferences: List<ConferenceEntity> = mutableListOf()
+    val conferences: MutableSet<ConferenceEntity> = mutableSetOf()
 
 ) : BaseTimeEntity()
