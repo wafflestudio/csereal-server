@@ -50,10 +50,11 @@ class NewsController(
     fun updateNews(
         @PathVariable newsId: Long,
         @Valid @RequestPart("request") request: NewsDto,
-        @RequestPart("mainImage") mainImage: MultipartFile?,
-        @RequestPart("attachments") attachments: List<MultipartFile>?
+        @RequestPart("newMainImage") newMainImage: MultipartFile?,
+        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?,
+        @RequestPart("deleteIds") deleteIds: List<Long>,
     ): ResponseEntity<NewsDto> {
-        return ResponseEntity.ok(newsService.updateNews(newsId, request, mainImage, attachments))
+        return ResponseEntity.ok(newsService.updateNews(newsId, request, newMainImage, newAttachments, deleteIds))
     }
 
     @AuthenticatedStaff
