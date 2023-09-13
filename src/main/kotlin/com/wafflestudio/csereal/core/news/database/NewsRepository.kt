@@ -88,10 +88,10 @@ class NewsRepositoryImpl(
                 title = it.title,
                 description = it.plainTextDescription,
                 createdAt = it.createdAt,
-                tags = it.newsTags.map { newsTagEntity -> TagInNewsEnum.getTagString(newsTagEntity.tag.name) },
+                tags = it.newsTags.map { newsTagEntity -> newsTagEntity.tag.name.krName },
                 imageURL = imageURL
             )
         }
-        return NewsSearchResponse(total!!, newsSearchDtoList)
+        return NewsSearchResponse(total, newsSearchDtoList)
     }
 }

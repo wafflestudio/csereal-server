@@ -35,7 +35,7 @@ data class NoticeDto(
                 title = this.title,
                 description = this.description,
                 author = this.author.name,
-                tags = this.noticeTags.map { it.tag.name.name },
+                tags = this.noticeTags.map { it.tag.name.krName },
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
                 isPrivate = this.isPrivate,
