@@ -19,20 +19,20 @@ import org.springframework.web.context.request.RequestContextHolder
 
 @SpringBootTest
 class NoticeServiceTest(
-        private val noticeService: NoticeService,
-        private val userRepository: UserRepository,
-        private val noticeRepository: NoticeRepository,
+    private val noticeService: NoticeService,
+    private val userRepository: UserRepository,
+    private val noticeRepository: NoticeRepository,
 ) : BehaviorSpec() {
     init {
         beforeContainer {
             userRepository.save(
-                    UserEntity(
-                            "username",
-                            "name",
-                            "email",
-                            "studentId",
-                            Role.ROLE_STAFF
-                    )
+                UserEntity(
+                    "username",
+                    "name",
+                    "email",
+                    "studentId",
+                    Role.ROLE_STAFF
+                )
             )
         }
 
@@ -51,31 +51,31 @@ class NoticeServiceTest(
             } returns mockRequestAttributes
             every {
                 mockRequestAttributes.getAttribute(
-                        "loggedInUser",
-                        RequestAttributes.SCOPE_REQUEST
+                    "loggedInUser",
+                    RequestAttributes.SCOPE_REQUEST
                 )
             } returns userEntity
 
             val noticeDto = NoticeDto(
-                    id = -1,
-                    title = "title",
-                    description = """
+                id = -1,
+                title = "title",
+                description = """
                             <h1>Hello, World!</h1>
                             <p>This is a test notice.</p>
                             <h3>Goodbye, World!</h3>
                         """.trimIndent(),
-                    author = "username",
-                    tags = emptyList(),
-                    createdAt = null,
-                    modifiedAt = null,
-                    isPrivate = false,
-                    isPinned = false,
-                    isImportant = false,
-                    prevId = null,
-                    prevTitle = null,
-                    nextId = null,
-                    nextTitle = null,
-                    attachments = null,
+                author = "username",
+                tags = emptyList(),
+                createdAt = null,
+                modifiedAt = null,
+                isPrivate = false,
+                isPinned = false,
+                isImportant = false,
+                prevId = null,
+                prevTitle = null,
+                nextId = null,
+                nextTitle = null,
+                attachments = null,
             )
 
             When("공지사항을 생성하면") {
@@ -93,25 +93,25 @@ class NoticeServiceTest(
         }
 
         Given("기존 간단한 공지사항의 Description을 수정하려고 할 때") {
-            val noticeEntity = noticeRepository.save (
-                    NoticeEntity(
-                            title = "title",
-                            description = """
+            val noticeEntity = noticeRepository.save(
+                NoticeEntity(
+                    title = "title",
+                    description = """
                                     <h1>Hello, World!</h1>
                                     <p>This is a test notice.</p>
                                     <h3>Goodbye, World!</h3>
                                 """.trimIndent(),
-                            plainTextDescription = "Hello, World! This is a test notice. Goodbye, World!",
-                            isPrivate = false,
-                            isPinned = false,
-                            isImportant = false,
-                            author = userRepository.findByUsername("username")!!,
-                    )
+                    plainTextDescription = "Hello, World! This is a test notice. Goodbye, World!",
+                    isPrivate = false,
+                    isPinned = false,
+                    isImportant = false,
+                    author = userRepository.findByUsername("username")!!,
+                )
             )
             val modifiedRequest = NoticeDto.of(
-                    noticeEntity, emptyList(), null
+                noticeEntity, emptyList(), null
             ).copy(
-                    description = """
+                description = """
                             <h1>Hello, World!</h1>
                             <p>This is a modified test notice.</p>
                             <h3>Goodbye, World!</h3>
@@ -121,9 +121,10 @@ class NoticeServiceTest(
 
             When("수정된 DTO를 이용하여 수정하면") {
                 val modifiedNoticeDto = noticeService.updateNotice(
-                        modifiedRequest.id,
-                        modifiedRequest,
-                        null
+                    modifiedRequest.id,
+                    modifiedRequest,
+                    null,
+                    emptyList()
                 )
 
                 Then("plainTextDescription이 잘 수정되어야 한다.") {
