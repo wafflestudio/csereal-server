@@ -28,7 +28,13 @@ interface NoticeService {
 
     fun readNotice(noticeId: Long): NoticeDto
     fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
-    fun updateNotice(noticeId: Long, request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
+    fun updateNotice(
+        noticeId: Long,
+        request: NoticeDto,
+        newAttachments: List<MultipartFile>?,
+        deleteIds: List<Long>
+    ): NoticeDto
+
     fun deleteNotice(noticeId: Long)
     fun unpinManyNotices(idList: List<Long>)
     fun deleteManyNotices(idList: List<Long>)
@@ -113,18 +119,22 @@ class NoticeServiceImpl(
     }
 
     @Transactional
-    override fun updateNotice(noticeId: Long, request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto {
+    override fun updateNotice(
+        noticeId: Long,
+        request: NoticeDto,
+        newAttachments: List<MultipartFile>?,
+        deleteIds: List<Long>
+    ): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
         if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
 
         notice.update(request)
 
-        if (attachments != null) {
-            notice.attachments.clear()
-            attachmentService.uploadAllAttachments(notice, attachments)
-        } else {
-            notice.attachments.clear()
+        attachmentService.deleteAttachments(deleteIds)
+
+        if (newAttachments != null) {
+            attachmentService.uploadAllAttachments(notice, newAttachments)
         }
 
         val oldTags = notice.noticeTags.map { it.tag.name }
