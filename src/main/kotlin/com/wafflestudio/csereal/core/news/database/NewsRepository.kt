@@ -88,6 +88,7 @@ class NewsRepositoryImpl(
                 title = it.title,
                 description = it.plainTextDescription,
                 createdAt = it.createdAt,
+                date = it.date,
                 tags = it.newsTags.map { newsTagEntity -> newsTagEntity.tag.name.krName },
                 imageURL = imageURL
             )
