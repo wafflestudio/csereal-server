@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.reservation.api
 import com.wafflestudio.csereal.common.aop.AuthenticatedForReservation
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
+import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
 import com.wafflestudio.csereal.core.reservation.service.ReservationService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -28,7 +29,7 @@ class ReservationController(
         @RequestParam roomId: Long,
         @RequestParam year: Int,
         @RequestParam month: Int
-    ): ResponseEntity<List<ReservationDto>> {
+    ): ResponseEntity<List<SimpleReservationDto>> {
         val start = LocalDateTime.of(year, month, 1, 0, 0)
         val end = start.plusMonths(1)
         return ResponseEntity.ok(reservationService.getRoomReservationsBetween(roomId, start, end))
@@ -41,7 +42,7 @@ class ReservationController(
         @RequestParam year: Int,
         @RequestParam month: Int,
         @RequestParam day: Int,
-    ): ResponseEntity<List<ReservationDto>> {
+    ): ResponseEntity<List<SimpleReservationDto>> {
         val start = LocalDateTime.of(year, month, day, 0, 0)
         val end = start.plusDays(7)
         return ResponseEntity.ok(reservationService.getRoomReservationsBetween(roomId, start, end))

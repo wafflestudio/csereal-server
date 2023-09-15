@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.reservation.database.*
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
+import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
 import com.wafflestudio.csereal.core.user.database.Role
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import org.springframework.data.repository.findByIdOrNull
@@ -16,7 +17,7 @@ import java.util.*
 
 interface ReservationService {
     fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto>
-    fun getRoomReservationsBetween(roomId: Long, start: LocalDateTime, end: LocalDateTime): List<ReservationDto>
+    fun getRoomReservationsBetween(roomId: Long, start: LocalDateTime, end: LocalDateTime): List<SimpleReservationDto>
     fun getReservation(reservationId: Long): ReservationDto
     fun cancelSpecific(reservationId: Long)
     fun cancelRecurring(recurrenceId: UUID)
@@ -72,9 +73,9 @@ class ReservationServiceImpl(
         roomId: Long,
         start: LocalDateTime,
         end: LocalDateTime
-    ): List<ReservationDto> {
+    ): List<SimpleReservationDto> {
         return reservationRepository.findByRoomIdAndStartTimeBetweenOrderByStartTimeAsc(roomId, start, end)
-            .map { ReservationDto.of(it) }
+            .map { SimpleReservationDto.of(it) }
     }
 
     @Transactional(readOnly = true)
