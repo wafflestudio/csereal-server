@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.about.dto
+package com.wafflestudio.csereal.core.about.dto.request
 
 import java.time.LocalDateTime
 

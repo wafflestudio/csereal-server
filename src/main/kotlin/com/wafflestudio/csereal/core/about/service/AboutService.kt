@@ -3,6 +3,8 @@ package com.wafflestudio.csereal.core.about.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.about.database.*
 import com.wafflestudio.csereal.core.about.dto.*
+import com.wafflestudio.csereal.core.about.dto.request.AboutRequest
+import com.wafflestudio.csereal.core.about.dto.request.FutureCareersRequest
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.stereotype.Service
@@ -165,6 +167,7 @@ class AboutServiceImpl(
         return FutureCareersPage(description, statList, companyList)
     }
 
+    @Transactional
     override fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto> {
         val list = mutableListOf<AboutDto>()
 
@@ -199,6 +202,7 @@ class AboutServiceImpl(
         return list
     }
 
+    @Transactional
     override fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersResponse {
         val description = request.description
         val statList = mutableListOf<FutureCareersStatDto>()
