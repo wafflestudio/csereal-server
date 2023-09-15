@@ -93,7 +93,7 @@ class NoticeRepositoryImpl(
             total = countQuery.select(noticeEntity.countDistinct()).fetchOne()!!
             pageRequest = FixedPageRequest(pageable, total)
         } else {
-            total = (10 * pageable.pageSize).toLong() // 10개 페이지 고정
+            total = (10 * pageable.pageSize).toLong() + 1 // 10개 페이지 고정
         }
 
         val noticeSearchDtoList = jpaQuery

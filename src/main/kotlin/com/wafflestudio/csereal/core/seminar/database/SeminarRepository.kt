@@ -35,14 +35,14 @@ class SeminarRepositoryImpl(
 
         if (!keyword.isNullOrEmpty()) {
             val booleanTemplate = commonRepository.searchFullSeptupleTextTemplate(
-                    keyword,
-                    seminarEntity.title,
-                    seminarEntity.name,
-                    seminarEntity.affiliation,
-                    seminarEntity.location,
-                    seminarEntity.plainTextDescription,
-                    seminarEntity.plainTextIntroduction,
-                    seminarEntity.plainTextAdditionalNote,
+                keyword,
+                seminarEntity.title,
+                seminarEntity.name,
+                seminarEntity.affiliation,
+                seminarEntity.location,
+                seminarEntity.plainTextDescription,
+                seminarEntity.plainTextIntroduction,
+                seminarEntity.plainTextAdditionalNote,
             )
             keywordBooleanBuilder.and(booleanTemplate.gt(0.0))
         }
@@ -59,7 +59,7 @@ class SeminarRepositoryImpl(
             total = countQuery.select(seminarEntity.count()).fetchOne()!!
             pageRequest = FixedPageRequest(pageable, total)
         } else {
-            total = (10 * pageable.pageSize).toLong() // 10개 페이지 고정
+            total = (10 * pageable.pageSize).toLong() + 1 // 10개 페이지 고정
         }
 
         val seminarEntityList = jpaQuery
