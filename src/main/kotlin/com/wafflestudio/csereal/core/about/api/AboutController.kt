@@ -63,4 +63,11 @@ class AboutController(
     ): ResponseEntity<List<AboutDto>> {
         return ResponseEntity.ok(aboutService.migrateAbout(requestList))
     }
+
+    @PostMapping("/future-careers/migrate")
+    fun migrateFutureCareers(
+        @RequestBody request: FutureCareersRequest
+    ): ResponseEntity<FutureCareersResponse> {
+        return ResponseEntity.ok(aboutService.migrateFutureCareers(request))
+    }
 }
