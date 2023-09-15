@@ -74,21 +74,21 @@ class AboutController(
 
     @PostMapping("/student-clubs/migrate")
     fun migrateStudentClubs(
-        @RequestBody requestList: List<StudentClubRequest>
+        @RequestBody requestList: List<StudentClubDto>
     ): ResponseEntity<List<StudentClubDto>> {
         return ResponseEntity.ok(aboutService.migrateStudentClubs(requestList))
     }
 
     @PostMapping("/facilities/migrate")
     fun migrateFacilities(
-        @RequestBody requestList: List<FacilityRequest>
+        @RequestBody requestList: List<FacilityDto>
     ): ResponseEntity<List<FacilityDto>> {
         return ResponseEntity.ok(aboutService.migrateFacilities(requestList))
     }
 
     @PostMapping("/directions/migrate")
     fun migrateDirections(
-        @RequestBody requestList: List<DirectionRequest>
+        @RequestBody requestList: List<DirectionDto>
     ): ResponseEntity<List<DirectionDto>> {
         return ResponseEntity.ok(aboutService.migrateDirections(requestList))
     }

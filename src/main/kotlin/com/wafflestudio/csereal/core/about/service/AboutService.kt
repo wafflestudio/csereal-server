@@ -26,9 +26,9 @@ interface AboutService {
     fun readFutureCareers(): FutureCareersPage
     fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto>
     fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage
-    fun migrateStudentClubs(requestList: List<StudentClubRequest>): List<StudentClubDto>
-    fun migrateFacilities(requestList: List<FacilityRequest>): List<FacilityDto>
-    fun migrateDirections(requestList: List<DirectionRequest>): List<DirectionDto>
+    fun migrateStudentClubs(requestList: List<StudentClubDto>): List<StudentClubDto>
+    fun migrateFacilities(requestList: List<FacilityDto>): List<FacilityDto>
+    fun migrateDirections(requestList: List<DirectionDto>): List<DirectionDto>
 }
 
 @Service
@@ -222,7 +222,7 @@ class AboutServiceImpl(
     }
 
     @Transactional
-    override fun migrateStudentClubs(requestList: List<StudentClubRequest>): List<StudentClubDto> {
+    override fun migrateStudentClubs(requestList: List<StudentClubDto>): List<StudentClubDto> {
         val list = mutableListOf<StudentClubDto>()
 
         for (request in requestList) {
@@ -250,7 +250,7 @@ class AboutServiceImpl(
     }
 
     @Transactional
-    override fun migrateFacilities(requestList: List<FacilityRequest>): List<FacilityDto> {
+    override fun migrateFacilities(requestList: List<FacilityDto>): List<FacilityDto> {
         val list = mutableListOf<FacilityDto>()
 
         for (request in requestList) {
@@ -282,7 +282,7 @@ class AboutServiceImpl(
         return list
     }
 
-    override fun migrateDirections(requestList: List<DirectionRequest>): List<DirectionDto> {
+    override fun migrateDirections(requestList: List<DirectionDto>): List<DirectionDto> {
         val list = mutableListOf<DirectionDto>()
 
         for (request in requestList) {
