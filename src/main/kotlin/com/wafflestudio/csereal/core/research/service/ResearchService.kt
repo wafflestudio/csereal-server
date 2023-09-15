@@ -34,6 +34,8 @@ interface ResearchService {
     fun readAllLabs(): List<LabDto>
     fun readLab(labId: Long): LabDto
     fun updateLab(labId: Long, request: LabUpdateRequest, pdf: MultipartFile?): LabDto
+    fun migrateResearchDetail(requestList: List<ResearchDto>): List<ResearchDto>
+    fun migrateLabs(requestList: List<LabDto>): List<LabDto>
 }
 
 @Service
@@ -282,6 +284,29 @@ class ResearchServiceImpl(
                         createPdfURL(it)
                     } ?: ""
         )
+    }
+
+    override fun migrateResearchDetail(requestList: List<ResearchDto>): List<ResearchDto> {
+        val list = mutableListOf<ResearchDto>()
+        for (request in requestList) {
+            val newResearch = ResearchEntity.of(request)
+
+            newResearch.researchSearch = ResearchSearchEntity.create(newResearch)
+
+            researchRepository.save(newResearch)
+
+            list.add(ResearchDto.of(newResearch, null, listOf()))
+        }
+
+        return list
+    }
+
+    override fun migrateLabs(requestList: List<LabDto>): List<LabDto> {
+        val list = mutableListOf<LabDto>()
+        for (request in requestList) {
+
+        }
+        return list
     }
 
 }
