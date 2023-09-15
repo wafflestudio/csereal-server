@@ -25,7 +25,7 @@ interface AboutService {
     fun readAllDirections(): List<AboutDto>
     fun readFutureCareers(): FutureCareersPage
     fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto>
-    fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersResponse
+    fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage
 
 }
 
@@ -125,44 +125,23 @@ class AboutServiceImpl(
                 "대학원에 진학하면 여러 전공분야 중 하나를 선택하여 보다 깊이 있는 지식의 습득과 연구과정을 거치게 되며 " +
                 "그 이후로는 국내외 관련 산업계, 학계에 주로 진출하고 있고, 새로운 아이디어로 벤처기업을 창업하기도 한다."
 
-        val statList = mutableListOf<StatDto>()
+        val statList = mutableListOf<FutureCareersStatDto>()
         for (i: Int in 2021 downTo 2011) {
             val bachelor = statRepository.findAllByYearAndDegree(i, Degree.BACHELOR).map {
-                CompanyNameAndCountDto(
-                    id = it.id,
-                    name = it.name,
-                    count = it.count
-                )
+                FutureCareersStatDegreeDto.of(it)
             }
             val master = statRepository.findAllByYearAndDegree(i, Degree.MASTER).map {
-                CompanyNameAndCountDto(
-                    id = it.id,
-                    name = it.name,
-                    count = it.count,
-                )
+                FutureCareersStatDegreeDto.of(it)
             }
             val doctor = statRepository.findAllByYearAndDegree(i, Degree.DOCTOR).map {
-                CompanyNameAndCountDto(
-                    id = it.id,
-                    name = it.name,
-                    count = it.count,
-                )
+                FutureCareersStatDegreeDto.of(it)
             }
             statList.add(
-                StatDto(
-                    year = i,
-                    bachelor = bachelor,
-                    master = master,
-                    doctor = doctor,
-                )
+                FutureCareersStatDto(i, bachelor, master, doctor)
             )
         }
         val companyList = companyRepository.findAllByOrderByYearDesc().map {
-            CompanyDto(
-                name = it.name,
-                url = it.url,
-                year = it.year
-            )
+            FutureCareersCompanyDto.of(it)
         }
         return FutureCareersPage(description, statList, companyList)
     }
@@ -175,24 +154,18 @@ class AboutServiceImpl(
             val enumPostType = makeStringToEnum(request.postType)
 
             val aboutDto = AboutDto(
-                id = request.id,
-                name = request.name,
-                engName = request.engName,
+                id = null,
+                name = null,
+                engName = null,
                 description = request.description,
-                year = request.year,
-                createdAt = request.createdAt,
-                modifiedAt = request.modifiedAt,
-                locations = request.locations,
+                year = null,
+                createdAt = null,
+                modifiedAt = null,
+                locations = null,
                 imageURL = null,
                 attachments = listOf()
             )
             val newAbout = AboutEntity.of(enumPostType, aboutDto)
-
-            if (request.locations != null) {
-                for (location in request.locations) {
-                    LocationEntity.create(location, newAbout)
-                }
-            }
 
             aboutRepository.save(newAbout)
 
@@ -203,11 +176,12 @@ class AboutServiceImpl(
     }
 
     @Transactional
-    override fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersResponse {
+    override fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage {
         val description = request.description
         val statList = mutableListOf<FutureCareersStatDto>()
         val companyList = mutableListOf<FutureCareersCompanyDto>()
 
+        
         for (stat in request.stat) {
             val year = stat.year
             val bachelorList = mutableListOf<FutureCareersStatDegreeDto>()
@@ -242,7 +216,7 @@ class AboutServiceImpl(
         }
 
 
-        return FutureCareersResponse(description, statList.toList(), companyList.toList())
+        return FutureCareersPage(description, statList.toList(), companyList.toList())
     }
 
     private fun makeStringToEnum(postType: String): AboutPostType {

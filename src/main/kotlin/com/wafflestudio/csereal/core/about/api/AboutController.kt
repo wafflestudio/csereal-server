@@ -69,7 +69,7 @@ class AboutController(
     @PostMapping("/future-careers/migrate")
     fun migrateFutureCareers(
         @RequestBody request: FutureCareersRequest
-    ): ResponseEntity<FutureCareersResponse> {
+    ): ResponseEntity<FutureCareersPage> {
         return ResponseEntity.ok(aboutService.migrateFutureCareers(request))
     }
 }
