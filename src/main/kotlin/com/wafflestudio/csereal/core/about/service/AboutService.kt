@@ -16,6 +16,7 @@ interface AboutService {
     fun readAllFacilities() : List<AboutDto>
     fun readAllDirections(): List<AboutDto>
     fun readFutureCareers(): FutureCareersPage
+    fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto>
 
 }
 
@@ -150,6 +151,40 @@ class AboutServiceImpl(
             )
         }
         return FutureCareersPage(description, statList, companyList)
+    }
+
+    override fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto> {
+        val list = mutableListOf<AboutDto>()
+
+        for (request in requestList) {
+            val enumPostType = makeStringToEnum(request.postType)
+
+            val aboutDto = AboutDto(
+                id = request.id,
+                name = request.name,
+                engName = request.engName,
+                description = request.description,
+                year = request.year,
+                createdAt = request.createdAt,
+                modifiedAt = request.modifiedAt,
+                locations = request.locations,
+                imageURL = null,
+                attachments = listOf()
+            )
+            val newAbout = AboutEntity.of(enumPostType, aboutDto)
+
+            if(request.locations != null) {
+                for (location in request.locations) {
+                    LocationEntity.create(location, newAbout)
+                }
+            }
+
+            aboutRepository.save(newAbout)
+
+            list.add(AboutDto.of(newAbout, null, listOf()))
+
+        }
+        return list
     }
 
     private fun makeStringToEnum(postType: String) : AboutPostType {
