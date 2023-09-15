@@ -281,6 +281,7 @@ class AboutServiceImpl(
         return list
     }
 
+    @Transactional
     override fun migrateDirections(requestList: List<DirectionDto>): List<DirectionDto> {
         val list = mutableListOf<DirectionDto>()
 
