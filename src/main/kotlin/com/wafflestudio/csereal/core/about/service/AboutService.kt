@@ -5,6 +5,8 @@ import com.wafflestudio.csereal.core.about.database.*
 import com.wafflestudio.csereal.core.about.dto.*
 import com.wafflestudio.csereal.core.about.dto.request.AboutRequest
 import com.wafflestudio.csereal.core.about.dto.request.FutureCareersRequest
+import com.wafflestudio.csereal.core.about.dto.FutureCareersPage
+import com.wafflestudio.csereal.core.about.dto.request.StudentClubsRequest
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.stereotype.Service
@@ -26,7 +28,7 @@ interface AboutService {
     fun readFutureCareers(): FutureCareersPage
     fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto>
     fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage
-
+    fun migrateStudentClubs(requestList: List<StudentClubsRequest>): List<StudentClubsDto>
 }
 
 @Service
@@ -217,6 +219,33 @@ class AboutServiceImpl(
 
 
         return FutureCareersPage(description, statList.toList(), companyList.toList())
+    }
+
+    override fun migrateStudentClubs(requestList: List<StudentClubsRequest>): List<StudentClubsDto> {
+        val list = mutableListOf<StudentClubsDto>()
+
+        for (request in requestList) {
+
+            val aboutDto = AboutDto(
+                id = null,
+                name = request.name,
+                engName = request.engName,
+                description = request.description,
+                year = null,
+                createdAt = null,
+                modifiedAt = null,
+                locations = null,
+                imageURL = null,
+                attachments = listOf()
+            )
+            val newAbout = AboutEntity.of(AboutPostType.STUDENT_CLUBS, aboutDto)
+
+            aboutRepository.save(newAbout)
+
+            list.add(StudentClubsDto.of(newAbout))
+
+        }
+        return list
     }
 
     private fun makeStringToEnum(postType: String): AboutPostType {

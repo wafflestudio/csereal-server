@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.about.dto.*
 import com.wafflestudio.csereal.core.about.dto.request.AboutRequest
 import com.wafflestudio.csereal.core.about.dto.request.FutureCareersRequest
+import com.wafflestudio.csereal.core.about.dto.request.StudentClubsRequest
 import com.wafflestudio.csereal.core.about.service.AboutService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -71,5 +72,12 @@ class AboutController(
         @RequestBody request: FutureCareersRequest
     ): ResponseEntity<FutureCareersPage> {
         return ResponseEntity.ok(aboutService.migrateFutureCareers(request))
+    }
+
+    @PostMapping("/student-clubs/migrate")
+    fun migrateStudentClubs(
+        @RequestBody requestList: List<StudentClubsRequest>
+    ): ResponseEntity<List<StudentClubsDto>> {
+        return ResponseEntity.ok(aboutService.migrateStudentClubs(requestList))
     }
 }
