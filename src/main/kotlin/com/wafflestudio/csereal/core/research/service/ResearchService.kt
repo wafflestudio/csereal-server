@@ -40,12 +40,12 @@ interface ResearchService {
 
 @Service
 class ResearchServiceImpl(
-        private val researchRepository: ResearchRepository,
-        private val labRepository: LabRepository,
-        private val professorRepository: ProfessorRepository,
-        private val mainImageService: MainImageService,
-        private val attachmentService: AttachmentService,
-        private val endpointProperties: EndpointProperties,
+    private val researchRepository: ResearchRepository,
+    private val labRepository: LabRepository,
+    private val professorRepository: ProfessorRepository,
+    private val mainImageService: MainImageService,
+    private val attachmentService: AttachmentService,
+    private val endpointProperties: EndpointProperties,
 ) : ResearchService {
     @Transactional
     override fun createResearchDetail(
@@ -164,16 +164,16 @@ class ResearchServiceImpl(
         research.updateWithoutLabImageAttachment(request)
 
         research.researchSearch?.update(research)
-                ?: let {
-                    research.researchSearch = ResearchSearchEntity.create(research)
-                }
+            ?: let {
+                research.researchSearch = ResearchSearchEntity.create(research)
+            }
 
         return ResearchDto.of(research, imageURL, attachmentResponses)
     }
 
     @Transactional
     override fun createLab(request: LabDto, pdf: MultipartFile?): LabDto {
-        val researchGroup = researchRepository.findByName(request.group)
+        val researchGroup = researchRepository.findByName(request.group!!)
             ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = ${request.group})")
 
         if (researchGroup.postType != ResearchPostType.GROUPS) {
@@ -247,18 +247,18 @@ class ResearchServiceImpl(
 
         removedProfessorIds.forEach {
             val professor = professorRepository.findByIdOrNull(it)
-                    ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다.(professorId=$it)")
+                ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다.(professorId=$it)")
             labEntity.professors.remove(
-                    professor
+                professor
             )
             professor.lab = null
         }
 
         addedProfessorIds.forEach {
             val professor = professorRepository.findByIdOrNull(it)
-                    ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다.(professorId=$it)")
+                ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다.(professorId=$it)")
             labEntity.professors.add(
-                    professor
+                professor
             )
             professor.lab = labEntity
         }
@@ -274,18 +274,19 @@ class ResearchServiceImpl(
 
         // update researchSearch
         labEntity.researchSearch?.update(labEntity)
-                ?: let {
-                    labEntity.researchSearch = ResearchSearchEntity.create(labEntity)
-                }
+            ?: let {
+                labEntity.researchSearch = ResearchSearchEntity.create(labEntity)
+            }
 
         return LabDto.of(
-                labEntity,
-                labEntity.pdf?.let {
-                        createPdfURL(it)
-                    } ?: ""
+            labEntity,
+            labEntity.pdf?.let {
+                createPdfURL(it)
+            } ?: ""
         )
     }
 
+    @Transactional
     override fun migrateResearchDetail(requestList: List<ResearchDto>): List<ResearchDto> {
         val list = mutableListOf<ResearchDto>()
         for (request in requestList) {
@@ -301,10 +302,26 @@ class ResearchServiceImpl(
         return list
     }
 
+    @Transactional
     override fun migrateLabs(requestList: List<LabDto>): List<LabDto> {
         val list = mutableListOf<LabDto>()
         for (request in requestList) {
 
+            val researchGroup = researchRepository.findByName(request.group)
+                ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupName = ${request.group})")
+
+            if (researchGroup.postType != ResearchPostType.GROUPS) {
+                throw CserealException.Csereal404("해당 게시글은 연구그룹이어야 합니다.")
+            }
+
+
+            val newLab = LabEntity.of(request, researchGroup)
+
+            newLab.researchSearch = ResearchSearchEntity.create(newLab)
+
+            labRepository.save(newLab)
+
+            list.add(LabDto.of(newLab, ""))
         }
         return list
     }
