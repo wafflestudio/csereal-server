@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.about.dto.request
+package com.wafflestudio.csereal.core.about.dto
 
 import com.wafflestudio.csereal.core.about.dto.FutureCareersCompanyDto
 import com.wafflestudio.csereal.core.about.dto.FutureCareersStatDto

@@ -4,7 +4,6 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.about.database.*
 import com.wafflestudio.csereal.core.about.dto.*
 import com.wafflestudio.csereal.core.about.dto.FutureCareersPage
-import com.wafflestudio.csereal.core.about.dto.request.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.stereotype.Service

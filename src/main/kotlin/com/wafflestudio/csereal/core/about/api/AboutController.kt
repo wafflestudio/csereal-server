@@ -2,7 +2,6 @@ package com.wafflestudio.csereal.core.about.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.about.dto.*
-import com.wafflestudio.csereal.core.about.dto.request.*
 import com.wafflestudio.csereal.core.about.service.AboutService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -18,7 +17,7 @@ class AboutController(
     // postType: facilities / name -> 학부-행정실, S-Lab, 소프트웨어-실습실, 하드웨어-실습실, 해동학술정보실, 학생-공간-및-동아리-방, 세미나실, 서버실
     // postType: directions / name -> by-public-transit, by-car, from-far-away
 
-    // Todo: 전체 image, file, 학부장 인사말(greetings) signature
+    // Todo: 학부장 인사말(greetings) signature
     @AuthenticatedStaff
     @PostMapping("/{postType}")
     fun createAbout(
@@ -48,11 +47,11 @@ class AboutController(
         return ResponseEntity.ok(aboutService.readAllFacilities())
     }
 
-
     @GetMapping("/directions")
     fun readAllDirections(): ResponseEntity<List<AboutDto>> {
         return ResponseEntity.ok(aboutService.readAllDirections())
     }
+
     @GetMapping("/future-careers")
     fun readFutureCareers(): ResponseEntity<FutureCareersPage> {
         return ResponseEntity.ok(aboutService.readFutureCareers())

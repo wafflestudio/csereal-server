@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.about.dto.request
+package com.wafflestudio.csereal.core.about.dto
 
 data class AboutRequest(
     val postType: String,
