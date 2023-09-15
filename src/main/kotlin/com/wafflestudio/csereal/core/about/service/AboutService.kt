@@ -3,11 +3,8 @@ package com.wafflestudio.csereal.core.about.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.about.database.*
 import com.wafflestudio.csereal.core.about.dto.*
-import com.wafflestudio.csereal.core.about.dto.request.AboutRequest
-import com.wafflestudio.csereal.core.about.dto.request.FutureCareersRequest
 import com.wafflestudio.csereal.core.about.dto.FutureCareersPage
-import com.wafflestudio.csereal.core.about.dto.request.FacilityRequest
-import com.wafflestudio.csereal.core.about.dto.request.StudentClubRequest
+import com.wafflestudio.csereal.core.about.dto.request.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.stereotype.Service
@@ -31,6 +28,7 @@ interface AboutService {
     fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage
     fun migrateStudentClubs(requestList: List<StudentClubRequest>): List<StudentClubDto>
     fun migrateFacilities(requestList: List<FacilityRequest>): List<FacilityDto>
+    fun migrateDirections(requestList: List<DirectionRequest>): List<DirectionDto>
 }
 
 @Service
@@ -270,7 +268,7 @@ class AboutServiceImpl(
                 attachments = listOf()
             )
 
-            val newAbout = AboutEntity.of(AboutPostType.STUDENT_CLUBS, aboutDto)
+            val newAbout = AboutEntity.of(AboutPostType.FACILITIES, aboutDto)
 
             for (location in request.locations) {
                 LocationEntity.create(location, newAbout)
@@ -279,6 +277,34 @@ class AboutServiceImpl(
             aboutRepository.save(newAbout)
 
             list.add(FacilityDto.of(newAbout))
+
+        }
+        return list
+    }
+
+    override fun migrateDirections(requestList: List<DirectionRequest>): List<DirectionDto> {
+        val list = mutableListOf<DirectionDto>()
+
+        for (request in requestList) {
+
+            val aboutDto = AboutDto(
+                id = null,
+                name = request.name,
+                engName = request.engName,
+                description = request.description,
+                year = null,
+                createdAt = null,
+                modifiedAt = null,
+                locations = null,
+                imageURL = null,
+                attachments = listOf()
+            )
+
+            val newAbout = AboutEntity.of(AboutPostType.DIRECTIONS, aboutDto)
+
+            aboutRepository.save(newAbout)
+
+            list.add(DirectionDto.of(newAbout))
 
         }
         return list

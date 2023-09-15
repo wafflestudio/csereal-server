@@ -2,10 +2,7 @@ package com.wafflestudio.csereal.core.about.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.about.dto.*
-import com.wafflestudio.csereal.core.about.dto.request.AboutRequest
-import com.wafflestudio.csereal.core.about.dto.request.FacilityRequest
-import com.wafflestudio.csereal.core.about.dto.request.FutureCareersRequest
-import com.wafflestudio.csereal.core.about.dto.request.StudentClubRequest
+import com.wafflestudio.csereal.core.about.dto.request.*
 import com.wafflestudio.csereal.core.about.service.AboutService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -87,5 +84,12 @@ class AboutController(
         @RequestBody requestList: List<FacilityRequest>
     ): ResponseEntity<List<FacilityDto>> {
         return ResponseEntity.ok(aboutService.migrateFacilities(requestList))
+    }
+
+    @PostMapping("/directions/migrate")
+    fun migrateDirections(
+        @RequestBody requestList: List<DirectionRequest>
+    ): ResponseEntity<List<DirectionDto>> {
+        return ResponseEntity.ok(aboutService.migrateDirections(requestList))
     }
 }
