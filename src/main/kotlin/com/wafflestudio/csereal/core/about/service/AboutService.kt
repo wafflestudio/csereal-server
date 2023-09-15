@@ -6,7 +6,8 @@ import com.wafflestudio.csereal.core.about.dto.*
 import com.wafflestudio.csereal.core.about.dto.request.AboutRequest
 import com.wafflestudio.csereal.core.about.dto.request.FutureCareersRequest
 import com.wafflestudio.csereal.core.about.dto.FutureCareersPage
-import com.wafflestudio.csereal.core.about.dto.request.StudentClubsRequest
+import com.wafflestudio.csereal.core.about.dto.request.FacilityRequest
+import com.wafflestudio.csereal.core.about.dto.request.StudentClubRequest
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.stereotype.Service
@@ -28,7 +29,8 @@ interface AboutService {
     fun readFutureCareers(): FutureCareersPage
     fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto>
     fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage
-    fun migrateStudentClubs(requestList: List<StudentClubsRequest>): List<StudentClubsDto>
+    fun migrateStudentClubs(requestList: List<StudentClubRequest>): List<StudentClubDto>
+    fun migrateFacilities(requestList: List<FacilityRequest>): List<FacilityDto>
 }
 
 @Service
@@ -183,7 +185,7 @@ class AboutServiceImpl(
         val statList = mutableListOf<FutureCareersStatDto>()
         val companyList = mutableListOf<FutureCareersCompanyDto>()
 
-        
+
         for (stat in request.stat) {
             val year = stat.year
             val bachelorList = mutableListOf<FutureCareersStatDegreeDto>()
@@ -221,8 +223,9 @@ class AboutServiceImpl(
         return FutureCareersPage(description, statList.toList(), companyList.toList())
     }
 
-    override fun migrateStudentClubs(requestList: List<StudentClubsRequest>): List<StudentClubsDto> {
-        val list = mutableListOf<StudentClubsDto>()
+    @Transactional
+    override fun migrateStudentClubs(requestList: List<StudentClubRequest>): List<StudentClubDto> {
+        val list = mutableListOf<StudentClubDto>()
 
         for (request in requestList) {
 
@@ -242,7 +245,40 @@ class AboutServiceImpl(
 
             aboutRepository.save(newAbout)
 
-            list.add(StudentClubsDto.of(newAbout))
+            list.add(StudentClubDto.of(newAbout))
+
+        }
+        return list
+    }
+
+    @Transactional
+    override fun migrateFacilities(requestList: List<FacilityRequest>): List<FacilityDto> {
+        val list = mutableListOf<FacilityDto>()
+
+        for (request in requestList) {
+
+            val aboutDto = AboutDto(
+                id = null,
+                name = request.name,
+                engName = null,
+                description = request.description,
+                year = null,
+                createdAt = null,
+                modifiedAt = null,
+                locations = null,
+                imageURL = null,
+                attachments = listOf()
+            )
+
+            val newAbout = AboutEntity.of(AboutPostType.STUDENT_CLUBS, aboutDto)
+
+            for (location in request.locations) {
+                LocationEntity.create(location, newAbout)
+            }
+
+            aboutRepository.save(newAbout)
+
+            list.add(FacilityDto.of(newAbout))
 
         }
         return list
@@ -257,4 +293,5 @@ class AboutServiceImpl(
             throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
         }
     }
+
 }
