@@ -56,4 +56,10 @@ class ProfessorController(
         return ResponseEntity.ok().build()
     }
 
+    @PostMapping("/migrate")
+    fun migrateProfessors(
+        @RequestBody requestList: List<ProfessorDto>
+    ): ResponseEntity<List<ProfessorDto>> {
+        return ResponseEntity.ok(professorService.migrateProfessors(requestList))
+    }
 }
