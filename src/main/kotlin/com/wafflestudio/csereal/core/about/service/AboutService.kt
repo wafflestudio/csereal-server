@@ -175,24 +175,18 @@ class AboutServiceImpl(
             val enumPostType = makeStringToEnum(request.postType)
 
             val aboutDto = AboutDto(
-                id = request.id,
-                name = request.name,
-                engName = request.engName,
+                id = null,
+                name = null,
+                engName = null,
                 description = request.description,
-                year = request.year,
-                createdAt = request.createdAt,
-                modifiedAt = request.modifiedAt,
-                locations = request.locations,
+                year = null,
+                createdAt = null,
+                modifiedAt = null,
+                locations = null,
                 imageURL = null,
                 attachments = listOf()
             )
             val newAbout = AboutEntity.of(enumPostType, aboutDto)
-
-            if (request.locations != null) {
-                for (location in request.locations) {
-                    LocationEntity.create(location, newAbout)
-                }
-            }
 
             aboutRepository.save(newAbout)
 
