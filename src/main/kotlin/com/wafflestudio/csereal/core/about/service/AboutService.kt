@@ -202,6 +202,21 @@ class AboutServiceImpl(
         val statList = mutableListOf<FutureCareersStatDto>()
         val companyList = mutableListOf<FutureCareersCompanyDto>()
 
+        val aboutDto = AboutDto(
+            id = null,
+            name = null,
+            engName = null,
+            description = description,
+            year = null,
+            createdAt = null,
+            modifiedAt = null,
+            locations = null,
+            imageURL = null,
+            attachments = listOf()
+        )
+        val newAbout = AboutEntity.of(AboutPostType.FUTURE_CAREERS, aboutDto)
+        aboutRepository.save(newAbout)
+        
         for (stat in request.stat) {
             val year = stat.year
             val bachelorList = mutableListOf<FutureCareersStatDegreeDto>()
