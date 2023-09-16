@@ -6,7 +6,7 @@ import java.util.UUID
 
 data class ReservationDto(
     val id: Long,
-    val recurrenceId: UUID?,
+    val recurrenceId: UUID? = null,
     val title: String,
     val purpose: String,
     val startTime: LocalDateTime,
@@ -14,9 +14,9 @@ data class ReservationDto(
     val recurringWeeks: Int = 1,
     val roomName: String?,
     val roomLocation: String,
-    val userName: String,
-    val contactEmail: String,
-    val contactPhone: String,
+    val userName: String? = null,
+    val contactEmail: String? = null,
+    val contactPhone: String? = null,
     val professor: String
 ) {
     companion object {
@@ -37,5 +37,20 @@ data class ReservationDto(
                 professor = reservationEntity.professor
             )
         }
+
+        fun forNormalUser(reservationEntity: ReservationEntity): ReservationDto {
+            return ReservationDto(
+                id = reservationEntity.id,
+                title = reservationEntity.title,
+                purpose = reservationEntity.purpose,
+                startTime = reservationEntity.startTime,
+                endTime = reservationEntity.endTime,
+                recurringWeeks = reservationEntity.recurringWeeks,
+                roomName = reservationEntity.room.name,
+                roomLocation = reservationEntity.room.location,
+                professor = reservationEntity.professor
+            )
+        }
+
     }
 }
