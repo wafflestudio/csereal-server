@@ -14,7 +14,7 @@ fun cleanTextFromHtml(description: String): String {
 fun substringAroundKeyword(keyword: String, content: String, amount: Int): Pair<Int?, String> {
     val index = content.indexOf(keyword)
     return if (index == -1) {
-         null to content.substring(0, amount)
+         null to content.substring(0, amount.coerceAtMost(content.length))
     } else {
         var frontIndex = (index - amount / 2).coerceAtLeast(0)
         var backIndex = (index + amount / 2).coerceAtMost(content.length)
@@ -25,6 +25,6 @@ fun substringAroundKeyword(keyword: String, content: String, amount: Int): Pair<
             frontIndex = (content.length - amount).coerceAtLeast(0)
         }
 
-        index to content.substring(frontIndex, backIndex)
+        (index - frontIndex) to content.substring(frontIndex, backIndex)
     }
 }
