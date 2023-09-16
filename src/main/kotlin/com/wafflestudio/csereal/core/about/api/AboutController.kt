@@ -19,7 +19,7 @@ class AboutController(
     // postType: facilities / name -> 학부-행정실, S-Lab, 소프트웨어-실습실, 하드웨어-실습실, 해동학술정보실, 학생-공간-및-동아리-방, 세미나실, 서버실
     // postType: directions / name -> by-public-transit, by-car, from-far-away
 
-    // Todo: 전체 image, file, 학부장 인사말(greetings) signature
+    // Todo: 학부장 인사말(greetings) signature
     @AuthenticatedStaff
     @PostMapping("/{postType}")
     fun createAbout(
@@ -49,11 +49,11 @@ class AboutController(
         return ResponseEntity.ok(aboutService.readAllFacilities())
     }
 
-
     @GetMapping("/directions")
     fun readAllDirections(): ResponseEntity<List<AboutDto>> {
         return ResponseEntity.ok(aboutService.readAllDirections())
     }
+
     @GetMapping("/future-careers")
     fun readFutureCareers(): ResponseEntity<FutureCareersPage> {
         return ResponseEntity.ok(aboutService.readFutureCareers())
@@ -69,7 +69,28 @@ class AboutController(
     @PostMapping("/future-careers/migrate")
     fun migrateFutureCareers(
         @RequestBody request: FutureCareersRequest
-    ): ResponseEntity<FutureCareersResponse> {
+    ): ResponseEntity<FutureCareersPage> {
         return ResponseEntity.ok(aboutService.migrateFutureCareers(request))
+    }
+
+    @PostMapping("/student-clubs/migrate")
+    fun migrateStudentClubs(
+        @RequestBody requestList: List<StudentClubDto>
+    ): ResponseEntity<List<StudentClubDto>> {
+        return ResponseEntity.ok(aboutService.migrateStudentClubs(requestList))
+    }
+
+    @PostMapping("/facilities/migrate")
+    fun migrateFacilities(
+        @RequestBody requestList: List<FacilityDto>
+    ): ResponseEntity<List<FacilityDto>> {
+        return ResponseEntity.ok(aboutService.migrateFacilities(requestList))
+    }
+
+    @PostMapping("/directions/migrate")
+    fun migrateDirections(
+        @RequestBody requestList: List<DirectionDto>
+    ): ResponseEntity<List<DirectionDto>> {
+        return ResponseEntity.ok(aboutService.migrateDirections(requestList))
     }
 }
