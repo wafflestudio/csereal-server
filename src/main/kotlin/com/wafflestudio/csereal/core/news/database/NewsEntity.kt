@@ -63,6 +63,7 @@ class NewsEntity(
             this.plainTextDescription = cleanTextFromHtml(updateNewsRequest.description)
         }
         this.title = updateNewsRequest.title
+        this.titleForMain = updateNewsRequest.titleForMain
         this.date = updateNewsRequest.date
         this.isPrivate = updateNewsRequest.isPrivate
         this.isSlide = updateNewsRequest.isSlide

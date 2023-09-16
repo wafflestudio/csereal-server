@@ -45,6 +45,7 @@ class NoticeEntity(
         }
 
         this.title = updateNoticeRequest.title
+        this.titleForMain = updateNoticeRequest.titleForMain
         this.description = updateNoticeRequest.description
         this.isPrivate = updateNoticeRequest.isPrivate
         this.isPinned = updateNoticeRequest.isPinned
