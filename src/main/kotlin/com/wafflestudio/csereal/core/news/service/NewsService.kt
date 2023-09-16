@@ -21,7 +21,6 @@ interface NewsService {
         request: NewsDto,
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?,
-        deleteIds: List<Long>,
     ): NewsDto
 
     fun deleteNews(newsId: Long)
@@ -94,7 +93,6 @@ class NewsServiceImpl(
         request: NewsDto,
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?,
-        deleteIds: List<Long>,
     ): NewsDto {
         val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
             ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다. (newsId: $newsId)")
@@ -107,7 +105,7 @@ class NewsServiceImpl(
             mainImageService.uploadMainImage(news, newMainImage)
         }
 
-        attachmentService.deleteAttachments(deleteIds)
+        attachmentService.deleteAttachments(request.deleteIds)
 
         if (newAttachments != null) {
             attachmentService.uploadAllAttachments(news, newAttachments)

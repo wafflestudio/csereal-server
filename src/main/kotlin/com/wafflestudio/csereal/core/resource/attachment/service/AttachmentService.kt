@@ -41,7 +41,7 @@ interface AttachmentService {
 //        attachmentsList: List<AttachmentResponse>
 //    )
 
-    fun deleteAttachments(ids: List<Long>)
+    fun deleteAttachments(ids: List<Long>?)
     fun deleteAttachment(attachment: AttachmentEntity)
 }
 
@@ -141,32 +141,15 @@ class AttachmentServiceImpl(
         return list
     }
 
-//    @Transactional
-//    override fun updateAttachmentResponses(
-//        contentEntity: AttachmentContentEntityType,
-//        attachmentsList: List<AttachmentResponse>
-//    ) {
-//        val oldAttachments = contentEntity.bringAttachments().map { it.filename }
-//
-//        val attachmentsToRemove = oldAttachments - attachmentsList.map { it.name }
-//
-//        when (contentEntity) {
-//            is SeminarEntity -> {
-//                for (attachmentFilename in attachmentsToRemove) {
-//                    val attachmentEntity = attachmentRepository.findByFilename(attachmentFilename)
-//                    attachmentEntity.isDeleted = true
-//                    attachmentEntity.seminar = null
-//                }
-//            }
-//        }
-//    }
 
     @Transactional
-    override fun deleteAttachments(ids: List<Long>) {
-        for (id in ids) {
-            val attachment = attachmentRepository.findByIdOrNull(id)
-                ?: throw CserealException.Csereal404("id:${id}인 첨부파일을 찾을 수 없습니다.")
-            attachment.isDeleted = true
+    override fun deleteAttachments(ids: List<Long>?) {
+        if (ids != null) {
+            for (id in ids) {
+                val attachment = attachmentRepository.findByIdOrNull(id)
+                    ?: throw CserealException.Csereal404("id:${id}인 첨부파일을 찾을 수 없습니다.")
+                attachment.isDeleted = true
+            }
         }
     }
 

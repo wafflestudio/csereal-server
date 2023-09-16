@@ -53,9 +53,8 @@ class NewsController(
         @Valid @RequestPart("request") request: NewsDto,
         @RequestPart("newMainImage") newMainImage: MultipartFile?,
         @RequestPart("newAttachments") newAttachments: List<MultipartFile>?,
-        @RequestPart("deleteIds") deleteIds: List<Long>,
     ): ResponseEntity<NewsDto> {
-        return ResponseEntity.ok(newsService.updateNews(newsId, request, newMainImage, newAttachments, deleteIds))
+        return ResponseEntity.ok(newsService.updateNews(newsId, request, newMainImage, newAttachments))
     }
 
     @AuthenticatedStaff
