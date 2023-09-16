@@ -12,12 +12,12 @@ fun cleanTextFromHtml(description: String): String {
 }
 
 fun substringAroundKeyword(keyword: String, content: String, amount: Int): Pair<Int?, String> {
-    val index = content.indexOf(keyword)
+    val index = content.lowercase().indexOf(keyword.lowercase())
     return if (index == -1) {
          null to content.substring(0, amount.coerceAtMost(content.length))
     } else {
-        var frontIndex = (index - amount / 2).coerceAtLeast(0)
-        var backIndex = (index + amount / 2).coerceAtMost(content.length)
+        var frontIndex = (index - amount / 2 + keyword.length).coerceAtLeast(0)
+        var backIndex = (index + amount / 2 + keyword.length).coerceAtMost(content.length)
 
         if (frontIndex == 0) {
             backIndex = (amount).coerceAtMost(content.length)
