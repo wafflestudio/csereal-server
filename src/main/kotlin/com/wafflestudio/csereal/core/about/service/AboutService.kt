@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.about.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.about.database.*
 import com.wafflestudio.csereal.core.about.dto.*
+import com.wafflestudio.csereal.core.about.dto.FutureCareersPage
 import com.wafflestudio.csereal.core.about.dto.request.AboutRequest
 import com.wafflestudio.csereal.core.about.dto.request.FutureCareersRequest
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
@@ -25,7 +26,10 @@ interface AboutService {
     fun readAllDirections(): List<AboutDto>
     fun readFutureCareers(): FutureCareersPage
     fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto>
-    fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersResponse
+    fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage
+    fun migrateStudentClubs(requestList: List<StudentClubDto>): List<StudentClubDto>
+    fun migrateFacilities(requestList: List<FacilityDto>): List<FacilityDto>
+    fun migrateDirections(requestList: List<DirectionDto>): List<DirectionDto>
 
 }
 
@@ -125,44 +129,23 @@ class AboutServiceImpl(
                 "대학원에 진학하면 여러 전공분야 중 하나를 선택하여 보다 깊이 있는 지식의 습득과 연구과정을 거치게 되며 " +
                 "그 이후로는 국내외 관련 산업계, 학계에 주로 진출하고 있고, 새로운 아이디어로 벤처기업을 창업하기도 한다."
 
-        val statList = mutableListOf<StatDto>()
+        val statList = mutableListOf<FutureCareersStatDto>()
         for (i: Int in 2021 downTo 2011) {
             val bachelor = statRepository.findAllByYearAndDegree(i, Degree.BACHELOR).map {
-                CompanyNameAndCountDto(
-                    id = it.id,
-                    name = it.name,
-                    count = it.count
-                )
+                FutureCareersStatDegreeDto.of(it)
             }
             val master = statRepository.findAllByYearAndDegree(i, Degree.MASTER).map {
-                CompanyNameAndCountDto(
-                    id = it.id,
-                    name = it.name,
-                    count = it.count,
-                )
+                FutureCareersStatDegreeDto.of(it)
             }
             val doctor = statRepository.findAllByYearAndDegree(i, Degree.DOCTOR).map {
-                CompanyNameAndCountDto(
-                    id = it.id,
-                    name = it.name,
-                    count = it.count,
-                )
+                FutureCareersStatDegreeDto.of(it)
             }
             statList.add(
-                StatDto(
-                    year = i,
-                    bachelor = bachelor,
-                    master = master,
-                    doctor = doctor,
-                )
+                FutureCareersStatDto(i, bachelor, master, doctor)
             )
         }
         val companyList = companyRepository.findAllByOrderByYearDesc().map {
-            CompanyDto(
-                name = it.name,
-                url = it.url,
-                year = it.year
-            )
+            FutureCareersCompanyDto.of(it)
         }
         return FutureCareersPage(description, statList, companyList)
     }
@@ -197,7 +180,7 @@ class AboutServiceImpl(
     }
 
     @Transactional
-    override fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersResponse {
+    override fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage {
         val description = request.description
         val statList = mutableListOf<FutureCareersStatDto>()
         val companyList = mutableListOf<FutureCareersCompanyDto>()
@@ -216,7 +199,7 @@ class AboutServiceImpl(
         )
         val newAbout = AboutEntity.of(AboutPostType.FUTURE_CAREERS, aboutDto)
         aboutRepository.save(newAbout)
-        
+
         for (stat in request.stat) {
             val year = stat.year
             val bachelorList = mutableListOf<FutureCareersStatDegreeDto>()
@@ -250,8 +233,97 @@ class AboutServiceImpl(
             companyList.add(company)
         }
 
+        return FutureCareersPage(description, statList.toList(), companyList.toList())
+    }
 
-        return FutureCareersResponse(description, statList.toList(), companyList.toList())
+    @Transactional
+    override fun migrateStudentClubs(requestList: List<StudentClubDto>): List<StudentClubDto> {
+        val list = mutableListOf<StudentClubDto>()
+
+        for (request in requestList) {
+
+            val aboutDto = AboutDto(
+                id = null,
+                name = request.name,
+                engName = request.engName,
+                description = request.description,
+                year = null,
+                createdAt = null,
+                modifiedAt = null,
+                locations = null,
+                imageURL = null,
+                attachments = listOf()
+            )
+            val newAbout = AboutEntity.of(AboutPostType.STUDENT_CLUBS, aboutDto)
+
+            aboutRepository.save(newAbout)
+
+            list.add(StudentClubDto.of(newAbout))
+
+        }
+        return list
+    }
+
+    @Transactional
+    override fun migrateFacilities(requestList: List<FacilityDto>): List<FacilityDto> {
+        val list = mutableListOf<FacilityDto>()
+
+        for (request in requestList) {
+
+            val aboutDto = AboutDto(
+                id = null,
+                name = request.name,
+                engName = null,
+                description = request.description,
+                year = null,
+                createdAt = null,
+                modifiedAt = null,
+                locations = null,
+                imageURL = null,
+                attachments = listOf()
+            )
+
+            val newAbout = AboutEntity.of(AboutPostType.FACILITIES, aboutDto)
+
+            for (location in request.locations) {
+                LocationEntity.create(location, newAbout)
+            }
+
+            aboutRepository.save(newAbout)
+
+            list.add(FacilityDto.of(newAbout))
+
+        }
+        return list
+    }
+
+    @Transactional
+    override fun migrateDirections(requestList: List<DirectionDto>): List<DirectionDto> {
+        val list = mutableListOf<DirectionDto>()
+
+        for (request in requestList) {
+
+            val aboutDto = AboutDto(
+                id = null,
+                name = request.name,
+                engName = request.engName,
+                description = request.description,
+                year = null,
+                createdAt = null,
+                modifiedAt = null,
+                locations = null,
+                imageURL = null,
+                attachments = listOf()
+            )
+
+            val newAbout = AboutEntity.of(AboutPostType.DIRECTIONS, aboutDto)
+
+            aboutRepository.save(newAbout)
+
+            list.add(DirectionDto.of(newAbout))
+
+        }
+        return list
     }
 
     private fun makeStringToEnum(postType: String): AboutPostType {
@@ -263,4 +335,5 @@ class AboutServiceImpl(
             throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
         }
     }
+
 }
