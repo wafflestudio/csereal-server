@@ -16,6 +16,8 @@ class NewsEntity(
     var isDeleted: Boolean = false,
     var title: String,
 
+    var titleForMain: String?,
+
     @Column(columnDefinition = "mediumtext")
     var description: String,
 
@@ -44,6 +46,7 @@ class NewsEntity(
         fun of(newsDto: NewsDto): NewsEntity {
             return NewsEntity(
                 title = newsDto.title,
+                titleForMain = newsDto.titleForMain,
                 description = newsDto.description,
                 plainTextDescription = cleanTextFromHtml(newsDto.description),
                 date = newsDto.date,

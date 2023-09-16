@@ -13,6 +13,8 @@ import jakarta.persistence.*
 class NoticeEntity(
     var isDeleted: Boolean = false,
     var title: String,
+    var titleForMain: String?,
+
     @Column(columnDefinition = "mediumtext")
     var description: String,
 
