@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.news.database.*
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
+import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchDto
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.domain.Pageable
@@ -26,6 +27,7 @@ interface NewsService {
 
     fun deleteNews(newsId: Long)
     fun enrollTag(tagName: String)
+    fun searchTotalNews(keyword: String, number: Int, amount: Int): NewsTotalSearchDto
 }
 
 @Service
@@ -45,6 +47,18 @@ class NewsServiceImpl(
     ): NewsSearchResponse {
         return newsRepository.searchNews(tag, keyword, pageable, usePageBtn)
     }
+
+    @Transactional(readOnly = true)
+    override fun searchTotalNews(
+            keyword: String,
+            number: Int,
+            amount: Int,
+    ) = newsRepository.searchTotalNews(
+            keyword,
+            number,
+            amount,
+            mainImageService::createImageURL,
+    )
 
     @Transactional(readOnly = true)
     override fun readNews(newsId: Long): NewsDto {
