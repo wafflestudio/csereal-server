@@ -71,7 +71,7 @@ class NewsRepositoryImpl(
             total = countQuery.select(newsEntity.countDistinct()).fetchOne()!!
             pageRequest = FixedPageRequest(pageable, total)
         } else {
-            total = (10 * pageable.pageSize).toLong() // 10개 페이지 고정
+            total = (10 * pageable.pageSize).toLong() + 1 // 10개 페이지 고정
         }
 
         val newsEntityList = jpaQuery

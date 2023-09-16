@@ -24,20 +24,19 @@ class NoticeController(
     fun searchNotice(
         @RequestParam(required = false) tag: List<String>?,
         @RequestParam(required = false) keyword: String?,
-        @RequestParam(required = false, defaultValue = "1") pageNum: Int,
+        @RequestParam(required = false) pageNum: Int?,
         @AuthenticationPrincipal oidcUser: OidcUser?
     ): ResponseEntity<NoticeSearchResponse> {
-        var isStaff = false
-        if (oidcUser != null) {
-            val username = oidcUser.idToken.getClaim<String>("username")
+        val isStaff = oidcUser?.let {
+            val username = it.idToken.getClaim<String>("username")
             val user = userRepository.findByUsername(username)
-            if (user?.role == Role.ROLE_STAFF) {
-                isStaff = true
-            }
-        }
+            user?.role == Role.ROLE_STAFF
+        } ?: false
+
+        val usePageBtn = pageNum != null
+        val page = pageNum ?: 1
         val pageSize = 20
-        val pageRequest = PageRequest.of(pageNum - 1, pageSize)
-        val usePageBtn = pageNum != 1
+        val pageRequest = PageRequest.of(page - 1, pageSize)
         return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, isStaff))
     }
 

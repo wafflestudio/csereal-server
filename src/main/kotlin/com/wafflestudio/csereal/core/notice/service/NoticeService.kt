@@ -78,17 +78,10 @@ class NoticeServiceImpl(
 
     @Transactional
     override fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto {
-        var user = RequestContextHolder.getRequestAttributes()?.getAttribute(
+        val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
             "loggedInUser",
             RequestAttributes.SCOPE_REQUEST
-        ) as UserEntity?
-
-        if (user == null) {
-            val oidcUser = SecurityContextHolder.getContext().authentication.principal as OidcUser
-            val username = oidcUser.idToken.getClaim<String>("username")
-
-            user = userRepository.findByUsername(username) ?: throw CserealException.Csereal404("재로그인이 필요합니다.")
-        }
+        ) as UserEntity
 
         val newNotice = NoticeEntity(
             title = request.title,
