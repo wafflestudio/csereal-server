@@ -14,7 +14,13 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface SeminarService {
-    fun searchSeminar(keyword: String?, pageable: Pageable, usePageBtn: Boolean): SeminarSearchResponse
+    fun searchSeminar(
+        keyword: String?,
+        pageable: Pageable,
+        usePageBtn: Boolean,
+        isStaff: Boolean
+    ): SeminarSearchResponse
+
     fun createSeminar(request: SeminarDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): SeminarDto
     fun readSeminar(seminarId: Long): SeminarDto
     fun updateSeminar(
@@ -35,8 +41,13 @@ class SeminarServiceImpl(
     private val attachmentService: AttachmentService,
 ) : SeminarService {
     @Transactional(readOnly = true)
-    override fun searchSeminar(keyword: String?, pageable: Pageable, usePageBtn: Boolean): SeminarSearchResponse {
-        return seminarRepository.searchSeminar(keyword, pageable, usePageBtn)
+    override fun searchSeminar(
+        keyword: String?,
+        pageable: Pageable,
+        usePageBtn: Boolean,
+        isStaff: Boolean
+    ): SeminarSearchResponse {
+        return seminarRepository.searchSeminar(keyword, pageable, usePageBtn, isStaff)
     }
 
     @Transactional
