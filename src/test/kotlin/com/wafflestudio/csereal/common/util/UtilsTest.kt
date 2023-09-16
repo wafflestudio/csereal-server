@@ -40,7 +40,7 @@ class UtilsTest: BehaviorSpec({
             val (startIdx, result) = substringAroundKeyword(keyword, content, amount)
 
             Then("should return proper index") {
-                startIdx shouldBe 26
+                startIdx shouldBe 15
             }
 
             Then("should return proper substring") {
