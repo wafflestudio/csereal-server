@@ -1,8 +1,8 @@
 package com.wafflestudio.csereal.core.about.dto
 
-data class CompanyDto(
+data class FutureCareersCompanyDto(
     val name: String,
     val url: String?,
-    val year: Int?,
+    val year: Int?
 ) {
 }

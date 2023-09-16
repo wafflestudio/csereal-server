@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.about.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.core.about.dto.FutureCareersStatDegreeDto
+import com.wafflestudio.csereal.core.about.dto.FutureCareersStatDto
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -14,6 +16,16 @@ class StatEntity(
     var name: String,
     var count: Int,
 ): BaseTimeEntity() {
+    companion object {
+        fun of(year: Int, degree: Degree, statDto: FutureCareersStatDegreeDto): StatEntity {
+            return StatEntity(
+                year = year,
+                degree = degree,
+                name = statDto.name,
+                count = statDto.count,
+            )
+        }
+    }
 }
 
 enum class Degree {

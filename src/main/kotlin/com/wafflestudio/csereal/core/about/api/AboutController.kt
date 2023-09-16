@@ -1,9 +1,9 @@
 package com.wafflestudio.csereal.core.about.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
-import com.wafflestudio.csereal.core.about.dto.AboutDto
-import com.wafflestudio.csereal.core.about.dto.CompanyDto
-import com.wafflestudio.csereal.core.about.dto.FutureCareersPage
+import com.wafflestudio.csereal.core.about.dto.*
+import com.wafflestudio.csereal.core.about.dto.request.AboutRequest
+import com.wafflestudio.csereal.core.about.dto.request.FutureCareersRequest
 import com.wafflestudio.csereal.core.about.service.AboutService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -59,4 +59,17 @@ class AboutController(
         return ResponseEntity.ok(aboutService.readFutureCareers())
     }
 
+    @PostMapping("/migrate")
+    fun migrateAbout(
+        @RequestBody requestList: List<AboutRequest>
+    ): ResponseEntity<List<AboutDto>> {
+        return ResponseEntity.ok(aboutService.migrateAbout(requestList))
+    }
+
+    @PostMapping("/future-careers/migrate")
+    fun migrateFutureCareers(
+        @RequestBody request: FutureCareersRequest
+    ): ResponseEntity<FutureCareersResponse> {
+        return ResponseEntity.ok(aboutService.migrateFutureCareers(request))
+    }
 }
