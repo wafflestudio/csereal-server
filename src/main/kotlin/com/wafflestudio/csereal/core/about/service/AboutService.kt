@@ -4,6 +4,8 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.about.database.*
 import com.wafflestudio.csereal.core.about.dto.*
 import com.wafflestudio.csereal.core.about.dto.FutureCareersPage
+import com.wafflestudio.csereal.core.about.dto.request.AboutRequest
+import com.wafflestudio.csereal.core.about.dto.request.FutureCareersRequest
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.stereotype.Service
@@ -28,6 +30,7 @@ interface AboutService {
     fun migrateStudentClubs(requestList: List<StudentClubDto>): List<StudentClubDto>
     fun migrateFacilities(requestList: List<FacilityDto>): List<FacilityDto>
     fun migrateDirections(requestList: List<DirectionDto>): List<DirectionDto>
+
 }
 
 @Service
@@ -182,6 +185,20 @@ class AboutServiceImpl(
         val statList = mutableListOf<FutureCareersStatDto>()
         val companyList = mutableListOf<FutureCareersCompanyDto>()
 
+        val aboutDto = AboutDto(
+            id = null,
+            name = null,
+            engName = null,
+            description = description,
+            year = null,
+            createdAt = null,
+            modifiedAt = null,
+            locations = null,
+            imageURL = null,
+            attachments = listOf()
+        )
+        val newAbout = AboutEntity.of(AboutPostType.FUTURE_CAREERS, aboutDto)
+        aboutRepository.save(newAbout)
 
         for (stat in request.stat) {
             val year = stat.year
@@ -215,7 +232,6 @@ class AboutServiceImpl(
 
             companyList.add(company)
         }
-
 
         return FutureCareersPage(description, statList.toList(), companyList.toList())
     }
