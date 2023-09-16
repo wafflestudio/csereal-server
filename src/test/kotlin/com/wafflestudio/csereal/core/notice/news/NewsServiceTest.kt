@@ -30,19 +30,19 @@ class NewsServiceTest(
                         <p>This is news description.</p>
                         <h3>Goodbye, World!</h3>
                     """.trimIndent(),
-                    tags = emptyList(),
-                    createdAt = null,
-                    modifiedAt = null,
-                    date = null,
-                    isPrivate = false,
-                    isSlide = false,
-                    isImportant = false,
-                    prevId = null,
-                    prevTitle = null,
-                    nextId = null,
-                    nextTitle = null,
-                    imageURL = null,
-                    attachments = null,
+                tags = emptyList(),
+                createdAt = null,
+                modifiedAt = null,
+                date = null,
+                isPrivate = false,
+                isSlide = false,
+                isImportant = false,
+                prevId = null,
+                prevTitle = null,
+                nextId = null,
+                nextTitle = null,
+                imageURL = null,
+                attachments = null,
             )
 
             When("DTO를 이용하여 뉴스를 생성하면") {
@@ -69,12 +69,12 @@ class NewsServiceTest(
                             <p>This is news description.</p>
                             <h3>Goodbye, World!</h3>
                             """.trimIndent(),
-                            plainTextDescription = "Hello, World! This is news description. Goodbye, World!",
-                            date = null,
-                            isPrivate = false,
-                            isSlide = false,
-                            isImportant = false,
-                    )
+                    plainTextDescription = "Hello, World! This is news description. Goodbye, World!",
+                    date = null,
+                    isPrivate = false,
+                    isSlide = false,
+                    isImportant = false,
+                )
             )
 
             When("저장된 뉴스의 Description을 수정하면") {
@@ -91,7 +91,6 @@ class NewsServiceTest(
                         ),
                     null,
                     null,
-                    emptyList()
                 )
 
                 Then("description, plainTextDescription이 수정되어야 한다.") {
