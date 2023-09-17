@@ -102,6 +102,7 @@ class StaffServiceImpl(
         staffRepository.deleteById(staffId)
     }
 
+    @Transactional
     override fun migrateStaff(requestList: List<StaffDto>): List<StaffDto> {
         val list = mutableListOf<StaffDto>()
 
