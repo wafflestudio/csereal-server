@@ -17,6 +17,8 @@ class SeminarEntity(
 
     var title: String,
 
+    var titleForMain: String?,
+
     @Column(columnDefinition = "mediumtext")
     var description: String,
 
@@ -70,6 +72,7 @@ class SeminarEntity(
 
             return SeminarEntity(
                 title = seminarDto.title,
+                titleForMain = seminarDto.titleForMain,
                 description = seminarDto.description,
                 plainTextDescription = plainTextDescription,
                 introduction = seminarDto.introduction,
@@ -108,6 +111,7 @@ class SeminarEntity(
         }
 
         title = updateSeminarRequest.title
+        titleForMain = updateSeminarRequest.titleForMain
         introduction = updateSeminarRequest.introduction
         name = updateSeminarRequest.name
         speakerURL = updateSeminarRequest.speakerURL
