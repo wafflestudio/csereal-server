@@ -5,6 +5,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
+import com.wafflestudio.csereal.core.notice.database.QNoticeEntity
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.core.seminar.database.QSeminarEntity.seminarEntity
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchDto
@@ -21,7 +22,12 @@ interface SeminarRepository : JpaRepository<SeminarEntity, Long>, CustomSeminarR
 }
 
 interface CustomSeminarRepository {
-    fun searchSeminar(keyword: String?, pageable: Pageable, usePageBtn: Boolean): SeminarSearchResponse
+    fun searchSeminar(
+        keyword: String?,
+        pageable: Pageable,
+        usePageBtn: Boolean,
+        isStaff: Boolean
+    ): SeminarSearchResponse
 }
 
 @Component
@@ -30,8 +36,14 @@ class SeminarRepositoryImpl(
     private val mainImageService: MainImageService,
     private val commonRepository: CommonRepository,
 ) : CustomSeminarRepository {
-    override fun searchSeminar(keyword: String?, pageable: Pageable, usePageBtn: Boolean): SeminarSearchResponse {
+    override fun searchSeminar(
+        keyword: String?,
+        pageable: Pageable,
+        usePageBtn: Boolean,
+        isStaff: Boolean
+    ): SeminarSearchResponse {
         val keywordBooleanBuilder = BooleanBuilder()
+        val isPrivateBooleanBuilder = BooleanBuilder()
 
         if (!keyword.isNullOrEmpty()) {
             val booleanTemplate = commonRepository.searchFullSeptupleTextTemplate(
@@ -47,9 +59,15 @@ class SeminarRepositoryImpl(
             keywordBooleanBuilder.and(booleanTemplate.gt(0.0))
         }
 
+        if (!isStaff) {
+            isPrivateBooleanBuilder.or(
+                QNoticeEntity.noticeEntity.isPrivate.eq(false)
+            )
+        }
+
         val jpaQuery = queryFactory.selectFrom(seminarEntity)
             .where(seminarEntity.isDeleted.eq(false))
-            .where(keywordBooleanBuilder)
+            .where(keywordBooleanBuilder, isPrivateBooleanBuilder)
 
         val total: Long
         var pageRequest = pageable
@@ -91,6 +109,7 @@ class SeminarRepositoryImpl(
                     location = seminarEntityList[i].location,
                     imageURL = imageURL,
                     isYearLast = isYearLast,
+                    isPrivate = seminarEntityList[i].isPrivate
                 )
             )
         }
