@@ -32,7 +32,6 @@ interface NoticeService {
         noticeId: Long,
         request: NoticeDto,
         newAttachments: List<MultipartFile>?,
-        deleteIds: List<Long>
     ): NoticeDto
 
     fun deleteNotice(noticeId: Long)
@@ -46,7 +45,6 @@ class NoticeServiceImpl(
     private val noticeRepository: NoticeRepository,
     private val tagInNoticeRepository: TagInNoticeRepository,
     private val noticeTagRepository: NoticeTagRepository,
-    private val userRepository: UserRepository,
     private val attachmentService: AttachmentService,
 ) : NoticeService {
 
@@ -120,8 +118,7 @@ class NoticeServiceImpl(
     override fun updateNotice(
         noticeId: Long,
         request: NoticeDto,
-        newAttachments: List<MultipartFile>?,
-        deleteIds: List<Long>
+        newAttachments: List<MultipartFile>?
     ): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
@@ -129,7 +126,7 @@ class NoticeServiceImpl(
 
         notice.update(request)
 
-        attachmentService.deleteAttachments(deleteIds)
+        attachmentService.deleteAttachments(request.deleteIds)
 
         if (newAttachments != null) {
             attachmentService.uploadAllAttachments(notice, newAttachments)
