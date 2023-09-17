@@ -150,7 +150,6 @@ class SeminarServiceTest(
                     modifiedSeminarDTO,
                     null,
                     null,
-                    emptyList()
                 )
 
                 Then("같은 Entity가 수정되어야 한다.") {

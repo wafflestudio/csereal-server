@@ -93,7 +93,6 @@ class NewsServiceTest(
                         ),
                     null,
                     null,
-                    emptyList()
                 )
 
                 Then("description, plainTextDescription이 수정되어야 한다.") {

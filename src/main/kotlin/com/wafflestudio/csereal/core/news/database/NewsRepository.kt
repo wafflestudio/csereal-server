@@ -10,6 +10,7 @@ import com.wafflestudio.csereal.core.news.database.QNewsEntity.newsEntity
 import com.wafflestudio.csereal.core.news.database.QNewsTagEntity.newsTagEntity
 import com.wafflestudio.csereal.core.news.dto.NewsSearchDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
+import com.wafflestudio.csereal.core.notice.database.QNoticeEntity
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
@@ -23,7 +24,13 @@ interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository
 }
 
 interface CustomNewsRepository {
-    fun searchNews(tag: List<String>?, keyword: String?, pageable: Pageable, usePageBtn: Boolean): NewsSearchResponse
+    fun searchNews(
+        tag: List<String>?,
+        keyword: String?,
+        pageable: Pageable,
+        usePageBtn: Boolean,
+        isStaff: Boolean
+    ): NewsSearchResponse
 }
 
 @Component
@@ -36,10 +43,12 @@ class NewsRepositoryImpl(
         tag: List<String>?,
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean
+        usePageBtn: Boolean,
+        isStaff: Boolean
     ): NewsSearchResponse {
         val keywordBooleanBuilder = BooleanBuilder()
         val tagsBooleanBuilder = BooleanBuilder()
+        val isPrivateBooleanBuilder = BooleanBuilder()
 
         if (!keyword.isNullOrEmpty()) {
             val booleanTemplate = commonRepository.searchFullDoubleTextTemplate(
@@ -58,10 +67,16 @@ class NewsRepositoryImpl(
             }
         }
 
+        if (!isStaff) {
+            isPrivateBooleanBuilder.or(
+                QNoticeEntity.noticeEntity.isPrivate.eq(false)
+            )
+        }
+
         val jpaQuery = queryFactory.selectFrom(newsEntity)
             .leftJoin(newsTagEntity).on(newsTagEntity.news.eq(newsEntity))
             .where(newsEntity.isDeleted.eq(false))
-            .where(keywordBooleanBuilder).where(tagsBooleanBuilder)
+            .where(keywordBooleanBuilder, tagsBooleanBuilder, isPrivateBooleanBuilder)
 
         val total: Long
         var pageRequest = pageable
@@ -90,7 +105,8 @@ class NewsRepositoryImpl(
                 createdAt = it.createdAt,
                 date = it.date,
                 tags = it.newsTags.map { newsTagEntity -> newsTagEntity.tag.name.krName },
-                imageURL = imageURL
+                imageURL = imageURL,
+                isPrivate = it.isPrivate
             )
         }
         return NewsSearchResponse(total, newsSearchDtoList)

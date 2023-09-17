@@ -126,7 +126,6 @@ class NoticeServiceTest(
                     modifiedRequest.id,
                     modifiedRequest,
                     null,
-                    emptyList()
                 )
 
                 Then("plainTextDescription이 잘 수정되어야 한다.") {
