@@ -36,10 +36,6 @@ interface AttachmentService {
     ): List<AttachmentDto>
 
     fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse>
-//    fun updateAttachmentResponses(
-//        contentEntity: AttachmentContentEntityType,
-//        attachmentsList: List<AttachmentResponse>
-//    )
 
     fun deleteAttachments(ids: List<Long>?)
     fun deleteAttachment(attachment: AttachmentEntity)
@@ -61,7 +57,7 @@ class AttachmentServiceImpl(
 
         val filename = "${timeMillis}_${requestAttachment.originalFilename}"
         val totalFilename = path + filename
-        val saveFile = Paths.get("$totalFilename.$extension")
+        val saveFile = Paths.get(totalFilename)
         requestAttachment.transferTo(saveFile)
 
         val attachment = AttachmentEntity(
@@ -97,7 +93,7 @@ class AttachmentServiceImpl(
 
             val filename = "${timeMillis}_${requestAttachment.originalFilename}"
             val totalFilename = path + filename
-            val saveFile = Paths.get("$totalFilename.$extension")
+            val saveFile = Paths.get(totalFilename)
             requestAttachment.transferTo(saveFile)
 
             val attachment = AttachmentEntity(
