@@ -22,7 +22,6 @@ interface SeminarService {
         request: SeminarDto,
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?,
-        deleteIds: List<Long>,
     ): SeminarDto
 
     fun deleteSeminar(seminarId: Long)
@@ -84,7 +83,6 @@ class SeminarServiceImpl(
         request: SeminarDto,
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?,
-        deleteIds: List<Long>,
     ): SeminarDto {
         val seminar: SeminarEntity = seminarRepository.findByIdOrNull(seminarId)
             ?: throw CserealException.Csereal404("존재하지 않는 세미나입니다")
@@ -97,10 +95,14 @@ class SeminarServiceImpl(
             mainImageService.uploadMainImage(seminar, newMainImage)
         }
 
-        attachmentService.deleteAttachments(deleteIds)
+        attachmentService.deleteAttachments(request.deleteIds)
 
         if (newAttachments != null) {
             attachmentService.uploadAllAttachments(seminar, newAttachments)
+        }
+
+        if (request.isImportant && request.titleForMain.isNullOrEmpty()) {
+            throw CserealException.Csereal400("중요 제목이 입력되어야 합니다")
         }
 
         val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)

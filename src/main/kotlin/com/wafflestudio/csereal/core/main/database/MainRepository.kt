@@ -86,7 +86,8 @@ class MainRepositoryImpl(
             mainImportantResponses.add(
                 MainImportantResponse(
                     id = it.id,
-                    title = it.title,
+                    title = it.titleForMain!!,
+                    description = it.description,
                     createdAt = it.createdAt,
                     category = "notice"
                 )
@@ -97,7 +98,8 @@ class MainRepositoryImpl(
             mainImportantResponses.add(
                 MainImportantResponse(
                     id = it.id,
-                    title = it.title,
+                    title = it.titleForMain!!,
+                    description = it.description,
                     createdAt = it.createdAt,
                     category = "news"
                 )
@@ -108,7 +110,8 @@ class MainRepositoryImpl(
             mainImportantResponses.add(
                 MainImportantResponse(
                     id = it.id,
-                    title = it.title,
+                    title = it.titleForMain!!,
+                    description = it.description,
                     createdAt = it.createdAt,
                     category = "seminar"
                 )
