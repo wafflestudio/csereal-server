@@ -48,4 +48,11 @@ class StaffController(
         staffService.deleteStaff(staffId)
         return ResponseEntity.ok().build()
     }
+
+    @PostMapping("/migrate")
+    fun migrateStaff(
+        @RequestBody requestList: List<StaffDto>
+    ): ResponseEntity<List<StaffDto>> {
+        return ResponseEntity.ok(staffService.migrateStaff(requestList))
+    }
 }
