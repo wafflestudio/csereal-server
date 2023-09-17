@@ -9,7 +9,7 @@ import jakarta.persistence.ManyToOne
 
 @Entity(name = "task")
 class TaskEntity(
-    @Column(columnDefinition = "mediumText")
+    @Column(columnDefinition = "text")
     val name: String,
 
     @ManyToOne(fetch = FetchType.LAZY)
