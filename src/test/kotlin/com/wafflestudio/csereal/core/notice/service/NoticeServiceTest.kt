@@ -59,6 +59,7 @@ class NoticeServiceTest(
             val noticeDto = NoticeDto(
                 id = -1,
                 title = "title",
+                titleForMain = null,
                 description = """
                             <h1>Hello, World!</h1>
                             <p>This is a test notice.</p>
@@ -96,6 +97,7 @@ class NoticeServiceTest(
             val noticeEntity = noticeRepository.save(
                 NoticeEntity(
                     title = "title",
+                    titleForMain = null,
                     description = """
                                     <h1>Hello, World!</h1>
                                     <p>This is a test notice.</p>
@@ -124,7 +126,6 @@ class NoticeServiceTest(
                     modifiedRequest.id,
                     modifiedRequest,
                     null,
-                    emptyList()
                 )
 
                 Then("plainTextDescription이 잘 수정되어야 한다.") {

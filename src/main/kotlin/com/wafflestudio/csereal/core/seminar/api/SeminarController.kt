@@ -64,7 +64,6 @@ class SeminarController(
         @Valid @RequestPart("request") request: SeminarDto,
         @RequestPart("newMainImage") newMainImage: MultipartFile?,
         @RequestPart("newAttachments") newAttachments: List<MultipartFile>?,
-        @RequestPart("deleteIds") deleteIds: List<Long>,
     ): ResponseEntity<SeminarDto> {
         return ResponseEntity.ok(
             seminarService.updateSeminar(
@@ -72,7 +71,6 @@ class SeminarController(
                 request,
                 newMainImage,
                 newAttachments,
-                deleteIds
             )
         )
     }
