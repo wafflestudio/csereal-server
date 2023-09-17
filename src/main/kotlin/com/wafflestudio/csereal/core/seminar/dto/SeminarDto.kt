@@ -8,6 +8,7 @@ import java.time.LocalDateTime
 data class SeminarDto(
     val id: Long,
     val title: String,
+    val titleForMain: String?,
     val description: String,
     val introduction: String,
     val name: String,
@@ -44,6 +45,7 @@ data class SeminarDto(
             SeminarDto(
                 id = this.id,
                 title = this.title,
+                titleForMain = this.titleForMain,
                 description = this.description,
                 introduction = this.introduction,
                 name = this.name,

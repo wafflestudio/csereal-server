@@ -7,6 +7,7 @@ import java.time.LocalDateTime
 data class NewsDto(
     val id: Long,
     val title: String,
+    val titleForMain: String?,
     val description: String,
     val tags: List<String>,
     val createdAt: LocalDateTime?,
@@ -34,6 +35,7 @@ data class NewsDto(
             NewsDto(
                 id = this.id,
                 title = this.title,
+                titleForMain = this.titleForMain,
                 description = this.description,
                 tags = this.newsTags.map { it.tag.name.krName },
                 createdAt = this.createdAt,

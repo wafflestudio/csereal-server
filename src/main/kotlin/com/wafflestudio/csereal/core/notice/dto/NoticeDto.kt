@@ -8,6 +8,7 @@ import java.time.LocalDateTime
 data class NoticeDto(
     val id: Long,
     val title: String,
+    val titleForMain: String?,
     val description: String,
     val author: String?,
     val tags: List<String>,
@@ -34,6 +35,7 @@ data class NoticeDto(
             NoticeDto(
                 id = this.id,
                 title = this.title,
+                titleForMain = this.titleForMain,
                 description = this.description,
                 author = this.author.name,
                 tags = this.noticeTags.map { it.tag.name.krName },

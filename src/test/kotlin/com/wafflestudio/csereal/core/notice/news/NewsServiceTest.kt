@@ -25,6 +25,7 @@ class NewsServiceTest(
             val newsDTO = NewsDto(
                 id = -1,
                 title = "title",
+                titleForMain = null,
                 description = """
                         <h1>Hello, World!</h1>
                         <p>This is news description.</p>
@@ -64,6 +65,7 @@ class NewsServiceTest(
             val newsEntity = newsRepository.save(
                 NewsEntity(
                     title = "title",
+                    titleForMain = null,
                     description = """
                             <h1>Hello, World!</h1>
                             <p>This is news description.</p>

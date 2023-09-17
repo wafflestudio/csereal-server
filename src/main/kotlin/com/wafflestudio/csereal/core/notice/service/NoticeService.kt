@@ -83,6 +83,7 @@ class NoticeServiceImpl(
 
         val newNotice = NoticeEntity(
             title = request.title,
+            titleForMain = request.titleForMain,
             description = request.description,
             plainTextDescription = cleanTextFromHtml(request.description),
             isPrivate = request.isPrivate,
@@ -99,6 +100,10 @@ class NoticeServiceImpl(
 
         if (attachments != null) {
             attachmentService.uploadAllAttachments(newNotice, attachments)
+        }
+
+        if (request.isImportant && request.titleForMain.isNullOrEmpty()) {
+            throw CserealException.Csereal400("중요 제목이 입력되어야 합니다")
         }
 
         noticeRepository.save(newNotice)

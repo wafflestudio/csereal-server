@@ -101,6 +101,10 @@ class SeminarServiceImpl(
             attachmentService.uploadAllAttachments(seminar, newAttachments)
         }
 
+        if (request.isImportant && request.titleForMain.isNullOrEmpty()) {
+            throw CserealException.Csereal400("중요 제목이 입력되어야 합니다")
+        }
+
         val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
 
         val imageURL = mainImageService.createImageURL(seminar.mainImage)
