@@ -171,7 +171,7 @@ class ProfessorServiceImpl(
             val professor = ProfessorEntity.of(request)
             if (request.labName != null) {
                 val lab = labRepository.findByName(request.labName)
-                    ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다. LabId: ${request.labId}")
+                    ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다. LabName: ${request.labName}")
                 professor.addLab(lab)
             }
 
