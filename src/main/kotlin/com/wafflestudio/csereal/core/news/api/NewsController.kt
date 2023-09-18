@@ -7,6 +7,9 @@ import com.wafflestudio.csereal.core.news.service.NewsService
 import com.wafflestudio.csereal.core.user.database.Role
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Positive
+import org.hibernate.validator.constraints.Length
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -40,6 +43,15 @@ class NewsController(
         val pageRequest = PageRequest.of(page - 1, pageSize)
         return ResponseEntity.ok(newsService.searchNews(tag, keyword, pageRequest, usePageBtn, isStaff))
     }
+
+    @GetMapping("/totalSearch")
+    fun searchTotalNews(
+            @RequestParam(required = true) @Length(min = 1) @NotBlank keyword: String,
+            @RequestParam(required = true) @Positive number: Int,
+            @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int,
+    ) = ResponseEntity.ok(
+            newsService.searchTotalNews(keyword, number, stringLength)
+    )
 
     @GetMapping("/{newsId}")
     fun readNews(
