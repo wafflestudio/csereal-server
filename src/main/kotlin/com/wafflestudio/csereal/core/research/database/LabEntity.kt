@@ -28,6 +28,7 @@ class LabEntity(
     @JoinColumn(name = "research_id")
     var research: ResearchEntity,
 
+    @Column(columnDefinition = "mediumText")
     var description: String?,
     var websiteURL: String?,
 

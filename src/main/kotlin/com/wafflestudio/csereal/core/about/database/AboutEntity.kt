@@ -14,7 +14,10 @@ class AboutEntity(
     var postType: AboutPostType,
     var name: String?,
     var engName: String?,
+
+    @Column(columnDefinition = "mediumText")
     var description: String,
+
     var year: Int?,
 
     @OneToMany(mappedBy = "about", cascade = [CascadeType.ALL], orphanRemoval = true)

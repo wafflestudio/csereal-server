@@ -73,10 +73,9 @@ class NoticeController(
     fun updateNotice(
         @PathVariable noticeId: Long,
         @Valid @RequestPart("request") request: NoticeDto,
-        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?,
-        @RequestPart("deleteIds") deleteIds: List<Long>,
+        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?
     ): ResponseEntity<NoticeDto> {
-        return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, newAttachments, deleteIds))
+        return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, newAttachments))
     }
 
     @AuthenticatedStaff

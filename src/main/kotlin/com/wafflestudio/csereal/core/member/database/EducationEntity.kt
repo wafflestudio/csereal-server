@@ -5,6 +5,7 @@ import jakarta.persistence.*
 
 @Entity(name = "education")
 class EducationEntity(
+    @Column(columnDefinition = "text")
     val name: String,
 
     @ManyToOne(fetch = FetchType.LAZY)

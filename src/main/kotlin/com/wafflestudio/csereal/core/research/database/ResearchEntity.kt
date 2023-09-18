@@ -14,6 +14,8 @@ class ResearchEntity(
     var postType: ResearchPostType,
 
     var name: String,
+
+    @Column(columnDefinition = "mediumText")
     var description: String?,
 
     @OneToMany(mappedBy = "research", cascade = [CascadeType.ALL], orphanRemoval = true)

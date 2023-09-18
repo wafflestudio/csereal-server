@@ -80,4 +80,17 @@ class ResearchController(
     ): ResponseEntity<LabDto> {
         return ResponseEntity.ok(researchService.updateLab(labId, request, pdf))
     }
+
+    @PostMapping("/migrate")
+    fun migrateResearchDetail(
+        @RequestBody requestList: List<ResearchDto>
+    ): ResponseEntity<List<ResearchDto>> {
+        return ResponseEntity.ok(researchService.migrateResearchDetail(requestList))
+    }
+    @PostMapping("/lab/migrate")
+    fun migrateLabs(
+        @RequestBody requestList: List<LabDto>
+    ): ResponseEntity<List<LabDto>> {
+        return ResponseEntity.ok(researchService.migrateLabs(requestList))
+    }
 }
