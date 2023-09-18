@@ -46,6 +46,9 @@ class SecurityConfig(
             .authorizeHttpRequests()
             .requestMatchers("/api/v1/login").authenticated()
             .anyRequest().permitAll().and()
+            .requiresChannel()
+            .requestMatchers("/oauth2/authorization/idsnucse")
+            .requiresSecure().and()
             .build()
     }
 
