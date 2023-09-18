@@ -13,11 +13,7 @@ data class SeminarSearchDto @QueryProjection constructor(
     val startDate: LocalDateTime?,
     val location: String,
     val imageURL: String?,
-    @get:JsonProperty("isYearLast")
-    @param:JsonProperty("isYearLast")
     val isYearLast: Boolean,
-    @get:JsonProperty("isPrivate")
-    @param:JsonProperty("isPrivate")
     val isPrivate: Boolean
 ) {
 }

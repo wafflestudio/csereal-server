@@ -9,12 +9,8 @@ data class NoticeSearchDto @QueryProjection constructor(
     val id: Long,
     val title: String,
     val createdAt: LocalDateTime?,
-    @get:JsonProperty("isPinned")
-    @param:JsonProperty("isPinned")
     val isPinned: Boolean,
     val hasAttachment: Boolean,
-    @get:JsonProperty("isPrivate")
-    @param:JsonProperty("isPrivate")
     val isPrivate: Boolean,
 ) {
     constructor(entity: NoticeEntity, hasAttachment: Boolean) : this(

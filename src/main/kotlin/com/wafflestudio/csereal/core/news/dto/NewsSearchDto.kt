@@ -12,7 +12,5 @@ data class NewsSearchDto(
     val date: LocalDateTime?,
     var tags: List<String>?,
     var imageURL: String?,
-    @get:JsonProperty("isPrivate")
-    @param:JsonProperty("isPrivate")
     val isPrivate: Boolean,
 )
