@@ -51,8 +51,6 @@ class AttachmentServiceImpl(
     override fun uploadAttachmentInLabEntity(labEntity: LabEntity, requestAttachment: MultipartFile): AttachmentDto {
         Files.createDirectories(Paths.get(path))
 
-        val extension = FilenameUtils.getExtension(requestAttachment.originalFilename)
-
         val timeMillis = System.currentTimeMillis()
 
         val filename = "${timeMillis}_${requestAttachment.originalFilename}"
@@ -87,8 +85,6 @@ class AttachmentServiceImpl(
         val attachmentsList = mutableListOf<AttachmentDto>()
 
         for ((index, requestAttachment) in requestAttachments.withIndex()) {
-            val extension = FilenameUtils.getExtension(requestAttachment.originalFilename)
-
             val timeMillis = System.currentTimeMillis()
 
             val filename = "${timeMillis}_${requestAttachment.originalFilename}"

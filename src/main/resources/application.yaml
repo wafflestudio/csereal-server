@@ -68,10 +68,10 @@ csereal:
     path: ./files/
 
 oldFiles:
-  path: ./cse-files
+  path: ./cse-files/
 
 endpoint:
-  backend: http://localhost:8080
+  backend: http://localhost:8080/api
   frontend: http://localhost:3000
 
 ---
@@ -96,7 +96,7 @@ csereal:
     path: /app/files/
 
 oldFiles:
-  path: /app/cse-files
+  path: /app/cse-files/
 
 endpoint:
   backend: https://${URL}/api
@@ -141,8 +141,8 @@ csereal:
     path: ./files/
 
 oldFiles:
-  path: ./cse-files
+  path: ./cse-files/
 
 endpoint:
-  backend: http://localhost:8080
+  backend: http://localhost:8080/api
   frontend: http://localhost:3000
