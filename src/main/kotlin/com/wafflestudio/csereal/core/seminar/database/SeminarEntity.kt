@@ -17,6 +17,7 @@ class SeminarEntity(
 
     var title: String,
 
+    @Column(columnDefinition = "text")
     var titleForMain: String?,
 
     @Column(columnDefinition = "mediumtext")
