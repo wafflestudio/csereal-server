@@ -106,7 +106,7 @@ class NewsRepositoryImpl(
                 date = it.date,
                 tags = it.newsTags.map { newsTagEntity -> newsTagEntity.tag.name.krName },
                 imageURL = imageURL,
-                isPrivate = it.isPrivate
+                isPrivate = it.isPrivate,
             )
         }
         return NewsSearchResponse(total, newsSearchDtoList)

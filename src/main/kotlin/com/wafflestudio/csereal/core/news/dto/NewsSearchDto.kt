@@ -1,9 +1,10 @@
 package com.wafflestudio.csereal.core.news.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.querydsl.core.annotations.QueryProjection
 import java.time.LocalDateTime
 
-data class NewsSearchDto @QueryProjection constructor(
+data class NewsSearchDto(
     val id: Long,
     val title: String,
     var description: String,
@@ -11,5 +12,7 @@ data class NewsSearchDto @QueryProjection constructor(
     val date: LocalDateTime?,
     var tags: List<String>?,
     var imageURL: String?,
-    val isPrivate: Boolean
+    @get:JsonProperty("isPrivate")
+    @param:JsonProperty("isPrivate")
+    val isPrivate: Boolean,
 )
