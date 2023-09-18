@@ -29,7 +29,7 @@ interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository
 }
 
 interface CustomNewsRepository {
-    fun searchNews(tag: List<String>?, keyword: String?, pageable: Pageable, usePageBtn: Boolean): NewsSearchResponse
+    fun searchNews(tag: List<String>?, keyword: String?, pageable: Pageable, usePageBtn: Boolean, isStaff: Boolean): NewsSearchResponse
     fun searchTotalNews(
             keyword: String,
             number: Int,
