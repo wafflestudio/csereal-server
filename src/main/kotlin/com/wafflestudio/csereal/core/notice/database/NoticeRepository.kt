@@ -77,7 +77,8 @@ class NoticeRepositoryImpl(
                 noticeEntity.title,
                 noticeEntity.createdAt,
                 noticeEntity.isPinned,
-                noticeEntity.attachments.isNotEmpty
+                noticeEntity.attachments.isNotEmpty,
+                noticeEntity.isPrivate
             )
         )
             .from(noticeEntity)
