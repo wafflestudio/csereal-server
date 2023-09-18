@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.resource.mainImage.api
+package com.wafflestudio.csereal.core.resource.common.api
 
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
@@ -18,21 +18,20 @@ import java.nio.file.Paths
 
 @RestController
 @RequestMapping("/sites/default/files")
-class DeprecatedFileController (
-        @Value("\${oldFiles.path}")
-        private val oldFilesPath: String,
+class DeprecatedFileController(
+    @Value("\${oldFiles.path}")
+    private val oldFilesPath: String,
 ) {
     @GetMapping("/{map}/**")
     fun serveOldFile(
-            @PathVariable map: String, // Just for ensure at least one path variable
-            @RequestParam(defaultValue = "false") download: Boolean,
-            request: HttpServletRequest
+        @PathVariable map: String, // Just for ensure at least one path variable
+        request: HttpServletRequest
     ): ResponseEntity<Resource> {
         // Extract path from pattern
         val fileSubDir = AntPathMatcher().extractPathWithinPattern(
-                "/sites/default/files/**",
-                request.servletPath
-            ).substringAfter("/sites/default/files/")
+            "/sites/default/files/**",
+            request.servletPath
+        ).substringAfter("/sites/default/files/")
         val file = Paths.get(oldFilesPath, fileSubDir)
         val resource = UrlResource(file.toUri())
 
@@ -41,19 +40,11 @@ class DeprecatedFileController (
             val headers = HttpHeaders()
 
             headers.contentType =
-                    org.springframework.http.MediaType.parseMediaType(contentType ?: "application/octet-stream")
-
-            if (download) {
-                val originalFilename = fileSubDir.substringAfterLast("/")
-
-                val encodedFilename = URLEncoder.encode(originalFilename, Charsets.UTF_8.toString()).replace("+", "%20")
-
-                headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''$encodedFilename")
-            }
+                org.springframework.http.MediaType.parseMediaType(contentType ?: "application/octet-stream")
 
             ResponseEntity.ok()
-                    .headers(headers)
-                    .body(resource)
+                .headers(headers)
+                .body(resource)
         } else {
             ResponseEntity.status(HttpStatus.NOT_FOUND).build()
         }
