@@ -10,12 +10,14 @@ data class NoticeSearchDto @QueryProjection constructor(
     val createdAt: LocalDateTime?,
     val isPinned: Boolean,
     val hasAttachment: Boolean,
+    val isPrivate: Boolean,
 ) {
     constructor(entity: NoticeEntity, hasAttachment: Boolean) : this(
         entity.id,
         entity.title,
         entity.createdAt,
         entity.isPinned,
-        hasAttachment
+        hasAttachment,
+        entity.isPrivate
     )
 }

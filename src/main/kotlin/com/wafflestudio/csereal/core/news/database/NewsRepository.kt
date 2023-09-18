@@ -69,7 +69,7 @@ class NewsRepositoryImpl(
 
         if (!isStaff) {
             isPrivateBooleanBuilder.or(
-                QNoticeEntity.noticeEntity.isPrivate.eq(false)
+                newsEntity.isPrivate.eq(false)
             )
         }
 
