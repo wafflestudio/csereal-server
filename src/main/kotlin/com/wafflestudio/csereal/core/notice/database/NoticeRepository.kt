@@ -9,6 +9,8 @@ import com.wafflestudio.csereal.core.notice.database.QNoticeEntity.noticeEntity
 import com.wafflestudio.csereal.core.notice.database.QNoticeTagEntity.noticeTagEntity
 import com.wafflestudio.csereal.core.notice.dto.NoticeSearchDto
 import com.wafflestudio.csereal.core.notice.dto.NoticeSearchResponse
+import com.wafflestudio.csereal.core.notice.dto.NoticeTotalSearchElement
+import com.wafflestudio.csereal.core.notice.dto.NoticeTotalSearchResponse
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Component
@@ -28,6 +30,8 @@ interface CustomNoticeRepository {
         usePageBtn: Boolean,
         isStaff: Boolean
     ): NoticeSearchResponse
+
+    fun totalSearchNotice(keyword: String, number: Int, stringLength: Int): NoticeTotalSearchResponse
 }
 
 @Component
@@ -35,6 +39,44 @@ class NoticeRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
     private val commonRepository: CommonRepository,
 ) : CustomNoticeRepository {
+    override fun totalSearchNotice(
+            keyword: String,
+            number: Int,
+            stringLength: Int,
+    ): NoticeTotalSearchResponse {
+        val doubleTemplate = commonRepository.searchFullDoubleTextTemplate(
+                keyword,
+                noticeEntity.title,
+                noticeEntity.plainTextDescription
+        )
+
+        val query = queryFactory.select(
+                noticeEntity.id,
+                noticeEntity.title,
+                noticeEntity.createdAt,
+                noticeEntity.plainTextDescription
+            ).from(noticeEntity)
+            .where(doubleTemplate.gt(0.0))
+
+        val total = query.clone().select(noticeEntity.countDistinct()).fetchOne()!!
+
+        val searchResult = query.limit(number.toLong()).fetch()
+
+        return NoticeTotalSearchResponse(
+                total.toInt(),
+                searchResult.map {
+                    NoticeTotalSearchElement(
+                            it[noticeEntity.id]!!,
+                            it[noticeEntity.title]!!,
+                            it[noticeEntity.createdAt]!!,
+                            it[noticeEntity.plainTextDescription]!!,
+                            keyword,
+                            stringLength,
+                    )
+                }
+        )
+    }
+
     override fun searchNotice(
         tag: List<String>?,
         keyword: String?,
@@ -77,7 +119,8 @@ class NoticeRepositoryImpl(
                 noticeEntity.title,
                 noticeEntity.createdAt,
                 noticeEntity.isPinned,
-                noticeEntity.attachments.isNotEmpty
+                noticeEntity.attachments.isNotEmpty,
+                noticeEntity.isPrivate
             )
         )
             .from(noticeEntity)
