@@ -61,7 +61,7 @@ class SeminarRepositoryImpl(
 
         if (!isStaff) {
             isPrivateBooleanBuilder.or(
-                QNoticeEntity.noticeEntity.isPrivate.eq(false)
+                seminarEntity.isPrivate.eq(false)
             )
         }
 
