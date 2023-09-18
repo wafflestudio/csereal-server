@@ -13,5 +13,6 @@ data class SeminarSearchDto @QueryProjection constructor(
     val location: String,
     val imageURL: String?,
     val isYearLast: Boolean,
+    val isPrivate: Boolean
 ) {
 }

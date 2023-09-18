@@ -30,10 +30,10 @@ interface ConferenceService {
 @Service
 @Transactional
 class ConferenceServiceImpl(
-        private val conferencePageRepository: ConferencePageRepository,
-        private val conferenceRepository: ConferenceRepository,
-        private val userRepository: UserRepository,
-        private val researchSearchService: ResearchSearchService,
+    private val conferencePageRepository: ConferencePageRepository,
+    private val conferenceRepository: ConferenceRepository,
+    private val userRepository: UserRepository,
+    private val researchSearchService: ResearchSearchService,
 ) : ConferenceService {
 
     @Transactional(readOnly = true)
@@ -44,17 +44,10 @@ class ConferenceServiceImpl(
 
     @Transactional
     override fun modifyConferences(conferenceModifyRequest: ConferenceModifyRequest): ConferencePage {
-        var user = RequestContextHolder.getRequestAttributes()?.getAttribute(
-                "loggedInUser",
-                RequestAttributes.SCOPE_REQUEST
-        ) as UserEntity?
-
-        if (user == null) {
-            val oidcUser = SecurityContextHolder.getContext().authentication.principal as OidcUser
-            val username = oidcUser.idToken.getClaim<String>("username")
-
-            user = userRepository.findByUsername(username) ?: throw CserealException.Csereal404("재로그인이 필요합니다.")
-        }
+        val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
+            "loggedInUser",
+            RequestAttributes.SCOPE_REQUEST
+        ) as UserEntity
 
         val conferencePage = conferencePageRepository.findAll()[0]
 
@@ -77,12 +70,12 @@ class ConferenceServiceImpl(
 
     @Transactional
     fun createConferenceWithoutSave(
-            conferenceCreateDto: ConferenceCreateDto,
-            conferencePage: ConferencePageEntity,
+        conferenceCreateDto: ConferenceCreateDto,
+        conferencePage: ConferencePageEntity,
     ): ConferenceEntity {
         val newConference = ConferenceEntity.of(
-                conferenceCreateDto,
-                conferencePage
+            conferenceCreateDto,
+            conferencePage
         )
         conferencePage.conferences.add(newConference)
 
@@ -93,33 +86,33 @@ class ConferenceServiceImpl(
 
     @Transactional
     fun modifyConferenceWithoutSave(
-            conferenceDto: ConferenceDto,
+        conferenceDto: ConferenceDto,
     ): ConferenceEntity {
         val conferenceEntity = conferenceRepository.findByIdOrNull(conferenceDto.id)
-                ?: throw CserealException.Csereal404("Conference id:${conferenceDto.id} 가 존재하지 않습니다.")
+            ?: throw CserealException.Csereal404("Conference id:${conferenceDto.id} 가 존재하지 않습니다.")
 
         conferenceEntity.update(conferenceDto)
 
         conferenceEntity.researchSearch?.update(conferenceEntity)
-                ?: let {
-                    conferenceEntity.researchSearch = ResearchSearchEntity.create(conferenceEntity)
-                }
+            ?: let {
+                conferenceEntity.researchSearch = ResearchSearchEntity.create(conferenceEntity)
+            }
 
         return conferenceEntity
     }
 
     @Transactional
     fun deleteConference(
-            id: Long,
-            conferencePage: ConferencePageEntity,
+        id: Long,
+        conferencePage: ConferencePageEntity,
     ) = conferenceRepository.findByIdOrNull(id)
-            ?. let {
-                it.isDeleted = true
-                conferencePage.conferences.remove(it)
+        ?.let {
+            it.isDeleted = true
+            conferencePage.conferences.remove(it)
 
-                it.researchSearch?.let {
-                    researchSearchService.deleteResearchSearch(it)
-                }
-                it.researchSearch = null
+            it.researchSearch?.let {
+                researchSearchService.deleteResearchSearch(it)
             }
+            it.researchSearch = null
+        }
 }

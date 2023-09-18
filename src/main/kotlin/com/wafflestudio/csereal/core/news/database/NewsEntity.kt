@@ -8,13 +8,16 @@ import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.*
+import java.time.LocalDateTime
 
 @Entity(name = "news")
 class NewsEntity(
 
     var isDeleted: Boolean = false,
-
     var title: String,
+
+    @Column(columnDefinition = "text")
+    var titleForMain: String?,
 
     @Column(columnDefinition = "mediumtext")
     var description: String,
@@ -22,10 +25,9 @@ class NewsEntity(
     @Column(columnDefinition = "mediumtext")
     var plainTextDescription: String,
 
+    var date: LocalDateTime?,
     var isPrivate: Boolean,
-
     var isSlide: Boolean,
-
     var isImportant: Boolean,
 
     @OneToOne
@@ -45,8 +47,10 @@ class NewsEntity(
         fun of(newsDto: NewsDto): NewsEntity {
             return NewsEntity(
                 title = newsDto.title,
+                titleForMain = newsDto.titleForMain,
                 description = newsDto.description,
                 plainTextDescription = cleanTextFromHtml(newsDto.description),
+                date = newsDto.date,
                 isPrivate = newsDto.isPrivate,
                 isSlide = newsDto.isSlide,
                 isImportant = newsDto.isImportant,
@@ -59,8 +63,9 @@ class NewsEntity(
             this.description = updateNewsRequest.description
             this.plainTextDescription = cleanTextFromHtml(updateNewsRequest.description)
         }
-
         this.title = updateNewsRequest.title
+        this.titleForMain = updateNewsRequest.titleForMain
+        this.date = updateNewsRequest.date
         this.isPrivate = updateNewsRequest.isPrivate
         this.isSlide = updateNewsRequest.isSlide
         this.isImportant = updateNewsRequest.isImportant

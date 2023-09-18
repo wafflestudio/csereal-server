@@ -8,6 +8,8 @@ data class NewsSearchDto @QueryProjection constructor(
     val title: String,
     var description: String,
     val createdAt: LocalDateTime?,
+    val date: LocalDateTime?,
     var tags: List<String>?,
     var imageURL: String?,
+    val isPrivate: Boolean,
 )

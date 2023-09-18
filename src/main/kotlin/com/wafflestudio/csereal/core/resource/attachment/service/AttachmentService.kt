@@ -36,12 +36,8 @@ interface AttachmentService {
     ): List<AttachmentDto>
 
     fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse>
-//    fun updateAttachmentResponses(
-//        contentEntity: AttachmentContentEntityType,
-//        attachmentsList: List<AttachmentResponse>
-//    )
 
-    fun deleteAttachments(ids: List<Long>)
+    fun deleteAttachments(ids: List<Long>?)
     fun deleteAttachment(attachment: AttachmentEntity)
 }
 
@@ -55,13 +51,11 @@ class AttachmentServiceImpl(
     override fun uploadAttachmentInLabEntity(labEntity: LabEntity, requestAttachment: MultipartFile): AttachmentDto {
         Files.createDirectories(Paths.get(path))
 
-        val extension = FilenameUtils.getExtension(requestAttachment.originalFilename)
-
         val timeMillis = System.currentTimeMillis()
 
         val filename = "${timeMillis}_${requestAttachment.originalFilename}"
         val totalFilename = path + filename
-        val saveFile = Paths.get("$totalFilename.$extension")
+        val saveFile = Paths.get(totalFilename)
         requestAttachment.transferTo(saveFile)
 
         val attachment = AttachmentEntity(
@@ -91,13 +85,11 @@ class AttachmentServiceImpl(
         val attachmentsList = mutableListOf<AttachmentDto>()
 
         for ((index, requestAttachment) in requestAttachments.withIndex()) {
-            val extension = FilenameUtils.getExtension(requestAttachment.originalFilename)
-
             val timeMillis = System.currentTimeMillis()
 
             val filename = "${timeMillis}_${requestAttachment.originalFilename}"
             val totalFilename = path + filename
-            val saveFile = Paths.get("$totalFilename.$extension")
+            val saveFile = Paths.get(totalFilename)
             requestAttachment.transferTo(saveFile)
 
             val attachment = AttachmentEntity(
@@ -141,32 +133,15 @@ class AttachmentServiceImpl(
         return list
     }
 
-//    @Transactional
-//    override fun updateAttachmentResponses(
-//        contentEntity: AttachmentContentEntityType,
-//        attachmentsList: List<AttachmentResponse>
-//    ) {
-//        val oldAttachments = contentEntity.bringAttachments().map { it.filename }
-//
-//        val attachmentsToRemove = oldAttachments - attachmentsList.map { it.name }
-//
-//        when (contentEntity) {
-//            is SeminarEntity -> {
-//                for (attachmentFilename in attachmentsToRemove) {
-//                    val attachmentEntity = attachmentRepository.findByFilename(attachmentFilename)
-//                    attachmentEntity.isDeleted = true
-//                    attachmentEntity.seminar = null
-//                }
-//            }
-//        }
-//    }
 
     @Transactional
-    override fun deleteAttachments(ids: List<Long>) {
-        for (id in ids) {
-            val attachment = attachmentRepository.findByIdOrNull(id)
-                ?: throw CserealException.Csereal404("id:${id}인 첨부파일을 찾을 수 없습니다.")
-            attachment.isDeleted = true
+    override fun deleteAttachments(ids: List<Long>?) {
+        if (ids != null) {
+            for (id in ids) {
+                val attachment = attachmentRepository.findByIdOrNull(id)
+                    ?: throw CserealException.Csereal404("id:${id}인 첨부파일을 찾을 수 없습니다.")
+                attachment.isDeleted = true
+            }
         }
     }
 

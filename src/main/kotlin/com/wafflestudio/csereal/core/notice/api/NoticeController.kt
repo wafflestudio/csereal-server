@@ -6,6 +6,9 @@ import com.wafflestudio.csereal.core.notice.service.NoticeService
 import com.wafflestudio.csereal.core.user.database.Role
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Positive
+import org.hibernate.validator.constraints.Length
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -24,22 +27,30 @@ class NoticeController(
     fun searchNotice(
         @RequestParam(required = false) tag: List<String>?,
         @RequestParam(required = false) keyword: String?,
-        @RequestParam(required = false, defaultValue = "1") pageNum: Int,
+        @RequestParam(required = false) pageNum: Int?,
         @AuthenticationPrincipal oidcUser: OidcUser?
     ): ResponseEntity<NoticeSearchResponse> {
-        var isStaff = false
-        if (oidcUser != null) {
-            val username = oidcUser.idToken.getClaim<String>("username")
+        val isStaff = oidcUser?.let {
+            val username = it.idToken.getClaim<String>("username")
             val user = userRepository.findByUsername(username)
-            if (user?.role == Role.ROLE_STAFF) {
-                isStaff = true
-            }
-        }
+            user?.role == Role.ROLE_STAFF
+        } ?: false
+
+        val usePageBtn = pageNum != null
+        val page = pageNum ?: 1
         val pageSize = 20
-        val pageRequest = PageRequest.of(pageNum - 1, pageSize)
-        val usePageBtn = pageNum != 1
+        val pageRequest = PageRequest.of(page - 1, pageSize)
         return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, isStaff))
     }
+
+    @GetMapping("/totalSearch")
+    fun totalSearchNotice(
+            @RequestParam(required = true) @Length(min = 2) @NotBlank keyword: String,
+            @RequestParam(required = true) @Positive number: Int,
+            @RequestParam(required = false) @Positive stringLength: Int = 200,
+    ) = ResponseEntity.ok(
+            noticeService.searchTotalNotice(keyword, number, stringLength)
+    )
 
     @GetMapping("/{noticeId}")
     fun readNotice(
@@ -62,9 +73,9 @@ class NoticeController(
     fun updateNotice(
         @PathVariable noticeId: Long,
         @Valid @RequestPart("request") request: NoticeDto,
-        @RequestPart("attachments") attachments: List<MultipartFile>?,
+        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?
     ): ResponseEntity<NoticeDto> {
-        return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, attachments))
+        return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, newAttachments))
     }
 
     @AuthenticatedStaff

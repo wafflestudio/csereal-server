@@ -13,6 +13,10 @@ import jakarta.persistence.*
 class NoticeEntity(
     var isDeleted: Boolean = false,
     var title: String,
+
+    @Column(columnDefinition = "text")
+    var titleForMain: String?,
+
     @Column(columnDefinition = "mediumtext")
     var description: String,
 
@@ -43,6 +47,7 @@ class NoticeEntity(
         }
 
         this.title = updateNoticeRequest.title
+        this.titleForMain = updateNoticeRequest.titleForMain
         this.description = updateNoticeRequest.description
         this.isPrivate = updateNoticeRequest.isPrivate
         this.isPinned = updateNoticeRequest.isPinned

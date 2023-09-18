@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.news.database.*
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
+import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchDto
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.domain.Pageable
@@ -13,18 +14,26 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface NewsService {
-    fun searchNews(tag: List<String>?, keyword: String?, pageable: Pageable, usePageBtn: Boolean): NewsSearchResponse
+    fun searchNews(
+        tag: List<String>?,
+        keyword: String?,
+        pageable: Pageable,
+        usePageBtn: Boolean,
+        isStaff: Boolean
+    ): NewsSearchResponse
+
     fun readNews(newsId: Long): NewsDto
     fun createNews(request: NewsDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): NewsDto
     fun updateNews(
         newsId: Long,
         request: NewsDto,
-        mainImage: MultipartFile?,
-        attachments: List<MultipartFile>?
+        newMainImage: MultipartFile?,
+        newAttachments: List<MultipartFile>?,
     ): NewsDto
 
     fun deleteNews(newsId: Long)
     fun enrollTag(tagName: String)
+    fun searchTotalNews(keyword: String, number: Int, amount: Int): NewsTotalSearchDto
 }
 
 @Service
@@ -40,10 +49,23 @@ class NewsServiceImpl(
         tag: List<String>?,
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean
+        usePageBtn: Boolean,
+        isStaff: Boolean
     ): NewsSearchResponse {
-        return newsRepository.searchNews(tag, keyword, pageable, usePageBtn)
+        return newsRepository.searchNews(tag, keyword, pageable, usePageBtn, isStaff)
     }
+
+    @Transactional(readOnly = true)
+    override fun searchTotalNews(
+            keyword: String,
+            number: Int,
+            amount: Int,
+    ) = newsRepository.searchTotalNews(
+            keyword,
+            number,
+            amount,
+            mainImageService::createImageURL,
+    )
 
     @Transactional(readOnly = true)
     override fun readNews(newsId: Long): NewsDto {
@@ -79,6 +101,10 @@ class NewsServiceImpl(
             attachmentService.uploadAllAttachments(newNews, attachments)
         }
 
+        if (request.isImportant && request.titleForMain.isNullOrEmpty()) {
+            throw CserealException.Csereal400("중요 제목이 입력되어야 합니다")
+        }
+
         newsRepository.save(newNews)
 
         val imageURL = mainImageService.createImageURL(newNews.mainImage)
@@ -91,25 +117,24 @@ class NewsServiceImpl(
     override fun updateNews(
         newsId: Long,
         request: NewsDto,
-        mainImage: MultipartFile?,
-        attachments: List<MultipartFile>?
+        newMainImage: MultipartFile?,
+        newAttachments: List<MultipartFile>?,
     ): NewsDto {
         val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
             ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다. (newsId: $newsId)")
         if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.")
+
         news.update(request)
 
-        if (mainImage != null) {
-            mainImageService.uploadMainImage(news, mainImage)
-        } else {
-            news.mainImage = null
+        if (newMainImage != null) {
+            news.mainImage?.isDeleted = true
+            mainImageService.uploadMainImage(news, newMainImage)
         }
 
-        if (attachments != null) {
-            news.attachments.clear()
-            attachmentService.uploadAllAttachments(news, attachments)
-        } else {
-            news.attachments.clear()
+        attachmentService.deleteAttachments(request.deleteIds)
+
+        if (newAttachments != null) {
+            attachmentService.uploadAllAttachments(news, newAttachments)
         }
 
         val oldTags = news.newsTags.map { it.tag.name }

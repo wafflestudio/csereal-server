@@ -26,9 +26,16 @@ interface NoticeService {
         isStaff: Boolean
     ): NoticeSearchResponse
 
+    fun searchTotalNotice(keyword: String, number: Int, stringLength: Int): NoticeTotalSearchResponse
+
     fun readNotice(noticeId: Long): NoticeDto
     fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
-    fun updateNotice(noticeId: Long, request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
+    fun updateNotice(
+        noticeId: Long,
+        request: NoticeDto,
+        newAttachments: List<MultipartFile>?,
+    ): NoticeDto
+
     fun deleteNotice(noticeId: Long)
     fun unpinManyNotices(idList: List<Long>)
     fun deleteManyNotices(idList: List<Long>)
@@ -40,7 +47,6 @@ class NoticeServiceImpl(
     private val noticeRepository: NoticeRepository,
     private val tagInNoticeRepository: TagInNoticeRepository,
     private val noticeTagRepository: NoticeTagRepository,
-    private val userRepository: UserRepository,
     private val attachmentService: AttachmentService,
 ) : NoticeService {
 
@@ -54,6 +60,13 @@ class NoticeServiceImpl(
     ): NoticeSearchResponse {
         return noticeRepository.searchNotice(tag, keyword, pageable, usePageBtn, isStaff)
     }
+
+    @Transactional(readOnly = true)
+    override fun searchTotalNotice(
+        keyword: String,
+        number: Int,
+        stringLength: Int,
+    ) = noticeRepository.totalSearchNotice(keyword, number, stringLength)
 
     @Transactional(readOnly = true)
     override fun readNotice(noticeId: Long): NoticeDto {
@@ -72,20 +85,14 @@ class NoticeServiceImpl(
 
     @Transactional
     override fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto {
-        var user = RequestContextHolder.getRequestAttributes()?.getAttribute(
+        val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
             "loggedInUser",
             RequestAttributes.SCOPE_REQUEST
-        ) as UserEntity?
-
-        if (user == null) {
-            val oidcUser = SecurityContextHolder.getContext().authentication.principal as OidcUser
-            val username = oidcUser.idToken.getClaim<String>("username")
-
-            user = userRepository.findByUsername(username) ?: throw CserealException.Csereal404("재로그인이 필요합니다.")
-        }
+        ) as UserEntity
 
         val newNotice = NoticeEntity(
             title = request.title,
+            titleForMain = request.titleForMain,
             description = request.description,
             plainTextDescription = cleanTextFromHtml(request.description),
             isPrivate = request.isPrivate,
@@ -104,6 +111,10 @@ class NoticeServiceImpl(
             attachmentService.uploadAllAttachments(newNotice, attachments)
         }
 
+        if (request.isImportant && request.titleForMain.isNullOrEmpty()) {
+            throw CserealException.Csereal400("중요 제목이 입력되어야 합니다")
+        }
+
         noticeRepository.save(newNotice)
 
         val attachmentResponses = attachmentService.createAttachmentResponses(newNotice.attachments)
@@ -113,18 +124,21 @@ class NoticeServiceImpl(
     }
 
     @Transactional
-    override fun updateNotice(noticeId: Long, request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto {
+    override fun updateNotice(
+        noticeId: Long,
+        request: NoticeDto,
+        newAttachments: List<MultipartFile>?
+    ): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
         if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
 
         notice.update(request)
 
-        if (attachments != null) {
-            notice.attachments.clear()
-            attachmentService.uploadAllAttachments(notice, attachments)
-        } else {
-            notice.attachments.clear()
+        attachmentService.deleteAttachments(request.deleteIds)
+
+        if (newAttachments != null) {
+            attachmentService.uploadAllAttachments(notice, newAttachments)
         }
 
         val oldTags = notice.noticeTags.map { it.tag.name }
