@@ -14,7 +14,13 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface SeminarService {
-    fun searchSeminar(keyword: String?, pageable: Pageable, usePageBtn: Boolean): SeminarSearchResponse
+    fun searchSeminar(
+        keyword: String?,
+        pageable: Pageable,
+        usePageBtn: Boolean,
+        isStaff: Boolean
+    ): SeminarSearchResponse
+
     fun createSeminar(request: SeminarDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): SeminarDto
     fun readSeminar(seminarId: Long): SeminarDto
     fun updateSeminar(
@@ -22,7 +28,6 @@ interface SeminarService {
         request: SeminarDto,
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?,
-        deleteIds: List<Long>,
     ): SeminarDto
 
     fun deleteSeminar(seminarId: Long)
@@ -35,8 +40,13 @@ class SeminarServiceImpl(
     private val attachmentService: AttachmentService,
 ) : SeminarService {
     @Transactional(readOnly = true)
-    override fun searchSeminar(keyword: String?, pageable: Pageable, usePageBtn: Boolean): SeminarSearchResponse {
-        return seminarRepository.searchSeminar(keyword, pageable, usePageBtn)
+    override fun searchSeminar(
+        keyword: String?,
+        pageable: Pageable,
+        usePageBtn: Boolean,
+        isStaff: Boolean
+    ): SeminarSearchResponse {
+        return seminarRepository.searchSeminar(keyword, pageable, usePageBtn, isStaff)
     }
 
     @Transactional
@@ -84,7 +94,6 @@ class SeminarServiceImpl(
         request: SeminarDto,
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?,
-        deleteIds: List<Long>,
     ): SeminarDto {
         val seminar: SeminarEntity = seminarRepository.findByIdOrNull(seminarId)
             ?: throw CserealException.Csereal404("존재하지 않는 세미나입니다")
@@ -97,10 +106,14 @@ class SeminarServiceImpl(
             mainImageService.uploadMainImage(seminar, newMainImage)
         }
 
-        attachmentService.deleteAttachments(deleteIds)
+        attachmentService.deleteAttachments(request.deleteIds)
 
         if (newAttachments != null) {
             attachmentService.uploadAllAttachments(seminar, newAttachments)
+        }
+
+        if (request.isImportant && request.titleForMain.isNullOrEmpty()) {
+            throw CserealException.Csereal400("중요 제목이 입력되어야 합니다")
         }
 
         val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)

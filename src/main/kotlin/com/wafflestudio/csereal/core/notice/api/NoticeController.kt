@@ -6,6 +6,9 @@ import com.wafflestudio.csereal.core.notice.service.NoticeService
 import com.wafflestudio.csereal.core.user.database.Role
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Positive
+import org.hibernate.validator.constraints.Length
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -40,6 +43,15 @@ class NoticeController(
         return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, isStaff))
     }
 
+    @GetMapping("/totalSearch")
+    fun totalSearchNotice(
+            @RequestParam(required = true) @Length(min = 2) @NotBlank keyword: String,
+            @RequestParam(required = true) @Positive number: Int,
+            @RequestParam(required = false) @Positive stringLength: Int = 200,
+    ) = ResponseEntity.ok(
+            noticeService.searchTotalNotice(keyword, number, stringLength)
+    )
+
     @GetMapping("/{noticeId}")
     fun readNotice(
         @PathVariable noticeId: Long
@@ -61,10 +73,9 @@ class NoticeController(
     fun updateNotice(
         @PathVariable noticeId: Long,
         @Valid @RequestPart("request") request: NoticeDto,
-        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?,
-        @RequestPart("deleteIds") deleteIds: List<Long>,
+        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?
     ): ResponseEntity<NoticeDto> {
-        return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, newAttachments, deleteIds))
+        return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, newAttachments))
     }
 
     @AuthenticatedStaff

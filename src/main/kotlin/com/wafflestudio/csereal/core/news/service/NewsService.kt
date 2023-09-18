@@ -14,7 +14,14 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface NewsService {
-    fun searchNews(tag: List<String>?, keyword: String?, pageable: Pageable, usePageBtn: Boolean): NewsSearchResponse
+    fun searchNews(
+        tag: List<String>?,
+        keyword: String?,
+        pageable: Pageable,
+        usePageBtn: Boolean,
+        isStaff: Boolean
+    ): NewsSearchResponse
+
     fun readNews(newsId: Long): NewsDto
     fun createNews(request: NewsDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): NewsDto
     fun updateNews(
@@ -22,7 +29,6 @@ interface NewsService {
         request: NewsDto,
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?,
-        deleteIds: List<Long>,
     ): NewsDto
 
     fun deleteNews(newsId: Long)
@@ -43,9 +49,10 @@ class NewsServiceImpl(
         tag: List<String>?,
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean
+        usePageBtn: Boolean,
+        isStaff: Boolean
     ): NewsSearchResponse {
-        return newsRepository.searchNews(tag, keyword, pageable, usePageBtn)
+        return newsRepository.searchNews(tag, keyword, pageable, usePageBtn, isStaff)
     }
 
     @Transactional(readOnly = true)
@@ -94,6 +101,10 @@ class NewsServiceImpl(
             attachmentService.uploadAllAttachments(newNews, attachments)
         }
 
+        if (request.isImportant && request.titleForMain.isNullOrEmpty()) {
+            throw CserealException.Csereal400("중요 제목이 입력되어야 합니다")
+        }
+
         newsRepository.save(newNews)
 
         val imageURL = mainImageService.createImageURL(newNews.mainImage)
@@ -108,7 +119,6 @@ class NewsServiceImpl(
         request: NewsDto,
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?,
-        deleteIds: List<Long>,
     ): NewsDto {
         val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
             ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다. (newsId: $newsId)")
@@ -121,7 +131,7 @@ class NewsServiceImpl(
             mainImageService.uploadMainImage(news, newMainImage)
         }
 
-        attachmentService.deleteAttachments(deleteIds)
+        attachmentService.deleteAttachments(request.deleteIds)
 
         if (newAttachments != null) {
             attachmentService.uploadAllAttachments(news, newAttachments)

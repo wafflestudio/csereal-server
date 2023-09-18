@@ -19,6 +19,7 @@ interface ProfessorService {
     fun getInactiveProfessors(): List<SimpleProfessorDto>
     fun updateProfessor(professorId: Long, updateProfessorRequest: ProfessorDto, mainImage: MultipartFile?): ProfessorDto
     fun deleteProfessor(professorId: Long)
+    fun migrateProfessors(requestList: List<ProfessorDto>): List<ProfessorDto>
 }
 
 @Service
@@ -160,6 +161,39 @@ class ProfessorServiceImpl(
 
     override fun deleteProfessor(professorId: Long) {
         professorRepository.deleteById(professorId)
+    }
+
+    @Transactional
+    override fun migrateProfessors(requestList: List<ProfessorDto>): List<ProfessorDto> {
+        val list = mutableListOf<ProfessorDto>()
+
+        for (request in requestList) {
+            val professor = ProfessorEntity.of(request)
+            if (request.labName != null) {
+                val lab = labRepository.findByName(request.labName)
+                    ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다. LabName: ${request.labName}")
+                professor.addLab(lab)
+            }
+
+            for (education in request.educations) {
+                EducationEntity.create(education, professor)
+            }
+
+            for (researchArea in request.researchAreas) {
+                ResearchAreaEntity.create(researchArea, professor)
+            }
+
+            for (career in request.careers) {
+                CareerEntity.create(career, professor)
+            }
+
+            professor.memberSearch = MemberSearchEntity.create(professor)
+
+            professorRepository.save(professor)
+
+            list.add(ProfessorDto.of(professor, null))
+        }
+        return list
     }
 
 }

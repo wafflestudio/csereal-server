@@ -3,6 +3,9 @@ package com.wafflestudio.csereal.core.about.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.about.database.*
 import com.wafflestudio.csereal.core.about.dto.*
+import com.wafflestudio.csereal.core.about.dto.FutureCareersPage
+import com.wafflestudio.csereal.core.about.dto.AboutRequest
+import com.wafflestudio.csereal.core.about.dto.FutureCareersRequest
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.stereotype.Service
@@ -10,12 +13,23 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface AboutService {
-    fun createAbout(postType: String, request: AboutDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): AboutDto
+    fun createAbout(
+        postType: String,
+        request: AboutDto,
+        mainImage: MultipartFile?,
+        attachments: List<MultipartFile>?
+    ): AboutDto
+
     fun readAbout(postType: String): AboutDto
-    fun readAllClubs() : List<AboutDto>
-    fun readAllFacilities() : List<AboutDto>
+    fun readAllClubs(): List<AboutDto>
+    fun readAllFacilities(): List<AboutDto>
     fun readAllDirections(): List<AboutDto>
     fun readFutureCareers(): FutureCareersPage
+    fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto>
+    fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage
+    fun migrateStudentClubs(requestList: List<StudentClubDto>): List<StudentClubDto>
+    fun migrateFacilities(requestList: List<FacilityDto>): List<FacilityDto>
+    fun migrateDirections(requestList: List<DirectionDto>): List<DirectionDto>
 
 }
 
@@ -28,21 +42,26 @@ class AboutServiceImpl(
     private val attachmentService: AttachmentService,
 ) : AboutService {
     @Transactional
-    override fun createAbout(postType: String, request: AboutDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): AboutDto {
+    override fun createAbout(
+        postType: String,
+        request: AboutDto,
+        mainImage: MultipartFile?,
+        attachments: List<MultipartFile>?
+    ): AboutDto {
         val enumPostType = makeStringToEnum(postType)
         val newAbout = AboutEntity.of(enumPostType, request)
 
-        if(request.locations != null) {
+        if (request.locations != null) {
             for (location in request.locations) {
                 LocationEntity.create(location, newAbout)
             }
         }
 
-        if(mainImage != null) {
+        if (mainImage != null) {
             mainImageService.uploadMainImage(newAbout, mainImage)
         }
 
-        if(attachments != null) {
+        if (attachments != null) {
             attachmentService.uploadAllAttachments(newAbout, attachments)
         }
         aboutRepository.save(newAbout)
@@ -110,55 +129,211 @@ class AboutServiceImpl(
                 "대학원에 진학하면 여러 전공분야 중 하나를 선택하여 보다 깊이 있는 지식의 습득과 연구과정을 거치게 되며 " +
                 "그 이후로는 국내외 관련 산업계, 학계에 주로 진출하고 있고, 새로운 아이디어로 벤처기업을 창업하기도 한다."
 
-        val statList = mutableListOf<StatDto>()
-        for(i: Int in 2021 downTo 2011) {
+        val statList = mutableListOf<FutureCareersStatDto>()
+        for (i: Int in 2021 downTo 2011) {
             val bachelor = statRepository.findAllByYearAndDegree(i, Degree.BACHELOR).map {
-                CompanyNameAndCountDto(
-                    id = it.id,
-                    name = it.name,
-                    count = it.count
-                )
+                FutureCareersStatDegreeDto.of(it)
             }
             val master = statRepository.findAllByYearAndDegree(i, Degree.MASTER).map {
-                CompanyNameAndCountDto(
-                    id = it.id,
-                    name = it.name,
-                    count = it.count,
-                )
+                FutureCareersStatDegreeDto.of(it)
             }
             val doctor = statRepository.findAllByYearAndDegree(i, Degree.DOCTOR).map {
-                CompanyNameAndCountDto(
-                    id = it.id,
-                    name = it.name,
-                    count = it.count,
-                )
+                FutureCareersStatDegreeDto.of(it)
             }
             statList.add(
-                StatDto(
-                    year = i,
-                    bachelor = bachelor,
-                    master = master,
-                    doctor = doctor,
-                )
+                FutureCareersStatDto(i, bachelor, master, doctor)
             )
         }
         val companyList = companyRepository.findAllByOrderByYearDesc().map {
-            CompanyDto(
-                name = it.name,
-                url = it.url,
-                year = it.year
-            )
+            FutureCareersCompanyDto.of(it)
         }
         return FutureCareersPage(description, statList, companyList)
     }
 
-    private fun makeStringToEnum(postType: String) : AboutPostType {
+    @Transactional
+    override fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto> {
+        val list = mutableListOf<AboutDto>()
+
+        for (request in requestList) {
+            val enumPostType = makeStringToEnum(request.postType)
+
+            val aboutDto = AboutDto(
+                id = null,
+                name = null,
+                engName = null,
+                description = request.description,
+                year = null,
+                createdAt = null,
+                modifiedAt = null,
+                locations = null,
+                imageURL = null,
+                attachments = listOf()
+            )
+            val newAbout = AboutEntity.of(enumPostType, aboutDto)
+
+            aboutRepository.save(newAbout)
+
+            list.add(AboutDto.of(newAbout, null, listOf()))
+
+        }
+        return list
+    }
+
+    @Transactional
+    override fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage {
+        val description = request.description
+        val statList = mutableListOf<FutureCareersStatDto>()
+        val companyList = mutableListOf<FutureCareersCompanyDto>()
+
+        val aboutDto = AboutDto(
+            id = null,
+            name = null,
+            engName = null,
+            description = description,
+            year = null,
+            createdAt = null,
+            modifiedAt = null,
+            locations = null,
+            imageURL = null,
+            attachments = listOf()
+        )
+        val newAbout = AboutEntity.of(AboutPostType.FUTURE_CAREERS, aboutDto)
+        aboutRepository.save(newAbout)
+
+        for (stat in request.stat) {
+            val year = stat.year
+            val bachelorList = mutableListOf<FutureCareersStatDegreeDto>()
+            val masterList = mutableListOf<FutureCareersStatDegreeDto>()
+            val doctorList = mutableListOf<FutureCareersStatDegreeDto>()
+
+            for (bachelor in stat.bachelor) {
+                val newBachelor = StatEntity.of(year, Degree.BACHELOR, bachelor)
+                statRepository.save(newBachelor)
+
+                bachelorList.add(bachelor)
+            }
+            for (master in stat.master) {
+                val newMaster = StatEntity.of(year, Degree.MASTER, master)
+                statRepository.save(newMaster)
+
+                masterList.add(master)
+            }
+            for (doctor in stat.doctor) {
+                val newDoctor = StatEntity.of(year, Degree.DOCTOR, doctor)
+                statRepository.save(newDoctor)
+
+                doctorList.add(doctor)
+            }
+        }
+
+        for (company in request.companies) {
+            val newCompany = CompanyEntity.of(company)
+            companyRepository.save(newCompany)
+
+            companyList.add(company)
+        }
+
+        return FutureCareersPage(description, statList.toList(), companyList.toList())
+    }
+
+    @Transactional
+    override fun migrateStudentClubs(requestList: List<StudentClubDto>): List<StudentClubDto> {
+        val list = mutableListOf<StudentClubDto>()
+
+        for (request in requestList) {
+
+            val aboutDto = AboutDto(
+                id = null,
+                name = request.name,
+                engName = request.engName,
+                description = request.description,
+                year = null,
+                createdAt = null,
+                modifiedAt = null,
+                locations = null,
+                imageURL = null,
+                attachments = listOf()
+            )
+            val newAbout = AboutEntity.of(AboutPostType.STUDENT_CLUBS, aboutDto)
+
+            aboutRepository.save(newAbout)
+
+            list.add(StudentClubDto.of(newAbout))
+
+        }
+        return list
+    }
+
+    @Transactional
+    override fun migrateFacilities(requestList: List<FacilityDto>): List<FacilityDto> {
+        val list = mutableListOf<FacilityDto>()
+
+        for (request in requestList) {
+
+            val aboutDto = AboutDto(
+                id = null,
+                name = request.name,
+                engName = null,
+                description = request.description,
+                year = null,
+                createdAt = null,
+                modifiedAt = null,
+                locations = null,
+                imageURL = null,
+                attachments = listOf()
+            )
+
+            val newAbout = AboutEntity.of(AboutPostType.FACILITIES, aboutDto)
+
+            for (location in request.locations) {
+                LocationEntity.create(location, newAbout)
+            }
+
+            aboutRepository.save(newAbout)
+
+            list.add(FacilityDto.of(newAbout))
+
+        }
+        return list
+    }
+
+    @Transactional
+    override fun migrateDirections(requestList: List<DirectionDto>): List<DirectionDto> {
+        val list = mutableListOf<DirectionDto>()
+
+        for (request in requestList) {
+
+            val aboutDto = AboutDto(
+                id = null,
+                name = request.name,
+                engName = request.engName,
+                description = request.description,
+                year = null,
+                createdAt = null,
+                modifiedAt = null,
+                locations = null,
+                imageURL = null,
+                attachments = listOf()
+            )
+
+            val newAbout = AboutEntity.of(AboutPostType.DIRECTIONS, aboutDto)
+
+            aboutRepository.save(newAbout)
+
+            list.add(DirectionDto.of(newAbout))
+
+        }
+        return list
+    }
+
+    private fun makeStringToEnum(postType: String): AboutPostType {
         try {
-            val upperPostType = postType.replace("-","_").uppercase()
+            val upperPostType = postType.replace("-", "_").uppercase()
             return AboutPostType.valueOf(upperPostType)
 
         } catch (e: IllegalArgumentException) {
             throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
         }
     }
+
 }

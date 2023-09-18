@@ -26,13 +26,14 @@ interface NoticeService {
         isStaff: Boolean
     ): NoticeSearchResponse
 
+    fun searchTotalNotice(keyword: String, number: Int, stringLength: Int): NoticeTotalSearchResponse
+
     fun readNotice(noticeId: Long): NoticeDto
     fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
     fun updateNotice(
         noticeId: Long,
         request: NoticeDto,
         newAttachments: List<MultipartFile>?,
-        deleteIds: List<Long>
     ): NoticeDto
 
     fun deleteNotice(noticeId: Long)
@@ -46,7 +47,6 @@ class NoticeServiceImpl(
     private val noticeRepository: NoticeRepository,
     private val tagInNoticeRepository: TagInNoticeRepository,
     private val noticeTagRepository: NoticeTagRepository,
-    private val userRepository: UserRepository,
     private val attachmentService: AttachmentService,
 ) : NoticeService {
 
@@ -60,6 +60,13 @@ class NoticeServiceImpl(
     ): NoticeSearchResponse {
         return noticeRepository.searchNotice(tag, keyword, pageable, usePageBtn, isStaff)
     }
+
+    @Transactional(readOnly = true)
+    override fun searchTotalNotice(
+        keyword: String,
+        number: Int,
+        stringLength: Int,
+    ) = noticeRepository.totalSearchNotice(keyword, number, stringLength)
 
     @Transactional(readOnly = true)
     override fun readNotice(noticeId: Long): NoticeDto {
@@ -85,6 +92,7 @@ class NoticeServiceImpl(
 
         val newNotice = NoticeEntity(
             title = request.title,
+            titleForMain = request.titleForMain,
             description = request.description,
             plainTextDescription = cleanTextFromHtml(request.description),
             isPrivate = request.isPrivate,
@@ -103,6 +111,10 @@ class NoticeServiceImpl(
             attachmentService.uploadAllAttachments(newNotice, attachments)
         }
 
+        if (request.isImportant && request.titleForMain.isNullOrEmpty()) {
+            throw CserealException.Csereal400("중요 제목이 입력되어야 합니다")
+        }
+
         noticeRepository.save(newNotice)
 
         val attachmentResponses = attachmentService.createAttachmentResponses(newNotice.attachments)
@@ -115,8 +127,7 @@ class NoticeServiceImpl(
     override fun updateNotice(
         noticeId: Long,
         request: NoticeDto,
-        newAttachments: List<MultipartFile>?,
-        deleteIds: List<Long>
+        newAttachments: List<MultipartFile>?
     ): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
@@ -124,7 +135,7 @@ class NoticeServiceImpl(
 
         notice.update(request)
 
-        attachmentService.deleteAttachments(deleteIds)
+        attachmentService.deleteAttachments(request.deleteIds)
 
         if (newAttachments != null) {
             attachmentService.uploadAllAttachments(notice, newAttachments)

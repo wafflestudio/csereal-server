@@ -19,6 +19,7 @@ interface StaffService {
     fun getAllStaff(): List<SimpleStaffDto>
     fun updateStaff(staffId: Long, updateStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto
     fun deleteStaff(staffId: Long)
+    fun migrateStaff(requestList: List<StaffDto>): List<StaffDto>
 }
 
 @Service
@@ -99,6 +100,25 @@ class StaffServiceImpl(
 
     override fun deleteStaff(staffId: Long) {
         staffRepository.deleteById(staffId)
+    }
+
+    @Transactional
+    override fun migrateStaff(requestList: List<StaffDto>): List<StaffDto> {
+        val list = mutableListOf<StaffDto>()
+
+        for (request in requestList) {
+            val staff = StaffEntity.of(request)
+
+            for (task in request.tasks) {
+                TaskEntity.create(task, staff)
+            }
+
+            staffRepository.save(staff)
+
+            list.add(StaffDto.of(staff, null))
+        }
+
+        return list
     }
 
 

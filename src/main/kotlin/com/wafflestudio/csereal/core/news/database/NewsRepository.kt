@@ -15,6 +15,7 @@ import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchDto
 import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchElement
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.QMainImageEntity.mainImageEntity
+import com.wafflestudio.csereal.core.notice.database.QNoticeEntity
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
@@ -47,10 +48,12 @@ class NewsRepositoryImpl(
         tag: List<String>?,
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean
+        usePageBtn: Boolean,
+        isStaff: Boolean
     ): NewsSearchResponse {
         val keywordBooleanBuilder = BooleanBuilder()
         val tagsBooleanBuilder = BooleanBuilder()
+        val isPrivateBooleanBuilder = BooleanBuilder()
 
         if (!keyword.isNullOrEmpty()) {
             val booleanTemplate = commonRepository.searchFullDoubleTextTemplate(
@@ -69,10 +72,16 @@ class NewsRepositoryImpl(
             }
         }
 
+        if (!isStaff) {
+            isPrivateBooleanBuilder.or(
+                newsEntity.isPrivate.eq(false)
+            )
+        }
+
         val jpaQuery = queryFactory.selectFrom(newsEntity)
             .leftJoin(newsTagEntity).on(newsTagEntity.news.eq(newsEntity))
             .where(newsEntity.isDeleted.eq(false))
-            .where(keywordBooleanBuilder).where(tagsBooleanBuilder)
+            .where(keywordBooleanBuilder, tagsBooleanBuilder, isPrivateBooleanBuilder)
 
         val total: Long
         var pageRequest = pageable
@@ -101,7 +110,8 @@ class NewsRepositoryImpl(
                 createdAt = it.createdAt,
                 date = it.date,
                 tags = it.newsTags.map { newsTagEntity -> newsTagEntity.tag.name.krName },
-                imageURL = imageURL
+                imageURL = imageURL,
+                isPrivate = it.isPrivate
             )
         }
         return NewsSearchResponse(total, newsSearchDtoList)

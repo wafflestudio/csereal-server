@@ -30,6 +30,7 @@ class SeminarServiceTest(
             val seminarDTO = SeminarDto(
                 id = -1,
                 title = "title",
+                titleForMain = null,
                 description = """
                         <h1>Hello, World!</h1>
                         <p>This is seminar description.</p>
@@ -86,6 +87,7 @@ class SeminarServiceTest(
             val originalSeminar = seminarRepository.save(
                 SeminarEntity(
                     title = "title",
+                    titleForMain = null,
                     description = """
                                 <h1>Hello, World!</h1>
                                 <p>This is seminar description.</p>
@@ -148,7 +150,6 @@ class SeminarServiceTest(
                     modifiedSeminarDTO,
                     null,
                     null,
-                    emptyList()
                 )
 
                 Then("같은 Entity가 수정되어야 한다.") {
