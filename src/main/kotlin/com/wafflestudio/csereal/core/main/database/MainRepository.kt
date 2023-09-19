@@ -93,7 +93,7 @@ class MainRepositoryImpl(
                 MainImportantResponse(
                     id = it.id,
                     title = it.titleForMain ?: it.title,
-                    description = it.description,
+                    description = it.plainTextDescription,
                     createdAt = it.createdAt,
                     category = "notice"
                 )
@@ -105,7 +105,7 @@ class MainRepositoryImpl(
                 MainImportantResponse(
                     id = it.id,
                     title = it.titleForMain ?: it.title,
-                    description = it.description,
+                    description = it.plainTextDescription,
                     createdAt = it.createdAt,
                     category = "news"
                 )
@@ -117,7 +117,7 @@ class MainRepositoryImpl(
                 MainImportantResponse(
                     id = it.id,
                     title = it.titleForMain ?: it.title,
-                    description = it.description,
+                    description = it.plainTextDescription,
                     createdAt = it.createdAt,
                     category = "seminar"
                 )
@@ -125,6 +125,6 @@ class MainRepositoryImpl(
         }
         mainImportantResponses.sortByDescending { it.createdAt }
 
-        return mainImportantResponses
+        return mainImportantResponses.take(2)
     }
 }
