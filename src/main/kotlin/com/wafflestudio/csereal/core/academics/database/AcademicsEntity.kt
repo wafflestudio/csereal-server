@@ -20,21 +20,24 @@ class AcademicsEntity(
     var time: String?,
 
     @OneToMany(mappedBy = "academics", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+    var attachments: MutableList<AttachmentEntity> = mutableListOf()
 
-
-    ): BaseTimeEntity(), AttachmentContentEntityType {
+) : BaseTimeEntity(), AttachmentContentEntityType {
     override fun bringAttachments() = attachments
 
     companion object {
-        fun of(studentType: AcademicsStudentType, postType: AcademicsPostType, academicsDto: AcademicsDto): AcademicsEntity {
+        fun of(
+            studentType: AcademicsStudentType,
+            postType: AcademicsPostType,
+            academicsDto: AcademicsDto
+        ): AcademicsEntity {
             return AcademicsEntity(
                 studentType = studentType,
                 postType = postType,
                 name = academicsDto.name,
                 description = academicsDto.description,
                 year = academicsDto.year,
-                time = academicsDto.time,
+                time = academicsDto.time
             )
         }
     }

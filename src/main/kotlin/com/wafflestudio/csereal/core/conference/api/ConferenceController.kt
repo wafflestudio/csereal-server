@@ -21,12 +21,12 @@ class ConferenceController(
     @AuthenticatedStaff
     @PatchMapping("/page/conferences")
     fun modifyConferencePage(
-            @RequestBody conferenceModifyRequest: ConferenceModifyRequest
+        @RequestBody conferenceModifyRequest: ConferenceModifyRequest
     ): ResponseEntity<ConferencePage> {
         return ResponseEntity.ok(
-                conferenceService.modifyConferences(
-                        conferenceModifyRequest
-                )
+            conferenceService.modifyConferences(
+                conferenceModifyRequest
+            )
         )
     }
 }

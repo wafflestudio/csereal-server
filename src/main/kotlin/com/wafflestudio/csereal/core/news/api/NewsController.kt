@@ -46,11 +46,14 @@ class NewsController(
 
     @GetMapping("/totalSearch")
     fun searchTotalNews(
-            @RequestParam(required = true) @Length(min = 1) @NotBlank keyword: String,
-            @RequestParam(required = true) @Positive number: Int,
-            @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int,
+        @RequestParam(required = true)
+        @Length(min = 1)
+        @NotBlank
+        keyword: String,
+        @RequestParam(required = true) @Positive number: Int,
+        @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int
     ) = ResponseEntity.ok(
-            newsService.searchTotalNews(keyword, number, stringLength)
+        newsService.searchTotalNews(keyword, number, stringLength)
     )
 
     @GetMapping("/{newsId}")
@@ -63,7 +66,9 @@ class NewsController(
     @AuthenticatedStaff
     @PostMapping
     fun createNews(
-        @Valid @RequestPart("request") request: NewsDto,
+        @Valid
+        @RequestPart("request")
+        request: NewsDto,
         @RequestPart("mainImage") mainImage: MultipartFile?,
         @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<NewsDto> {
@@ -74,9 +79,11 @@ class NewsController(
     @PatchMapping("/{newsId}")
     fun updateNews(
         @PathVariable newsId: Long,
-        @Valid @RequestPart("request") request: NewsDto,
+        @Valid
+        @RequestPart("request")
+        request: NewsDto,
         @RequestPart("newMainImage") newMainImage: MultipartFile?,
-        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?,
+        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?
     ): ResponseEntity<NewsDto> {
         return ResponseEntity.ok(newsService.updateNews(newsId, request, newMainImage, newAttachments))
     }
@@ -97,6 +104,4 @@ class NewsController(
         newsService.enrollTag(tagName["name"]!!)
         return ResponseEntity<String>("등록되었습니다. (tagName: ${tagName["name"]})", HttpStatus.OK)
     }
-
-
 }

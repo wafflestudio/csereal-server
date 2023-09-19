@@ -15,7 +15,7 @@ import java.time.LocalDateTime
 @Transactional
 class SeminarServiceTest(
     private val seminarService: SeminarService,
-    private val seminarRepository: SeminarRepository,
+    private val seminarRepository: SeminarRepository
 ) : BehaviorSpec() {
     init {
 
@@ -35,12 +35,12 @@ class SeminarServiceTest(
                         <h1>Hello, World!</h1>
                         <p>This is seminar description.</p>
                         <h3>Goodbye, World!</h3>
-                        """.trimIndent(),
+                """.trimIndent(),
                 introduction = """
                         <h1>Hello, World!</h1>
                         <p>This is seminar introduction.</p>
                         <h3>Goodbye, World!</h3>
-                        """.trimIndent(),
+                """.trimIndent(),
                 name = "name",
                 speakerURL = "speakerURL",
                 speakerTitle = "speakerTitle",
@@ -54,7 +54,7 @@ class SeminarServiceTest(
                             <h1>Hello, World!</h1>
                             <p>This is seminar additionalNote.</p>
                             <h3>Goodbye, World!</h3>
-                        """.trimIndent(),
+                """.trimIndent(),
                 createdAt = null,
                 modifiedAt = null,
                 isPrivate = false,
@@ -76,9 +76,15 @@ class SeminarServiceTest(
 
                 Then("plain text 값들이 잘 생성되어야 한다.") {
                     val seminarEntity = seminarRepository.findByIdOrNull(resultSeminarDTO.id)!!
-                    seminarEntity.plainTextDescription shouldBe "Hello, World! This is seminar description. Goodbye, World!"
-                    seminarEntity.plainTextIntroduction shouldBe "Hello, World! This is seminar introduction. Goodbye, World!"
-                    seminarEntity.plainTextAdditionalNote shouldBe "Hello, World! This is seminar additionalNote. Goodbye, World!"
+                    seminarEntity.plainTextDescription shouldBe (
+                        "Hello, World! This is seminar description. Goodbye, World!"
+                        )
+                    seminarEntity.plainTextIntroduction shouldBe (
+                        "Hello, World! This is seminar introduction. Goodbye, World!"
+                        )
+                    seminarEntity.plainTextAdditionalNote shouldBe (
+                        "Hello, World! This is seminar additionalNote. Goodbye, World!"
+                        )
                 }
             }
         }
@@ -92,13 +98,13 @@ class SeminarServiceTest(
                                 <h1>Hello, World!</h1>
                                 <p>This is seminar description.</p>
                                 <h3>Goodbye, World!</h3>
-                                """.trimIndent(),
+                    """.trimIndent(),
                     plainTextDescription = "Hello, World! This is seminar description. Goodbye, World!",
                     introduction = """
                                 <h1>Hello, World!</h1>
                                 <p>This is seminar introduction.</p>
                                 <h3>Goodbye, World!</h3>
-                                """.trimIndent(),
+                    """.trimIndent(),
                     plainTextIntroduction = "Hello, World! This is seminar introduction. Goodbye, World!",
                     name = "name",
                     speakerURL = "speakerURL",
@@ -113,43 +119,46 @@ class SeminarServiceTest(
                                     <h1>Hello, World!</h1>
                                     <p>This is seminar additionalNote.</p>
                                     <h3>Goodbye, World!</h3>
-                                """.trimIndent(),
+                    """.trimIndent(),
                     plainTextAdditionalNote = "Hello, World! This is seminar additionalNote. Goodbye, World!",
                     isPrivate = false,
-                    isImportant = false,
+                    isImportant = false
                 )
             )
             val originalId = originalSeminar.id
 
             When("수정된 DTO를 이용하여 수정하면") {
                 val modifiedSeminarDTO = SeminarDto.of(
-                    originalSeminar, null, emptyList(), null
+                    originalSeminar,
+                    null,
+                    emptyList(),
+                    null
                 ).copy(
                     description = """
                                 <h1>Hello, World!</h1>
                                 <p>This is modified seminar description.</p>
                                 <h3>Goodbye, World!</h3>
                                 <p>And this is a new line.</p>
-                            """.trimIndent(),
+                    """.trimIndent(),
                     introduction = """
                                 <h1>Hello, World!</h1>
                                 <p>This is modified seminar introduction.</p>
                                 <h3>Goodbye, World!</h3>
                                 <p>And this is a new line.</p>
-                            """.trimIndent(),
+                    """.trimIndent(),
                     additionalNote = """
                                 <h1>Hello, World!</h1>
                                 <p>This is modified seminar additionalNote.</p>
                                 <h3>Goodbye, World!</h3>
                                 <p>And this is a new line.</p>
-                            """.trimIndent(),
+                    """.trimIndent()
                 )
 
                 val modifiedSeminarDto = seminarService.updateSeminar(
                     originalSeminar.id,
                     modifiedSeminarDTO,
                     null,
-                    null,
+                    null
                 )
 
                 Then("같은 Entity가 수정되어야 한다.") {
@@ -160,9 +169,15 @@ class SeminarServiceTest(
 
                 Then("plain text 값들이 잘 수정되어야 한다.") {
                     val modifiedSeminarEntity = seminarRepository.findByIdOrNull(modifiedSeminarDto.id)!!
-                    modifiedSeminarEntity.plainTextDescription shouldBe "Hello, World! This is modified seminar description. Goodbye, World! And this is a new line."
-                    modifiedSeminarEntity.plainTextIntroduction shouldBe "Hello, World! This is modified seminar introduction. Goodbye, World! And this is a new line."
-                    modifiedSeminarEntity.plainTextAdditionalNote shouldBe "Hello, World! This is modified seminar additionalNote. Goodbye, World! And this is a new line."
+                    modifiedSeminarEntity.plainTextDescription shouldBe (
+                        "Hello, World! This is modified seminar description. Goodbye, World! And this is a new line."
+                        )
+                    modifiedSeminarEntity.plainTextIntroduction shouldBe (
+                        "Hello, World! This is modified seminar introduction. Goodbye, World! And this is a new line."
+                        )
+                    modifiedSeminarEntity.plainTextAdditionalNote shouldBe (
+                        "Hello, World! This is modified seminar additionalNote. Goodbye, World! And this is a new line."
+                        )
                 }
             }
         }

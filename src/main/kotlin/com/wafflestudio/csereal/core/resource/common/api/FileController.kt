@@ -17,7 +17,6 @@ import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Paths
 
-
 @RequestMapping("/api/v1/file")
 @RestController
 class FileController(
@@ -70,7 +69,7 @@ class FileController(
                 val saveFile = Paths.get(totalFilename)
                 file.transferTo(saveFile)
 
-                val imageUrl = "${endpointProperties.backend}/v1/file/${filename}"
+                val imageUrl = "${endpointProperties.backend}/v1/file/$filename"
 
                 results.add(
                     UploadFileInfo(
@@ -105,5 +104,4 @@ class FileController(
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("파일을 찾을 수 없습니다.")
         }
     }
-
 }

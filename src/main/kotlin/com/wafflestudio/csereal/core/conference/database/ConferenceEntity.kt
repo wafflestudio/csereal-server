@@ -8,27 +8,27 @@ import jakarta.persistence.*
 
 @Entity(name = "conference")
 class ConferenceEntity(
-        var isDeleted: Boolean = false,
-        var code: String,
-        var abbreviation: String,
-        var name: String,
+    var isDeleted: Boolean = false,
+    var code: String,
+    var abbreviation: String,
+    var name: String,
 
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "conference_page_id")
-        val conferencePage: ConferencePageEntity,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conference_page_id")
+    val conferencePage: ConferencePageEntity,
 
-        @OneToOne(mappedBy = "conferenceElement", cascade = [CascadeType.ALL], orphanRemoval = true)
-        var researchSearch: ResearchSearchEntity? = null,
+    @OneToOne(mappedBy = "conferenceElement", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var researchSearch: ResearchSearchEntity? = null
 ) : BaseTimeEntity() {
     companion object {
         fun of(
-                conferenceCreateDto: ConferenceCreateDto,
-                conferencePage: ConferencePageEntity,
+            conferenceCreateDto: ConferenceCreateDto,
+            conferencePage: ConferencePageEntity
         ) = ConferenceEntity(
-                code = conferenceCreateDto.code,
-                abbreviation = conferenceCreateDto.abbreviation,
-                name = conferenceCreateDto.name,
-                conferencePage = conferencePage,
+            code = conferenceCreateDto.code,
+            abbreviation = conferenceCreateDto.abbreviation,
+            name = conferenceCreateDto.name,
+            conferencePage = conferencePage
         )
     }
 

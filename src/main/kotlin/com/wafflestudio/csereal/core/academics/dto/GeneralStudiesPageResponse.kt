@@ -4,7 +4,7 @@ import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
 
 class GeneralStudiesPageResponse(
     val subjectChanges: List<SubjectChangesDto>,
-    val description: String,
+    val description: String
 ) {
     companion object {
         fun of(entity: AcademicsEntity, subjectChangesEntity: List<AcademicsEntity>) = entity.run {

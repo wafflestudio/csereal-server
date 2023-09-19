@@ -11,16 +11,14 @@ import org.springframework.util.AntPathMatcher
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import java.net.URLEncoder
 import java.nio.file.Paths
 
 @RestController
 @RequestMapping("/sites/default/files")
 class DeprecatedFileController(
     @Value("\${oldFiles.path}")
-    private val oldFilesPath: String,
+    private val oldFilesPath: String
 ) {
     @GetMapping("/{map}/**")
     fun serveOldFile(
@@ -55,5 +53,4 @@ class DeprecatedFileController(
             ResponseEntity.status(HttpStatus.NOT_FOUND).build()
         }
     }
-
 }

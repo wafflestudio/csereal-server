@@ -14,5 +14,4 @@ class WebConfig : WebMvcConfigurer {
             .allowedHeaders("*")
             .maxAge(3000)
     }
-
 }

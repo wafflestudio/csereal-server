@@ -28,8 +28,8 @@ class ResearchEntity(
     var attachments: MutableList<AttachmentEntity> = mutableListOf(),
 
     @OneToOne(mappedBy = "research", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var researchSearch: ResearchSearchEntity? = null,
-    ) : BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
+    var researchSearch: ResearchSearchEntity? = null
+) : BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
     override fun bringMainImage() = mainImage
     override fun bringAttachments() = attachments
 
@@ -38,7 +38,7 @@ class ResearchEntity(
             return ResearchEntity(
                 postType = researchDto.postType,
                 name = researchDto.name,
-                description = researchDto.description,
+                description = researchDto.description
             )
         }
     }
@@ -48,5 +48,4 @@ class ResearchEntity(
         this.name = researchDto.name
         this.description = researchDto.description
     }
-
 }

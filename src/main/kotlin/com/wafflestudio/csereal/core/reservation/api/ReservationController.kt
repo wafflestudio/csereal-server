@@ -23,8 +23,8 @@ class ReservationController(
     private val reservationService: ReservationService
 ) {
 
+    //    @AuthenticatedForReservation  TODO: CBT 끝나면 주석 제거
     @GetMapping("/month")
-//    @AuthenticatedForReservation  TODO: CBT 끝나면 주석 제거
     fun getMonthlyReservations(
         @RequestParam roomId: Long,
         @RequestParam year: Int,
@@ -35,21 +35,21 @@ class ReservationController(
         return ResponseEntity.ok(reservationService.getRoomReservationsBetween(roomId, start, end))
     }
 
+    //    @AuthenticatedForReservation
     @GetMapping("/week")
-//    @AuthenticatedForReservation
     fun getWeeklyReservations(
         @RequestParam roomId: Long,
         @RequestParam year: Int,
         @RequestParam month: Int,
-        @RequestParam day: Int,
+        @RequestParam day: Int
     ): ResponseEntity<List<SimpleReservationDto>> {
         val start = LocalDateTime.of(year, month, day, 0, 0)
         val end = start.plusDays(7)
         return ResponseEntity.ok(reservationService.getRoomReservationsBetween(roomId, start, end))
     }
 
+    //    @AuthenticatedForReservation
     @GetMapping("/{reservationId}")
-//    @AuthenticatedForReservation
     fun getReservation(@PathVariable reservationId: Long): ResponseEntity<ReservationDto> {
         return ResponseEntity.ok(reservationService.getReservation(reservationId))
     }
@@ -73,5 +73,4 @@ class ReservationController(
     fun cancelRecurring(@PathVariable recurrenceId: UUID): ResponseEntity<Any> {
         return ResponseEntity.ok(reservationService.cancelRecurring(recurrenceId))
     }
-
 }

@@ -24,9 +24,11 @@ class AboutController(
     @PostMapping("/{postType}")
     fun createAbout(
         @PathVariable postType: String,
-        @Valid @RequestPart("request") request: AboutDto,
+        @Valid
+        @RequestPart("request")
+        request: AboutDto,
         @RequestPart("mainImage") mainImage: MultipartFile?,
-        @RequestPart("attachments") attachments: List<MultipartFile>?,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<AboutDto> {
         return ResponseEntity.ok(aboutService.createAbout(postType, request, mainImage, attachments))
     }
@@ -34,7 +36,7 @@ class AboutController(
     // read 목록이 하나
     @GetMapping("/{postType}")
     fun readAbout(
-        @PathVariable postType: String,
+        @PathVariable postType: String
     ): ResponseEntity<AboutDto> {
         return ResponseEntity.ok(aboutService.readAbout(postType))
     }

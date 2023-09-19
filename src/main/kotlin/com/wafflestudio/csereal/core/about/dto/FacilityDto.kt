@@ -8,7 +8,7 @@ data class FacilityDto(
     val id: Long? = null,
     val name: String,
     val description: String,
-    val locations: List<String>,
+    val locations: List<String>
 ) {
     companion object {
         fun of(entity: AboutEntity): FacilityDto = entity.run {

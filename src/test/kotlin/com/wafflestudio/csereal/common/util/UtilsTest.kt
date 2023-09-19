@@ -5,7 +5,7 @@ import com.wafflestudio.csereal.common.utils.substringAroundKeyword
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 
-class UtilsTest: BehaviorSpec({
+class UtilsTest : BehaviorSpec({
     Given("cleanTextFromHtml") {
 
         When("description is html") {

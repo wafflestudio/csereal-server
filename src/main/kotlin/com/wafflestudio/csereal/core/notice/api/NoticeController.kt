@@ -45,11 +45,14 @@ class NoticeController(
 
     @GetMapping("/totalSearch")
     fun totalSearchNotice(
-            @RequestParam(required = true) @Length(min = 2) @NotBlank keyword: String,
-            @RequestParam(required = true) @Positive number: Int,
-            @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int,
+        @RequestParam(required = true)
+        @Length(min = 2)
+        @NotBlank
+        keyword: String,
+        @RequestParam(required = true) @Positive number: Int,
+        @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int
     ) = ResponseEntity.ok(
-            noticeService.searchTotalNotice(keyword, number, stringLength)
+        noticeService.searchTotalNotice(keyword, number, stringLength)
     )
 
     @GetMapping("/{noticeId}")
@@ -62,7 +65,9 @@ class NoticeController(
     @AuthenticatedStaff
     @PostMapping
     fun createNotice(
-        @Valid @RequestPart("request") request: NoticeDto,
+        @Valid
+        @RequestPart("request")
+        request: NoticeDto,
         @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<NoticeDto> {
         return ResponseEntity.ok(noticeService.createNotice(request, attachments))
@@ -72,7 +77,9 @@ class NoticeController(
     @PatchMapping("/{noticeId}")
     fun updateNotice(
         @PathVariable noticeId: Long,
-        @Valid @RequestPart("request") request: NoticeDto,
+        @Valid
+        @RequestPart("request")
+        request: NoticeDto,
         @RequestPart("newAttachments") newAttachments: List<MultipartFile>?
     ): ResponseEntity<NoticeDto> {
         return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, newAttachments))

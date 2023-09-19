@@ -49,7 +49,7 @@ data class NewsDto(
                 nextId = nextNews?.id,
                 nextTitle = nextNews?.title,
                 imageURL = imageURL,
-                attachments = attachmentResponses,
+                attachments = attachmentResponses
             )
         }
     }

@@ -19,7 +19,7 @@ class ProfessorController(
     @PostMapping
     fun createProfessor(
         @RequestPart("request") createProfessorRequest: ProfessorDto,
-        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("mainImage") mainImage: MultipartFile?
     ): ResponseEntity<ProfessorDto> {
         return ResponseEntity.ok(professorService.createProfessor(createProfessorRequest, mainImage))
     }
@@ -44,7 +44,7 @@ class ProfessorController(
     fun updateProfessor(
         @PathVariable professorId: Long,
         @RequestPart("request") updateProfessorRequest: ProfessorDto,
-        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("mainImage") mainImage: MultipartFile?
     ): ResponseEntity<ProfessorDto> {
         return ResponseEntity.ok(professorService.updateProfessor(professorId, updateProfessorRequest, mainImage))
     }

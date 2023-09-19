@@ -11,5 +11,4 @@ class RestTemplateConfig {
     fun restTemplate(): RestTemplate {
         return RestTemplate()
     }
-
 }

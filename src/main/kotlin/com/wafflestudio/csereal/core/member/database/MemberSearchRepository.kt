@@ -9,9 +9,8 @@ import com.wafflestudio.csereal.core.member.database.QStaffEntity.staffEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
-interface MemberSearchRepository
-    : JpaRepository<MemberSearchEntity, Long>, MemberSearchRepositoryCustom {
-}
+interface MemberSearchRepository :
+    JpaRepository<MemberSearchEntity, Long>, MemberSearchRepositoryCustom
 
 interface MemberSearchRepositoryCustom {
     fun searchTopMember(keyword: String, number: Int): List<MemberSearchEntity>
@@ -19,15 +18,15 @@ interface MemberSearchRepositoryCustom {
 }
 
 @Repository
-class MemberSearchRepositoryCustomImpl (
-        private val queryFactory: JPAQueryFactory,
-        private val commonRepository: CommonRepository,
-): MemberSearchRepositoryCustom {
+class MemberSearchRepositoryCustomImpl(
+    private val queryFactory: JPAQueryFactory,
+    private val commonRepository: CommonRepository
+) : MemberSearchRepositoryCustom {
 
     override fun searchTopMember(keyword: String, number: Int): List<MemberSearchEntity> {
         return searchQuery(keyword)
-                .limit(number.toLong())
-                .fetch()
+            .limit(number.toLong())
+            .fetch()
     }
 
     override fun searchMember(keyword: String, pageSize: Int, pageNum: Int): Pair<List<MemberSearchEntity>, Long> {
@@ -36,47 +35,49 @@ class MemberSearchRepositoryCustomImpl (
 
         val validPageNum = exchangePageNum(pageSize, pageNum, total)
         val queryResult = query
-                .offset((validPageNum-1) * pageSize.toLong())
-                .limit(pageSize.toLong())
-                .fetch()
+            .offset((validPageNum - 1) * pageSize.toLong())
+            .limit(pageSize.toLong())
+            .fetch()
 
         return queryResult to total
     }
 
     fun searchQuery(keyword: String): JPAQuery<MemberSearchEntity> {
         val searchDoubleTemplate = commonRepository.searchFullSingleTextTemplate(
-                keyword,
-                memberSearchEntity.content
-            )
+            keyword,
+            memberSearchEntity.content
+        )
 
         return queryFactory.select(
-                memberSearchEntity
+            memberSearchEntity
         ).from(
-                memberSearchEntity
+            memberSearchEntity
         ).leftJoin(
-                memberSearchEntity.professor, professorEntity
+            memberSearchEntity.professor,
+            professorEntity
         ).fetchJoin()
-                .leftJoin(
-                        memberSearchEntity.staff, staffEntity
-                ).fetchJoin()
-                .where(
-                        searchDoubleTemplate.gt(0.0)
-                )
+            .leftJoin(
+                memberSearchEntity.staff,
+                staffEntity
+            ).fetchJoin()
+            .where(
+                searchDoubleTemplate.gt(0.0)
+            )
     }
 
     fun getSearchCount(keyword: String): Long {
         val searchDoubleTemplate = commonRepository.searchFullSingleTextTemplate(
-                keyword,
-                memberSearchEntity.content
+            keyword,
+            memberSearchEntity.content
         )
 
         return queryFactory.select(
-                memberSearchEntity
-                    .countDistinct()
+            memberSearchEntity
+                .countDistinct()
         ).from(
-                memberSearchEntity
+            memberSearchEntity
         ).where(
-                    searchDoubleTemplate.gt(0.0)
+            searchDoubleTemplate.gt(0.0)
         ).fetchOne()!!
     }
 

@@ -53,7 +53,7 @@ class NewsEntity(
                 date = newsDto.date,
                 isPrivate = newsDto.isPrivate,
                 isSlide = newsDto.isSlide,
-                isImportant = newsDto.isImportant,
+                isImportant = newsDto.isImportant
             )
         }
     }

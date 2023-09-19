@@ -4,7 +4,6 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
-import com.wafflestudio.csereal.core.academics.database.CourseEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
@@ -28,7 +27,7 @@ import kotlin.io.path.name
 interface MainImageService {
     fun uploadMainImage(
         contentEntityType: MainImageContentEntityType,
-        requestImage: MultipartFile,
+        requestImage: MultipartFile
     ): MainImageDto
 
     fun createImageURL(image: MainImageEntity?): String?
@@ -45,7 +44,7 @@ class MainImageServiceImpl(
     @Transactional
     override fun uploadMainImage(
         contentEntityType: MainImageContentEntityType,
-        requestImage: MultipartFile,
+        requestImage: MultipartFile
     ): MainImageDto {
         Files.createDirectories(Paths.get(path))
 
@@ -64,12 +63,12 @@ class MainImageServiceImpl(
 
         val totalThumbnailFilename = "${path}thumbnail_$filename"
         val thumbnailFile = Paths.get(totalThumbnailFilename)
-        Thumbnailator.createThumbnail(saveFile.toFile(), thumbnailFile.toFile(), 100, 100);
+        Thumbnailator.createThumbnail(saveFile.toFile(), thumbnailFile.toFile(), 100, 100)
 
         val mainImage = MainImageEntity(
             filename = filename,
             imagesOrder = 1,
-            size = requestImage.size,
+            size = requestImage.size
         )
 
         val thumbnail = MainImageEntity(
@@ -93,7 +92,9 @@ class MainImageServiceImpl(
     override fun createImageURL(mainImage: MainImageEntity?): String? {
         return if (mainImage != null) {
             "${endpointProperties.backend}/v1/file/${mainImage.filename}"
-        } else null
+        } else {
+            null
+        }
     }
 
     private fun connectMainImageToEntity(contentEntity: MainImageContentEntityType, mainImage: MainImageEntity) {
@@ -127,5 +128,4 @@ class MainImageServiceImpl(
             }
         }
     }
-
 }
