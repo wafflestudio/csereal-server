@@ -14,7 +14,8 @@ import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 interface SeminarRepository : JpaRepository<SeminarEntity, Long>, CustomSeminarRepository {
-    fun findAllByIsImportant(isImportant: Boolean): List<SeminarEntity>
+    fun findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse(): List<SeminarEntity>
+    fun findAllByIsImportantTrueAndIsDeletedFalse(): List<SeminarEntity>
     fun findFirstByCreatedAtLessThanAndIsPrivateFalseOrderByCreatedAtDesc(timestamp: LocalDateTime): SeminarEntity?
     fun findFirstByCreatedAtGreaterThanAndIsPrivateFalseOrderByCreatedAtAsc(timestamp: LocalDateTime): SeminarEntity?
 }
