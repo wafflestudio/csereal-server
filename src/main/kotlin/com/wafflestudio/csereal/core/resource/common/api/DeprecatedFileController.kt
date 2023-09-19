@@ -42,6 +42,11 @@ class DeprecatedFileController(
             headers.contentType =
                 org.springframework.http.MediaType.parseMediaType(contentType ?: "application/octet-stream")
 
+            val originalFilename = fileSubDir.substringAfterLast("/")
+            val encodedFilename = URLEncoder.encode(originalFilename, Charsets.UTF_8.toString()).replace("+", "%20")
+
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''$encodedFilename")
+
             ResponseEntity.ok()
                 .headers(headers)
                 .body(resource)

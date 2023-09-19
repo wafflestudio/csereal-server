@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -39,6 +40,11 @@ class FileController(
 
             headers.contentType =
                 org.springframework.http.MediaType.parseMediaType(contentType ?: "application/octet-stream")
+
+            val originalFilename = filename.substringAfter("_")
+            val encodedFilename = URLEncoder.encode(originalFilename, Charsets.UTF_8.toString()).replace("+", "%20")
+
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''$encodedFilename")
 
             return ResponseEntity.ok()
                 .headers(headers)
