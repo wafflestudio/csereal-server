@@ -2,7 +2,6 @@ package com.wafflestudio.csereal.core.seminar.dto
 
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class SeminarDto(
@@ -67,10 +66,8 @@ data class SeminarDto(
                 nextId = nextSeminar?.id,
                 nextTitle = nextSeminar?.title,
                 imageURL = imageURL,
-                attachments = attachmentResponses,
+                attachments = attachmentResponses
             )
         }
-
     }
-
 }

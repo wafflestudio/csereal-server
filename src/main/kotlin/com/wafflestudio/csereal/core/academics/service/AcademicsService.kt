@@ -32,13 +32,18 @@ class AcademicsServiceImpl(
     private val scholarshipRepository: ScholarshipRepository
 ) : AcademicsService {
     @Transactional
-    override fun createAcademics(studentType: String, postType: String, request: AcademicsDto, attachments: List<MultipartFile>?): AcademicsDto {
+    override fun createAcademics(
+        studentType: String,
+        postType: String,
+        request: AcademicsDto,
+        attachments: List<MultipartFile>?
+    ): AcademicsDto {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val enumPostType = makeStringToAcademicsPostType(postType)
 
         val newAcademics = AcademicsEntity.of(enumStudentType, enumPostType, request)
 
-        if(attachments != null) {
+        if (attachments != null) {
             attachmentService.uploadAllAttachments(newAcademics, attachments)
         }
 
@@ -46,13 +51,11 @@ class AcademicsServiceImpl(
 
         val attachmentResponses = attachmentService.createAttachmentResponses(newAcademics.attachments)
 
-
         return AcademicsDto.of(newAcademics, attachmentResponses)
     }
 
     @Transactional(readOnly = true)
     override fun readGuide(studentType: String): GuidePageResponse {
-
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
 
         val academicsEntity = academicsRepository.findByStudentTypeAndPostType(enumStudentType, AcademicsPostType.GUIDE)
@@ -65,7 +68,10 @@ class AcademicsServiceImpl(
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val enumPostType = makeStringToAcademicsPostType(postType)
 
-        val academicsEntityList = academicsRepository.findAllByStudentTypeAndPostTypeOrderByYearDesc(enumStudentType, enumPostType)
+        val academicsEntityList = academicsRepository.findAllByStudentTypeAndPostTypeOrderByYearDesc(
+            enumStudentType,
+            enumPostType
+        )
 
         val academicsYearResponses = academicsEntityList.map {
             val attachments = attachmentService.createAttachmentResponses(it.attachments)
@@ -76,7 +82,10 @@ class AcademicsServiceImpl(
     }
 
     override fun readGeneralStudies(): GeneralStudiesPageResponse {
-        val academicsEntity = academicsRepository.findByStudentTypeAndPostType(AcademicsStudentType.UNDERGRADUATE, AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS)
+        val academicsEntity = academicsRepository.findByStudentTypeAndPostType(
+            AcademicsStudentType.UNDERGRADUATE,
+            AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS
+        )
         val subjectChangesList = academicsRepository.findAllByStudentTypeAndPostTypeOrderByTimeDesc(
             AcademicsStudentType.UNDERGRADUATE,
             AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS_SUBJECT_CHANGES
@@ -90,7 +99,7 @@ class AcademicsServiceImpl(
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val newCourse = CourseEntity.of(enumStudentType, request)
 
-        if(attachments != null) {
+        if (attachments != null) {
             attachmentService.uploadAllAttachments(newCourse, attachments)
         }
 
@@ -134,7 +143,10 @@ class AcademicsServiceImpl(
     override fun readAllScholarship(studentType: String): ScholarshipPageResponse {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
 
-        val academicsEntity = academicsRepository.findByStudentTypeAndPostType(enumStudentType, AcademicsPostType.SCHOLARSHIP)
+        val academicsEntity = academicsRepository.findByStudentTypeAndPostType(
+            enumStudentType,
+            AcademicsPostType.SCHOLARSHIP
+        )
         val scholarshipEntityList = scholarshipRepository.findAllByStudentType(enumStudentType)
 
         return ScholarshipPageResponse.of(academicsEntity, scholarshipEntityList)
@@ -151,7 +163,6 @@ class AcademicsServiceImpl(
         try {
             val upperPostType = postType.replace("-", "_").uppercase()
             return AcademicsStudentType.valueOf(upperPostType)
-
         } catch (e: IllegalArgumentException) {
             throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
         }
@@ -161,7 +172,6 @@ class AcademicsServiceImpl(
         try {
             val upperPostType = postType.replace("-", "_").uppercase()
             return AcademicsPostType.valueOf(upperPostType)
-
         } catch (e: IllegalArgumentException) {
             throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
         }

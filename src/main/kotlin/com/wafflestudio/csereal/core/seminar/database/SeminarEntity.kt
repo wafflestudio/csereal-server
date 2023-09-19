@@ -59,9 +59,9 @@ class SeminarEntity(
     var mainImage: MainImageEntity? = null,
 
     @OneToMany(mappedBy = "seminar", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+    var attachments: MutableList<AttachmentEntity> = mutableListOf()
 
-    ) : BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
+) : BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
     override fun bringMainImage(): MainImageEntity? = mainImage
     override fun bringAttachments() = attachments
 
@@ -90,7 +90,7 @@ class SeminarEntity(
                 isPrivate = seminarDto.isPrivate,
                 isImportant = seminarDto.isImportant,
                 additionalNote = seminarDto.additionalNote,
-                plainTextAdditionalNote = plainTextAdditionalNote,
+                plainTextAdditionalNote = plainTextAdditionalNote
             )
         }
     }

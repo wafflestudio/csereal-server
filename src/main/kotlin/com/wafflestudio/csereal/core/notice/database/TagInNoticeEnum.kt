@@ -15,9 +15,4 @@ enum class TagInNoticeEnum(val krName: String) {
             return lookupMap[t] ?: throw CserealException.Csereal404("태그를 찾을 수 없습니다: $t")
         }
     }
-
-
 }
-
-
-

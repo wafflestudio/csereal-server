@@ -16,5 +16,4 @@ class JwtConfig {
         idTokenDecoderFactory.setJwsAlgorithmResolver { SignatureAlgorithm.ES256 }
         return idTokenDecoderFactory
     }
-
 }

@@ -55,7 +55,9 @@ class CustomOidcUserService(
 
         val userInfoResponse = restTemplate.exchange<Map<String, Any>>(
             userRequest.clientRegistration.providerDetails.userInfoEndpoint.uri,
-            HttpMethod.POST, requestEntity, Map::class.java
+            HttpMethod.POST,
+            requestEntity,
+            Map::class.java
         )
 
         if (userInfoResponse.body?.get("sub") != userRequest.idToken.getClaim("sub")) {
@@ -67,7 +69,6 @@ class CustomOidcUserService(
 
     @Transactional
     fun createUser(username: String, userInfo: Map<String, Any>) {
-
         val name = userInfo["name"] as String
         val email = userInfo["email"] as String
         val studentId = userInfo["student_id"] as String

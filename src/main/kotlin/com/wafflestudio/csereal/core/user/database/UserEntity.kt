@@ -14,9 +14,9 @@ class UserEntity(
     val studentId: String,
 
     @Enumerated(EnumType.STRING)
-    val role: Role?,
+    val role: Role?
 
-    ) : BaseTimeEntity()
+) : BaseTimeEntity()
 
 enum class Role {
     ROLE_STAFF, ROLE_GRADUATE, ROLE_PROFESSOR

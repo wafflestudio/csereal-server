@@ -8,14 +8,14 @@ import jakarta.persistence.Entity
 class CompanyEntity(
     var name: String,
     var url: String?,
-    var year: Int?,
+    var year: Int?
 ) : BaseTimeEntity() {
     companion object {
         fun of(companyDto: FutureCareersCompanyDto): CompanyEntity {
             return CompanyEntity(
                 name = companyDto.name,
                 url = companyDto.url,
-                year = companyDto.year,
+                year = companyDto.year
             )
         }
     }

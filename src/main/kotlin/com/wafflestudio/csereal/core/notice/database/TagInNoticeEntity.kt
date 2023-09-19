@@ -13,5 +13,4 @@ class TagInNoticeEntity(
 
     @OneToMany(mappedBy = "tag")
     val noticeTags: MutableSet<NoticeTagEntity> = mutableSetOf()
-) : BaseTimeEntity() {
-}
+) : BaseTimeEntity()

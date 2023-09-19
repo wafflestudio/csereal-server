@@ -6,6 +6,5 @@ class ImportantResponse(
     val id: Long,
     val title: String,
     val createdAt: LocalDateTime?,
-    val category: String,
-) {
-}
+    val category: String
+)

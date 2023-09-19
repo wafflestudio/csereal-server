@@ -17,5 +17,4 @@ class RecruitController(
     fun getRecruitPage(): ResponseEntity<RecruitPage> {
         return ResponseEntity.ok(recruitService.getRecruitPage())
     }
-
 }

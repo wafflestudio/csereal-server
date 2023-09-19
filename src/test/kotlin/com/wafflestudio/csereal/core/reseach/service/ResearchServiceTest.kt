@@ -20,13 +20,13 @@ import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
 @Transactional
-class ResearchServiceTest (
-        private val researchService: ResearchService,
-        private val professorRepository: ProfessorRepository,
-        private val labRepository: LabRepository,
-        private val researchRepository: ResearchRepository,
-        private val researchSearchRepository: ResearchSearchRepository,
-): BehaviorSpec({
+class ResearchServiceTest(
+    private val researchService: ResearchService,
+    private val professorRepository: ProfessorRepository,
+    private val labRepository: LabRepository,
+    private val researchRepository: ResearchRepository,
+    private val researchSearchRepository: ResearchSearchRepository
+) : BehaviorSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
 
     beforeSpec {
@@ -42,23 +42,23 @@ class ResearchServiceTest (
     // Research
     Given("간단한 Research를 생성하려고 할 때") {
         val researchDto = ResearchDto(
-                id = -1,
-                name = "name",
-                postType = ResearchPostType.CENTERS,
-                description = "description",
-                createdAt = null,
-                modifiedAt = null,
-                labs = null,
-                imageURL = null,
-                attachments = null,
+            id = -1,
+            name = "name",
+            postType = ResearchPostType.CENTERS,
+            description = "description",
+            createdAt = null,
+            modifiedAt = null,
+            labs = null,
+            imageURL = null,
+            attachments = null
         )
 
         When("Research를 생성한다면") {
             val createdResearchDto = researchService.createResearchDetail(
-                    researchDto,
-                    null,
-                    null,
-                )
+                researchDto,
+                null,
+                null
+            )
 
             Then("Research가 생성되어야 한다") {
                 val research = researchRepository.findByIdOrNull(createdResearchDto.id)
@@ -79,53 +79,53 @@ class ResearchServiceTest (
                 researchSearch shouldNotBe null
 
                 researchSearch!!.content shouldBe
-                        """
+                    """
                             name
                             연구 센터
                             description
                             
-                        """.trimIndent()
+                    """.trimIndent()
             }
         }
     }
 
     Given("간단한 Research를 수정하려고 할 때") {
         val researchDto = ResearchDto(
-                id = -1,
-                name = "name",
-                postType = ResearchPostType.CENTERS,
-                description = "description",
-                createdAt = null,
-                modifiedAt = null,
-                labs = null,
-                imageURL = null,
-                attachments = null,
+            id = -1,
+            name = "name",
+            postType = ResearchPostType.CENTERS,
+            description = "description",
+            createdAt = null,
+            modifiedAt = null,
+            labs = null,
+            imageURL = null,
+            attachments = null
         )
 
         val createdResearchDto = researchService.createResearchDetail(
-                researchDto,
-                null,
-                null,
+            researchDto,
+            null,
+            null
         )
 
         When("Research를 수정한다면") {
             val researchUpdateRequest = ResearchDto(
-                    id = createdResearchDto.id,
-                    name = "name2",
-                    postType = ResearchPostType.GROUPS,
-                    description = "description2",
-                    createdAt = null,
-                    modifiedAt = null,
-                    labs = null,
-                    imageURL = null,
-                    attachments = null,
+                id = createdResearchDto.id,
+                name = "name2",
+                postType = ResearchPostType.GROUPS,
+                description = "description2",
+                createdAt = null,
+                modifiedAt = null,
+                labs = null,
+                imageURL = null,
+                attachments = null
             )
 
             researchService.updateResearchDetail(
-                    createdResearchDto.id,
-                    researchUpdateRequest,
-                    null,
-                    null,
+                createdResearchDto.id,
+                researchUpdateRequest,
+                null,
+                null
             )
 
             Then("Research가 수정되어야 한다") {
@@ -141,73 +141,72 @@ class ResearchServiceTest (
                 researchSearch shouldNotBe null
 
                 researchSearch!!.content shouldBe
-                        """
+                    """
                             name2
                             연구 그룹
                             description2
                             
-                        """.trimIndent()
+                    """.trimIndent()
             }
         }
     }
-
 
     // Lab
     Given("pdf 없는 Lab을 생성하려고 할 때") {
         // Save professors
         val professor1 = professorRepository.save(
-                ProfessorEntity(
-                    name = "professor1",
-                    status = ProfessorStatus.ACTIVE,
-                    academicRank = "professor",
-                    email = null,
-                    fax = null,
-                    office = null,
-                    phone = null,
-                    website = null,
-                    startDate = null,
-                    endDate = null,
+            ProfessorEntity(
+                name = "professor1",
+                status = ProfessorStatus.ACTIVE,
+                academicRank = "professor",
+                email = null,
+                fax = null,
+                office = null,
+                phone = null,
+                website = null,
+                startDate = null,
+                endDate = null
             )
         )
         val professor2 = professorRepository.save(
-                ProfessorEntity(
-                    name = "professor2",
-                    status = ProfessorStatus.ACTIVE,
-                    academicRank = "professor",
-                    email = null,
-                    fax = null,
-                    office = null,
-                    phone = null,
-                    website = null,
-                    startDate = null,
-                    endDate = null,
+            ProfessorEntity(
+                name = "professor2",
+                status = ProfessorStatus.ACTIVE,
+                academicRank = "professor",
+                email = null,
+                fax = null,
+                office = null,
+                phone = null,
+                website = null,
+                startDate = null,
+                endDate = null
             )
         )
 
         // Save research
         val research = researchRepository.save(
-                ResearchEntity(
-                        name = "research",
-                        postType = ResearchPostType.GROUPS,
-                        description = null,
-                )
+            ResearchEntity(
+                name = "research",
+                postType = ResearchPostType.GROUPS,
+                description = null
+            )
         )
 
         val labDto = LabDto(
-                id = -1,
-                name = "name",
-                professors = listOf(
-                        LabProfessorResponse(professor1.id, professor1.name),
-                        LabProfessorResponse(professor2.id, professor2.name),
-                ),
-                acronym = "acronym",
-                description = "description",
-                group = "research",
-                pdf = null,
-                location = "location",
-                tel = "tel",
-                websiteURL = "websiteURL",
-                youtube = "youtube",
+            id = -1,
+            name = "name",
+            professors = listOf(
+                LabProfessorResponse(professor1.id, professor1.name),
+                LabProfessorResponse(professor2.id, professor2.name)
+            ),
+            acronym = "acronym",
+            description = "description",
+            group = "research",
+            pdf = null,
+            location = "location",
+            tel = "tel",
+            websiteURL = "websiteURL",
+            youtube = "youtube"
         )
 
         When("Lab을 생성한다면") {
@@ -238,7 +237,7 @@ class ResearchServiceTest (
                 researchSearch shouldNotBe null
 
                 researchSearch!!.content shouldBe
-                        """
+                    """
                             name
                             professor1
                             professor2
@@ -250,7 +249,7 @@ class ResearchServiceTest (
                             description
                             websiteURL
                             
-                        """.trimIndent()
+                    """.trimIndent()
             }
         }
     }
@@ -258,59 +257,59 @@ class ResearchServiceTest (
     Given("간단한 Lab을 수정할 경우") {
         // Save professors
         val professor1 = professorRepository.save(
-                ProfessorEntity(
-                        name = "professor1",
-                        status = ProfessorStatus.ACTIVE,
-                        academicRank = "professor",
-                        email = null,
-                        fax = null,
-                        office = null,
-                        phone = null,
-                        website = null,
-                        startDate = null,
-                        endDate = null,
-                )
+            ProfessorEntity(
+                name = "professor1",
+                status = ProfessorStatus.ACTIVE,
+                academicRank = "professor",
+                email = null,
+                fax = null,
+                office = null,
+                phone = null,
+                website = null,
+                startDate = null,
+                endDate = null
+            )
         )
         val professor2 = professorRepository.save(
-                ProfessorEntity(
-                        name = "professor2",
-                        status = ProfessorStatus.ACTIVE,
-                        academicRank = "professor",
-                        email = null,
-                        fax = null,
-                        office = null,
-                        phone = null,
-                        website = null,
-                        startDate = null,
-                        endDate = null,
-                )
+            ProfessorEntity(
+                name = "professor2",
+                status = ProfessorStatus.ACTIVE,
+                academicRank = "professor",
+                email = null,
+                fax = null,
+                office = null,
+                phone = null,
+                website = null,
+                startDate = null,
+                endDate = null
+            )
         )
 
         // Save research
         val research = researchRepository.save(
-                ResearchEntity(
-                        name = "research",
-                        postType = ResearchPostType.GROUPS,
-                        description = null,
-                )
+            ResearchEntity(
+                name = "research",
+                postType = ResearchPostType.GROUPS,
+                description = null
+            )
         )
 
         // Save lab
         val labDto = LabDto(
-                id = -1,
-                name = "name",
-                professors = listOf(
-                        LabProfessorResponse(professor1.id, professor1.name),
-                        LabProfessorResponse(professor2.id, professor2.name),
-                ),
-                acronym = "acronym",
-                description = "description",
-                group = "research",
-                pdf = null,
-                location = "location",
-                tel = "tel",
-                websiteURL = "websiteURL",
-                youtube = "youtube",
+            id = -1,
+            name = "name",
+            professors = listOf(
+                LabProfessorResponse(professor1.id, professor1.name),
+                LabProfessorResponse(professor2.id, professor2.name)
+            ),
+            acronym = "acronym",
+            description = "description",
+            group = "research",
+            pdf = null,
+            location = "location",
+            tel = "tel",
+            websiteURL = "websiteURL",
+            youtube = "youtube"
         )
 
         val createdLabDto = researchService.createLab(labDto, null)
@@ -318,30 +317,30 @@ class ResearchServiceTest (
 
         When("pdf를 제외하고 Lab을 수정한다면") {
             val professor3 = professorRepository.save(
-                    ProfessorEntity(
-                            name = "professor3",
-                            status = ProfessorStatus.ACTIVE,
-                            academicRank = "professor",
-                            email = null,
-                            fax = null,
-                            office = null,
-                            phone = null,
-                            website = null,
-                            startDate = null,
-                            endDate = null,
-                    )
+                ProfessorEntity(
+                    name = "professor3",
+                    status = ProfessorStatus.ACTIVE,
+                    academicRank = "professor",
+                    email = null,
+                    fax = null,
+                    office = null,
+                    phone = null,
+                    website = null,
+                    startDate = null,
+                    endDate = null
+                )
             )
 
             val labUpdateRequest = LabUpdateRequest(
-                    name = "name2",
-                    professorIds = listOf(professor1.id, professor3.id),
-                    acronym = "acronym2",
-                    description = "description2",
-                    location = "location2",
-                    tel = "tel2",
-                    websiteURL = "websiteURL2",
-                    youtube = "youtube2",
-                    pdfModified = false,
+                name = "name2",
+                professorIds = listOf(professor1.id, professor3.id),
+                acronym = "acronym2",
+                description = "description2",
+                location = "location2",
+                tel = "tel2",
+                websiteURL = "websiteURL2",
+                youtube = "youtube2",
+                pdfModified = false
             )
 
             researchService.updateLab(createdLab.id, labUpdateRequest, null)
@@ -365,7 +364,7 @@ class ResearchServiceTest (
                 researchSearch shouldNotBe null
 
                 researchSearch!!.content shouldBe
-                        """
+                    """
                             name2
                             professor1
                             professor3
@@ -377,7 +376,7 @@ class ResearchServiceTest (
                             description2
                             websiteURL2
                             
-                        """.trimIndent()
+                    """.trimIndent()
             }
         }
     }

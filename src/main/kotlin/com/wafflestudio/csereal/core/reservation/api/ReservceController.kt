@@ -41,7 +41,7 @@ class ReservationController(
         @RequestParam roomId: Long,
         @RequestParam year: Int,
         @RequestParam month: Int,
-        @RequestParam day: Int,
+        @RequestParam day: Int
     ): ResponseEntity<List<SimpleReservationDto>> {
         val start = LocalDateTime.of(year, month, day, 0, 0)
         val end = start.plusDays(7)
@@ -73,5 +73,4 @@ class ReservationController(
     fun cancelRecurring(@PathVariable recurrenceId: UUID): ResponseEntity<Any> {
         return ResponseEntity.ok(reservationService.cancelRecurring(recurrenceId))
     }
-
 }

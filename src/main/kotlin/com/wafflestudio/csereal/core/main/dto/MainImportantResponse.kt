@@ -7,6 +7,5 @@ data class MainImportantResponse(
     val title: String,
     val description: String,
     val createdAt: LocalDateTime?,
-    val category: String,
-) {
-}
+    val category: String
+)

@@ -14,9 +14,9 @@ class NewsTagEntity(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tag_id")
-    var tag: TagInNewsEntity,
+    var tag: TagInNewsEntity
 
-    ) : BaseTimeEntity() {
+) : BaseTimeEntity() {
 
     companion object {
         fun createNewsTag(news: NewsEntity, tag: TagInNewsEntity) {

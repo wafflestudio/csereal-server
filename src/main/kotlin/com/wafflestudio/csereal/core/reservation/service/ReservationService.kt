@@ -102,5 +102,4 @@ class ReservationServiceImpl(
     override fun cancelRecurring(recurrenceId: UUID) {
         reservationRepository.deleteAllByRecurrenceId(recurrenceId)
     }
-
 }

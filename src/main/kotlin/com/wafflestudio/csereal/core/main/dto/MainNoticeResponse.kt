@@ -6,5 +6,4 @@ data class MainNoticeResponse(
     val id: Long,
     val title: String,
     val createdAt: LocalDateTime?
-) {
-}
+)

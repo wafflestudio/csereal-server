@@ -14,7 +14,7 @@ data class ResearchDto(
     val modifiedAt: LocalDateTime?,
     val labs: List<ResearchLabResponse>?,
     val imageURL: String?,
-    val attachments: List<AttachmentResponse>?,
+    val attachments: List<AttachmentResponse>?
 ) {
     companion object {
         fun of(entity: ResearchEntity, imageURL: String?, attachmentResponse: List<AttachmentResponse>) = entity.run {

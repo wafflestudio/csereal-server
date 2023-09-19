@@ -13,7 +13,7 @@ data class LabDto(
     val youtube: String?,
     val group: String,
     val description: String?,
-    val websiteURL: String?,
+    val websiteURL: String?
 ) {
     companion object {
         fun of(entity: LabEntity, pdfURL: String): LabDto = entity.run {
@@ -28,7 +28,7 @@ data class LabDto(
                 youtube = this.youtube,
                 group = this.research.name,
                 description = this.description,
-                websiteURL = this.websiteURL,
+                websiteURL = this.websiteURL
             )
         }
     }

@@ -4,6 +4,5 @@ data class AttachmentResponse(
     val id: Long,
     val name: String,
     val url: String,
-    val bytes: Long,
-) {
-}
+    val bytes: Long
+)

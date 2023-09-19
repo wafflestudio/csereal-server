@@ -8,6 +8,4 @@ data class MainSlideResponse @QueryProjection constructor(
     val title: String,
     val imageURL: String?,
     val createdAt: LocalDateTime?
-) {
-
-}
+)

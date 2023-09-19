@@ -1,7 +1,6 @@
 package com.wafflestudio.csereal.core.research.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.research.dto.LabDto
 import com.wafflestudio.csereal.core.research.dto.LabUpdateRequest
@@ -33,11 +32,11 @@ class LabEntity(
     var websiteURL: String?,
 
     @OneToOne(mappedBy = "lab", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var researchSearch: ResearchSearchEntity? = null,
+    var researchSearch: ResearchSearchEntity? = null
 
 ) : BaseTimeEntity() {
     companion object {
-        fun of(labDto: LabDto, researchGroup: ResearchEntity) : LabEntity {
+        fun of(labDto: LabDto, researchGroup: ResearchEntity): LabEntity {
             return LabEntity(
                 name = labDto.name,
                 location = labDto.location,
@@ -46,7 +45,7 @@ class LabEntity(
                 youtube = labDto.youtube,
                 research = researchGroup,
                 description = labDto.description,
-                websiteURL = labDto.websiteURL,
+                websiteURL = labDto.websiteURL
             )
         }
     }

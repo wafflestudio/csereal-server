@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.about.dto
 
-
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
@@ -17,10 +16,10 @@ data class AboutDto(
     val modifiedAt: LocalDateTime?,
     val locations: List<String>?,
     val imageURL: String?,
-    val attachments: List<AttachmentResponse>?,
+    val attachments: List<AttachmentResponse>?
 ) {
     companion object {
-        fun of(entity: AboutEntity, imageURL: String?, attachmentResponses: List<AttachmentResponse>) : AboutDto = entity.run {
+        fun of(entity: AboutEntity, imageURL: String?, attachmentResponses: List<AttachmentResponse>): AboutDto = entity.run {
             AboutDto(
                 id = this.id,
                 name = this.name,
@@ -31,7 +30,7 @@ data class AboutDto(
                 modifiedAt = this.modifiedAt,
                 locations = this.locations.map { it.name },
                 imageURL = imageURL,
-                attachments = attachmentResponses,
+                attachments = attachmentResponses
             )
         }
     }

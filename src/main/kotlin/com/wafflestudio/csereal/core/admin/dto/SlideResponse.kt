@@ -5,6 +5,5 @@ import java.time.LocalDateTime
 class SlideResponse(
     val id: Long,
     val title: String,
-    val createdAt: LocalDateTime?,
-) {
-}
+    val createdAt: LocalDateTime?
+)

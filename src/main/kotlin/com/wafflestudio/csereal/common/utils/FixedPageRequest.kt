@@ -20,5 +20,4 @@ class FixedPageRequest(pageable: Pageable, total: Long) :
             return floor(total.toDouble() / pageSize).toInt()
         }
     }
-
 }

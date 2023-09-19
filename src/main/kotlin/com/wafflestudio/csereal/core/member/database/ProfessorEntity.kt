@@ -35,7 +35,6 @@ class ProfessorEntity(
     val educations: MutableList<EducationEntity> = mutableListOf(),
 
     @OneToMany(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
-
     val researchAreas: MutableList<ResearchAreaEntity> = mutableListOf(),
 
     @OneToMany(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
@@ -45,7 +44,7 @@ class ProfessorEntity(
     var mainImage: MainImageEntity? = null,
 
     @OneToOne(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var memberSearch: MemberSearchEntity? = null,
+    var memberSearch: MemberSearchEntity? = null
 ) : BaseTimeEntity(), MainImageContentEntityType {
     override fun bringMainImage(): MainImageEntity? = mainImage
 
@@ -61,7 +60,7 @@ class ProfessorEntity(
                 phone = professorDto.phone,
                 fax = professorDto.fax,
                 email = professorDto.email,
-                website = professorDto.website,
+                website = professorDto.website
             )
         }
     }
@@ -84,12 +83,11 @@ class ProfessorEntity(
         this.email = updateProfessorRequest.email
         this.website = updateProfessorRequest.website
     }
-
 }
 
-enum class ProfessorStatus (
+enum class ProfessorStatus(
     val krValue: String
-){
+) {
     ACTIVE("교수"),
     INACTIVE("역대 교수"),
     VISITING("객원교수");

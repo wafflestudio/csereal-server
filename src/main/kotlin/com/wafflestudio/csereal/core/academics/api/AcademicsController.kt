@@ -19,7 +19,9 @@ class AcademicsController(
     fun createAcademics(
         @PathVariable studentType: String,
         @PathVariable postType: String,
-        @Valid @RequestPart("request") request: AcademicsDto,
+        @Valid
+        @RequestPart("request")
+        request: AcademicsDto,
         @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<AcademicsDto> {
         return ResponseEntity.ok(academicsService.createAcademics(studentType, postType, request, attachments))
@@ -35,7 +37,7 @@ class AcademicsController(
     @GetMapping("/{studentType}/{postType}")
     fun readAcademicsYearResponses(
         @PathVariable studentType: String,
-        @PathVariable postType: String,
+        @PathVariable postType: String
     ): ResponseEntity<List<AcademicsYearResponse>> {
         return ResponseEntity.ok(academicsService.readAcademicsYearResponses(studentType, postType))
     }
@@ -45,15 +47,17 @@ class AcademicsController(
     @PostMapping("/{studentType}/course")
     fun createCourse(
         @PathVariable studentType: String,
-        @Valid @RequestPart("request") request: CourseDto,
-        @RequestPart("attachments") attachments: List<MultipartFile>?,
+        @Valid
+        @RequestPart("request")
+        request: CourseDto,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<CourseDto> {
         return ResponseEntity.ok(academicsService.createCourse(studentType, request, attachments))
     }
 
     @GetMapping("/{studentType}/courses")
     fun readAllCourses(
-        @PathVariable studentType: String,
+        @PathVariable studentType: String
     ): ResponseEntity<List<CourseDto>> {
         return ResponseEntity.ok(academicsService.readAllCourses(studentType))
     }
@@ -74,7 +78,8 @@ class AcademicsController(
     @PostMapping("/{studentType}/scholarshipDetail")
     fun createScholarshipDetail(
         @PathVariable studentType: String,
-        @Valid @RequestBody request: ScholarshipDto,
+        @Valid @RequestBody
+        request: ScholarshipDto
     ): ResponseEntity<ScholarshipDto> {
         return ResponseEntity.ok(academicsService.createScholarshipDetail(studentType, request))
     }
@@ -90,5 +95,4 @@ class AcademicsController(
     fun getScholarship(@PathVariable scholarshipId: Long): ResponseEntity<ScholarshipDto> {
         return ResponseEntity.ok(academicsService.readScholarship(scholarshipId))
     }
-
 }

@@ -30,7 +30,7 @@ class MainRepositoryImpl(
     private val mainImageService: MainImageService,
     private val noticeRepository: NoticeRepository,
     private val newsRepository: NewsRepository,
-    private val seminarRepository: SeminarRepository,
+    private val seminarRepository: SeminarRepository
 ) : MainRepository {
     override fun readMainSlide(): List<MainSlideResponse> {
         val newsEntityList = queryFactory.selectFrom(newsEntity)
@@ -69,7 +69,7 @@ class MainRepositoryImpl(
                 MainNoticeResponse::class.java,
                 noticeTagEntity.notice.id,
                 noticeTagEntity.notice.title,
-                noticeTagEntity.notice.createdAt,
+                noticeTagEntity.notice.createdAt
             )
         ).from(noticeTagEntity)
             .rightJoin(noticeEntity).on(noticeTagEntity.notice.eq(noticeEntity))
