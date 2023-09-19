@@ -46,7 +46,8 @@ class MainRepositoryImpl(
                 imageURL = imageURL,
                 createdAt = it.createdAt,
                 description = it.plainTextDescription.substring(
-                        0, 100.coerceAtMost(it.plainTextDescription.length)
+                    0,
+                    100.coerceAtMost(it.plainTextDescription.length)
                 )
             )
         }
