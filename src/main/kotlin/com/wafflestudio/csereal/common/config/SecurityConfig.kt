@@ -32,7 +32,7 @@ class SecurityConfig(
             .cors().and()
             .csrf().disable()
             .oauth2Login()
-            .loginPage("/oauth2/authorization/idsnucse")
+            .loginPage("${endpointProperties.frontend}/oauth2/authorization/idsnucse")
             .redirectionEndpoint()
             .baseUri("/api/v1/login/oauth2/code/idsnucse").and()
             .userInfoEndpoint().oidcUserService(customOidcUserService).and()
