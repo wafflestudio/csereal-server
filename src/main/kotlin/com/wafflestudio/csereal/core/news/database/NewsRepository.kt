@@ -20,7 +20,8 @@ import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository {
-    fun findAllByIsImportant(isImportant: Boolean): List<NewsEntity>
+    fun findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse(): List<NewsEntity>
+    fun findAllByIsImportantTrueAndIsDeletedFalse(): List<NewsEntity>
     fun findFirstByCreatedAtLessThanOrderByCreatedAtDesc(timestamp: LocalDateTime): NewsEntity?
     fun findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(timestamp: LocalDateTime): NewsEntity?
 }
@@ -33,6 +34,7 @@ interface CustomNewsRepository {
         usePageBtn: Boolean,
         isStaff: Boolean
     ): NewsSearchResponse
+
     fun searchTotalNews(
         keyword: String,
         number: Int,

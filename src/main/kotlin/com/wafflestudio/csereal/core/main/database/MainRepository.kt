@@ -88,7 +88,7 @@ class MainRepositoryImpl(
 
     override fun readMainImportant(): List<MainImportantResponse> {
         val mainImportantResponses: MutableList<MainImportantResponse> = mutableListOf()
-        noticeRepository.findAllByIsImportant(true).forEach {
+        noticeRepository.findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse().forEach {
             mainImportantResponses.add(
                 MainImportantResponse(
                     id = it.id,
@@ -100,7 +100,7 @@ class MainRepositoryImpl(
             )
         }
 
-        newsRepository.findAllByIsImportant(true).forEach {
+        newsRepository.findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse().forEach {
             mainImportantResponses.add(
                 MainImportantResponse(
                     id = it.id,
@@ -112,7 +112,7 @@ class MainRepositoryImpl(
             )
         }
 
-        seminarRepository.findAllByIsImportant(true).forEach {
+        seminarRepository.findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse().forEach {
             mainImportantResponses.add(
                 MainImportantResponse(
                     id = it.id,
