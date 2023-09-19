@@ -55,8 +55,9 @@ class MainRepositoryImpl(
                 MainNoticeResponse::class.java,
                 noticeEntity.id,
                 noticeEntity.title,
-                noticeEntity.createdAt
-            )
+                noticeEntity.createdAt,
+                noticeEntity.isPinned,
+            ),
         ).from(noticeEntity)
             .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPrivate.eq(false))
             .orderBy(noticeEntity.isPinned.desc()).orderBy(noticeEntity.createdAt.desc())
@@ -69,14 +70,15 @@ class MainRepositoryImpl(
                 MainNoticeResponse::class.java,
                 noticeTagEntity.notice.id,
                 noticeTagEntity.notice.title,
-                noticeTagEntity.notice.createdAt
+                noticeTagEntity.notice.createdAt,
+                noticeEntity.isPinned,
             )
         ).from(noticeTagEntity)
             .rightJoin(noticeEntity).on(noticeTagEntity.notice.eq(noticeEntity))
             .rightJoin(tagInNoticeEntity).on(noticeTagEntity.tag.eq(tagInNoticeEntity))
             .where(noticeTagEntity.tag.name.eq(tagEnum))
             .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPrivate.eq(false))
-            .orderBy(noticeEntity.isPinned.desc()).orderBy(noticeEntity.createdAt.desc())
+            .orderBy(noticeEntity.isPinned.desc()).orderBy(noticeTagEntity.notice.createdAt.desc())
             .limit(6).distinct().fetch()
     }
 
@@ -86,7 +88,7 @@ class MainRepositoryImpl(
             mainImportantResponses.add(
                 MainImportantResponse(
                     id = it.id,
-                    title = it.titleForMain!!,
+                    title = it.titleForMain ?: it.title,
                     description = it.description,
                     createdAt = it.createdAt,
                     category = "notice"
@@ -98,7 +100,7 @@ class MainRepositoryImpl(
             mainImportantResponses.add(
                 MainImportantResponse(
                     id = it.id,
-                    title = it.titleForMain!!,
+                    title = it.titleForMain ?: it.title,
                     description = it.description,
                     createdAt = it.createdAt,
                     category = "news"
@@ -110,7 +112,7 @@ class MainRepositoryImpl(
             mainImportantResponses.add(
                 MainImportantResponse(
                     id = it.id,
-                    title = it.titleForMain!!,
+                    title = it.titleForMain ?: it.title,
                     description = it.description,
                     createdAt = it.createdAt,
                     category = "seminar"
