@@ -13,7 +13,7 @@ import org.springframework.data.repository.findByIdOrNull
 @SpringBootTest
 class NewsServiceTest(
     private val newsService: NewsService,
-    private val newsRepository: NewsRepository
+    private val newsRepository: NewsRepository,
 ) : BehaviorSpec() {
     init {
 
@@ -30,11 +30,11 @@ class NewsServiceTest(
                         <h1>Hello, World!</h1>
                         <p>This is news description.</p>
                         <h3>Goodbye, World!</h3>
-                """.trimIndent(),
+                    """.trimIndent(),
                 tags = emptyList(),
                 createdAt = null,
                 modifiedAt = null,
-                date = null,
+                date = LocalDateTime.now(),
                 isPrivate = false,
                 isSlide = false,
                 isImportant = false,
@@ -43,7 +43,7 @@ class NewsServiceTest(
                 nextId = null,
                 nextTitle = null,
                 imageURL = null,
-                attachments = null
+                attachments = null,
             )
 
             When("DTO를 이용하여 뉴스를 생성하면") {
@@ -72,12 +72,12 @@ class NewsServiceTest(
                             <h1>Hello, World!</h1>
                             <p>This is news description.</p>
                             <h3>Goodbye, World!</h3>
-                    """.trimIndent(),
+                            """.trimIndent(),
                     plainTextDescription = "Hello, World! This is news description. Goodbye, World!",
-                    date = null,
+                    date = LocalDateTime.now(),
                     isPrivate = false,
                     isSlide = false,
-                    isImportant = false
+                    isImportant = false,
                 )
             )
 
@@ -94,7 +94,7 @@ class NewsServiceTest(
                             """.trimIndent()
                         ),
                     null,
-                    null
+                    null,
                 )
 
                 Then("description, plainTextDescription이 수정되어야 한다.") {

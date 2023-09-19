@@ -37,12 +37,12 @@ interface CustomNoticeRepository {
 @Component
 class NoticeRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
-    private val commonRepository: CommonRepository
+    private val commonRepository: CommonRepository,
 ) : CustomNoticeRepository {
     override fun totalSearchNotice(
         keyword: String,
         number: Int,
-        stringLength: Int
+        stringLength: Int,
     ): NoticeTotalSearchResponse {
         val doubleTemplate = commonRepository.searchFullDoubleTextTemplate(
             keyword,
@@ -71,7 +71,7 @@ class NoticeRepositoryImpl(
                     it[noticeEntity.createdAt]!!,
                     it[noticeEntity.plainTextDescription]!!,
                     keyword,
-                    stringLength
+                    stringLength,
                 )
             }
         )
@@ -92,7 +92,7 @@ class NoticeRepositoryImpl(
             val booleanTemplate = commonRepository.searchFullDoubleTextTemplate(
                 keyword,
                 noticeEntity.title,
-                noticeEntity.plainTextDescription
+                noticeEntity.plainTextDescription,
             )
             keywordBooleanBuilder.and(booleanTemplate.gt(0.0))
         }

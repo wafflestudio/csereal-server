@@ -44,7 +44,10 @@ class MainRepositoryImpl(
                 id = it.id,
                 title = it.title,
                 imageURL = imageURL,
-                createdAt = it.createdAt
+                createdAt = it.createdAt,
+                description = it.plainTextDescription.substring(
+                        0, 100.coerceAtMost(it.plainTextDescription.length)
+                )
             )
         }
     }

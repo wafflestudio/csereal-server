@@ -28,7 +28,7 @@ interface NewsService {
         newsId: Long,
         request: NewsDto,
         newMainImage: MultipartFile?,
-        newAttachments: List<MultipartFile>?
+        newAttachments: List<MultipartFile>?,
     ): NewsDto
 
     fun deleteNews(newsId: Long)
@@ -42,7 +42,7 @@ class NewsServiceImpl(
     private val tagInNewsRepository: TagInNewsRepository,
     private val newsTagRepository: NewsTagRepository,
     private val mainImageService: MainImageService,
-    private val attachmentService: AttachmentService
+    private val attachmentService: AttachmentService,
 ) : NewsService {
     @Transactional(readOnly = true)
     override fun searchNews(
@@ -59,12 +59,12 @@ class NewsServiceImpl(
     override fun searchTotalNews(
         keyword: String,
         number: Int,
-        amount: Int
+        amount: Int,
     ) = newsRepository.searchTotalNews(
         keyword,
         number,
         amount,
-        mainImageService::createImageURL
+        mainImageService::createImageURL,
     )
 
     @Transactional(readOnly = true)
@@ -118,7 +118,7 @@ class NewsServiceImpl(
         newsId: Long,
         request: NewsDto,
         newMainImage: MultipartFile?,
-        newAttachments: List<MultipartFile>?
+        newAttachments: List<MultipartFile>?,
     ): NewsDto {
         val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
             ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다. (newsId: $newsId)")

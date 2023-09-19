@@ -83,16 +83,16 @@ class ReservationServiceImpl(
         val reservationEntity =
             reservationRepository.findByIdOrNull(reservationId) ?: throw CserealException.Csereal404("예약을 찾을 수 없습니다.")
 
-        val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
-            "loggedInUser",
-            RequestAttributes.SCOPE_REQUEST
-        ) as UserEntity
-
-        if (user.role == Role.ROLE_STAFF) {
-            return ReservationDto.of(reservationEntity)
-        } else {
-            return ReservationDto.forNormalUser(reservationEntity)
-        }
+//        val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
+//            "loggedInUser",
+//            RequestAttributes.SCOPE_REQUEST
+//        ) as UserEntity
+//
+//        if (user.role == Role.ROLE_STAFF) {
+//            return ReservationDto.of(reservationEntity)
+//        } else {
+        return ReservationDto.forNormalUser(reservationEntity)
+//        }
     }
 
     override fun cancelSpecific(reservationId: Long) {
