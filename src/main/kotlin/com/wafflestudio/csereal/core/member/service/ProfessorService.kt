@@ -17,7 +17,11 @@ interface ProfessorService {
     fun getProfessor(professorId: Long): ProfessorDto
     fun getActiveProfessors(): ProfessorPageDto
     fun getInactiveProfessors(): List<SimpleProfessorDto>
-    fun updateProfessor(professorId: Long, updateProfessorRequest: ProfessorDto, mainImage: MultipartFile?): ProfessorDto
+    fun updateProfessor(
+        professorId: Long,
+        updateProfessorRequest: ProfessorDto,
+        mainImage: MultipartFile?
+    ): ProfessorDto
     fun deleteProfessor(professorId: Long)
     fun migrateProfessors(requestList: List<ProfessorDto>): List<ProfessorDto>
 }
@@ -97,7 +101,11 @@ class ProfessorServiceImpl(
             .sortedBy { it.name }
     }
 
-    override fun updateProfessor(professorId: Long, updateProfessorRequest: ProfessorDto, mainImage: MultipartFile?): ProfessorDto {
+    override fun updateProfessor(
+        professorId: Long,
+        updateProfessorRequest: ProfessorDto,
+        mainImage: MultipartFile?
+    ): ProfessorDto {
         val professor = professorRepository.findByIdOrNull(professorId)
             ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다. professorId: $professorId")
 

@@ -76,9 +76,15 @@ class SeminarServiceTest(
 
                 Then("plain text 값들이 잘 생성되어야 한다.") {
                     val seminarEntity = seminarRepository.findByIdOrNull(resultSeminarDTO.id)!!
-                    seminarEntity.plainTextDescription shouldBe "Hello, World! This is seminar description. Goodbye, World!"
-                    seminarEntity.plainTextIntroduction shouldBe "Hello, World! This is seminar introduction. Goodbye, World!"
-                    seminarEntity.plainTextAdditionalNote shouldBe "Hello, World! This is seminar additionalNote. Goodbye, World!"
+                    seminarEntity.plainTextDescription shouldBe (
+                        "Hello, World! This is seminar description. Goodbye, World!"
+                        )
+                    seminarEntity.plainTextIntroduction shouldBe (
+                        "Hello, World! This is seminar introduction. Goodbye, World!"
+                        )
+                    seminarEntity.plainTextAdditionalNote shouldBe (
+                        "Hello, World! This is seminar additionalNote. Goodbye, World!"
+                        )
                 }
             }
         }
@@ -163,9 +169,15 @@ class SeminarServiceTest(
 
                 Then("plain text 값들이 잘 수정되어야 한다.") {
                     val modifiedSeminarEntity = seminarRepository.findByIdOrNull(modifiedSeminarDto.id)!!
-                    modifiedSeminarEntity.plainTextDescription shouldBe "Hello, World! This is modified seminar description. Goodbye, World! And this is a new line."
-                    modifiedSeminarEntity.plainTextIntroduction shouldBe "Hello, World! This is modified seminar introduction. Goodbye, World! And this is a new line."
-                    modifiedSeminarEntity.plainTextAdditionalNote shouldBe "Hello, World! This is modified seminar additionalNote. Goodbye, World! And this is a new line."
+                    modifiedSeminarEntity.plainTextDescription shouldBe (
+                        "Hello, World! This is modified seminar description. Goodbye, World! And this is a new line."
+                        )
+                    modifiedSeminarEntity.plainTextIntroduction shouldBe (
+                        "Hello, World! This is modified seminar introduction. Goodbye, World! And this is a new line."
+                        )
+                    modifiedSeminarEntity.plainTextAdditionalNote shouldBe (
+                        "Hello, World! This is modified seminar additionalNote. Goodbye, World! And this is a new line."
+                        )
                 }
             }
         }

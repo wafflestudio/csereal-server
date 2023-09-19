@@ -56,7 +56,9 @@ class NewsServiceTest(
 
                 Then("plainTextDescription이 생성되었어야 한다.") {
                     val createdNewsEntity = newsRepository.findByIdOrNull(createdNewsDTO.id)!!
-                    createdNewsEntity.plainTextDescription shouldBe "Hello, World! This is news description. Goodbye, World!"
+                    createdNewsEntity.plainTextDescription shouldBe (
+                        "Hello, World! This is news description. Goodbye, World!"
+                        )
                 }
             }
         }
@@ -103,7 +105,10 @@ class NewsServiceTest(
                             <h3>Goodbye, World!</h3>
                             <p>This is additional description.</p>
                     """.trimIndent()
-                    updatedNewsEntity.plainTextDescription shouldBe "Hello, World! This is modified news description. Goodbye, World! This is additional description."
+                    updatedNewsEntity.plainTextDescription shouldBe (
+                        "Hello, World! This is modified news description." +
+                            " Goodbye, World! This is additional description."
+                        )
                 }
             }
         }

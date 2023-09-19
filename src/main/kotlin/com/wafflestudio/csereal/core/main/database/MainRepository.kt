@@ -56,8 +56,8 @@ class MainRepositoryImpl(
                 noticeEntity.id,
                 noticeEntity.title,
                 noticeEntity.createdAt,
-                noticeEntity.isPinned,
-            ),
+                noticeEntity.isPinned
+            )
         ).from(noticeEntity)
             .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPrivate.eq(false))
             .orderBy(noticeEntity.isPinned.desc()).orderBy(noticeEntity.createdAt.desc())
@@ -71,7 +71,7 @@ class MainRepositoryImpl(
                 noticeTagEntity.notice.id,
                 noticeTagEntity.notice.title,
                 noticeTagEntity.notice.createdAt,
-                noticeEntity.isPinned,
+                noticeEntity.isPinned
             )
         ).from(noticeTagEntity)
             .rightJoin(noticeEntity).on(noticeTagEntity.notice.eq(noticeEntity))

@@ -132,7 +132,9 @@ class NoticeServiceTest(
 
                 Then("plainTextDescription이 잘 수정되어야 한다.") {
                     val noticeEntity = noticeRepository.findByIdOrNull(modifiedNoticeDto.id)
-                    noticeEntity?.plainTextDescription shouldBe "Hello, World! This is a modified test notice. Goodbye, World! And this is a new line."
+                    noticeEntity?.plainTextDescription shouldBe (
+                        "Hello, World! This is a modified test notice. Goodbye, World! And this is a new line."
+                        )
                 }
             }
         }

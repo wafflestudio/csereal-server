@@ -12,7 +12,13 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface AcademicsService {
-    fun createAcademics(studentType: String, postType: String, request: AcademicsDto, attachments: List<MultipartFile>?): AcademicsDto
+    fun createAcademics(
+        studentType: String,
+        postType: String,
+        request: AcademicsDto,
+        attachments: List<MultipartFile>?
+    ): AcademicsDto
+
     fun readGuide(studentType: String): GuidePageResponse
     fun readAcademicsYearResponses(studentType: String, postType: String): List<AcademicsYearResponse>
     fun readGeneralStudies(): GeneralStudiesPageResponse

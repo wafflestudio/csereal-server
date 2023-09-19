@@ -10,7 +10,10 @@ data class MainNoticeResponse(
 ) {
 
     @QueryProjection constructor (
-            id: Long, title: String, createdAt: LocalDateTime?, isPinned: Boolean
-    ): this(id, title, createdAt) {
+        id: Long,
+        title: String,
+        createdAt: LocalDateTime?,
+        isPinned: Boolean
+    ) : this(id, title, createdAt) {
     }
 }

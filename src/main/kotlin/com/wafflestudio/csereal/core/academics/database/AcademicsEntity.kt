@@ -26,7 +26,11 @@ class AcademicsEntity(
     override fun bringAttachments() = attachments
 
     companion object {
-        fun of(studentType: AcademicsStudentType, postType: AcademicsPostType, academicsDto: AcademicsDto): AcademicsEntity {
+        fun of(
+            studentType: AcademicsStudentType,
+            postType: AcademicsPostType,
+            academicsDto: AcademicsDto
+        ): AcademicsEntity {
             return AcademicsEntity(
                 studentType = studentType,
                 postType = postType,
