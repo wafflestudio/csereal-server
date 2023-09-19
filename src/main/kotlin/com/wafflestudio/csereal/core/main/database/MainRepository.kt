@@ -75,7 +75,7 @@ class MainRepositoryImpl(
             .rightJoin(noticeEntity).on(noticeTagEntity.notice.eq(noticeEntity))
             .rightJoin(tagInNoticeEntity).on(noticeTagEntity.tag.eq(tagInNoticeEntity))
             .where(noticeTagEntity.tag.name.eq(tagEnum))
-            .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPrivate.eq(true))
+            .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPrivate.eq(false))
             .orderBy(noticeEntity.isPinned.desc()).orderBy(noticeEntity.createdAt.desc())
             .limit(6).distinct().fetch()
     }
