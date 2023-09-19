@@ -102,7 +102,7 @@ class NewsRepositoryImpl(
         }
 
         val newsEntityList = jpaQuery
-            .orderBy(newsEntity.createdAt.desc())
+            .orderBy(newsEntity.date.desc())
             .offset(pageRequest.offset)
             .limit(pageRequest.pageSize.toLong())
             .distinct()
