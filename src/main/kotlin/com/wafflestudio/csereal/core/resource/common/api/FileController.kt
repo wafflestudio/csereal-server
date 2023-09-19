@@ -33,11 +33,17 @@ class FileController(
         val resource = UrlResource(file.toUri())
 
         if (resource.exists() || resource.isReadable) {
-            val contentType: String? = request.servletContext.getMimeType(resource.file.absolutePath)
+            var contentType: String? = request.servletContext.getMimeType(resource.file.absolutePath)
             val headers = HttpHeaders()
 
+            contentType = contentType ?: "application/octet-stream"
+
+            if (contentType.startsWith("text")) {
+                contentType += ";charset=UTF-8"
+            }
+
             headers.contentType =
-                org.springframework.http.MediaType.parseMediaType(contentType ?: "application/octet-stream")
+                org.springframework.http.MediaType.parseMediaType(contentType)
 
             return ResponseEntity.ok()
                 .headers(headers)
