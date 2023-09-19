@@ -55,8 +55,9 @@ class MainRepositoryImpl(
                 MainNoticeResponse::class.java,
                 noticeEntity.id,
                 noticeEntity.title,
-                noticeEntity.createdAt
-            )
+                noticeEntity.createdAt,
+                noticeEntity.isPinned,
+            ),
         ).from(noticeEntity)
             .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPrivate.eq(false))
             .orderBy(noticeEntity.isPinned.desc()).orderBy(noticeEntity.createdAt.desc())
@@ -70,13 +71,14 @@ class MainRepositoryImpl(
                 noticeTagEntity.notice.id,
                 noticeTagEntity.notice.title,
                 noticeTagEntity.notice.createdAt,
+                noticeEntity.isPinned,
             )
         ).from(noticeTagEntity)
             .rightJoin(noticeEntity).on(noticeTagEntity.notice.eq(noticeEntity))
             .rightJoin(tagInNoticeEntity).on(noticeTagEntity.tag.eq(tagInNoticeEntity))
             .where(noticeTagEntity.tag.name.eq(tagEnum))
             .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPrivate.eq(true))
-            .orderBy(noticeEntity.isPinned.desc()).orderBy(noticeEntity.createdAt.desc())
+            .orderBy(noticeEntity.isPinned.desc()).orderBy(noticeTagEntity.notice.createdAt.desc())
             .limit(6).distinct().fetch()
     }
 
