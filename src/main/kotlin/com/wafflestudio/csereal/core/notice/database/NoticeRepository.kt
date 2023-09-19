@@ -18,8 +18,8 @@ import java.time.LocalDateTime
 
 interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepository {
     fun findAllByIsImportant(isImportant: Boolean): List<NoticeEntity>
-    fun findFirstByCreatedAtLessThanOrderByCreatedAtDesc(timestamp: LocalDateTime): NoticeEntity?
-    fun findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(timestamp: LocalDateTime): NoticeEntity?
+    fun findFirstByCreatedAtLessThanAndIsPrivateFalseOrderByCreatedAtDesc(timestamp: LocalDateTime): NoticeEntity?
+    fun findFirstByCreatedAtGreaterThanAndIsPrivateFalseOrderByCreatedAtAsc(timestamp: LocalDateTime): NoticeEntity?
 }
 
 interface CustomNoticeRepository {
@@ -40,22 +40,22 @@ class NoticeRepositoryImpl(
     private val commonRepository: CommonRepository,
 ) : CustomNoticeRepository {
     override fun totalSearchNotice(
-            keyword: String,
-            number: Int,
-            stringLength: Int,
+        keyword: String,
+        number: Int,
+        stringLength: Int,
     ): NoticeTotalSearchResponse {
         val doubleTemplate = commonRepository.searchFullDoubleTextTemplate(
-                keyword,
-                noticeEntity.title,
-                noticeEntity.plainTextDescription
+            keyword,
+            noticeEntity.title,
+            noticeEntity.plainTextDescription
         )
 
         val query = queryFactory.select(
-                noticeEntity.id,
-                noticeEntity.title,
-                noticeEntity.createdAt,
-                noticeEntity.plainTextDescription
-            ).from(noticeEntity)
+            noticeEntity.id,
+            noticeEntity.title,
+            noticeEntity.createdAt,
+            noticeEntity.plainTextDescription
+        ).from(noticeEntity)
             .where(doubleTemplate.gt(0.0))
 
         val total = query.clone().select(noticeEntity.countDistinct()).fetchOne()!!
@@ -63,17 +63,17 @@ class NoticeRepositoryImpl(
         val searchResult = query.limit(number.toLong()).fetch()
 
         return NoticeTotalSearchResponse(
-                total.toInt(),
-                searchResult.map {
-                    NoticeTotalSearchElement(
-                            it[noticeEntity.id]!!,
-                            it[noticeEntity.title]!!,
-                            it[noticeEntity.createdAt]!!,
-                            it[noticeEntity.plainTextDescription]!!,
-                            keyword,
-                            stringLength,
-                    )
-                }
+            total.toInt(),
+            searchResult.map {
+                NoticeTotalSearchElement(
+                    it[noticeEntity.id]!!,
+                    it[noticeEntity.title]!!,
+                    it[noticeEntity.createdAt]!!,
+                    it[noticeEntity.plainTextDescription]!!,
+                    keyword,
+                    stringLength,
+                )
+            }
         )
     }
 
