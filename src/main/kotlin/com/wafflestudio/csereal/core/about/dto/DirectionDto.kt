@@ -8,7 +8,7 @@ data class DirectionDto(
     val id: Long? = null,
     val name: String,
     val engName: String,
-    val description: String,
+    val description: String
 ) {
     companion object {
         fun of(entity: AboutEntity): DirectionDto = entity.run {

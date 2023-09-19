@@ -6,10 +6,9 @@ import com.wafflestudio.csereal.core.main.dto.NoticesResponse
 import com.wafflestudio.csereal.core.notice.database.TagInNoticeEnum
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import javax.swing.text.html.HTML.Tag
 
 interface MainService {
-    fun readMain() : MainResponse
+    fun readMain(): MainResponse
 }
 
 @Service

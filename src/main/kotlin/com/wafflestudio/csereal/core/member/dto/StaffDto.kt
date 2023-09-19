@@ -28,6 +28,5 @@ data class StaffDto(
                 imageURL = imageURL
             )
         }
-
     }
 }

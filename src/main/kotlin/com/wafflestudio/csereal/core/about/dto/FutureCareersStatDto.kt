@@ -5,5 +5,4 @@ data class FutureCareersStatDto(
     val bachelor: List<FutureCareersStatDegreeDto>,
     val master: List<FutureCareersStatDegreeDto>,
     val doctor: List<FutureCareersStatDegreeDto>
-) {
-}
+)

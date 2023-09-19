@@ -1,7 +1,6 @@
 package com.wafflestudio.csereal.core.seminar.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
-import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
 import com.wafflestudio.csereal.core.seminar.service.SeminarService
@@ -43,7 +42,9 @@ class SeminarController(
     @AuthenticatedStaff
     @PostMapping
     fun createSeminar(
-        @Valid @RequestPart("request") request: SeminarDto,
+        @Valid
+        @RequestPart("request")
+        request: SeminarDto,
         @RequestPart("mainImage") mainImage: MultipartFile?,
         @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<SeminarDto> {
@@ -61,16 +62,18 @@ class SeminarController(
     @PatchMapping("/{seminarId}")
     fun updateSeminar(
         @PathVariable seminarId: Long,
-        @Valid @RequestPart("request") request: SeminarDto,
+        @Valid
+        @RequestPart("request")
+        request: SeminarDto,
         @RequestPart("newMainImage") newMainImage: MultipartFile?,
-        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?,
+        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?
     ): ResponseEntity<SeminarDto> {
         return ResponseEntity.ok(
             seminarService.updateSeminar(
                 seminarId,
                 request,
                 newMainImage,
-                newAttachments,
+                newAttachments
             )
         )
     }

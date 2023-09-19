@@ -51,6 +51,5 @@ data class ReservationDto(
                 professor = reservationEntity.professor
             )
         }
-
     }
 }

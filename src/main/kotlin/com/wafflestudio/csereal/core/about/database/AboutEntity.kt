@@ -27,9 +27,9 @@ class AboutEntity(
     var attachments: MutableList<AttachmentEntity> = mutableListOf(),
 
     @OneToOne
-    var mainImage: MainImageEntity? = null,
+    var mainImage: MainImageEntity? = null
 
-    ) : BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
+) : BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
     override fun bringMainImage(): MainImageEntity? = mainImage
     override fun bringAttachments(): List<AttachmentEntity> = attachments
 
@@ -40,7 +40,7 @@ class AboutEntity(
                 name = aboutDto.name,
                 engName = aboutDto.engName,
                 description = aboutDto.description,
-                year = aboutDto.year,
+                year = aboutDto.year
             )
         }
     }

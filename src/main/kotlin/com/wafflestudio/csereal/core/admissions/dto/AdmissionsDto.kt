@@ -7,15 +7,15 @@ data class AdmissionsDto(
     val id: Long,
     val description: String,
     val createdAt: LocalDateTime?,
-    val modifiedAt: LocalDateTime?,
+    val modifiedAt: LocalDateTime?
 ) {
     companion object {
-        fun of(entity: AdmissionsEntity) : AdmissionsDto = entity.run {
+        fun of(entity: AdmissionsEntity): AdmissionsDto = entity.run {
             AdmissionsDto(
                 id = this.id,
                 description = this.description,
                 createdAt = this.createdAt,
-                modifiedAt = this.modifiedAt,
+                modifiedAt = this.modifiedAt
             )
         }
     }

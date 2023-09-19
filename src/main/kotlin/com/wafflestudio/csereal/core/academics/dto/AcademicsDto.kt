@@ -12,10 +12,10 @@ data class AcademicsDto(
     val time: String?,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
-    val attachments: List<AttachmentResponse>?,
+    val attachments: List<AttachmentResponse>?
 ) {
     companion object {
-        fun of(entity: AcademicsEntity, attachmentResponses: List<AttachmentResponse>) : AcademicsDto = entity.run {
+        fun of(entity: AcademicsEntity, attachmentResponses: List<AttachmentResponse>): AcademicsDto = entity.run {
             AcademicsDto(
                 id = this.id,
                 name = this.name,
@@ -24,7 +24,7 @@ data class AcademicsDto(
                 time = this.time,
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
-                attachments = attachmentResponses,
+                attachments = attachmentResponses
             )
         }
     }

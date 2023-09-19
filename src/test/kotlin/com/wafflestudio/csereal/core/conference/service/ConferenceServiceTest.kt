@@ -24,29 +24,29 @@ import org.springframework.web.context.request.RequestContextHolder
 
 @SpringBootTest
 @Transactional
-class ConferenceServiceTest (
-        private val conferenceService: ConferenceService,
-        private val conferencePageRepository: ConferencePageRepository,
-        private val conferenceRepository: ConferenceRepository,
-        private val userRepository: UserRepository,
-): BehaviorSpec ({
+class ConferenceServiceTest(
+    private val conferenceService: ConferenceService,
+    private val conferencePageRepository: ConferencePageRepository,
+    private val conferenceRepository: ConferenceRepository,
+    private val userRepository: UserRepository
+) : BehaviorSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
 
     beforeSpec {
         val user = userRepository.save(
-                UserEntity(
-                        username = "admin",
-                        name = "admin",
-                        email = "email",
-                        studentId = "studentId",
-                        role = Role.ROLE_STAFF,
-                )
+            UserEntity(
+                username = "admin",
+                name = "admin",
+                email = "email",
+                studentId = "studentId",
+                role = Role.ROLE_STAFF
+            )
         )
 
         conferencePageRepository.save(
-                ConferencePageEntity(
-                        author = user,
-                )
+            ConferencePageEntity(
+                author = user
+            )
         )
     }
 
@@ -67,34 +67,35 @@ class ConferenceServiceTest (
         } returns mockRequestAttributes
         every {
             mockRequestAttributes.getAttribute(
-                    "loggedInUser",
-                    RequestAttributes.SCOPE_REQUEST
+                "loggedInUser",
+                RequestAttributes.SCOPE_REQUEST
             )
         } returns userEntity
 
-
         var conferencePage = conferencePageRepository.findAll().first()
 
-        val conferences = conferenceRepository.saveAll(listOf(
+        val conferences = conferenceRepository.saveAll(
+            listOf(
                 ConferenceEntity(
-                        code = "code1",
-                        name = "name1",
-                        abbreviation = "abbreviation1",
-                        conferencePage = conferencePage,
+                    code = "code1",
+                    name = "name1",
+                    abbreviation = "abbreviation1",
+                    conferencePage = conferencePage
                 ),
                 ConferenceEntity(
-                        code = "code2",
-                        name = "name2",
-                        abbreviation = "abbreviation2",
-                        conferencePage = conferencePage,
+                    code = "code2",
+                    name = "name2",
+                    abbreviation = "abbreviation2",
+                    conferencePage = conferencePage
                 ),
                 ConferenceEntity(
-                        code = "code3",
-                        name = "name3",
-                        abbreviation = "abbreviation3",
-                        conferencePage = conferencePage,
-                ),
-        ))
+                    code = "code3",
+                    name = "name3",
+                    abbreviation = "abbreviation3",
+                    conferencePage = conferencePage
+                )
+            )
+        )
         conferencePage = conferencePage.apply {
             this.conferences.addAll(conferences)
         }.let {
@@ -104,20 +105,20 @@ class ConferenceServiceTest (
         When("Conference를 수정한다면") {
             val deleteConferenceId = conferences[1].id
             val modifiedConference = ConferenceDto(
-                            id = conferences.first().id,
-                            code = "code0",
-                            name = "modifiedName",
-                            abbreviation = "modifiedAbbreviation",
-                    )
+                id = conferences.first().id,
+                code = "code0",
+                name = "modifiedName",
+                abbreviation = "modifiedAbbreviation"
+            )
             val newConference = ConferenceCreateDto(
-                            code = "code9",
-                            name = "newName",
-                            abbreviation = "newAbbreviation",
-                    )
+                code = "code9",
+                name = "newName",
+                abbreviation = "newAbbreviation"
+            )
             val conferenceModifyRequest = ConferenceModifyRequest(
-                    deleteConfereceIdList = listOf(deleteConferenceId),
-                    modifiedConferenceList = listOf(modifiedConference),
-                    newConferenceList = listOf(newConference),
+                deleteConfereceIdList = listOf(deleteConferenceId),
+                modifiedConferenceList = listOf(modifiedConference),
+                newConferenceList = listOf(newConference)
             )
 
             val conferencePage = conferenceService.modifyConferences(conferenceModifyRequest)

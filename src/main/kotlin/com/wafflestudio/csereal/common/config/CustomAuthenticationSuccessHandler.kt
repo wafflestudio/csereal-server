@@ -13,8 +13,7 @@ class CustomAuthenticationSuccessHandler(
         response: HttpServletResponse,
         authentication: Authentication
     ) {
-        val redirectUrl = "${frontendEndpoint}/login/success"
+        val redirectUrl = "$frontendEndpoint/login/success"
         response.sendRedirect(redirectUrl)
     }
-
 }

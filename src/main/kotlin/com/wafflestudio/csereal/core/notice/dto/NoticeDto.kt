@@ -1,7 +1,6 @@
 package com.wafflestudio.csereal.core.notice.dto
 
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
-import com.wafflestudio.csereal.core.notice.database.TagInNoticeEnum
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
 
@@ -48,10 +47,8 @@ data class NoticeDto(
                 prevTitle = prevNotice?.title,
                 nextId = nextNotice?.id,
                 nextTitle = nextNotice?.title,
-                attachments = attachmentResponses,
+                attachments = attachmentResponses
             )
         }
-
     }
-
 }

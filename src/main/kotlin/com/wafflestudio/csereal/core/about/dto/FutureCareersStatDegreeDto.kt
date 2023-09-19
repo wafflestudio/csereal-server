@@ -5,14 +5,14 @@ import com.wafflestudio.csereal.core.about.database.StatEntity
 data class FutureCareersStatDegreeDto(
     val id: Long,
     val name: String,
-    val count: Int,
+    val count: Int
 ) {
     companion object {
         fun of(entity: StatEntity): FutureCareersStatDegreeDto = entity.run {
             FutureCareersStatDegreeDto(
                 id = this.id,
                 name = this.name,
-                count = this.count,
+                count = this.count
             )
         }
     }

@@ -49,5 +49,4 @@ class SecurityAspect(private val userRepository: UserRepository) {
 
         return user
     }
-
 }

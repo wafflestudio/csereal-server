@@ -13,7 +13,6 @@ interface AdmissionsService {
     fun createGraduateAdmissions(request: AdmissionsDto): AdmissionsDto
     fun readUndergraduateAdmissions(postType: String): AdmissionsDto
     fun readGraduateAdmissions(): AdmissionsDto
-
 }
 
 @Service
@@ -24,7 +23,7 @@ class AdmissionsServiceImpl(
     override fun createUndergraduateAdmissions(postType: String, request: AdmissionsDto): AdmissionsDto {
         val enumPostType = makeStringToAdmissionsPostType(postType)
 
-        val pageName = when(enumPostType) {
+        val pageName = when (enumPostType) {
             AdmissionsPostType.UNDERGRADUATE_EARLY_ADMISSION -> "수시 모집"
             AdmissionsPostType.UNDERGRADUATE_REGULAR_ADMISSION -> "정시 모집"
             else -> throw CserealException.Csereal404("해당하는 페이지를 찾을 수 없습니다.")
@@ -49,8 +48,12 @@ class AdmissionsServiceImpl(
     @Transactional(readOnly = true)
     override fun readUndergraduateAdmissions(postType: String): AdmissionsDto {
         return when (postType) {
-            "early" -> AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionsPostType.UNDERGRADUATE_EARLY_ADMISSION))
-            "regular" -> AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionsPostType.UNDERGRADUATE_REGULAR_ADMISSION))
+            "early" -> AdmissionsDto.of(
+                admissionsRepository.findByPostType(AdmissionsPostType.UNDERGRADUATE_EARLY_ADMISSION)
+            )
+            "regular" -> AdmissionsDto.of(
+                admissionsRepository.findByPostType(AdmissionsPostType.UNDERGRADUATE_REGULAR_ADMISSION)
+            )
             else -> throw CserealException.Csereal404("해당하는 페이지를 찾을 수 없습니다.")
         }
     }
@@ -60,11 +63,10 @@ class AdmissionsServiceImpl(
         return AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionsPostType.GRADUATE))
     }
 
-    private fun makeStringToAdmissionsPostType(postType: String) : AdmissionsPostType {
+    private fun makeStringToAdmissionsPostType(postType: String): AdmissionsPostType {
         try {
-            val upperPostType = postType.replace("-","_").uppercase()
+            val upperPostType = postType.replace("-", "_").uppercase()
             return AdmissionsPostType.valueOf(upperPostType)
-
         } catch (e: IllegalArgumentException) {
             throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
         }

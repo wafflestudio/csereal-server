@@ -25,7 +25,7 @@ class StaffEntity(
     var mainImage: MainImageEntity? = null,
 
     @OneToOne(mappedBy = "staff", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var memberSearch: MemberSearchEntity? = null,
+    var memberSearch: MemberSearchEntity? = null
 ) : BaseTimeEntity(), MainImageContentEntityType {
     override fun bringMainImage(): MainImageEntity? = mainImage
 
@@ -36,7 +36,7 @@ class StaffEntity(
                 role = staffDto.role,
                 office = staffDto.office,
                 phone = staffDto.phone,
-                email = staffDto.email,
+                email = staffDto.email
             )
         }
     }

@@ -47,6 +47,4 @@ class AdminController(
     ) {
         adminService.makeNotImportants(request.targetInfos)
     }
-
-
 }

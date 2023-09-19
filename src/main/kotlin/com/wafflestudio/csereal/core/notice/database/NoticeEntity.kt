@@ -8,7 +8,6 @@ import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEnti
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import jakarta.persistence.*
 
-
 @Entity(name = "notice")
 class NoticeEntity(
     var isDeleted: Boolean = false,
@@ -35,9 +34,9 @@ class NoticeEntity(
     val author: UserEntity,
 
     @OneToMany(mappedBy = "notice", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+    var attachments: MutableList<AttachmentEntity> = mutableListOf()
 
-    ) : BaseTimeEntity(), AttachmentContentEntityType {
+) : BaseTimeEntity(), AttachmentContentEntityType {
     override fun bringAttachments() = attachments
 
     fun update(updateNoticeRequest: NoticeDto) {
@@ -53,5 +52,4 @@ class NoticeEntity(
         this.isPinned = updateNoticeRequest.isPinned
         this.isImportant = updateNoticeRequest.isImportant
     }
-
 }

@@ -7,7 +7,6 @@ import org.springframework.validation.BindingResult
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
-import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClientException
 import java.sql.SQLIntegrityConstraintViolationException
 

@@ -27,7 +27,7 @@ interface SeminarService {
         seminarId: Long,
         request: SeminarDto,
         newMainImage: MultipartFile?,
-        newAttachments: List<MultipartFile>?,
+        newAttachments: List<MultipartFile>?
     ): SeminarDto
 
     fun deleteSeminar(seminarId: Long)
@@ -37,7 +37,7 @@ interface SeminarService {
 class SeminarServiceImpl(
     private val seminarRepository: SeminarRepository,
     private val mainImageService: MainImageService,
-    private val attachmentService: AttachmentService,
+    private val attachmentService: AttachmentService
 ) : SeminarService {
     @Transactional(readOnly = true)
     override fun searchSeminar(
@@ -82,8 +82,10 @@ class SeminarServiceImpl(
         val imageURL = mainImageService.createImageURL(seminar.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
 
-        val prevSeminar = seminarRepository.findFirstByCreatedAtLessThanOrderByCreatedAtDesc(seminar.createdAt!!)
-        val nextSeminar = seminarRepository.findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(seminar.createdAt!!)
+        val prevSeminar =
+            seminarRepository.findFirstByCreatedAtLessThanAndIsPrivateFalseOrderByCreatedAtDesc(seminar.createdAt!!)
+        val nextSeminar =
+            seminarRepository.findFirstByCreatedAtGreaterThanAndIsPrivateFalseOrderByCreatedAtAsc(seminar.createdAt!!)
 
         return SeminarDto.of(seminar, imageURL, attachmentResponses, prevSeminar, nextSeminar)
     }
@@ -93,7 +95,7 @@ class SeminarServiceImpl(
         seminarId: Long,
         request: SeminarDto,
         newMainImage: MultipartFile?,
-        newAttachments: List<MultipartFile>?,
+        newAttachments: List<MultipartFile>?
     ): SeminarDto {
         val seminar: SeminarEntity = seminarRepository.findByIdOrNull(seminarId)
             ?: throw CserealException.Csereal404("존재하지 않는 세미나입니다")

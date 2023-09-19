@@ -12,7 +12,7 @@ data class NewsDto(
     val tags: List<String>,
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
-    val date: LocalDateTime?,
+    val date: LocalDateTime,
     val isPrivate: Boolean,
     val isSlide: Boolean,
     val isImportant: Boolean,
@@ -49,7 +49,7 @@ data class NewsDto(
                 nextId = nextNews?.id,
                 nextTitle = nextNews?.title,
                 imageURL = imageURL,
-                attachments = attachmentResponses,
+                attachments = attachmentResponses
             )
         }
     }

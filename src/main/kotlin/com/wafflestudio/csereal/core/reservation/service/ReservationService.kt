@@ -5,7 +5,6 @@ import com.wafflestudio.csereal.core.reservation.database.*
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
-import com.wafflestudio.csereal.core.user.database.Role
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -83,16 +82,16 @@ class ReservationServiceImpl(
         val reservationEntity =
             reservationRepository.findByIdOrNull(reservationId) ?: throw CserealException.Csereal404("예약을 찾을 수 없습니다.")
 
-        val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
-            "loggedInUser",
-            RequestAttributes.SCOPE_REQUEST
-        ) as UserEntity
-
-        if (user.role == Role.ROLE_STAFF) {
-            return ReservationDto.of(reservationEntity)
-        } else {
-            return ReservationDto.forNormalUser(reservationEntity)
-        }
+//        val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
+//            "loggedInUser",
+//            RequestAttributes.SCOPE_REQUEST
+//        ) as UserEntity
+//
+//        if (user.role == Role.ROLE_STAFF) {
+//            return ReservationDto.of(reservationEntity)
+//        } else {
+        return ReservationDto.forNormalUser(reservationEntity)
+//        }
     }
 
     override fun cancelSpecific(reservationId: Long) {
@@ -102,5 +101,4 @@ class ReservationServiceImpl(
     override fun cancelRecurring(recurrenceId: UUID) {
         reservationRepository.deleteAllByRecurrenceId(recurrenceId)
     }
-
 }

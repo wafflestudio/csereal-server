@@ -16,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile
 import java.nio.file.Files
 import java.nio.file.Paths
 
-
 @RequestMapping("/api/v1/file")
 @RestController
 class FileController(
@@ -34,11 +33,17 @@ class FileController(
         val resource = UrlResource(file.toUri())
 
         if (resource.exists() || resource.isReadable) {
-            val contentType: String? = request.servletContext.getMimeType(resource.file.absolutePath)
+            var contentType: String? = request.servletContext.getMimeType(resource.file.absolutePath)
             val headers = HttpHeaders()
 
+            contentType = contentType ?: "application/octet-stream"
+
+            if (contentType.startsWith("text")) {
+                contentType += ";charset=UTF-8"
+            }
+
             headers.contentType =
-                org.springframework.http.MediaType.parseMediaType(contentType ?: "application/octet-stream")
+                org.springframework.http.MediaType.parseMediaType(contentType)
 
             return ResponseEntity.ok()
                 .headers(headers)
@@ -63,7 +68,7 @@ class FileController(
                 val saveFile = Paths.get(totalFilename)
                 file.transferTo(saveFile)
 
-                val imageUrl = "${endpointProperties.backend}/v1/file/${filename}"
+                val imageUrl = "${endpointProperties.backend}/v1/file/$filename"
 
                 results.add(
                     UploadFileInfo(
@@ -98,5 +103,4 @@ class FileController(
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("파일을 찾을 수 없습니다.")
         }
     }
-
 }

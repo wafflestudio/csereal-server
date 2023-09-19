@@ -37,25 +37,25 @@ interface CustomNoticeRepository {
 @Component
 class NoticeRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
-    private val commonRepository: CommonRepository,
+    private val commonRepository: CommonRepository
 ) : CustomNoticeRepository {
     override fun totalSearchNotice(
-            keyword: String,
-            number: Int,
-            stringLength: Int,
+        keyword: String,
+        number: Int,
+        stringLength: Int
     ): NoticeTotalSearchResponse {
         val doubleTemplate = commonRepository.searchFullDoubleTextTemplate(
-                keyword,
-                noticeEntity.title,
-                noticeEntity.plainTextDescription
+            keyword,
+            noticeEntity.title,
+            noticeEntity.plainTextDescription
         )
 
         val query = queryFactory.select(
-                noticeEntity.id,
-                noticeEntity.title,
-                noticeEntity.createdAt,
-                noticeEntity.plainTextDescription
-            ).from(noticeEntity)
+            noticeEntity.id,
+            noticeEntity.title,
+            noticeEntity.createdAt,
+            noticeEntity.plainTextDescription
+        ).from(noticeEntity)
             .where(doubleTemplate.gt(0.0))
 
         val total = query.clone().select(noticeEntity.countDistinct()).fetchOne()!!
@@ -63,17 +63,17 @@ class NoticeRepositoryImpl(
         val searchResult = query.limit(number.toLong()).fetch()
 
         return NoticeTotalSearchResponse(
-                total.toInt(),
-                searchResult.map {
-                    NoticeTotalSearchElement(
-                            it[noticeEntity.id]!!,
-                            it[noticeEntity.title]!!,
-                            it[noticeEntity.createdAt]!!,
-                            it[noticeEntity.plainTextDescription]!!,
-                            keyword,
-                            stringLength,
-                    )
-                }
+            total.toInt(),
+            searchResult.map {
+                NoticeTotalSearchElement(
+                    it[noticeEntity.id]!!,
+                    it[noticeEntity.title]!!,
+                    it[noticeEntity.createdAt]!!,
+                    it[noticeEntity.plainTextDescription]!!,
+                    keyword,
+                    stringLength
+                )
+            }
         )
     }
 
@@ -92,7 +92,7 @@ class NoticeRepositoryImpl(
             val booleanTemplate = commonRepository.searchFullDoubleTextTemplate(
                 keyword,
                 noticeEntity.title,
-                noticeEntity.plainTextDescription,
+                noticeEntity.plainTextDescription
             )
             keywordBooleanBuilder.and(booleanTemplate.gt(0.0))
         }

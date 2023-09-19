@@ -30,7 +30,7 @@ class MainRepositoryImpl(
     private val mainImageService: MainImageService,
     private val noticeRepository: NoticeRepository,
     private val newsRepository: NewsRepository,
-    private val seminarRepository: SeminarRepository,
+    private val seminarRepository: SeminarRepository
 ) : MainRepository {
     override fun readMainSlide(): List<MainSlideResponse> {
         val newsEntityList = queryFactory.selectFrom(newsEntity)
@@ -44,7 +44,11 @@ class MainRepositoryImpl(
                 id = it.id,
                 title = it.title,
                 imageURL = imageURL,
-                createdAt = it.createdAt
+                createdAt = it.createdAt,
+                description = it.plainTextDescription.substring(
+                    0,
+                    100.coerceAtMost(it.plainTextDescription.length)
+                )
             )
         }
     }
@@ -56,8 +60,8 @@ class MainRepositoryImpl(
                 noticeEntity.id,
                 noticeEntity.title,
                 noticeEntity.createdAt,
-                noticeEntity.isPinned,
-            ),
+                noticeEntity.isPinned
+            )
         ).from(noticeEntity)
             .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPrivate.eq(false))
             .orderBy(noticeEntity.isPinned.desc()).orderBy(noticeEntity.createdAt.desc())
@@ -71,13 +75,13 @@ class MainRepositoryImpl(
                 noticeTagEntity.notice.id,
                 noticeTagEntity.notice.title,
                 noticeTagEntity.notice.createdAt,
-                noticeEntity.isPinned,
+                noticeEntity.isPinned
             )
         ).from(noticeTagEntity)
             .rightJoin(noticeEntity).on(noticeTagEntity.notice.eq(noticeEntity))
             .rightJoin(tagInNoticeEntity).on(noticeTagEntity.tag.eq(tagInNoticeEntity))
             .where(noticeTagEntity.tag.name.eq(tagEnum))
-            .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPrivate.eq(true))
+            .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPrivate.eq(false))
             .orderBy(noticeEntity.isPinned.desc()).orderBy(noticeTagEntity.notice.createdAt.desc())
             .limit(6).distinct().fetch()
     }

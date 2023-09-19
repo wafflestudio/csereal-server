@@ -9,11 +9,12 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.repository.findByIdOrNull
+import java.time.LocalDateTime
 
 @SpringBootTest
 class NewsServiceTest(
     private val newsService: NewsService,
-    private val newsRepository: NewsRepository,
+    private val newsRepository: NewsRepository
 ) : BehaviorSpec() {
     init {
 
@@ -30,11 +31,11 @@ class NewsServiceTest(
                         <h1>Hello, World!</h1>
                         <p>This is news description.</p>
                         <h3>Goodbye, World!</h3>
-                    """.trimIndent(),
+                """.trimIndent(),
                 tags = emptyList(),
                 createdAt = null,
                 modifiedAt = null,
-                date = null,
+                date = LocalDateTime.now(),
                 isPrivate = false,
                 isSlide = false,
                 isImportant = false,
@@ -43,7 +44,7 @@ class NewsServiceTest(
                 nextId = null,
                 nextTitle = null,
                 imageURL = null,
-                attachments = null,
+                attachments = null
             )
 
             When("DTO를 이용하여 뉴스를 생성하면") {
@@ -56,7 +57,9 @@ class NewsServiceTest(
 
                 Then("plainTextDescription이 생성되었어야 한다.") {
                     val createdNewsEntity = newsRepository.findByIdOrNull(createdNewsDTO.id)!!
-                    createdNewsEntity.plainTextDescription shouldBe "Hello, World! This is news description. Goodbye, World!"
+                    createdNewsEntity.plainTextDescription shouldBe (
+                        "Hello, World! This is news description. Goodbye, World!"
+                        )
                 }
             }
         }
@@ -70,12 +73,12 @@ class NewsServiceTest(
                             <h1>Hello, World!</h1>
                             <p>This is news description.</p>
                             <h3>Goodbye, World!</h3>
-                            """.trimIndent(),
+                    """.trimIndent(),
                     plainTextDescription = "Hello, World! This is news description. Goodbye, World!",
-                    date = null,
+                    date = LocalDateTime.now(),
                     isPrivate = false,
                     isSlide = false,
-                    isImportant = false,
+                    isImportant = false
                 )
             )
 
@@ -92,7 +95,7 @@ class NewsServiceTest(
                             """.trimIndent()
                         ),
                     null,
-                    null,
+                    null
                 )
 
                 Then("description, plainTextDescription이 수정되어야 한다.") {
@@ -102,8 +105,11 @@ class NewsServiceTest(
                             <p>This is modified news description.</p>
                             <h3>Goodbye, World!</h3>
                             <p>This is additional description.</p>
-                            """.trimIndent()
-                    updatedNewsEntity.plainTextDescription shouldBe "Hello, World! This is modified news description. Goodbye, World! This is additional description."
+                    """.trimIndent()
+                    updatedNewsEntity.plainTextDescription shouldBe (
+                        "Hello, World! This is modified news description." +
+                            " Goodbye, World! This is additional description."
+                        )
                 }
             }
         }
