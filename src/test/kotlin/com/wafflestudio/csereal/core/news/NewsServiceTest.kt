@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.notice.news
+package com.wafflestudio.csereal.core.news
 
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.news.database.NewsRepository
@@ -104,7 +104,8 @@ class NewsServiceTest(
                             <h3>Goodbye, World!</h3>
                             <p>This is additional description.</p>
                             """.trimIndent()
-                    updatedNewsEntity.plainTextDescription shouldBe "Hello, World! This is modified news description. Goodbye, World! This is additional description."
+                    updatedNewsEntity.plainTextDescription shouldBe "Hello, World! This is modified news description." +
+                            " Goodbye, World! This is additional description."
                 }
             }
         }
