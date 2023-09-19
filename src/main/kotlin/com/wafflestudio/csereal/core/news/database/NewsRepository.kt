@@ -34,7 +34,7 @@ interface CustomNewsRepository {
         usePageBtn: Boolean,
         isStaff: Boolean
     ): NewsSearchResponse
-  
+
     fun searchTotalNews(
         keyword: String,
         number: Int,
