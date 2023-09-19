@@ -7,6 +7,7 @@ plugins {
     kotlin("plugin.spring") version "1.7.22"
     kotlin("plugin.jpa") version "1.7.22"
     kotlin("kapt") version "1.7.10"
+    id("org.jlleitschuh.gradle.ktlint") version "11.6.0"
 }
 
 group = "com.wafflestudio"
@@ -64,7 +65,6 @@ dependencies {
 
     // Custom Metadata
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-
 }
 noArg {
     annotation("jakarta.persistence.Entity")
@@ -76,6 +76,10 @@ allOpen {
     annotation("jakarta.persistence.Entity")
     annotation("jakarta.persistence.MappedSuperclass")
     annotation("jakarta.persistence.Embeddable")
+}
+
+apply {
+    plugin("org.jlleitschuh.gradle.ktlint")
 }
 
 tasks.withType<KotlinCompile> {

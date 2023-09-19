@@ -26,7 +26,7 @@ interface StaffService {
 @Transactional
 class StaffServiceImpl(
     private val staffRepository: StaffRepository,
-    private val mainImageService: MainImageService,
+    private val mainImageService: MainImageService
 ) : StaffService {
     override fun createStaff(createStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto {
         val staff = StaffEntity.of(createStaffRequest)
@@ -35,7 +35,7 @@ class StaffServiceImpl(
             TaskEntity.create(task, staff)
         }
 
-        if(mainImage != null) {
+        if (mainImage != null) {
             mainImageService.uploadMainImage(staff, mainImage)
         }
 
@@ -51,7 +51,7 @@ class StaffServiceImpl(
     @Transactional(readOnly = true)
     override fun getStaff(staffId: Long): StaffDto {
         val staff = staffRepository.findByIdOrNull(staffId)
-            ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. staffId: ${staffId}")
+            ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. staffId: $staffId")
 
         val imageURL = mainImageService.createImageURL(staff.mainImage)
 
@@ -68,11 +68,11 @@ class StaffServiceImpl(
 
     override fun updateStaff(staffId: Long, updateStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto {
         val staff = staffRepository.findByIdOrNull(staffId)
-            ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. staffId: ${staffId}")
+            ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. staffId: $staffId")
 
         staff.update(updateStaffRequest)
 
-        if(mainImage != null) {
+        if (mainImage != null) {
             mainImageService.uploadMainImage(staff, mainImage)
         } else {
             staff.mainImage = null
@@ -120,6 +120,4 @@ class StaffServiceImpl(
 
         return list
     }
-
-
 }

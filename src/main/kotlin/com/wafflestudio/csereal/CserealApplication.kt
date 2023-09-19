@@ -9,5 +9,5 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 class CserealApplication
 
 fun main(args: Array<String>) {
-	runApplication<CserealApplication>(*args)
+    runApplication<CserealApplication>(*args)
 }

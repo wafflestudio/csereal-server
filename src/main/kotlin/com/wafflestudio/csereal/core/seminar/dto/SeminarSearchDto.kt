@@ -14,5 +14,4 @@ data class SeminarSearchDto @QueryProjection constructor(
     val imageURL: String?,
     val isYearLast: Boolean,
     val isPrivate: Boolean
-) {
-}
+)

@@ -19,7 +19,9 @@ class ResearchController(
     @AuthenticatedStaff
     @PostMapping
     fun createResearchDetail(
-        @Valid @RequestPart("request") request: ResearchDto,
+        @Valid
+        @RequestPart("request")
+        request: ResearchDto,
         @RequestPart("mainImage") mainImage: MultipartFile?,
         @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<ResearchDto> {
@@ -40,7 +42,9 @@ class ResearchController(
     @PatchMapping("/{researchId}")
     fun updateResearchDetail(
         @PathVariable researchId: Long,
-        @Valid @RequestPart("request") request: ResearchDto,
+        @Valid
+        @RequestPart("request")
+        request: ResearchDto,
         @RequestPart("mainImage") mainImage: MultipartFile?,
         @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<ResearchDto> {
@@ -50,7 +54,9 @@ class ResearchController(
     @AuthenticatedStaff
     @PostMapping("/lab")
     fun createLab(
-        @Valid @RequestPart("request") request: LabDto,
+        @Valid
+        @RequestPart("request")
+        request: LabDto,
         @RequestPart("pdf") pdf: MultipartFile?
     ): ResponseEntity<LabDto> {
         return ResponseEntity.ok(researchService.createLab(request, pdf))
@@ -63,7 +69,7 @@ class ResearchController(
 
     @GetMapping("/lab/{labId}")
     fun readLab(
-        @PathVariable labId: Long,
+        @PathVariable labId: Long
     ): ResponseEntity<LabDto> {
         return ResponseEntity.ok(researchService.readLab(labId))
     }
@@ -74,9 +80,11 @@ class ResearchController(
     @AuthenticatedStaff
     @PatchMapping("/lab/{labId}")
     fun updateLab(
-            @PathVariable labId: Long,
-            @Valid @RequestPart("request") request: LabUpdateRequest,
-            @RequestPart("pdf") pdf: MultipartFile?
+        @PathVariable labId: Long,
+        @Valid
+        @RequestPart("request")
+        request: LabUpdateRequest,
+        @RequestPart("pdf") pdf: MultipartFile?
     ): ResponseEntity<LabDto> {
         return ResponseEntity.ok(researchService.updateLab(labId, request, pdf))
     }
@@ -87,6 +95,7 @@ class ResearchController(
     ): ResponseEntity<List<ResearchDto>> {
         return ResponseEntity.ok(researchService.migrateResearchDetail(requestList))
     }
+
     @PostMapping("/lab/migrate")
     fun migrateLabs(
         @RequestBody requestList: List<LabDto>

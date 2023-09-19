@@ -14,7 +14,7 @@ import jakarta.persistence.*
 
 @Entity(name = "attachment")
 class AttachmentEntity(
-    var isDeleted : Boolean? = false,
+    var isDeleted: Boolean? = false,
 
     @Column(unique = true)
     val filename: String,
@@ -56,7 +56,5 @@ class AttachmentEntity(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scholarship_id")
-    var scholarship: ScholarshipEntity? = null,
-) : BaseTimeEntity() {
-
-}
+    var scholarship: ScholarshipEntity? = null
+) : BaseTimeEntity()

@@ -6,11 +6,8 @@ import com.wafflestudio.csereal.core.notice.database.*
 import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.user.database.UserEntity
-import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.request.RequestAttributes
@@ -33,7 +30,7 @@ interface NoticeService {
     fun updateNotice(
         noticeId: Long,
         request: NoticeDto,
-        newAttachments: List<MultipartFile>?,
+        newAttachments: List<MultipartFile>?
     ): NoticeDto
 
     fun deleteNotice(noticeId: Long)
@@ -47,7 +44,7 @@ class NoticeServiceImpl(
     private val noticeRepository: NoticeRepository,
     private val tagInNoticeRepository: TagInNoticeRepository,
     private val noticeTagRepository: NoticeTagRepository,
-    private val attachmentService: AttachmentService,
+    private val attachmentService: AttachmentService
 ) : NoticeService {
 
     @Transactional(readOnly = true)
@@ -65,7 +62,7 @@ class NoticeServiceImpl(
     override fun searchTotalNotice(
         keyword: String,
         number: Int,
-        stringLength: Int,
+        stringLength: Int
     ) = noticeRepository.totalSearchNotice(keyword, number, stringLength)
 
     @Transactional(readOnly = true)
@@ -78,9 +75,9 @@ class NoticeServiceImpl(
         val attachmentResponses = attachmentService.createAttachmentResponses(notice.attachments)
 
         val prevNotice =
-            noticeRepository.findFirstByCreatedAtLessThanAndIsPrivateFalseOrderByCreatedAtDesc(notice.createdAt!!)
+            noticeRepository.findFirstByCreatedAtLessThanOrderByCreatedAtDesc(notice.createdAt!!)
         val nextNotice =
-            noticeRepository.findFirstByCreatedAtGreaterThanAndIsPrivateFalseOrderByCreatedAtAsc(notice.createdAt!!)
+            noticeRepository.findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(notice.createdAt!!)
 
         return NoticeDto.of(notice, attachmentResponses, prevNotice, nextNotice)
     }
@@ -122,7 +119,6 @@ class NoticeServiceImpl(
         val attachmentResponses = attachmentService.createAttachmentResponses(newNotice.attachments)
 
         return NoticeDto.of(newNotice, attachmentResponses)
-
     }
 
     @Transactional
@@ -170,7 +166,6 @@ class NoticeServiceImpl(
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
 
         notice.isDeleted = true
-
     }
 
     @Transactional
@@ -197,6 +192,4 @@ class NoticeServiceImpl(
         )
         tagInNoticeRepository.save(newTag)
     }
-
-
 }

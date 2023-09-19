@@ -7,5 +7,4 @@ data class NoticesResponse @QueryProjection constructor(
     val scholarship: List<MainNoticeResponse>,
     val undergraduate: List<MainNoticeResponse>,
     val graduate: List<MainNoticeResponse>
-){
-}
+)

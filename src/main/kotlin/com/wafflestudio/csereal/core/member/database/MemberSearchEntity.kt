@@ -1,34 +1,33 @@
 package com.wafflestudio.csereal.core.member.database
 
-import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import jakarta.persistence.*
 
 @Entity(name = "member_search")
-class MemberSearchEntity (
-        @Column(columnDefinition = "TEXT")
-        var content: String,
+class MemberSearchEntity(
+    @Column(columnDefinition = "TEXT")
+    var content: String,
 
-        @OneToOne
-        @JoinColumn(name = "professor_id")
-        val professor: ProfessorEntity? = null,
+    @OneToOne
+    @JoinColumn(name = "professor_id")
+    val professor: ProfessorEntity? = null,
 
-        @OneToOne
-        @JoinColumn(name = "staff_id")
-        val staff: StaffEntity? = null,
-): BaseTimeEntity() {
+    @OneToOne
+    @JoinColumn(name = "staff_id")
+    val staff: StaffEntity? = null
+) : BaseTimeEntity() {
     companion object {
         fun create(professor: ProfessorEntity): MemberSearchEntity {
             return MemberSearchEntity(
-                    content = createContent(professor),
-                    professor = professor
+                content = createContent(professor),
+                professor = professor
             )
         }
 
         fun create(staff: StaffEntity): MemberSearchEntity {
             return MemberSearchEntity(
-                    content = createContent(staff),
-                    staff = staff
+                content = createContent(staff),
+                staff = staff
             )
         }
 
@@ -49,7 +48,7 @@ class MemberSearchEntity (
             professor.researchAreas.forEach { stringBuilder.appendLine(it.name) }
             professor.careers.forEach { stringBuilder.appendLine(it.name) }
 
-                    return stringBuilder.toString()
+            return stringBuilder.toString()
         }
 
         fun createContent(staff: StaffEntity): String {
@@ -69,8 +68,8 @@ class MemberSearchEntity (
     @PreUpdate
     fun checkType() {
         if (
-                (professor != null && staff != null)
-                || (professor == null && staff == null)
+            (professor != null && staff != null) ||
+            (professor == null && staff == null)
         ) {
             throw RuntimeException("MemberSearchEntity must have either professor or staff")
         }

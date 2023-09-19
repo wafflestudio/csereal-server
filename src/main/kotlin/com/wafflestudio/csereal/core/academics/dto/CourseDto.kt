@@ -11,7 +11,7 @@ data class CourseDto(
     val credit: Int,
     val grade: String,
     val description: String?,
-    val attachments: List<AttachmentResponse>?,
+    val attachments: List<AttachmentResponse>?
 ) {
     companion object {
         fun of(entity: CourseEntity, attachmentResponses: List<AttachmentResponse>): CourseDto = entity.run {
@@ -23,7 +23,7 @@ data class CourseDto(
                 credit = this.credit,
                 grade = this.grade,
                 description = this.description,
-                attachments = attachmentResponses,
+                attachments = attachmentResponses
             )
         }
     }

@@ -2,10 +2,8 @@ package com.wafflestudio.csereal.core.news.database
 
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
-import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
-import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.news.database.QNewsEntity.newsEntity
 import com.wafflestudio.csereal.core.news.database.QNewsTagEntity.newsTagEntity
 import com.wafflestudio.csereal.core.news.database.QTagInNewsEntity.tagInNewsEntity
@@ -15,7 +13,6 @@ import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchDto
 import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchElement
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.QMainImageEntity.mainImageEntity
-import com.wafflestudio.csereal.core.notice.database.QNoticeEntity
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
@@ -24,8 +21,8 @@ import java.time.LocalDateTime
 
 interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository {
     fun findAllByIsImportant(isImportant: Boolean): List<NewsEntity>
-    fun findFirstByCreatedAtLessThanAndIsPrivateFalseOrderByCreatedAtDesc(timestamp: LocalDateTime): NewsEntity?
-    fun findFirstByCreatedAtGreaterThanAndIsPrivateFalseOrderByCreatedAtAsc(timestamp: LocalDateTime): NewsEntity?
+    fun findFirstByCreatedAtLessThanOrderByCreatedAtDesc(timestamp: LocalDateTime): NewsEntity?
+    fun findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(timestamp: LocalDateTime): NewsEntity?
 }
 
 interface CustomNewsRepository {
@@ -36,12 +33,11 @@ interface CustomNewsRepository {
         usePageBtn: Boolean,
         isStaff: Boolean
     ): NewsSearchResponse
-
     fun searchTotalNews(
         keyword: String,
         number: Int,
         amount: Int,
-        imageUrlCreator: (MainImageEntity?) -> String?,
+        imageUrlCreator: (MainImageEntity?) -> String?
     ): NewsTotalSearchDto
 }
 
@@ -49,7 +45,7 @@ interface CustomNewsRepository {
 class NewsRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
     private val mainImageService: MainImageService,
-    private val commonRepository: CommonRepository,
+    private val commonRepository: CommonRepository
 ) : CustomNewsRepository {
     override fun searchNews(
         tag: List<String>?,
@@ -66,7 +62,7 @@ class NewsRepositoryImpl(
             val booleanTemplate = commonRepository.searchFullDoubleTextTemplate(
                 keyword,
                 newsEntity.title,
-                newsEntity.plainTextDescription,
+                newsEntity.plainTextDescription
             )
             keywordBooleanBuilder.and(booleanTemplate.gt(0.0))
         }
@@ -102,7 +98,7 @@ class NewsRepositoryImpl(
         }
 
         val newsEntityList = jpaQuery
-            .orderBy(newsEntity.date.desc())
+            .orderBy(newsEntity.createdAt.desc())
             .offset(pageRequest.offset)
             .limit(pageRequest.pageSize.toLong())
             .distinct()
@@ -128,12 +124,12 @@ class NewsRepositoryImpl(
         keyword: String,
         number: Int,
         amount: Int,
-        imageUrlCreator: (MainImageEntity?) -> String?,
+        imageUrlCreator: (MainImageEntity?) -> String?
     ): NewsTotalSearchDto {
         val doubleTemplate = commonRepository.searchFullDoubleTextTemplate(
             keyword,
             newsEntity.title,
-            newsEntity.plainTextDescription,
+            newsEntity.plainTextDescription
         )
 
         val searchResult = queryFactory.select(
@@ -141,7 +137,7 @@ class NewsRepositoryImpl(
             newsEntity.title,
             newsEntity.date,
             newsEntity.plainTextDescription,
-            mainImageEntity,
+            mainImageEntity
         ).from(newsEntity)
             .leftJoin(mainImageEntity)
             .where(doubleTemplate.gt(0.0))
@@ -150,7 +146,7 @@ class NewsRepositoryImpl(
 
         val searchResultTags = queryFactory.select(
             newsTagEntity.news.id,
-            newsTagEntity.tag.name,
+            newsTagEntity.tag.name
         ).from(newsTagEntity)
             .rightJoin(newsEntity)
             .leftJoin(tagInNewsEntity)
@@ -178,7 +174,7 @@ class NewsRepositoryImpl(
                     imageUrl = imageUrlCreator(it[mainImageEntity]),
                     description = it[newsEntity.plainTextDescription]!!,
                     keyword = keyword,
-                    amount = amount,
+                    amount = amount
                 )
             }
         )

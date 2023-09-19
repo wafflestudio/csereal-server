@@ -10,7 +10,15 @@ import java.util.UUID
 interface ReservationRepository : JpaRepository<ReservationEntity, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT r FROM reservation r WHERE r.room.id = :roomId AND ((:start <= r.startTime AND r.startTime < :end) OR (:start < r.endTime AND r.endTime <= :end) OR (r.startTime <= :start AND r.endTime >= :end))")
+    @Query(
+        "SELECT r FROM reservation r " +
+            "WHERE r.room.id = :roomId " +
+            "AND ((:start <= r.startTime " +
+            "AND r.startTime < :end) " +
+            "OR (:start < r.endTime " +
+            "AND r.endTime <= :end) " +
+            "OR (r.startTime <= :start AND r.endTime >= :end))"
+    )
     fun findByRoomIdAndTimeOverlap(roomId: Long, start: LocalDateTime, end: LocalDateTime): List<ReservationEntity>
 
     fun findByRoomIdAndStartTimeBetweenOrderByStartTimeAsc(
@@ -20,5 +28,4 @@ interface ReservationRepository : JpaRepository<ReservationEntity, Long> {
     ): List<ReservationEntity>
 
     fun deleteAllByRecurrenceId(recurrenceId: UUID)
-
 }

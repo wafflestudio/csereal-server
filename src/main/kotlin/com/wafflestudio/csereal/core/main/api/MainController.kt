@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1")
 @RestController
 class MainController(
-    private val mainService: MainService,
+    private val mainService: MainService
 ) {
     @GetMapping
-    fun readMain() : MainResponse {
+    fun readMain(): MainResponse {
         return mainService.readMain()
     }
 }

@@ -15,7 +15,6 @@ import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentRepo
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentDto
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
-import org.apache.commons.io.FilenameUtils
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -32,7 +31,7 @@ interface AttachmentService {
 
     fun uploadAllAttachments(
         contentEntityType: AttachmentContentEntityType,
-        requestAttachments: List<MultipartFile>,
+        requestAttachments: List<MultipartFile>
     ): List<AttachmentDto>
 
     fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse>
@@ -46,7 +45,7 @@ class AttachmentServiceImpl(
     private val attachmentRepository: AttachmentRepository,
     @Value("\${csereal.upload.path}")
     private val path: String,
-    private val endpointProperties: EndpointProperties,
+    private val endpointProperties: EndpointProperties
 ) : AttachmentService {
     override fun uploadAttachmentInLabEntity(labEntity: LabEntity, requestAttachment: MultipartFile): AttachmentDto {
         Files.createDirectories(Paths.get(path))
@@ -61,7 +60,7 @@ class AttachmentServiceImpl(
         val attachment = AttachmentEntity(
             filename = filename,
             attachmentsOrder = 1,
-            size = requestAttachment.size,
+            size = requestAttachment.size
         )
 
         labEntity.pdf = attachment
@@ -72,13 +71,12 @@ class AttachmentServiceImpl(
             attachmentsOrder = 1,
             size = requestAttachment.size
         )
-
     }
 
     @Transactional
     override fun uploadAllAttachments(
         contentEntity: AttachmentContentEntityType,
-        requestAttachments: List<MultipartFile>,
+        requestAttachments: List<MultipartFile>
     ): List<AttachmentDto> {
         Files.createDirectories(Paths.get(path))
 
@@ -95,7 +93,7 @@ class AttachmentServiceImpl(
             val attachment = AttachmentEntity(
                 filename = filename,
                 attachmentsOrder = index + 1,
-                size = requestAttachment.size,
+                size = requestAttachment.size
             )
 
             connectAttachmentToEntity(contentEntity, attachment)
@@ -123,16 +121,14 @@ class AttachmentServiceImpl(
                         id = attachment.id,
                         name = attachment.filename.substringAfter("_"),
                         url = "${endpointProperties.backend}/v1/file/${attachment.filename}",
-                        bytes = attachment.size,
+                        bytes = attachment.size
                     )
                     list.add(attachmentDto)
                 }
-
             }
         }
         return list
     }
-
 
     @Transactional
     override fun deleteAttachments(ids: List<Long>?) {
@@ -144,7 +140,6 @@ class AttachmentServiceImpl(
             }
         }
     }
-
 
     private fun connectAttachmentToEntity(contentEntity: AttachmentContentEntityType, attachment: AttachmentEntity) {
         when (contentEntity) {

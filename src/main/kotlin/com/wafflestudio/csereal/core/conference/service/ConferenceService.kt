@@ -14,13 +14,10 @@ import com.wafflestudio.csereal.core.research.service.ResearchSearchService
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.request.RequestAttributes
 import org.springframework.web.context.request.RequestContextHolder
-
 
 interface ConferenceService {
     fun getConferencePage(): ConferencePage
@@ -33,7 +30,7 @@ class ConferenceServiceImpl(
     private val conferencePageRepository: ConferencePageRepository,
     private val conferenceRepository: ConferenceRepository,
     private val userRepository: UserRepository,
-    private val researchSearchService: ResearchSearchService,
+    private val researchSearchService: ResearchSearchService
 ) : ConferenceService {
 
     @Transactional(readOnly = true)
@@ -71,7 +68,7 @@ class ConferenceServiceImpl(
     @Transactional
     fun createConferenceWithoutSave(
         conferenceCreateDto: ConferenceCreateDto,
-        conferencePage: ConferencePageEntity,
+        conferencePage: ConferencePageEntity
     ): ConferenceEntity {
         val newConference = ConferenceEntity.of(
             conferenceCreateDto,
@@ -86,7 +83,7 @@ class ConferenceServiceImpl(
 
     @Transactional
     fun modifyConferenceWithoutSave(
-        conferenceDto: ConferenceDto,
+        conferenceDto: ConferenceDto
     ): ConferenceEntity {
         val conferenceEntity = conferenceRepository.findByIdOrNull(conferenceDto.id)
             ?: throw CserealException.Csereal404("Conference id:${conferenceDto.id} 가 존재하지 않습니다.")
@@ -104,7 +101,7 @@ class ConferenceServiceImpl(
     @Transactional
     fun deleteConference(
         id: Long,
-        conferencePage: ConferencePageEntity,
+        conferencePage: ConferencePageEntity
     ) = conferenceRepository.findByIdOrNull(id)
         ?.let {
             it.isDeleted = true

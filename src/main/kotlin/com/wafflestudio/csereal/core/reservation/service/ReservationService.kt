@@ -5,7 +5,6 @@ import com.wafflestudio.csereal.core.reservation.database.*
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
-import com.wafflestudio.csereal.core.user.database.Role
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -102,5 +101,4 @@ class ReservationServiceImpl(
     override fun cancelRecurring(recurrenceId: UUID) {
         reservationRepository.deleteAllByRecurrenceId(recurrenceId)
     }
-
 }

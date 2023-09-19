@@ -11,14 +11,14 @@ class AdmissionsEntity(
     @Enumerated(EnumType.STRING)
     val postType: AdmissionsPostType,
     val pageName: String,
-    val description: String,
-): BaseTimeEntity() {
+    val description: String
+) : BaseTimeEntity() {
     companion object {
-        fun of(postType: AdmissionsPostType, pageName: String, admissionsDto: AdmissionsDto) : AdmissionsEntity {
+        fun of(postType: AdmissionsPostType, pageName: String, admissionsDto: AdmissionsDto): AdmissionsEntity {
             return AdmissionsEntity(
                 postType = postType,
                 pageName = pageName,
-                description = admissionsDto.description,
+                description = admissionsDto.description
             )
         }
     }

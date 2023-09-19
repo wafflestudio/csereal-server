@@ -10,13 +10,13 @@ interface ResearchSearchService {
 }
 
 @Service
-class ResearchSearchServiceImpl (
-    private val researchSearchRepository: ResearchSearchRepository,
+class ResearchSearchServiceImpl(
+    private val researchSearchRepository: ResearchSearchRepository
 ) : ResearchSearchService {
 
     @Transactional
     override fun deleteResearchSearch(
-            researchSearchEntity: ResearchSearchEntity
+        researchSearchEntity: ResearchSearchEntity
     ) {
         researchSearchRepository.delete(researchSearchEntity)
     }

@@ -18,7 +18,7 @@ class StaffController(
     @PostMapping
     fun createStaff(
         @RequestPart("request") createStaffRequest: StaffDto,
-        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("mainImage") mainImage: MultipartFile?
     ): ResponseEntity<StaffDto> {
         return ResponseEntity.ok(staffService.createStaff(createStaffRequest, mainImage))
     }
@@ -37,7 +37,7 @@ class StaffController(
     fun updateStaff(
         @PathVariable staffId: Long,
         @RequestPart("request") updateStaffRequest: StaffDto,
-        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("mainImage") mainImage: MultipartFile?
     ): ResponseEntity<StaffDto> {
         return ResponseEntity.ok(staffService.updateStaff(staffId, updateStaffRequest, mainImage))
     }

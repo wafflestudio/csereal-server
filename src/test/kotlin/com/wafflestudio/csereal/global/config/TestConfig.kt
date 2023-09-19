@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Bean
 import org.springframework.boot.test.context.TestConfiguration
 
 @TestConfiguration
-class TestConfig (
-        @PersistenceContext
-        private val entityManager: EntityManager,
+class TestConfig(
+    @PersistenceContext
+    private val entityManager: EntityManager
 ) {
     @Bean
     fun jpaQueryFactory() = JPAQueryFactory(entityManager)

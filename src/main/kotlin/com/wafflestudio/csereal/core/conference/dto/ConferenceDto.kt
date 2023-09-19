@@ -6,7 +6,7 @@ data class ConferenceDto(
     val id: Long,
     val code: String,
     val abbreviation: String,
-    val name: String,
+    val name: String
 ) {
     companion object {
         fun of(conferenceEntity: ConferenceEntity): ConferenceDto {
@@ -14,7 +14,7 @@ data class ConferenceDto(
                 id = conferenceEntity.id,
                 code = conferenceEntity.code,
                 abbreviation = conferenceEntity.abbreviation,
-                name = conferenceEntity.name,
+                name = conferenceEntity.name
             )
         }
     }

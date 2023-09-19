@@ -15,10 +15,10 @@ import org.springframework.data.repository.findByIdOrNull
 @SpringBootTest
 @Transactional
 class StaffServiceTest(
-        private val staffService: StaffService,
-        private val staffRepository: StaffRepository,
-        private val memberSearchRepository: MemberSearchRepository,
-): BehaviorSpec({
+    private val staffService: StaffService,
+    private val staffRepository: StaffRepository,
+    private val memberSearchRepository: MemberSearchRepository
+) : BehaviorSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
 
     afterSpec {
@@ -27,12 +27,12 @@ class StaffServiceTest(
 
     Given("이미지 없는 행정직원을 생성하려고 할 떄") {
         val staffDto = StaffDto(
-                name = "name",
-                role = "role",
-                office = "office",
-                phone = "phone",
-                email = "email",
-                tasks = listOf("task1", "task2"),
+            name = "name",
+            role = "role",
+            office = "office",
+            phone = "phone",
+            email = "email",
+            tasks = listOf("task1", "task2")
         )
 
         When("행정직원을 생성하면") {
@@ -75,24 +75,24 @@ class StaffServiceTest(
 
     Given("이미지 없는 행정직원을 수정할 때") {
         val staffDto = StaffDto(
-                name = "name",
-                role = "role",
-                office = "office",
-                phone = "phone",
-                email = "email",
-                tasks = listOf("task1", "task2"),
+            name = "name",
+            role = "role",
+            office = "office",
+            phone = "phone",
+            email = "email",
+            tasks = listOf("task1", "task2")
         )
 
         val createdStaffDto = staffService.createStaff(staffDto, null)
 
         When("행정직원을 수정하면") {
             val updateStaffDto = StaffDto(
-                    name = "name2",
-                    role = "role2",
-                    office = "office2",
-                    phone = "phone2",
-                    email = "email2",
-                    tasks = listOf("task1", "task3", "task4"),
+                name = "name2",
+                role = "role2",
+                office = "office2",
+                phone = "phone2",
+                email = "email2",
+                tasks = listOf("task1", "task3", "task4")
             )
 
             val updatedStaffDto = staffService.updateStaff(createdStaffDto.id!!, updateStaffDto, null)
