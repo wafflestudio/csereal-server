@@ -26,6 +26,7 @@ server:
   servlet:
     session:
       timeout: 7200 # 2시간
+  forward-headers-strategy: native
 
 springdoc:
   paths-to-match:
