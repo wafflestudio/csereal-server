@@ -44,7 +44,7 @@ class AdminServiceImpl(
     @Transactional
     override fun readAllImportants(pageNum: Long): List<ImportantResponse> {
         val importantResponses: MutableList<ImportantResponse> = mutableListOf()
-        noticeRepository.findAllByIsImportant(true).forEach {
+        noticeRepository.findAllByIsImportantTrueAndIsDeletedFalse().forEach {
             importantResponses.add(
                 ImportantResponse(
                     id = it.id,
@@ -55,7 +55,7 @@ class AdminServiceImpl(
             )
         }
 
-        newsRepository.findAllByIsImportant(true).forEach {
+        newsRepository.findAllByIsImportantTrueAndIsDeletedFalse().forEach {
             importantResponses.add(
                 ImportantResponse(
                     id = it.id,
@@ -66,7 +66,7 @@ class AdminServiceImpl(
             )
         }
 
-        seminarRepository.findAllByIsImportant(true).forEach {
+        seminarRepository.findAllByIsImportantTrueAndIsDeletedFalse().forEach {
             importantResponses.add(
                 ImportantResponse(
                     id = it.id,
@@ -90,11 +90,13 @@ class AdminServiceImpl(
                         ?: throw CserealException.Csereal404("해당하는 공지사항을 찾을 수 없습니다.(noticeId=${important.id})")
                     notice.isImportant = false
                 }
+
                 "news" -> {
                     val news = newsRepository.findByIdOrNull(important.id)
                         ?: throw CserealException.Csereal404("해당하는 새소식을 찾을 수 없습니다.(noticeId=${important.id})")
                     news.isImportant = false
                 }
+
                 "seminar" -> {
                     val seminar = seminarRepository.findByIdOrNull(important.id)
                         ?: throw CserealException.Csereal404("해당하는 세미나를 찾을 수 없습니다.(noticeId=${important.id})")

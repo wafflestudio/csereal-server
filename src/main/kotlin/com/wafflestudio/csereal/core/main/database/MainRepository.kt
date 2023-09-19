@@ -88,36 +88,36 @@ class MainRepositoryImpl(
 
     override fun readMainImportant(): List<MainImportantResponse> {
         val mainImportantResponses: MutableList<MainImportantResponse> = mutableListOf()
-        noticeRepository.findAllByIsImportant(true).forEach {
+        noticeRepository.findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse().forEach {
             mainImportantResponses.add(
                 MainImportantResponse(
                     id = it.id,
                     title = it.titleForMain ?: it.title,
-                    description = it.description,
+                    description = it.plainTextDescription,
                     createdAt = it.createdAt,
                     category = "notice"
                 )
             )
         }
 
-        newsRepository.findAllByIsImportant(true).forEach {
+        newsRepository.findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse().forEach {
             mainImportantResponses.add(
                 MainImportantResponse(
                     id = it.id,
                     title = it.titleForMain ?: it.title,
-                    description = it.description,
+                    description = it.plainTextDescription,
                     createdAt = it.createdAt,
                     category = "news"
                 )
             )
         }
 
-        seminarRepository.findAllByIsImportant(true).forEach {
+        seminarRepository.findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse().forEach {
             mainImportantResponses.add(
                 MainImportantResponse(
                     id = it.id,
                     title = it.titleForMain ?: it.title,
-                    description = it.description,
+                    description = it.plainTextDescription,
                     createdAt = it.createdAt,
                     category = "seminar"
                 )
@@ -125,6 +125,6 @@ class MainRepositoryImpl(
         }
         mainImportantResponses.sortByDescending { it.createdAt }
 
-        return mainImportantResponses
+        return mainImportantResponses.take(2)
     }
 }
