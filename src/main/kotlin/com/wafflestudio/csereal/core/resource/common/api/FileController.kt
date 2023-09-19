@@ -43,14 +43,9 @@ class FileController(
             if (contentType.startsWith("text")) {
                 contentType += ";charset=UTF-8"
             }
-            
+
             headers.contentType =
                 org.springframework.http.MediaType.parseMediaType(contentType)
-
-            val originalFilename = filename.substringAfter("_")
-            val encodedFilename = URLEncoder.encode(originalFilename, Charsets.UTF_8.toString()).replace("+", "%20")
-
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''$encodedFilename")
 
             return ResponseEntity.ok()
                 .headers(headers)
