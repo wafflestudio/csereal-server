@@ -25,7 +25,7 @@ class NewsEntity(
     @Column(columnDefinition = "mediumtext")
     var plainTextDescription: String,
 
-    var date: LocalDateTime?,
+    var date: LocalDateTime,
     var isPrivate: Boolean,
     var isSlide: Boolean,
     var isImportant: Boolean,
