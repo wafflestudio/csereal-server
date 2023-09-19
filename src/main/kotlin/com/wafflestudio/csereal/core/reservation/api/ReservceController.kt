@@ -24,7 +24,7 @@ class ReservationController(
 ) {
 
     @GetMapping("/month")
-    @AuthenticatedForReservation
+//    @AuthenticatedForReservation  TODO: CBT 끝나면 주석 제거
     fun getMonthlyReservations(
         @RequestParam roomId: Long,
         @RequestParam year: Int,
@@ -36,7 +36,7 @@ class ReservationController(
     }
 
     @GetMapping("/week")
-    @AuthenticatedForReservation
+//    @AuthenticatedForReservation
     fun getWeeklyReservations(
         @RequestParam roomId: Long,
         @RequestParam year: Int,
@@ -49,7 +49,7 @@ class ReservationController(
     }
 
     @GetMapping("/{reservationId}")
-    @AuthenticatedForReservation
+//    @AuthenticatedForReservation
     fun getReservation(@PathVariable reservationId: Long): ResponseEntity<ReservationDto> {
         return ResponseEntity.ok(reservationService.getReservation(reservationId))
     }

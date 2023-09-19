@@ -24,17 +24,24 @@ import java.time.LocalDateTime
 
 interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository {
     fun findAllByIsImportant(isImportant: Boolean): List<NewsEntity>
-    fun findFirstByCreatedAtLessThanOrderByCreatedAtDesc(timestamp: LocalDateTime): NewsEntity?
-    fun findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(timestamp: LocalDateTime): NewsEntity?
+    fun findFirstByCreatedAtLessThanAndIsPrivateFalseOrderByCreatedAtDesc(timestamp: LocalDateTime): NewsEntity?
+    fun findFirstByCreatedAtGreaterThanAndIsPrivateFalseOrderByCreatedAtAsc(timestamp: LocalDateTime): NewsEntity?
 }
 
 interface CustomNewsRepository {
-    fun searchNews(tag: List<String>?, keyword: String?, pageable: Pageable, usePageBtn: Boolean, isStaff: Boolean): NewsSearchResponse
+    fun searchNews(
+        tag: List<String>?,
+        keyword: String?,
+        pageable: Pageable,
+        usePageBtn: Boolean,
+        isStaff: Boolean
+    ): NewsSearchResponse
+
     fun searchTotalNews(
-            keyword: String,
-            number: Int,
-            amount: Int,
-            imageUrlCreator: (MainImageEntity?) -> String?,
+        keyword: String,
+        number: Int,
+        amount: Int,
+        imageUrlCreator: (MainImageEntity?) -> String?,
     ): NewsTotalSearchDto
 }
 
@@ -95,7 +102,7 @@ class NewsRepositoryImpl(
         }
 
         val newsEntityList = jpaQuery
-            .orderBy(newsEntity.createdAt.desc())
+            .orderBy(newsEntity.date.desc())
             .offset(pageRequest.offset)
             .limit(pageRequest.pageSize.toLong())
             .distinct()
@@ -118,10 +125,10 @@ class NewsRepositoryImpl(
     }
 
     override fun searchTotalNews(
-            keyword: String,
-            number: Int,
-            amount: Int,
-            imageUrlCreator: (MainImageEntity?) -> String?,
+        keyword: String,
+        number: Int,
+        amount: Int,
+        imageUrlCreator: (MainImageEntity?) -> String?,
     ): NewsTotalSearchDto {
         val doubleTemplate = commonRepository.searchFullDoubleTextTemplate(
             keyword,
@@ -130,21 +137,21 @@ class NewsRepositoryImpl(
         )
 
         val searchResult = queryFactory.select(
-                newsEntity.id,
-                newsEntity.title,
-                newsEntity.date,
-                newsEntity.plainTextDescription,
-                mainImageEntity,
-            ).from(newsEntity)
+            newsEntity.id,
+            newsEntity.title,
+            newsEntity.date,
+            newsEntity.plainTextDescription,
+            mainImageEntity,
+        ).from(newsEntity)
             .leftJoin(mainImageEntity)
             .where(doubleTemplate.gt(0.0))
             .limit(number.toLong())
             .fetch()
 
         val searchResultTags = queryFactory.select(
-                newsTagEntity.news.id,
-                newsTagEntity.tag.name,
-            ).from(newsTagEntity)
+            newsTagEntity.news.id,
+            newsTagEntity.tag.name,
+        ).from(newsTagEntity)
             .rightJoin(newsEntity)
             .leftJoin(tagInNewsEntity)
             .where(newsTagEntity.news.id.`in`(searchResult.map { it[newsEntity.id] }))
@@ -152,28 +159,28 @@ class NewsRepositoryImpl(
             .fetch()
 
         val total = queryFactory.select(newsEntity.countDistinct())
-                .from(newsEntity)
-                .where(doubleTemplate.gt(0.0))
-                .fetchOne()!!
+            .from(newsEntity)
+            .where(doubleTemplate.gt(0.0))
+            .fetchOne()!!
 
         return NewsTotalSearchDto(
-                total.toInt(),
-                searchResult.map {
-                    NewsTotalSearchElement(
-                            id = it[newsEntity.id]!!,
-                            title = it[newsEntity.title]!!,
-                            date = it[newsEntity.date],
-                            tags = searchResultTags.filter {
-                                    tag -> tag[newsTagEntity.news.id] == it[newsEntity.id]
-                                }.map {
-                                    tag -> tag[newsTagEntity.tag.name]!!.krName
-                                },
-                            imageUrl = imageUrlCreator(it[mainImageEntity]),
-                            description = it[newsEntity.plainTextDescription]!!,
-                            keyword = keyword,
-                            amount = amount,
-                    )
-                }
+            total.toInt(),
+            searchResult.map {
+                NewsTotalSearchElement(
+                    id = it[newsEntity.id]!!,
+                    title = it[newsEntity.title]!!,
+                    date = it[newsEntity.date],
+                    tags = searchResultTags.filter { tag ->
+                        tag[newsTagEntity.news.id] == it[newsEntity.id]
+                    }.map { tag ->
+                        tag[newsTagEntity.tag.name]!!.krName
+                    },
+                    imageUrl = imageUrlCreator(it[mainImageEntity]),
+                    description = it[newsEntity.plainTextDescription]!!,
+                    keyword = keyword,
+                    amount = amount,
+                )
+            }
         )
     }
 }
