@@ -47,7 +47,7 @@ class NoticeController(
     fun totalSearchNotice(
             @RequestParam(required = true) @Length(min = 2) @NotBlank keyword: String,
             @RequestParam(required = true) @Positive number: Int,
-            @RequestParam(required = false) @Positive stringLength: Int = 200,
+            @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int,
     ) = ResponseEntity.ok(
             noticeService.searchTotalNotice(keyword, number, stringLength)
     )
