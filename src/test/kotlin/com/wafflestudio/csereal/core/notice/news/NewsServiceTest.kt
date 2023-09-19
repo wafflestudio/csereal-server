@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.repository.findByIdOrNull
+import java.time.LocalDateTime
 
 @SpringBootTest
 class NewsServiceTest(
@@ -34,7 +35,7 @@ class NewsServiceTest(
                 tags = emptyList(),
                 createdAt = null,
                 modifiedAt = null,
-                date = null,
+                date = LocalDateTime.now(),
                 isPrivate = false,
                 isSlide = false,
                 isImportant = false,
@@ -72,7 +73,7 @@ class NewsServiceTest(
                             <h3>Goodbye, World!</h3>
                             """.trimIndent(),
                     plainTextDescription = "Hello, World! This is news description. Goodbye, World!",
-                    date = null,
+                    date = LocalDateTime.now(),
                     isPrivate = false,
                     isSlide = false,
                     isImportant = false,
