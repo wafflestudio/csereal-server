@@ -75,9 +75,9 @@ class NoticeServiceImpl(
         val attachmentResponses = attachmentService.createAttachmentResponses(notice.attachments)
 
         val prevNotice =
-            noticeRepository.findFirstByCreatedAtLessThanAndIsPrivateFalseOrderByCreatedAtDesc(notice.createdAt!!)
+            noticeRepository.findFirstByCreatedAtLessThanOrderByCreatedAtDesc(notice.createdAt!!)
         val nextNotice =
-            noticeRepository.findFirstByCreatedAtGreaterThanAndIsPrivateFalseOrderByCreatedAtAsc(notice.createdAt!!)
+            noticeRepository.findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(notice.createdAt!!)
 
         return NoticeDto.of(notice, attachmentResponses, prevNotice, nextNotice)
     }
