@@ -8,7 +8,14 @@ interface CommonRepository {
     fun searchFullSingleTextTemplate(keyword: String, field: Any): NumberTemplate<Double>
     fun searchFullDoubleTextTemplate(keyword: String, field1: Any, field2: Any): NumberTemplate<Double>
     fun searchFullTripleTextTemplate(keyword: String, field1: Any, field2: Any, field3: Any): NumberTemplate<Double>
-    fun searchFullQuadrapleTextTemplate(keyword: String, field1: Any, field2: Any, field3: Any, field4: Any): NumberTemplate<Double>
+    fun searchFullQuadrapleTextTemplate(
+        keyword: String,
+        field1: Any,
+        field2: Any,
+        field3: Any,
+        field4: Any
+    ): NumberTemplate<Double>
+
     fun searchFullQuintupleTextTemplate(
         keyword: String,
         field1: Any,
