@@ -57,14 +57,14 @@ class NewsServiceImpl(
 
     @Transactional(readOnly = true)
     override fun searchTotalNews(
-            keyword: String,
-            number: Int,
-            amount: Int,
+        keyword: String,
+        number: Int,
+        amount: Int,
     ) = newsRepository.searchTotalNews(
-            keyword,
-            number,
-            amount,
-            mainImageService::createImageURL,
+        keyword,
+        number,
+        amount,
+        mainImageService::createImageURL,
     )
 
     @Transactional(readOnly = true)
@@ -77,8 +77,10 @@ class NewsServiceImpl(
         val imageURL = mainImageService.createImageURL(news.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(news.attachments)
 
-        val prevNews = newsRepository.findFirstByCreatedAtLessThanOrderByCreatedAtDesc(news.createdAt!!)
-        val nextNews = newsRepository.findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(news.createdAt!!)
+        val prevNews =
+            newsRepository.findFirstByCreatedAtLessThanAndIsPrivateFalseOrderByCreatedAtDesc(news.createdAt!!)
+        val nextNews =
+            newsRepository.findFirstByCreatedAtGreaterThanAndIsPrivateFalseOrderByCreatedAtAsc(news.createdAt!!)
 
         return NewsDto.of(news, imageURL, attachmentResponses, prevNews, nextNews)
     }
