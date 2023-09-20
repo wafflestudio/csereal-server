@@ -34,15 +34,7 @@ class AdminServiceImpl(
     override fun unSlideManyNews(request: List<Long>)
         = newsService.unSlideManyNews(request)
 
-    @Transactional
-    override fun unSlideManyNews(request: List<Long>) {
-        for (newsId in request) {
-            val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
-                ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다.(newsId=$newsId)")
-            news.isSlide = false
-        }
-    }
-
+    // TODO: 각 도메인의 Service로 구현, Service method 이용하기
     @Transactional
     override fun readAllImportants(pageNum: Long): List<ImportantResponse> {
         val importantResponses: MutableList<ImportantResponse> = mutableListOf()
@@ -83,6 +75,7 @@ class AdminServiceImpl(
         return importantResponses
     }
 
+    // TODO: 각 도메인의 Service로 구현, Service method 이용하기
     @Transactional
     override fun makeNotImportants(request: List<ImportantDto>) {
         for (important in request) {
