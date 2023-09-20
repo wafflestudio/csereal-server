@@ -19,10 +19,10 @@ class AdminController(
     @AuthenticatedStaff
     @GetMapping("/slide")
     fun readAllSlides(
-        @RequestParam(required = false, defaultValue = "0") pageNum: Long,
+        @RequestParam(required = false, defaultValue = "1") pageNum: Long,
         @RequestParam(required = false, defaultValue = "40") pageSize: Int
     ): ResponseEntity<AdminSlidesResponse> {
-        return ResponseEntity.ok(adminService.readAllSlides(pageNum, pageSize))
+        return ResponseEntity.ok(adminService.readAllSlides(pageNum - 1, pageSize))
     }
 
     @AuthenticatedStaff
