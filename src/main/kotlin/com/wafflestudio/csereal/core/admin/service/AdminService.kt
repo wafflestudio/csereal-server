@@ -1,12 +1,11 @@
 package com.wafflestudio.csereal.core.admin.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.core.admin.database.AdminRepository
 import com.wafflestudio.csereal.core.admin.dto.ImportantDto
 import com.wafflestudio.csereal.core.admin.dto.ImportantResponse
-import com.wafflestudio.csereal.core.admin.dto.SlideResponse
-import com.wafflestudio.csereal.core.news.database.NewsEntity
+import com.wafflestudio.csereal.core.admin.dto.AdminSlidesResponse
 import com.wafflestudio.csereal.core.news.database.NewsRepository
+import com.wafflestudio.csereal.core.news.service.NewsService
 import com.wafflestudio.csereal.core.notice.database.NoticeRepository
 import com.wafflestudio.csereal.core.seminar.database.SeminarRepository
 import org.springframework.data.repository.findByIdOrNull
@@ -14,7 +13,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface AdminService {
-    fun readAllSlides(pageNum: Long): List<SlideResponse>
+    fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse
     fun unSlideManyNews(request: List<Long>)
     fun readAllImportants(pageNum: Long): List<ImportantResponse>
     fun makeNotImportants(request: List<ImportantDto>)
@@ -22,15 +21,18 @@ interface AdminService {
 
 @Service
 class AdminServiceImpl(
-    private val adminRepository: AdminRepository,
+    private val newsService: NewsService,
     private val noticeRepository: NoticeRepository,
     private val newsRepository: NewsRepository,
     private val seminarRepository: SeminarRepository
 ) : AdminService {
+    @Transactional(readOnly = true)
+    override fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse
+        = newsService.readAllSlides(pageNum, pageSize)
+
     @Transactional
-    override fun readAllSlides(pageNum: Long): List<SlideResponse> {
-        return adminRepository.readAllSlides(pageNum)
-    }
+    override fun unSlideManyNews(request: List<Long>)
+        = newsService.unSlideManyNews(request)
 
     @Transactional
     override fun unSlideManyNews(request: List<Long>) {
