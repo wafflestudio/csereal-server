@@ -16,8 +16,8 @@ import java.time.LocalDateTime
 interface SeminarRepository : JpaRepository<SeminarEntity, Long>, CustomSeminarRepository {
     fun findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse(): List<SeminarEntity>
     fun findAllByIsImportantTrueAndIsDeletedFalse(): List<SeminarEntity>
-    fun findFirstByCreatedAtLessThanAndIsPrivateFalseOrderByCreatedAtDesc(timestamp: LocalDateTime): SeminarEntity?
-    fun findFirstByCreatedAtGreaterThanAndIsPrivateFalseOrderByCreatedAtAsc(timestamp: LocalDateTime): SeminarEntity?
+    fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanAndIsPrivateFalseOrderByCreatedAtDesc(timestamp: LocalDateTime): SeminarEntity?
+    fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanAndIsPrivateFalseOrderByCreatedAtAsc(timestamp: LocalDateTime): SeminarEntity?
 }
 
 interface CustomSeminarRepository {

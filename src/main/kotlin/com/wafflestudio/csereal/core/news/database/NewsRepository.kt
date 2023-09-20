@@ -22,8 +22,8 @@ import java.time.LocalDateTime
 interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository {
     fun findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse(): List<NewsEntity>
     fun findAllByIsImportantTrueAndIsDeletedFalse(): List<NewsEntity>
-    fun findFirstByCreatedAtLessThanOrderByCreatedAtDesc(timestamp: LocalDateTime): NewsEntity?
-    fun findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(timestamp: LocalDateTime): NewsEntity?
+    fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(timestamp: LocalDateTime): NewsEntity?
+    fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(timestamp: LocalDateTime): NewsEntity?
 }
 
 interface CustomNewsRepository {
