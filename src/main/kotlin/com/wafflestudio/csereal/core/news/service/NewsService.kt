@@ -120,8 +120,7 @@ class NewsServiceImpl(
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?
     ): NewsDto {
-        val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
-            ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다. (newsId: $newsId)")
+        val news: NewsEntity = getNewsEntityByIdOrThrow(newsId)
         if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.")
 
         news.update(request)
@@ -161,8 +160,7 @@ class NewsServiceImpl(
 
     @Transactional
     override fun deleteNews(newsId: Long) {
-        val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
-            ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다.(newsId: $newsId")
+        val news: NewsEntity = getNewsEntityByIdOrThrow(newsId)
 
         news.isDeleted = true
     }
@@ -172,5 +170,9 @@ class NewsServiceImpl(
             name = TagInNewsEnum.getTagEnum(tagName)
         )
         tagInNewsRepository.save(newTag)
+    }
+    fun getNewsEntityByIdOrThrow(newsId: Long): NewsEntity {
+        return newsRepository.findByIdOrNull(newsId)
+            ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다.(newsId: $newsId)")
     }
 }
