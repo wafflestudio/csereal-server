@@ -18,7 +18,6 @@ import com.wafflestudio.csereal.core.resource.mainImage.database.QMainImageEntit
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
@@ -188,7 +187,7 @@ class NewsRepositoryImpl(
     }
 
     override fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse {
-        val tuple =  queryFactory.select(
+        val tuple = queryFactory.select(
             newsEntity.id,
             newsEntity.title,
             newsEntity.createdAt
@@ -208,10 +207,10 @@ class NewsRepositoryImpl(
             total,
             tuple.map {
                 AdminSlideElement(
-                        id = it[newsEntity.id]!!,
-                        title = it[newsEntity.title]!!,
-                        createdAt = it[newsEntity.createdAt]!!
-                    )
+                    id = it[newsEntity.id]!!,
+                    title = it[newsEntity.title]!!,
+                    createdAt = it[newsEntity.createdAt]!!
+                )
             }
         )
     }

@@ -27,12 +27,12 @@ class AdminServiceImpl(
     private val seminarRepository: SeminarRepository
 ) : AdminService {
     @Transactional(readOnly = true)
-    override fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse
-        = newsService.readAllSlides(pageNum, pageSize)
+    override fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse =
+        newsService.readAllSlides(pageNum, pageSize)
 
     @Transactional
-    override fun unSlideManyNews(request: List<Long>)
-        = newsService.unSlideManyNews(request)
+    override fun unSlideManyNews(request: List<Long>) =
+        newsService.unSlideManyNews(request)
 
     // TODO: 각 도메인의 Service로 구현, Service method 이용하기
     @Transactional
