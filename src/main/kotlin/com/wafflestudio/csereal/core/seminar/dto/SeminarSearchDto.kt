@@ -12,6 +12,6 @@ data class SeminarSearchDto @QueryProjection constructor(
     val startDate: LocalDateTime?,
     val location: String,
     val imageURL: String?,
-    val isYearLast: Boolean,
+    val isYearFirst: Boolean,
     val isPrivate: Boolean
 )
