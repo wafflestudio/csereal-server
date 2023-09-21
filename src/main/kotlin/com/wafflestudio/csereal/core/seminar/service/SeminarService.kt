@@ -83,9 +83,13 @@ class SeminarServiceImpl(
         val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
 
         val prevSeminar =
-            seminarRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanAndIsPrivateFalseOrderByCreatedAtDesc(seminar.createdAt!!)
+            seminarRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
+                seminar.createdAt!!
+            )
         val nextSeminar =
-            seminarRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanAndIsPrivateFalseOrderByCreatedAtAsc(seminar.createdAt!!)
+            seminarRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
+                seminar.createdAt!!
+            )
 
         return SeminarDto.of(seminar, imageURL, attachmentResponses, prevSeminar, nextSeminar)
     }
