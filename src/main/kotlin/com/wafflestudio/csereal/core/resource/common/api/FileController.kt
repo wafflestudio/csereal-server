@@ -10,11 +10,14 @@ import org.springframework.core.io.Resource
 import org.springframework.core.io.UrlResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Paths
+import kotlin.text.Charsets.UTF_8
 
 @RequestMapping("/api/v1/file")
 @RestController
@@ -33,17 +36,15 @@ class FileController(
         val resource = UrlResource(file.toUri())
 
         if (resource.exists() || resource.isReadable) {
-            var contentType: String? = request.servletContext.getMimeType(resource.file.absolutePath)
+            val contentType: String? = request.servletContext.getMimeType(resource.file.absolutePath)
             val headers = HttpHeaders()
 
-            contentType = contentType ?: "application/octet-stream"
+            headers.contentType = MediaType.parseMediaType(contentType ?: "application/octet-stream")
 
-            if (contentType.startsWith("text")) {
-                contentType += ";charset=UTF-8"
-            }
+            val originalFilename = filename.substringAfter("_")
+            val encodedFilename = URLEncoder.encode(originalFilename, UTF_8.toString()).replace("+", "%20")
 
-            headers.contentType =
-                org.springframework.http.MediaType.parseMediaType(contentType)
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''$encodedFilename")
 
             return ResponseEntity.ok()
                 .headers(headers)
