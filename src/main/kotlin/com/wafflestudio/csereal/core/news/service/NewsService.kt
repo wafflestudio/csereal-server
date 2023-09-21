@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.news.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.core.admin.dto.AdminSlidesResponse
 import com.wafflestudio.csereal.core.news.database.*
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
@@ -34,6 +35,8 @@ interface NewsService {
     fun deleteNews(newsId: Long)
     fun enrollTag(tagName: String)
     fun searchTotalNews(keyword: String, number: Int, amount: Int): NewsTotalSearchDto
+    fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse
+    fun unSlideManyNews(request: List<Long>)
 }
 
 @Service
@@ -120,8 +123,7 @@ class NewsServiceImpl(
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?
     ): NewsDto {
-        val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
-            ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다. (newsId: $newsId)")
+        val news: NewsEntity = getNewsEntityByIdOrThrow(newsId)
         if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.")
 
         news.update(request)
@@ -161,8 +163,7 @@ class NewsServiceImpl(
 
     @Transactional
     override fun deleteNews(newsId: Long) {
-        val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
-            ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다.(newsId: $newsId")
+        val news: NewsEntity = getNewsEntityByIdOrThrow(newsId)
 
         news.isDeleted = true
     }
@@ -172,5 +173,23 @@ class NewsServiceImpl(
             name = TagInNewsEnum.getTagEnum(tagName)
         )
         tagInNewsRepository.save(newTag)
+    }
+
+    @Transactional(readOnly = true)
+    override fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse {
+        return newsRepository.readAllSlides(pageNum, pageSize)
+    }
+
+    @Transactional
+    override fun unSlideManyNews(request: List<Long>) {
+        for (newsId in request) {
+            val news = getNewsEntityByIdOrThrow(newsId)
+            news.isSlide = false
+        }
+    }
+
+    fun getNewsEntityByIdOrThrow(newsId: Long): NewsEntity {
+        return newsRepository.findByIdOrNull(newsId)
+            ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다.(newsId: $newsId)")
     }
 }
