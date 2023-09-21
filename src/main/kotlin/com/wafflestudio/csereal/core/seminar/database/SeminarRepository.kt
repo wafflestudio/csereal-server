@@ -88,11 +88,11 @@ class SeminarRepositoryImpl(
         val seminarSearchDtoList: MutableList<SeminarSearchDto> = mutableListOf()
 
         for (i: Int in 0 until seminarEntityList.size) {
-            var isYearFirst = false
-            if (i == seminarEntityList.size - 1) {
-                isYearFirst = false
-            } else if (seminarEntityList[i].startDate?.year != seminarEntityList[i + 1].startDate?.year) {
-                isYearFirst = true
+            var isYearLast = false
+            if (i == 0) {
+                isYearLast = true
+            } else if (seminarEntityList[i].startDate?.year != seminarEntityList[i - 1].startDate?.year) {
+                isYearLast = true
             }
 
             val imageURL = mainImageService.createImageURL(seminarEntityList[i].mainImage)
@@ -107,7 +107,7 @@ class SeminarRepositoryImpl(
                     startDate = seminarEntityList[i].startDate,
                     location = seminarEntityList[i].location,
                     imageURL = imageURL,
-                    isYearFirst = isYearFirst,
+                    isYearLast = isYearLast,
                     isPrivate = seminarEntityList[i].isPrivate
                 )
             )
