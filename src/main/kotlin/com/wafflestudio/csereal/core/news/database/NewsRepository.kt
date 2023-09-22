@@ -4,6 +4,8 @@ import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
+import com.wafflestudio.csereal.core.admin.dto.AdminSlideElement
+import com.wafflestudio.csereal.core.admin.dto.AdminSlidesResponse
 import com.wafflestudio.csereal.core.news.database.QNewsEntity.newsEntity
 import com.wafflestudio.csereal.core.news.database.QNewsTagEntity.newsTagEntity
 import com.wafflestudio.csereal.core.news.database.QTagInNewsEntity.tagInNewsEntity
@@ -16,7 +18,7 @@ import com.wafflestudio.csereal.core.resource.mainImage.database.QMainImageEntit
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository {
@@ -46,9 +48,11 @@ interface CustomNewsRepository {
         amount: Int,
         imageUrlCreator: (MainImageEntity?) -> String?
     ): NewsTotalSearchDto
+
+    fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse
 }
 
-@Component
+@Repository
 class NewsRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
     private val mainImageService: MainImageService,
@@ -182,6 +186,35 @@ class NewsRepositoryImpl(
                     description = it[newsEntity.plainTextDescription]!!,
                     keyword = keyword,
                     amount = amount
+                )
+            }
+        )
+    }
+
+    override fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse {
+        val tuple = queryFactory.select(
+            newsEntity.id,
+            newsEntity.title,
+            newsEntity.createdAt
+        ).from(newsEntity)
+            .where(newsEntity.isDeleted.eq(false), newsEntity.isPrivate.eq(false), newsEntity.isSlide.eq(true))
+            .orderBy(newsEntity.createdAt.desc())
+            .offset(pageSize * pageNum)
+            .limit(pageSize.toLong())
+            .fetch()
+
+        val total = queryFactory.select(newsEntity.count())
+            .from(newsEntity)
+            .where(newsEntity.isDeleted.eq(false), newsEntity.isPrivate.eq(false), newsEntity.isSlide.eq(true))
+            .fetchOne()!!
+
+        return AdminSlidesResponse(
+            total,
+            tuple.map {
+                AdminSlideElement(
+                    id = it[newsEntity.id]!!,
+                    title = it[newsEntity.title]!!,
+                    createdAt = it[newsEntity.createdAt]!!
                 )
             }
         )
