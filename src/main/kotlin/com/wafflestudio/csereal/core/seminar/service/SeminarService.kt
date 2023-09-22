@@ -83,9 +83,13 @@ class SeminarServiceImpl(
         val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
 
         val prevSeminar =
-            seminarRepository.findFirstByCreatedAtLessThanAndIsPrivateFalseOrderByCreatedAtDesc(seminar.createdAt!!)
+            seminarRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
+                seminar.createdAt!!
+            )
         val nextSeminar =
-            seminarRepository.findFirstByCreatedAtGreaterThanAndIsPrivateFalseOrderByCreatedAtAsc(seminar.createdAt!!)
+            seminarRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
+                seminar.createdAt!!
+            )
 
         return SeminarDto.of(seminar, imageURL, attachmentResponses, prevSeminar, nextSeminar)
     }
@@ -112,10 +116,6 @@ class SeminarServiceImpl(
 
         if (newAttachments != null) {
             attachmentService.uploadAllAttachments(seminar, newAttachments)
-        }
-
-        if (request.isImportant && request.titleForMain.isNullOrEmpty()) {
-            throw CserealException.Csereal400("중요 제목이 입력되어야 합니다")
         }
 
         val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)

@@ -75,9 +75,13 @@ class NoticeServiceImpl(
         val attachmentResponses = attachmentService.createAttachmentResponses(notice.attachments)
 
         val prevNotice =
-            noticeRepository.findFirstByCreatedAtLessThanOrderByCreatedAtDesc(notice.createdAt!!)
+            noticeRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
+                notice.createdAt!!
+            )
         val nextNotice =
-            noticeRepository.findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(notice.createdAt!!)
+            noticeRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
+                notice.createdAt!!
+            )
 
         return NoticeDto.of(notice, attachmentResponses, prevNotice, nextNotice)
     }
@@ -108,10 +112,6 @@ class NoticeServiceImpl(
 
         if (attachments != null) {
             attachmentService.uploadAllAttachments(newNotice, attachments)
-        }
-
-        if (request.isImportant && request.titleForMain.isNullOrEmpty()) {
-            throw CserealException.Csereal400("중요 제목이 입력되어야 합니다")
         }
 
         noticeRepository.save(newNotice)

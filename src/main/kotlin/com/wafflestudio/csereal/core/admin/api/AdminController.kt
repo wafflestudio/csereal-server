@@ -19,9 +19,10 @@ class AdminController(
     @AuthenticatedStaff
     @GetMapping("/slide")
     fun readAllSlides(
-        @RequestParam(required = false, defaultValue = "0") pageNum: Long
-    ): ResponseEntity<List<SlideResponse>> {
-        return ResponseEntity.ok(adminService.readAllSlides(pageNum))
+        @RequestParam(required = false, defaultValue = "1") pageNum: Long,
+        @RequestParam(required = false, defaultValue = "40") pageSize: Int
+    ): ResponseEntity<AdminSlidesResponse> {
+        return ResponseEntity.ok(adminService.readAllSlides(pageNum - 1, pageSize))
     }
 
     @AuthenticatedStaff
@@ -35,9 +36,12 @@ class AdminController(
     @AuthenticatedStaff
     @GetMapping("/important")
     fun readAllImportants(
-        @RequestParam(required = false, defaultValue = "0") pageNum: Long
-    ): ResponseEntity<List<ImportantResponse>> {
-        return ResponseEntity.ok(adminService.readAllImportants(pageNum))
+        @RequestParam(required = false, defaultValue = "1") pageNum: Int,
+        @RequestParam(required = false, defaultValue = "40") pageSize: Int
+    ): ResponseEntity<AdminImportantResponse> {
+        return ResponseEntity.ok(
+            adminService.readAllImportants(pageNum - 1, pageSize)
+        )
     }
 
     @AuthenticatedStaff
