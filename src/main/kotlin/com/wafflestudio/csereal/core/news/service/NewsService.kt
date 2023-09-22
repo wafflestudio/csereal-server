@@ -80,8 +80,14 @@ class NewsServiceImpl(
         val imageURL = mainImageService.createImageURL(news.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(news.attachments)
 
-        val prevNews = newsRepository.findFirstByCreatedAtLessThanOrderByCreatedAtDesc(news.createdAt!!)
-        val nextNews = newsRepository.findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(news.createdAt!!)
+        val prevNews =
+            newsRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
+                news.createdAt!!
+            )
+        val nextNews =
+            newsRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
+                news.createdAt!!
+            )
 
         return NewsDto.of(news, imageURL, attachmentResponses, prevNews, nextNews)
     }
