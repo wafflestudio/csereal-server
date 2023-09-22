@@ -1,8 +1,9 @@
 package com.wafflestudio.csereal.core.admin.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.core.admin.database.AdminRepository
 import com.wafflestudio.csereal.core.admin.dto.ImportantDto
-import com.wafflestudio.csereal.core.admin.dto.ImportantResponse
+import com.wafflestudio.csereal.core.admin.dto.AdminImportantResponse
 import com.wafflestudio.csereal.core.admin.dto.AdminSlidesResponse
 import com.wafflestudio.csereal.core.news.database.NewsRepository
 import com.wafflestudio.csereal.core.news.service.NewsService
@@ -15,13 +16,14 @@ import org.springframework.transaction.annotation.Transactional
 interface AdminService {
     fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse
     fun unSlideManyNews(request: List<Long>)
-    fun readAllImportants(pageNum: Long): List<ImportantResponse>
+    fun readAllImportants(pageNum: Int, pageSize: Int): AdminImportantResponse
     fun makeNotImportants(request: List<ImportantDto>)
 }
 
 @Service
 class AdminServiceImpl(
     private val newsService: NewsService,
+    private val adminRepository: AdminRepository,
     private val noticeRepository: NoticeRepository,
     private val newsRepository: NewsRepository,
     private val seminarRepository: SeminarRepository
@@ -34,45 +36,16 @@ class AdminServiceImpl(
     override fun unSlideManyNews(request: List<Long>) =
         newsService.unSlideManyNews(request)
 
-    // TODO: 각 도메인의 Service로 구현, Service method 이용하기
-    @Transactional
-    override fun readAllImportants(pageNum: Long): List<ImportantResponse> {
-        val importantResponses: MutableList<ImportantResponse> = mutableListOf()
-        noticeRepository.findAllByIsImportantTrueAndIsDeletedFalse().forEach {
-            importantResponses.add(
-                ImportantResponse(
-                    id = it.id,
-                    title = it.title,
-                    createdAt = it.createdAt,
-                    category = "notice"
-                )
-            )
-        }
+    @Transactional(readOnly = true)
+    override fun readAllImportants(pageNum: Int, pageSize: Int): AdminImportantResponse {
+        val offset = pageNum * pageSize
+        val importantList = adminRepository.readImportantsPagination(pageSize, offset)
+        val importantTotal = adminRepository.getTotalImportantsCnt()
 
-        newsRepository.findAllByIsImportantTrueAndIsDeletedFalse().forEach {
-            importantResponses.add(
-                ImportantResponse(
-                    id = it.id,
-                    title = it.title,
-                    createdAt = it.createdAt,
-                    category = "news"
-                )
-            )
-        }
-
-        seminarRepository.findAllByIsImportantTrueAndIsDeletedFalse().forEach {
-            importantResponses.add(
-                ImportantResponse(
-                    id = it.id,
-                    title = it.title,
-                    createdAt = it.createdAt,
-                    category = "seminar"
-                )
-            )
-        }
-        importantResponses.sortByDescending { it.createdAt }
-
-        return importantResponses
+        return AdminImportantResponse(
+            total = importantTotal,
+            importants = importantList
+        )
     }
 
     // TODO: 각 도메인의 Service로 구현, Service method 이용하기

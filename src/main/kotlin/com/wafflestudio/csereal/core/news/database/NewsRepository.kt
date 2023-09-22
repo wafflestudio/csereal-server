@@ -152,6 +152,7 @@ class NewsRepositoryImpl(
         ).from(newsEntity)
             .leftJoin(mainImageEntity)
             .where(doubleTemplate.gt(0.0))
+            .orderBy(newsEntity.date.desc())
             .limit(number.toLong())
             .fetch()
 
