@@ -33,7 +33,7 @@ class ReservationEntity(
     val professor: String,
     val recurringWeeks: Int = 1,
 
-    val recurrenceId: UUID? = null
+    val recurrenceId: UUID
 
 ) : BaseTimeEntity() {
 
