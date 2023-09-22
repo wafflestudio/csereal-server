@@ -6,7 +6,7 @@ import java.util.UUID
 
 data class ReservationDto(
     val id: Long,
-    val recurrenceId: UUID? = null,
+    val recurrenceId: UUID,
     val title: String,
     val purpose: String,
     val startTime: LocalDateTime,
@@ -41,6 +41,7 @@ data class ReservationDto(
         fun forNormalUser(reservationEntity: ReservationEntity): ReservationDto {
             return ReservationDto(
                 id = reservationEntity.id,
+                recurrenceId = reservationEntity.recurrenceId,
                 title = reservationEntity.title,
                 purpose = reservationEntity.purpose,
                 startTime = reservationEntity.startTime,
