@@ -5,7 +5,11 @@ import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
 import com.wafflestudio.csereal.core.reservation.service.ReservationService
+import com.wafflestudio.csereal.core.user.database.Role
+import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -20,10 +24,10 @@ import java.util.UUID
 @RequestMapping("/api/v1/reservation")
 @RestController
 class ReservationController(
-    private val reservationService: ReservationService
+    private val reservationService: ReservationService,
+    private val userRepository: UserRepository
 ) {
 
-    //    @AuthenticatedForReservation  TODO: CBT 끝나면 주석 제거
     @GetMapping("/month")
     fun getMonthlyReservations(
         @RequestParam roomId: Long,
@@ -35,7 +39,6 @@ class ReservationController(
         return ResponseEntity.ok(reservationService.getRoomReservationsBetween(roomId, start, end))
     }
 
-    //    @AuthenticatedForReservation
     @GetMapping("/week")
     fun getWeeklyReservations(
         @RequestParam roomId: Long,
@@ -48,10 +51,17 @@ class ReservationController(
         return ResponseEntity.ok(reservationService.getRoomReservationsBetween(roomId, start, end))
     }
 
-    //    @AuthenticatedForReservation
     @GetMapping("/{reservationId}")
-    fun getReservation(@PathVariable reservationId: Long): ResponseEntity<ReservationDto> {
-        return ResponseEntity.ok(reservationService.getReservation(reservationId))
+    fun getReservation(
+        @PathVariable reservationId: Long,
+        @AuthenticationPrincipal oidcUser: OidcUser?
+    ): ResponseEntity<ReservationDto> {
+        val isStaff = oidcUser?.let {
+            val username = it.idToken.getClaim<String>("username")
+            val user = userRepository.findByUsername(username)
+            user?.role == Role.ROLE_STAFF
+        } ?: false
+        return ResponseEntity.ok(reservationService.getReservation(reservationId, isStaff))
     }
 
     @PostMapping
