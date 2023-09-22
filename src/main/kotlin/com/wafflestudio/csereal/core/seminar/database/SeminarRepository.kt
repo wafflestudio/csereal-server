@@ -89,9 +89,9 @@ class SeminarRepositoryImpl(
 
         for (i: Int in 0 until seminarEntityList.size) {
             var isYearLast = false
-            if (i == seminarEntityList.size - 1) {
+            if (i == 0) {
                 isYearLast = true
-            } else if (seminarEntityList[i].startDate?.year != seminarEntityList[i + 1].startDate?.year) {
+            } else if (seminarEntityList[i].startDate?.year != seminarEntityList[i - 1].startDate?.year) {
                 isYearLast = true
             }
 
