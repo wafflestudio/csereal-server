@@ -17,7 +17,7 @@ import java.util.*
 interface ReservationService {
     fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto>
     fun getRoomReservationsBetween(roomId: Long, start: LocalDateTime, end: LocalDateTime): List<SimpleReservationDto>
-    fun getReservation(reservationId: Long): ReservationDto
+    fun getReservation(reservationId: Long, isStaff: Boolean): ReservationDto
     fun cancelSpecific(reservationId: Long)
     fun cancelRecurring(recurrenceId: UUID)
 }
@@ -78,20 +78,15 @@ class ReservationServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun getReservation(reservationId: Long): ReservationDto {
+    override fun getReservation(reservationId: Long, isStaff: Boolean): ReservationDto {
         val reservationEntity =
             reservationRepository.findByIdOrNull(reservationId) ?: throw CserealException.Csereal404("예약을 찾을 수 없습니다.")
 
-//        val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
-//            "loggedInUser",
-//            RequestAttributes.SCOPE_REQUEST
-//        ) as UserEntity
-//
-//        if (user.role == Role.ROLE_STAFF) {
-//            return ReservationDto.of(reservationEntity)
-//        } else {
-        return ReservationDto.forNormalUser(reservationEntity)
-//        }
+        return if (isStaff) {
+            ReservationDto.of(reservationEntity)
+        } else {
+            ReservationDto.forNormalUser(reservationEntity)
+        }
     }
 
     override fun cancelSpecific(reservationId: Long) {

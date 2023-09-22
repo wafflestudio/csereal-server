@@ -19,8 +19,13 @@ import java.time.LocalDateTime
 interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepository {
     fun findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse(): List<NoticeEntity>
     fun findAllByIsImportantTrueAndIsDeletedFalse(): List<NoticeEntity>
-    fun findFirstByCreatedAtLessThanOrderByCreatedAtDesc(timestamp: LocalDateTime): NoticeEntity?
-    fun findFirstByCreatedAtGreaterThanOrderByCreatedAtAsc(timestamp: LocalDateTime): NoticeEntity?
+    fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
+        timestamp: LocalDateTime
+    ): NoticeEntity?
+
+    fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
+        timestamp: LocalDateTime
+    ): NoticeEntity?
 }
 
 interface CustomNoticeRepository {
@@ -126,8 +131,7 @@ class NoticeRepositoryImpl(
                 noticeEntity.attachments.isNotEmpty,
                 noticeEntity.isPrivate
             )
-        )
-            .from(noticeEntity)
+        ).from(noticeEntity)
             .leftJoin(noticeTagEntity).on(noticeTagEntity.notice.eq(noticeEntity))
             .where(noticeEntity.isDeleted.eq(false))
             .where(keywordBooleanBuilder, tagsBooleanBuilder, isPrivateBooleanBuilder)
