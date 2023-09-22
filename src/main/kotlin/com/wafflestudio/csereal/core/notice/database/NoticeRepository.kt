@@ -61,7 +61,10 @@ class NoticeRepositoryImpl(
 
         val total = query.clone().select(noticeEntity.countDistinct()).fetchOne()!!
 
-        val searchResult = query.limit(number.toLong()).fetch()
+        val searchResult = query
+            .orderBy(noticeEntity.createdAt.desc())
+            .limit(number.toLong())
+            .fetch()
 
         return NoticeTotalSearchResponse(
             total.toInt(),
