@@ -64,6 +64,8 @@ class AdminRepository(
             ) as nn
             """.trimIndent()
         )
-        return query.resultList.first() as Long
+        val total = query.resultList.first() as Long
+        em.close()
+        return total
     }
 }
