@@ -41,6 +41,7 @@ class AdminRepository(
                 category = it[3] as String
             )
         }
+        em.close()
         return formattedResult
     }
 
