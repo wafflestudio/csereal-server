@@ -82,6 +82,7 @@ class ConferenceServiceImpl(
 
             conferencePage.conferences.add(conference)
 
+            conference.researchSearch = ResearchSearchEntity.create(conference)
             list.add(ConferenceDto.of(conference))
         }
 
