@@ -5,7 +5,6 @@ import com.wafflestudio.csereal.core.conference.database.ConferenceEntity
 import com.wafflestudio.csereal.core.conference.database.ConferencePageEntity
 import com.wafflestudio.csereal.core.conference.database.ConferencePageRepository
 import com.wafflestudio.csereal.core.conference.database.ConferenceRepository
-import com.wafflestudio.csereal.core.conference.dto.ConferenceCreateDto
 import com.wafflestudio.csereal.core.conference.dto.ConferenceDto
 import com.wafflestudio.csereal.core.conference.dto.ConferenceModifyRequest
 import com.wafflestudio.csereal.core.conference.dto.ConferencePage
@@ -22,6 +21,7 @@ import org.springframework.web.context.request.RequestContextHolder
 interface ConferenceService {
     fun getConferencePage(): ConferencePage
     fun modifyConferences(conferenceModifyRequest: ConferenceModifyRequest): ConferencePage
+    fun migrateConferences(requestList: List<ConferenceDto>): List<ConferenceDto>
 }
 
 @Service
@@ -56,7 +56,7 @@ class ConferenceServiceImpl(
             modifyConferenceWithoutSave(it)
         }
 
-        val deleteConferenceList = conferenceModifyRequest.deleteConfereceIdList.map {
+        val deleteConferenceList = conferenceModifyRequest.deleteConferenceIdList.map {
             deleteConference(it, conferencePage)
         }
 
@@ -66,12 +66,35 @@ class ConferenceServiceImpl(
     }
 
     @Transactional
+    override fun migrateConferences(requestList: List<ConferenceDto>): List<ConferenceDto> {
+        val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
+            "loggedInUser",
+            RequestAttributes.SCOPE_REQUEST
+        ) as UserEntity
+
+        val list = mutableListOf<ConferenceDto>()
+        val conferencePage = ConferencePageEntity.of(user)
+        conferencePageRepository.save(conferencePage)
+        for (request in requestList) {
+            val conference = ConferenceEntity.of(request, conferencePage)
+
+            conferenceRepository.save(conference)
+
+            conferencePage.conferences.add(conference)
+
+            list.add(ConferenceDto.of(conference))
+        }
+
+        return list
+    }
+
+    @Transactional
     fun createConferenceWithoutSave(
-        conferenceCreateDto: ConferenceCreateDto,
+        conferenceDto: ConferenceDto,
         conferencePage: ConferencePageEntity
     ): ConferenceEntity {
         val newConference = ConferenceEntity.of(
-            conferenceCreateDto,
+            conferenceDto,
             conferencePage
         )
         conferencePage.conferences.add(newConference)
