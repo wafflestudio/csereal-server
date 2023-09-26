@@ -24,11 +24,7 @@ class ConferenceController(
     fun modifyConferencePage(
         @RequestBody conferenceModifyRequest: ConferenceModifyRequest
     ): ResponseEntity<ConferencePage> {
-        return ResponseEntity.ok(
-            conferenceService.modifyConferences(
-                conferenceModifyRequest
-            )
-        )
+        return ResponseEntity.ok(conferenceService.modifyConferences(conferenceModifyRequest))
     }
 
     @AuthenticatedStaff
