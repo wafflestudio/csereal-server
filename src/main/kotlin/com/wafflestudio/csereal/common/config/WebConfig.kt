@@ -14,7 +14,7 @@ class WebConfig(
 
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/**")
-            .allowedOrigins(endpointProperties.frontend, "http://localhost:3000")
+            .allowedOrigins(endpointProperties.frontend)
             .allowedMethods("*")
             .allowedHeaders("*")
             .allowCredentials(true)
