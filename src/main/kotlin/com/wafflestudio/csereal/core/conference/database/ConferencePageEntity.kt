@@ -15,4 +15,13 @@ class ConferencePageEntity(
     @OrderBy("code ASC")
     val conferences: MutableSet<ConferenceEntity> = mutableSetOf()
 
-) : BaseTimeEntity()
+) : BaseTimeEntity() {
+    companion object {
+        fun of(author: UserEntity): ConferencePageEntity {
+            return ConferencePageEntity(
+                author = author,
+                conferences = mutableSetOf()
+            )
+        }
+    }
+}
