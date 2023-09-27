@@ -1,9 +1,11 @@
 package com.wafflestudio.csereal.core.conference.dto
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.wafflestudio.csereal.core.conference.database.ConferenceEntity
 
 data class ConferenceDto(
-    val id: Long,
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    val id: Long? = null,
     val code: String,
     val abbreviation: String,
     val name: String

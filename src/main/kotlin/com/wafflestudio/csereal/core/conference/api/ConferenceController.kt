@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.conference.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
+import com.wafflestudio.csereal.core.conference.dto.ConferenceDto
 import com.wafflestudio.csereal.core.conference.dto.ConferenceModifyRequest
 import com.wafflestudio.csereal.core.conference.dto.ConferencePage
 import com.wafflestudio.csereal.core.conference.service.ConferenceService
@@ -23,10 +24,14 @@ class ConferenceController(
     fun modifyConferencePage(
         @RequestBody conferenceModifyRequest: ConferenceModifyRequest
     ): ResponseEntity<ConferencePage> {
-        return ResponseEntity.ok(
-            conferenceService.modifyConferences(
-                conferenceModifyRequest
-            )
-        )
+        return ResponseEntity.ok(conferenceService.modifyConferences(conferenceModifyRequest))
+    }
+
+    @AuthenticatedStaff
+    @PostMapping("/migrate")
+    fun migrateConferences(
+        @RequestBody requestList: List<ConferenceDto>
+    ): ResponseEntity<List<ConferenceDto>> {
+        return ResponseEntity.ok(conferenceService.migrateConferences(requestList))
     }
 }
