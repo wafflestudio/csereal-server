@@ -4,7 +4,6 @@ import com.wafflestudio.csereal.core.conference.database.ConferenceEntity
 import com.wafflestudio.csereal.core.conference.database.ConferencePageEntity
 import com.wafflestudio.csereal.core.conference.database.ConferencePageRepository
 import com.wafflestudio.csereal.core.conference.database.ConferenceRepository
-import com.wafflestudio.csereal.core.conference.dto.ConferenceCreateDto
 import com.wafflestudio.csereal.core.conference.dto.ConferenceDto
 import com.wafflestudio.csereal.core.conference.dto.ConferenceModifyRequest
 import com.wafflestudio.csereal.core.user.database.Role
@@ -110,13 +109,13 @@ class ConferenceServiceTest(
                 name = "modifiedName",
                 abbreviation = "modifiedAbbreviation"
             )
-            val newConference = ConferenceCreateDto(
+            val newConference = ConferenceDto(
                 code = "code9",
                 name = "newName",
                 abbreviation = "newAbbreviation"
             )
             val conferenceModifyRequest = ConferenceModifyRequest(
-                deleteConfereceIdList = listOf(deleteConferenceId),
+                deleteConferenceIdList = listOf(deleteConferenceId),
                 modifiedConferenceList = listOf(modifiedConference),
                 newConferenceList = listOf(newConference)
             )
