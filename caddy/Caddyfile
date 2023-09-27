@@ -3,8 +3,7 @@
 	reverse_proxy host.docker.internal:3000
 
 	@backend_denied {
-		path /api/* /swagger-ui/* /api-docs/*
-		not path /api/v1/login /api/v1/login/* /api/v1/logout /api/v1/file/*
+		path /swagger-ui/* /api-docs/*
 		not remote_ip {$LOCAL_IP}
 	}
 	abort @backend_denied
