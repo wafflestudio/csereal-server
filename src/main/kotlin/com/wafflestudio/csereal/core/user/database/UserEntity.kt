@@ -14,7 +14,7 @@ class UserEntity(
     val studentId: String,
 
     @Enumerated(EnumType.STRING)
-    val role: Role?
+    var role: Role?
 
 ) : BaseTimeEntity()
 
