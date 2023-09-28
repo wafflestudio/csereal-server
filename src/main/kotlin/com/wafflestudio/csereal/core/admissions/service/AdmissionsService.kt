@@ -1,10 +1,11 @@
 package com.wafflestudio.csereal.core.admissions.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.core.admissions.database.AdmissionsPostType
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsEntity
+import com.wafflestudio.csereal.core.admissions.database.AdmissionsPostType
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsRepository
 import com.wafflestudio.csereal.core.admissions.dto.AdmissionsDto
+import com.wafflestudio.csereal.core.admissions.dto.AdmissionsRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -13,6 +14,7 @@ interface AdmissionsService {
     fun createGraduateAdmissions(request: AdmissionsDto): AdmissionsDto
     fun readUndergraduateAdmissions(postType: String): AdmissionsDto
     fun readGraduateAdmissions(): AdmissionsDto
+    fun migrateAdmissions(requestList: List<AdmissionsRequest>): List<AdmissionsDto>
 }
 
 @Service
@@ -51,9 +53,11 @@ class AdmissionsServiceImpl(
             "early" -> AdmissionsDto.of(
                 admissionsRepository.findByPostType(AdmissionsPostType.UNDERGRADUATE_EARLY_ADMISSION)
             )
+
             "regular" -> AdmissionsDto.of(
                 admissionsRepository.findByPostType(AdmissionsPostType.UNDERGRADUATE_REGULAR_ADMISSION)
             )
+
             else -> throw CserealException.Csereal404("해당하는 페이지를 찾을 수 없습니다.")
         }
     }
@@ -61,6 +65,36 @@ class AdmissionsServiceImpl(
     @Transactional(readOnly = true)
     override fun readGraduateAdmissions(): AdmissionsDto {
         return AdmissionsDto.of(admissionsRepository.findByPostType(AdmissionsPostType.GRADUATE))
+    }
+
+    @Transactional
+    override fun migrateAdmissions(requestList: List<AdmissionsRequest>): List<AdmissionsDto> {
+        val list = mutableListOf<AdmissionsDto>()
+
+        for (request in requestList) {
+            val enumPostType = makeStringToAdmissionsPostType(request.postType)
+
+            val pageName = when (enumPostType) {
+                AdmissionsPostType.UNDERGRADUATE_EARLY_ADMISSION -> "수시 모집"
+                AdmissionsPostType.UNDERGRADUATE_REGULAR_ADMISSION -> "정시 모집"
+                AdmissionsPostType.GRADUATE -> "대학원"
+                else -> throw CserealException.Csereal404("해당하는 페이지를 찾을 수 없습니다.")
+            }
+
+            val admissionsDto = AdmissionsDto(
+                id = null,
+                description = request.description,
+                createdAt = null,
+                modifiedAt = null
+            )
+
+            val newAdmissions = AdmissionsEntity.of(enumPostType, pageName, admissionsDto)
+
+            admissionsRepository.save(newAdmissions)
+
+            list.add(AdmissionsDto.of(newAdmissions))
+        }
+        return list
     }
 
     private fun makeStringToAdmissionsPostType(postType: String): AdmissionsPostType {
