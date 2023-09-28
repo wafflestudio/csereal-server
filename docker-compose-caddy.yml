@@ -11,6 +11,7 @@ services:
       - ./caddy/config:/config
     environment:
       URL: ${URL}
+      LOCAL_IP: ${LOCAL_IP}
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: always

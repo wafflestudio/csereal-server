@@ -25,6 +25,7 @@ class CustomOidcUserService(
     private val restTemplate: RestTemplate
 ) : OAuth2UserService<OidcUserRequest, OidcUser> {
 
+    @Transactional
     override fun loadUser(userRequest: OidcUserRequest): OidcUser {
         val oidcUser = DefaultOidcUser(
             userRequest.clientRegistration.scopes.map { SimpleGrantedAuthority("SCOPE_$it") },
@@ -32,12 +33,25 @@ class CustomOidcUserService(
         )
 
         val username = oidcUser.idToken.getClaim<String>("username")
-        val user = userRepository.findByUsername(username)
+        var user = userRepository.findByUsername(username)
 
         if (user == null) {
             val userInfoAttributes = fetchUserInfo(userRequest)
-            createUser(username, userInfoAttributes)
+            user = createUser(username, userInfoAttributes)
         }
+
+        val groups = oidcUser.idToken.getClaim<List<String>>("groups")
+        val role = if ("staff" in groups) {
+            Role.ROLE_STAFF
+        } else if ("professor" in groups) {
+            Role.ROLE_PROFESSOR
+        } else if ("graduate" in groups) {
+            Role.ROLE_GRADUATE
+        } else {
+            null
+        }
+
+        user.role = role
 
         return oidcUser
     }
@@ -67,31 +81,21 @@ class CustomOidcUserService(
         return userInfoResponse.body ?: emptyMap()
     }
 
-    @Transactional
-    fun createUser(username: String, userInfo: Map<String, Any>) {
+    private fun createUser(username: String, userInfo: Map<String, Any>): UserEntity {
         val name = userInfo["name"] as String
         val email = userInfo["email"] as String
         val studentId = userInfo["student_id"] as String
-
-        val groups = userInfo["groups"] as List<String>
-        val role = if ("staff" in groups) {
-            Role.ROLE_STAFF
-        } else if ("professor" in groups) {
-            Role.ROLE_PROFESSOR
-        } else if ("graduate" in groups) {
-            Role.ROLE_GRADUATE
-        } else {
-            null
-        }
 
         val newUser = UserEntity(
             username = username,
             name = name,
             email = email,
             studentId = studentId,
-            role = role
+            role = null
         )
 
         userRepository.save(newUser)
+
+        return newUser
     }
 }
