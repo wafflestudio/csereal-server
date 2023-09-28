@@ -22,30 +22,25 @@ jobs:
             contents: read
 
         steps:
-            -
-                name: Checkout
+            -   name: Checkout
                 uses: actions/checkout@v3
 
-            - 
-                name: Setup Java JDK
+            -   name: Setup Java JDK
                 uses: actions/setup-java@v3.12.0
                 with:
                     java-version: '17'
                     distribution: 'adopt'
 
-            -
-                run: ./gradlew clean bootJar -x test
+            -   run: ./gradlew clean bootJar -x test
 
-            -
-                name: Log in to the Container Registry
+            -   name: Log in to the Container Registry
                 uses: docker/login-action@v2.2.0
                 with:
                     registry: ghcr.io
                     username: ${{github.actor}}
                     password: ${{secrets.GITHUB_TOKEN}}
 
-            -
-                name: Build and push Docker image
+            -   name: Build and push Docker image
                 uses: docker/build-push-action@v4.1.1
                 with:
                     context: .
@@ -56,19 +51,17 @@ jobs:
                         ghcr.io/wafflestudio/csereal-server/server_image:latest
                         ghcr.io/wafflestudio/csereal-server/server_image:${{github.sha}}
 
-            -
-                name: Create .env file
+            -   name: Create .env file
                 run: |
                     echo "MYSQL_ROOT_PASSWORD=${{secrets.MYSQL_ROOT_PASSWORD}}" > .env
                     echo "MYSQL_USER=${{secrets.MYSQL_USER}}" >> .env
                     echo "MYSQL_PASSWORD=${{secrets.MYSQL_PASSWORD}}" >> .env
                     echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
                     echo "PROFILE=prod" >> .env
-                    echo "OIDC_CLIENT_SECRET_DEV=${{secrets.OIDC_CLIENT_SECRET_DEV}}" >> .env
+                    echo "OIDC_CLIENT_SECRET=${{secrets.OIDC_CLIENT_SECRET}}" >> .env
                     echo "URL=${{secrets.URL}}" >> .env
 
-            -
-                name: SCP Command to Transfer Files
+            -   name: SCP Command to Transfer Files
                 uses: appleboy/scp-action@v0.1.4
                 with:
                     host: ${{secrets.SSH_HOST}}
@@ -77,8 +70,7 @@ jobs:
                     source: "docker-compose-backend.yml, .env"
                     target: "~/app"
                     overwrite: true
-            -
-                name: SSH Remote Commands
+            -   name: SSH Remote Commands
                 uses: appleboy/ssh-action@v1.0.0
                 with:
                     host: ${{secrets.SSH_HOST}}

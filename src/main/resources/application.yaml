@@ -1,148 +1,138 @@
 spring:
-  profiles:
-    active: local
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  security:
-    oauth2:
-      client:
-        registration:
-          idsnucse:
-            client-id: waffle-dev-local-testing
-            client-secret: ${OIDC_CLIENT_SECRET_DEV}
-            authorization-grant-type: authorization_code
-            scope: openid, profile, email
-        provider:
-          idsnucse:
-            issuer-uri: https://id-dev.bacchus.io/o
-            jwk-set-uri: https://id-dev.bacchus.io/o/jwks
-  servlet:
-    multipart:
-      enabled: true
-      max-request-size: 100MB
-      max-file-size: 10MB
+    profiles:
+        active: local
+    datasource:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+    security:
+        oauth2:
+            client:
+                registration:
+                    idsnucse:
+                        client-id: waffle-dev-local-testing
+                        client-secret: ${OIDC_CLIENT_SECRET_DEV}
+                        authorization-grant-type: authorization_code
+                        scope: openid, profile, email
+                        redirect-uri: http://localhost:8080/api/v1/login/oauth2/code/idsnucse
+                provider:
+                    idsnucse:
+                        issuer-uri: https://id-dev.bacchus.io/o
+                        jwk-set-uri: https://id-dev.bacchus.io/o/jwks
+    servlet:
+        multipart:
+            enabled: true
+            max-request-size: 100MB
+            max-file-size: 10MB
 
 server:
-  servlet:
-    session:
-      timeout: 7200 # 2시간
+    servlet:
+        session:
+            timeout: 7200 # 2시간
 
 springdoc:
-  paths-to-match:
-    - /api/**
-  swagger-ui:
-    path: index.html
-  api-docs:
-    path: /api-docs/json
+    paths-to-match:
+        - /api/**
+    swagger-ui:
+        path: index.html
+    api-docs:
+        path: /api-docs/json
+
+csereal:
+    upload:
+        path: ./files/
+
+oldFiles:
+    path: ./cse-files/
+
+endpoint:
+    backend: http://localhost:8080/api
+    frontend: http://localhost:3000
+
+login-page: http://localhost:8080
 
 ---
 spring:
-  config.activate.on-profile: local
-  datasource:
-    url: jdbc:mysql://127.0.0.1:3306/csereal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
-    username: root
-    password: password
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    open-in-view: false
-    properties:
-      hibernate:
-        dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
-  security:
-    oauth2:
-      client:
-        registration:
-          idsnucse:
-            redirect-uri: http://localhost:8080/api/v1/login/oauth2/code/idsnucse
+    config.activate.on-profile: local
+    datasource:
+        url: jdbc:mysql://127.0.0.1:3306/csereal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
+        username: root
+        password: password
+    jpa:
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+        open-in-view: false
+        properties:
+            hibernate:
+                dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
 
 logging.level:
-  default: INFO
-  org:
-    springframework:
-      security: DEBUG
-
-csereal:
-  upload:
-    path: ./files/
-
-oldFiles:
-  path: ./cse-files/
-
-endpoint:
-  backend: http://localhost:8080/api
-  frontend: http://localhost:3000
+    default: INFO
+    org:
+        springframework:
+            security: DEBUG
 
 ---
 spring:
-  config.activate.on-profile: prod
-  jpa:
-    hibernate:
-      ddl-auto: update # TODO: change to validate (or none) when save actual data to server
-    open-in-view: false
-    properties:
-      hibernate:
-        dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
-  security:
-    oauth2:
-      client:
-        registration:
-          idsnucse:
-            redirect-uri: https://${URL}/api/v1/login/oauth2/code/idsnucse
+    config.activate.on-profile: prod
+    jpa:
+        hibernate:
+            ddl-auto: update # TODO: change to validate (or none) when save actual data to server
+        open-in-view: false
+        properties:
+            hibernate:
+                dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
+    security:
+        oauth2:
+            client:
+                registration:
+                    idsnucse:
+                        client-id: cse-waffle-dev
+                        client-secret: ${OIDC_CLIENT_SECRET}
+                        authorization-grant-type: authorization_code
+                        scope: openid, profile, email
+                        redirect-uri: https://${URL}/api/v1/login/oauth2/code/idsnucse
+                provider:
+                    idsnucse:
+                        issuer-uri: https://id.snucse.org/o
+                        jwk-set-uri: https://id.snucse.org/o/jwks
 
 csereal:
-  upload:
-    path: /app/files/
+    upload:
+        path: /app/files/
 
 oldFiles:
-  path: /app/cse-files/
+    path: /app/cse-files/
 
 endpoint:
-  backend: https://${URL}/api
-  frontend: https://${URL}
+    backend: https://${URL}/api
+    frontend: https://${URL}
+
+login-page: https://${URL}
 
 ---
 spring:
-  config.activate.on-profile: test
-  datasource:
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:testdb;MODE=MYSQL;DB_CLOSE_DELAY=-1;
-    username: sa
-    password:
-  jpa:
-    database: h2
-    database-platform: org.hibernate.dialect.H2Dialect
-    show-sql: true
-    open-in-view: false
-    hibernate:
-      ddl-auto: create-drop
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
-  h2:
-    console:
-      enabled: true
-  security:
-    oauth2:
-      client:
-        registration:
-          idsnucse:
-            redirect-uri: http://localhost:8080/api/v1/login/oauth2/code/idsnucse
+    config.activate.on-profile: test
+    datasource:
+        driver-class-name: org.h2.Driver
+        url: jdbc:h2:mem:testdb;MODE=MYSQL;DB_CLOSE_DELAY=-1;
+        username: sa
+        password:
+    jpa:
+        database: h2
+        database-platform: org.hibernate.dialect.H2Dialect
+        show-sql: true
+        open-in-view: false
+        hibernate:
+            ddl-auto: create-drop
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.H2Dialect
+    h2:
+        console:
+            enabled: true
 
 logging.level:
-  default: INFO
-  org:
-    springframework:
-      security: DEBUG
-
-csereal:
-  upload:
-    path: ./files/
-
-oldFiles:
-  path: ./cse-files/
-
-endpoint:
-  backend: http://localhost:8080/api
-  frontend: http://localhost:3000
+    default: INFO
+    org:
+        springframework:
+            security: DEBUG

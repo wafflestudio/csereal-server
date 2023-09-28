@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.user.service.CustomOidcUserService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -22,7 +23,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableConfigurationProperties(EndpointProperties::class)
 class SecurityConfig(
     private val customOidcUserService: CustomOidcUserService,
-    private val endpointProperties: EndpointProperties
+    private val endpointProperties: EndpointProperties,
+    @Value("\${login-page}")
+    private val loginPage: String
 ) {
 
     @Bean
@@ -31,7 +34,7 @@ class SecurityConfig(
             .cors().and()
             .csrf().disable()
             .oauth2Login()
-            .loginPage("${endpointProperties.frontend}/oauth2/authorization/idsnucse")
+            .loginPage("$loginPage/oauth2/authorization/idsnucse")
             .redirectionEndpoint()
             .baseUri("/api/v1/login/oauth2/code/idsnucse").and()
             .userInfoEndpoint().oidcUserService(customOidcUserService).and()
@@ -66,9 +69,10 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf("*")
+        configuration.allowedOrigins = listOf(endpointProperties.frontend)
         configuration.allowedMethods = listOf("*")
         configuration.allowedHeaders = listOf("*")
+        configuration.allowCredentials = true
         configuration.maxAge = 3000
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)

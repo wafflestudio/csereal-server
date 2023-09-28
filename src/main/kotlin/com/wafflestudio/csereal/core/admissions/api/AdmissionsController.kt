@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.admissions.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.admissions.dto.AdmissionsDto
+import com.wafflestudio.csereal.core.admissions.dto.AdmissionsRequest
 import com.wafflestudio.csereal.core.admissions.service.AdmissionsService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -46,5 +47,12 @@ class AdmissionsController(
     @GetMapping("/graduate")
     fun readGraduateAdmissions(): ResponseEntity<AdmissionsDto> {
         return ResponseEntity.ok(admissionsService.readGraduateAdmissions())
+    }
+
+    @PostMapping("/migrate")
+    fun migrateAdmissions(
+        @RequestBody requestList: List<AdmissionsRequest>
+    ): ResponseEntity<List<AdmissionsDto>> {
+        return ResponseEntity.ok(admissionsService.migrateAdmissions(requestList))
     }
 }
