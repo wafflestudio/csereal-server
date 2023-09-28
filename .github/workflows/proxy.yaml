@@ -20,7 +20,7 @@ jobs:
         name: Create .env file
         run: |
           echo "URL=${{secrets.URL}}" > .env
-          echo "LOCAL_IP=${{secrets.LOCAL_IP}}" > .env
+          echo "LOCAL_IP=${{secrets.LOCAL_IP}}" >> .env
 
       -
         name: SCP Command to Transfer Files
