@@ -110,10 +110,6 @@ class NewsServiceImpl(
             attachmentService.uploadAllAttachments(newNews, attachments)
         }
 
-        if (request.isImportant && request.titleForMain.isNullOrEmpty()) {
-            throw CserealException.Csereal400("중요 제목이 입력되어야 합니다")
-        }
-
         newsRepository.save(newNews)
 
         val imageURL = mainImageService.createImageURL(newNews.mainImage)
