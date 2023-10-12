@@ -12,7 +12,7 @@ spring:
                         client-secret: ${OIDC_CLIENT_SECRET}
                         authorization-grant-type: authorization_code
                         scope: openid, profile, email
-                        redirect-uri: https://${URL}/api/v1/login/oauth2/code/idsnucse
+                        redirect-uri: http://localhost:8080/api/v1/login/oauth2/code/idsnucse
                 provider:
                     idsnucse:
                         issuer-uri: https://id.snucse.org/o
@@ -81,6 +81,12 @@ spring:
         properties:
             hibernate:
                 dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
+    security:
+        oauth2:
+            client:
+                registration:
+                    idsnucse:
+                        redirect-uri: https://${URL}/api/v1/login/oauth2/code/idsnucse
 
 csereal:
     upload:
@@ -100,7 +106,7 @@ spring:
     config.activate.on-profile: test
     datasource:
         driver-class-name: org.h2.Driver
-        url: jdbc:h2:mem:testdb;MODE=MYSQL;DB_CLOSE_DELAY=-1;
+        url: jdbc:h2:mem:testdb;MODE=MYSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
         username: sa
         password:
     jpa:
