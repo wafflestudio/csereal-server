@@ -34,7 +34,10 @@ class SeminarEntity(
 
     // 연사 정보
     var name: String,
+
+    @Column(columnDefinition = "varchar(2047)")
     var speakerURL: String?,
+
     var speakerTitle: String?,
     var affiliation: String,
     var affiliationURL: String?,
