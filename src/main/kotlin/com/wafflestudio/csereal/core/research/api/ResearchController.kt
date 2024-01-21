@@ -1,10 +1,8 @@
 package com.wafflestudio.csereal.core.research.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
-import com.wafflestudio.csereal.core.research.dto.LabDto
-import com.wafflestudio.csereal.core.research.dto.LabUpdateRequest
-import com.wafflestudio.csereal.core.research.dto.ResearchDto
-import com.wafflestudio.csereal.core.research.dto.ResearchGroupResponse
+import com.wafflestudio.csereal.core.research.dto.*
+import com.wafflestudio.csereal.core.research.service.ResearchSearchService
 import com.wafflestudio.csereal.core.research.service.ResearchService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -14,7 +12,8 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/api/v1/research")
 @RestController
 class ResearchController(
-    private val researchService: ResearchService
+    private val researchService: ResearchService,
+    private val researchSearchService: ResearchSearchService
 ) {
     @AuthenticatedStaff
     @PostMapping
@@ -102,4 +101,17 @@ class ResearchController(
     ): ResponseEntity<List<LabDto>> {
         return ResponseEntity.ok(researchService.migrateLabs(requestList))
     }
+
+    @GetMapping("/search/top")
+    fun searchTop(
+        @RequestParam(required = true) keyword: String,
+        @RequestParam(required = true) number: Int
+    ) = researchSearchService.searchTopResearch(keyword, number)
+
+    @GetMapping("/search")
+    fun searchPage(
+        @RequestParam(required = true) keyword: String,
+        @RequestParam(required = true) pageSize: Int,
+        @RequestParam(required = true) pageNum: Int
+    ) = researchSearchService.searchResearch(keyword, pageSize, pageNum)
 }

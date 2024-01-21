@@ -12,8 +12,6 @@ import org.springframework.context.event.EventListener
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.transaction.event.TransactionPhase
-import org.springframework.transaction.event.TransactionalEventListener
 
 interface ResearchSearchService {
     fun professorCreatedEventListener(professorCreatedEvent: ProfessorCreatedEvent)
@@ -29,7 +27,18 @@ class ResearchSearchServiceImpl(
     private val labRepository: LabRepository,
     private val researchSearchRepository: ResearchSearchRepository
 ) : ResearchSearchService {
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(readOnly = true)
+    override fun searchTopResearch(keyword: String, number: Int): ResearchSearchTopResponse =
+        ResearchSearchTopResponse.of(
+            researchSearchRepository.searchTopResearch(keyword, number)
+        )
+
+    @Transactional(readOnly = true)
+    override fun searchResearch(keyword: String, pageSize: Int, pageNum: Int): ResearchSearchPageResponse =
+        researchSearchRepository.searchResearch(keyword, pageSize, pageNum).let {
+            ResearchSearchPageResponse.of(it.first, it.second)
+        }
+
     @EventListener
     @Transactional
     override fun professorCreatedEventListener(professorCreatedEvent: ProfessorCreatedEvent) {
