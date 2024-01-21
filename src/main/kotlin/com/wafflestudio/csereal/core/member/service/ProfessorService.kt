@@ -184,13 +184,13 @@ class ProfessorServiceImpl(
     }
 
     override fun deleteProfessor(professorId: Long) {
-        professorRepository.findByIdOrNull(professorId)?.let {
-            applicationEventPublisher.publishEvent(
-                ProfessorDeletedEvent.of(it)
-            )
-        }
+        val professorEntity = professorRepository.findByIdOrNull(professorId) ?: return
 
         professorRepository.deleteById(professorId)
+
+        applicationEventPublisher.publishEvent(
+            ProfessorDeletedEvent.of(professorEntity)
+        )
     }
 
     @Transactional
