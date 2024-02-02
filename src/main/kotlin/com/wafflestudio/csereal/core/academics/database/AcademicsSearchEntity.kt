@@ -43,7 +43,7 @@ class AcademicsSearchEntity(
 
         fun createContent(academics: AcademicsEntity): String {
             val sb = StringBuilder()
-            academics.name?.let { sb.appendLine(it) }
+            academics.name.let { sb.appendLine(it) }
             academics.time?.let { sb.appendLine(it) }
             academics.year?.let { sb.appendLine(it) }
             sb.appendLine(academics.studentType.value)
