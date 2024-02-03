@@ -1,7 +1,9 @@
 package com.wafflestudio.csereal.common.util
 
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
+import com.wafflestudio.csereal.common.utils.exchangePageNum
 import com.wafflestudio.csereal.common.utils.substringAroundKeyword
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 
@@ -98,6 +100,48 @@ class UtilsTest : BehaviorSpec({
 
             Then("should return full content") {
                 result shouldBe content
+            }
+        }
+    }
+
+    Given("Using exchangePageNum to get valid page number") {
+        When("Given variables are not positive") {
+            val totalMinus = Triple<Int, Int, Long>(1, 1, -1)
+            val pageSizeZero = Triple<Int, Int, Long>(0, 1, 1)
+            val pageNumZero = Triple<Int, Int, Long>(1, 0, 1)
+
+            Then("should throw AssertionError") {
+                shouldThrow<RuntimeException> {
+                    exchangePageNum(totalMinus.first, totalMinus.second, totalMinus.third)
+                }
+                shouldThrow<RuntimeException> {
+                    exchangePageNum(pageSizeZero.first, pageSizeZero.second, pageSizeZero.third)
+                }
+                shouldThrow<RuntimeException> {
+                    exchangePageNum(pageNumZero.first, pageNumZero.second, pageNumZero.third)
+                }
+            }
+        }
+
+        When("Given page is in the range") {
+            val pageSize = 10
+            val total = 100L
+            val pageNum = 3
+
+            Then("Should return pageNum itself") {
+                val resultPageNum = exchangePageNum(pageSize, pageNum, total)
+                resultPageNum shouldBe pageNum
+            }
+        }
+
+        When("Given page is out of range (bigger)") {
+            val pageSize = 10
+            val total = 104L
+            val pageNum = 15
+
+            Then("Should return last page number") {
+                val resultPageNum = exchangePageNum(pageSize, pageNum, total)
+                resultPageNum shouldBe 11
             }
         }
     }
