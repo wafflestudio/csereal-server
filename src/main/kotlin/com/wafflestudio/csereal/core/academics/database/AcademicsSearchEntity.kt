@@ -4,7 +4,7 @@ import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import jakarta.persistence.*
 
-@Entity
+@Entity(name = "academics_search")
 class AcademicsSearchEntity(
     @Column(columnDefinition = "TEXT", nullable = false)
     var content: String,
@@ -25,19 +25,22 @@ class AcademicsSearchEntity(
     companion object {
         fun create(academics: AcademicsEntity): AcademicsSearchEntity {
             return AcademicsSearchEntity(
+                academics = academics,
                 content = createContent(academics)
             )
         }
 
         fun create(course: CourseEntity): AcademicsSearchEntity {
             return AcademicsSearchEntity(
+                course = course,
                 content = createContent(course)
             )
         }
 
         fun create(scholarship: ScholarshipEntity): AcademicsSearchEntity {
             return AcademicsSearchEntity(
-                content = scholarship.description
+                scholarship = scholarship,
+                content = createContent(scholarship)
             )
         }
 
@@ -65,9 +68,8 @@ class AcademicsSearchEntity(
                 sb.appendLine(it.name)
                 sb.appendLine(it.credit)
                 sb.appendLine(it.grade)
-                it.description?.let {
-                        description ->
-                    sb.appendLine(description)
+                it.description?.let { desc ->
+                    sb.appendLine(cleanTextFromHtml(desc))
                 }
 
                 sb.toString()
@@ -78,7 +80,9 @@ class AcademicsSearchEntity(
                 val sb = StringBuilder()
                 sb.appendLine(it.studentType.value)
                 sb.appendLine(it.name)
-                sb.appendLine(it.description)
+                sb.appendLine(
+                    cleanTextFromHtml(it.description)
+                )
                 sb.toString()
             }
     }
