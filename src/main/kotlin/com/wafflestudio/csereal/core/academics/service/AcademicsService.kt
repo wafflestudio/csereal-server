@@ -96,6 +96,7 @@ class AcademicsServiceImpl(
         return academicsYearResponses
     }
 
+    @Transactional(readOnly = true)
     override fun readGeneralStudies(): GeneralStudiesPageResponse {
         val academicsEntity = academicsRepository.findByStudentTypeAndPostType(
             AcademicsStudentType.UNDERGRADUATE,
