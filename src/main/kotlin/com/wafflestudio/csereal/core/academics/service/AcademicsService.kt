@@ -51,7 +51,7 @@ class AcademicsServiceImpl(
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val enumPostType = makeStringToAcademicsPostType(postType)
 
-        val newAcademics = AcademicsEntity.of(enumStudentType, enumPostType, request)
+        var newAcademics = AcademicsEntity.of(enumStudentType, enumPostType, request)
 
         if (attachments != null) {
             attachmentService.uploadAllAttachments(newAcademics, attachments)
@@ -62,7 +62,7 @@ class AcademicsServiceImpl(
             academicsSearch = AcademicsSearchEntity.create(this)
         }
 
-        academicsRepository.save(newAcademics)
+        newAcademics = academicsRepository.save(newAcademics)
 
         val attachmentResponses = attachmentService.createAttachmentResponses(newAcademics.attachments)
 
