@@ -14,13 +14,16 @@ class AcademicsEntity(
     @Enumerated(EnumType.STRING)
     var postType: AcademicsPostType,
 
-    var name: String?,
+    var name: String,
     var description: String,
     var year: Int?,
     var time: String?,
 
     @OneToMany(mappedBy = "academics", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attachments: MutableList<AttachmentEntity> = mutableListOf()
+    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+
+    @OneToOne(mappedBy = "academics", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var academicsSearch: AcademicsSearchEntity? = null
 
 ) : BaseTimeEntity(), AttachmentContentEntityType {
     override fun bringAttachments() = attachments

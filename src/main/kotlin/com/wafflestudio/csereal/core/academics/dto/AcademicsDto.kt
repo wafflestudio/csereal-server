@@ -5,14 +5,14 @@ import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
 
 data class AcademicsDto(
-    val id: Long,
-    val name: String?,
+    val id: Long = -1, // TODO: Seperate to multiple DTOs or set this as nullable
+    val name: String,
     val description: String,
-    val year: Int?,
-    val time: String?,
-    val createdAt: LocalDateTime?,
-    val modifiedAt: LocalDateTime?,
-    val attachments: List<AttachmentResponse>?
+    val year: Int? = null,
+    val time: String? = null,
+    val createdAt: LocalDateTime? = null,
+    val modifiedAt: LocalDateTime? = null,
+    val attachments: List<AttachmentResponse>? = null
 ) {
     companion object {
         fun of(entity: AcademicsEntity, attachmentResponses: List<AttachmentResponse>): AcademicsDto = entity.run {
