@@ -30,6 +30,10 @@ interface AcademicsService {
     fun readScholarship(scholarshipId: Long): ScholarshipDto
 }
 
+// TODO: add Update, Delete method
+//       remember to update academicsSearch Field on Update method
+//       remember to mark delete of academicsSearch Field on Delete mark method
+
 @Service
 class AcademicsServiceImpl(
     private val academicsRepository: AcademicsRepository,
@@ -47,13 +51,18 @@ class AcademicsServiceImpl(
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val enumPostType = makeStringToAcademicsPostType(postType)
 
-        val newAcademics = AcademicsEntity.of(enumStudentType, enumPostType, request)
+        var newAcademics = AcademicsEntity.of(enumStudentType, enumPostType, request)
 
         if (attachments != null) {
             attachmentService.uploadAllAttachments(newAcademics, attachments)
         }
 
-        academicsRepository.save(newAcademics)
+        // create search data
+        newAcademics.apply {
+            academicsSearch = AcademicsSearchEntity.create(this)
+        }
+
+        newAcademics = academicsRepository.save(newAcademics)
 
         val attachmentResponses = attachmentService.createAttachmentResponses(newAcademics.attachments)
 
@@ -87,6 +96,7 @@ class AcademicsServiceImpl(
         return academicsYearResponses
     }
 
+    @Transactional(readOnly = true)
     override fun readGeneralStudies(): GeneralStudiesPageResponse {
         val academicsEntity = academicsRepository.findByStudentTypeAndPostType(
             AcademicsStudentType.UNDERGRADUATE,
@@ -103,13 +113,18 @@ class AcademicsServiceImpl(
     @Transactional
     override fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val newCourse = CourseEntity.of(enumStudentType, request)
+        var newCourse = CourseEntity.of(enumStudentType, request)
 
         if (attachments != null) {
             attachmentService.uploadAllAttachments(newCourse, attachments)
         }
 
-        courseRepository.save(newCourse)
+        // create search data
+        newCourse.apply {
+            academicsSearch = AcademicsSearchEntity.create(this)
+        }
+
+        newCourse = courseRepository.save(newCourse)
 
         val attachmentResponses = attachmentService.createAttachmentResponses(newCourse.attachments)
 
@@ -138,9 +153,14 @@ class AcademicsServiceImpl(
     @Transactional
     override fun createScholarshipDetail(studentType: String, request: ScholarshipDto): ScholarshipDto {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val newScholarship = ScholarshipEntity.of(enumStudentType, request)
+        var newScholarship = ScholarshipEntity.of(enumStudentType, request)
 
-        scholarshipRepository.save(newScholarship)
+        // create search data
+        newScholarship.apply {
+            academicsSearch = AcademicsSearchEntity.create(this)
+        }
+
+        newScholarship = scholarshipRepository.save(newScholarship)
 
         return ScholarshipDto.of(newScholarship)
     }
