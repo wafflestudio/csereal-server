@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.academics.service.AcademicsService
 import com.wafflestudio.csereal.core.academics.dto.ScholarshipDto
+import com.wafflestudio.csereal.core.academics.service.AcademicsSearchService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -12,7 +13,8 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/api/v1/academics")
 @RestController
 class AcademicsController(
-    private val academicsService: AcademicsService
+    private val academicsService: AcademicsService,
+    private val academicsSearchService: AcademicsSearchService
 ) {
     @AuthenticatedStaff
     @PostMapping("/{studentType}/{postType}")
@@ -97,4 +99,24 @@ class AcademicsController(
     fun getScholarship(@PathVariable scholarshipId: Long): ResponseEntity<ScholarshipDto> {
         return ResponseEntity.ok(academicsService.readScholarship(scholarshipId))
     }
+
+    @GetMapping("/search/top")
+    fun searchTop(
+        @RequestParam(required = true) keyword: String,
+        @RequestParam(required = true) number: Int
+    ) = academicsSearchService.searchTopAcademics(
+        keyword = keyword,
+        number = number
+    )
+
+    @GetMapping("/search")
+    fun searchAcademics(
+        @RequestParam(required = true) keyword: String,
+        @RequestParam(required = true) pageSize: Int,
+        @RequestParam(required = true) pageNum: Int
+    ) = academicsSearchService.searchAcademics(
+        keyword = keyword,
+        pageSize = pageSize,
+        pageNum = pageNum
+    )
 }

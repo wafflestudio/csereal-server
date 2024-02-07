@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.research.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.conference.database.ConferenceEntity
 import jakarta.persistence.*
 
@@ -46,7 +47,9 @@ class ResearchSearchEntity(
         fun createContent(research: ResearchEntity) = StringBuilder().apply {
             appendLine(research.name)
             appendLine(research.postType.krName)
-            research.description?.let { appendLine(it) }
+            research.description?.let {
+                appendLine(cleanTextFromHtml(it))
+            }
             research.labs.forEach { appendLine(it.name) }
         }.toString()
 
@@ -58,7 +61,9 @@ class ResearchSearchEntity(
             lab.acronym?.let { appendLine(it) }
             lab.youtube?.let { appendLine(it) }
             appendLine(lab.research.name)
-            lab.description?.let { appendLine(it) }
+            lab.description?.let {
+                appendLine(cleanTextFromHtml(it))
+            }
             lab.websiteURL?.let { appendLine(it) }
         }.toString()
 
