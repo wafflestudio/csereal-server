@@ -105,7 +105,9 @@ class AcademicsServiceImpl(
     @Transactional
     override fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val newCourse = CourseEntity.of(enumStudentType, request)
+        val enumLanguageType = languageRepository.makeStringToLanguageType(request.language)
+
+        val newCourse = CourseEntity.of(enumStudentType, enumLanguageType, request)
 
         if (attachments != null) {
             attachmentService.uploadAllAttachments(newCourse, attachments)

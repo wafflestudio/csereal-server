@@ -5,6 +5,7 @@ import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 
 data class CourseDto(
     val id: Long,
+    val language: String,
     val classification: String,
     val code: String,
     val name: String,
@@ -17,6 +18,7 @@ data class CourseDto(
         fun of(entity: CourseEntity, attachmentResponses: List<AttachmentResponse>): CourseDto = entity.run {
             CourseDto(
                 id = this.id,
+                language = this.language.toString().lowercase(),
                 classification = this.classification,
                 code = this.code,
                 name = this.name,
