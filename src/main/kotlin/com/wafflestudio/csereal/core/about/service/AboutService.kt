@@ -4,9 +4,6 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.repository.LanguageRepository
 import com.wafflestudio.csereal.core.about.database.*
 import com.wafflestudio.csereal.core.about.dto.*
-import com.wafflestudio.csereal.core.about.dto.FutureCareersPage
-import com.wafflestudio.csereal.core.about.dto.AboutRequest
-import com.wafflestudio.csereal.core.about.dto.FutureCareersRequest
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.stereotype.Service
@@ -88,11 +85,12 @@ class AboutServiceImpl(
     @Transactional(readOnly = true)
     override fun readAllClubs(language: String): List<AboutDto> {
         val languageType = languageRepository.makeStringToLanguageType(language)
-        val clubs = aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.STUDENT_CLUBS).map {
-            val imageURL = mainImageService.createImageURL(it.mainImage)
-            val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
-            AboutDto.of(it, imageURL, attachmentResponses)
-        }
+        val clubs =
+            aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.STUDENT_CLUBS).map {
+                val imageURL = mainImageService.createImageURL(it.mainImage)
+                val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+                AboutDto.of(it, imageURL, attachmentResponses)
+            }
 
         return clubs
     }
@@ -100,11 +98,12 @@ class AboutServiceImpl(
     @Transactional(readOnly = true)
     override fun readAllFacilities(language: String): List<AboutDto> {
         val languageType = languageRepository.makeStringToLanguageType(language)
-        val facilities = aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.FACILITIES).map {
-            val imageURL = mainImageService.createImageURL(it.mainImage)
-            val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
-            AboutDto.of(it, imageURL, attachmentResponses)
-        }
+        val facilities =
+            aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.FACILITIES).map {
+                val imageURL = mainImageService.createImageURL(it.mainImage)
+                val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+                AboutDto.of(it, imageURL, attachmentResponses)
+            }
 
         return facilities
     }
@@ -112,11 +111,12 @@ class AboutServiceImpl(
     @Transactional(readOnly = true)
     override fun readAllDirections(language: String): List<AboutDto> {
         val languageType = languageRepository.makeStringToLanguageType(language)
-        val directions = aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.DIRECTIONS).map {
-            val imageURL = mainImageService.createImageURL(it.mainImage)
-            val attachments = attachmentService.createAttachmentResponses(it.attachments)
-            AboutDto.of(it, imageURL, attachments)
-        }
+        val directions =
+            aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.DIRECTIONS).map {
+                val imageURL = mainImageService.createImageURL(it.mainImage)
+                val attachments = attachmentService.createAttachmentResponses(it.attachments)
+                AboutDto.of(it, imageURL, attachments)
+            }
 
         return directions
     }
