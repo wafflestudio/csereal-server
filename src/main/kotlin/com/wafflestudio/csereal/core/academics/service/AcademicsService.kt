@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.academics.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.repository.LanguageRepository
 import com.wafflestudio.csereal.core.academics.database.*
 import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
@@ -35,7 +36,8 @@ class AcademicsServiceImpl(
     private val academicsRepository: AcademicsRepository,
     private val courseRepository: CourseRepository,
     private val attachmentService: AttachmentService,
-    private val scholarshipRepository: ScholarshipRepository
+    private val scholarshipRepository: ScholarshipRepository,
+    private val languageRepository: LanguageRepository
 ) : AcademicsService {
     @Transactional
     override fun createAcademics(
@@ -46,8 +48,8 @@ class AcademicsServiceImpl(
     ): AcademicsDto {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val enumPostType = makeStringToAcademicsPostType(postType)
-
-        val newAcademics = AcademicsEntity.of(enumStudentType, enumPostType, request)
+        val enumLanguageType = languageRepository.makeStringToLanguageType(request.language)
+        val newAcademics = AcademicsEntity.of(enumStudentType, enumPostType, enumLanguageType, request)
 
         if (attachments != null) {
             attachmentService.uploadAllAttachments(newAcademics, attachments)

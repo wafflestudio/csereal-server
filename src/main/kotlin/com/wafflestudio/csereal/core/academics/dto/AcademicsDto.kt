@@ -6,6 +6,7 @@ import java.time.LocalDateTime
 
 data class AcademicsDto(
     val id: Long,
+    val language: String,
     val name: String?,
     val description: String,
     val year: Int?,
@@ -18,6 +19,7 @@ data class AcademicsDto(
         fun of(entity: AcademicsEntity, attachmentResponses: List<AttachmentResponse>): AcademicsDto = entity.run {
             AcademicsDto(
                 id = this.id,
+                language = this.language.toString().lowercase(),
                 name = this.name,
                 description = this.description,
                 year = this.year,
