@@ -45,20 +45,6 @@ class ResearchSearchServiceTest(
         // Event Listener Test
         Given("기존 lab이 존재할 때") {
             // Save professors
-//            val professor1 = professorRepository.save(
-//                ProfessorEntity(
-//                    name = "professor1",
-//                    status = ProfessorStatus.ACTIVE,
-//                    academicRank = "professor",
-//                    email = null,
-//                    fax = null,
-//                    office = null,
-//                    phone = null,
-//                    website = null,
-//                    startDate = null,
-//                    endDate = null
-//                )
-//            )
             val professor1Dto = professorService.createProfessor(
                 createProfessorRequest = ProfessorDto(
                     name = "professor1",
@@ -79,20 +65,6 @@ class ResearchSearchServiceTest(
                 ),
                 mainImage = null
             )
-//            val professor2 = professorRepository.save(
-//                ProfessorEntity(
-//                    name = "professor2",
-//                    status = ProfessorStatus.ACTIVE,
-//                    academicRank = "professor",
-//                    email = null,
-//                    fax = null,
-//                    office = null,
-//                    phone = null,
-//                    website = null,
-//                    startDate = null,
-//                    endDate = null
-//                )
-//            )
             val professor2Dto = professorService.createProfessor(
                 createProfessorRequest = ProfessorDto(
                     name = "professor2",
@@ -135,7 +107,7 @@ class ResearchSearchServiceTest(
                     LabProfessorResponse(professor2.id, professor2.name)
                 ),
                 acronym = "acronym",
-                description = "description",
+                description = "<p>description</p>",
                 group = "research",
                 pdf = null,
                 location = "location",
@@ -149,7 +121,7 @@ class ResearchSearchServiceTest(
                 name = "nameE",
                 professors = listOf(),
                 acronym = "acronymE",
-                description = "descriptionE",
+                description = "<h1>descriptionE</h1>",
                 group = "research",
                 pdf = null,
                 location = "locationE",
