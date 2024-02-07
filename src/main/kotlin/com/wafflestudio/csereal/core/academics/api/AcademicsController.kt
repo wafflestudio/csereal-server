@@ -55,18 +55,20 @@ class AcademicsController(
         return ResponseEntity.ok(academicsService.createCourse(studentType, request, attachments))
     }
 
-    @GetMapping("/{studentType}/courses")
+    @GetMapping("/{language}/{studentType}/courses")
     fun readAllCourses(
+        @PathVariable language: String,
         @PathVariable studentType: String
     ): ResponseEntity<List<CourseDto>> {
-        return ResponseEntity.ok(academicsService.readAllCourses(studentType))
+        return ResponseEntity.ok(academicsService.readAllCourses(language, studentType))
     }
 
-    @GetMapping("/course")
+    @GetMapping("/{language}/course")
     fun readCourse(
+        @PathVariable language: String,
         @RequestParam name: String
     ): ResponseEntity<CourseDto> {
-        return ResponseEntity.ok(academicsService.readCourse(name))
+        return ResponseEntity.ok(academicsService.readCourse(language, name))
     }
 
     @GetMapping("/undergraduate/general-studies-requirements")

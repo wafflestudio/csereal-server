@@ -24,8 +24,8 @@ interface AcademicsService {
     fun readAcademicsYearResponses(studentType: String, postType: String): List<AcademicsYearResponse>
     fun readGeneralStudies(): GeneralStudiesPageResponse
     fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto
-    fun readAllCourses(studentType: String): List<CourseDto>
-    fun readCourse(name: String): CourseDto
+    fun readAllCourses(language: String, studentType: String): List<CourseDto>
+    fun readCourse(language: String, name: String): CourseDto
     fun createScholarshipDetail(studentType: String, request: ScholarshipDto): ScholarshipDto
     fun readAllScholarship(studentType: String): ScholarshipPageResponse
     fun readScholarship(scholarshipId: Long): ScholarshipDto
@@ -121,19 +121,21 @@ class AcademicsServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllCourses(studentType: String): List<CourseDto> {
+    override fun readAllCourses(language: String, studentType: String): List<CourseDto> {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
-
-        val courseDtoList = courseRepository.findAllByStudentTypeOrderByNameAsc(enumStudentType).map {
-            val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
-            CourseDto.of(it, attachmentResponses)
-        }
+        val enumLanguageType = languageRepository.makeStringToLanguageType(language)
+        val courseDtoList =
+            courseRepository.findAllByLanguageAndStudentTypeOrderByNameAsc(enumLanguageType, enumStudentType).map {
+                val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+                CourseDto.of(it, attachmentResponses)
+            }
         return courseDtoList
     }
 
     @Transactional(readOnly = true)
-    override fun readCourse(name: String): CourseDto {
-        val course = courseRepository.findByName(name)
+    override fun readCourse(language: String, name: String): CourseDto {
+        val enumLanguageType = languageRepository.makeStringToLanguageType(language)
+        val course = courseRepository.findByLanguageAndName(enumLanguageType, name)
         val attachmentResponses = attachmentService.createAttachmentResponses(course.attachments)
 
         return CourseDto.of(course, attachmentResponses)
