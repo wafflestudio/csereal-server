@@ -34,26 +34,33 @@ class AboutController(
     }
 
     // read 목록이 하나
-    @GetMapping("/{postType}")
+    @GetMapping("/{language}/{postType}")
     fun readAbout(
+        @PathVariable language: String,
         @PathVariable postType: String
     ): ResponseEntity<AboutDto> {
-        return ResponseEntity.ok(aboutService.readAbout(postType))
+        return ResponseEntity.ok(aboutService.readAbout(language, postType))
     }
 
-    @GetMapping("/student-clubs")
-    fun readAllClubs(): ResponseEntity<List<AboutDto>> {
-        return ResponseEntity.ok(aboutService.readAllClubs())
+    @GetMapping("/{language}/student-clubs")
+    fun readAllClubs(
+        @PathVariable language: String
+    ): ResponseEntity<List<AboutDto>> {
+        return ResponseEntity.ok(aboutService.readAllClubs(language))
     }
 
-    @GetMapping("/facilities")
-    fun readAllFacilities(): ResponseEntity<List<AboutDto>> {
-        return ResponseEntity.ok(aboutService.readAllFacilities())
+    @GetMapping("/{language}/facilities")
+    fun readAllFacilities(
+        @PathVariable language: String
+    ): ResponseEntity<List<AboutDto>> {
+        return ResponseEntity.ok(aboutService.readAllFacilities(language))
     }
 
-    @GetMapping("/directions")
-    fun readAllDirections(): ResponseEntity<List<AboutDto>> {
-        return ResponseEntity.ok(aboutService.readAllDirections())
+    @GetMapping("/{language}/directions")
+    fun readAllDirections(
+        @PathVariable language: String
+    ): ResponseEntity<List<AboutDto>> {
+        return ResponseEntity.ok(aboutService.readAllDirections(language))
     }
 
     @GetMapping("/future-careers")

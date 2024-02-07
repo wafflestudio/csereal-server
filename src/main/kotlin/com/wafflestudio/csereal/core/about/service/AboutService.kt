@@ -21,10 +21,10 @@ interface AboutService {
         attachments: List<MultipartFile>?
     ): AboutDto
 
-    fun readAbout(postType: String): AboutDto
-    fun readAllClubs(): List<AboutDto>
-    fun readAllFacilities(): List<AboutDto>
-    fun readAllDirections(): List<AboutDto>
+    fun readAbout(language: String, postType: String): AboutDto
+    fun readAllClubs(language: String): List<AboutDto>
+    fun readAllFacilities(language: String): List<AboutDto>
+    fun readAllDirections(language: String): List<AboutDto>
     fun readFutureCareers(): FutureCareersPage
     fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto>
     fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage
@@ -75,9 +75,10 @@ class AboutServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAbout(postType: String): AboutDto {
+    override fun readAbout(language: String, postType: String): AboutDto {
+        val languageType = languageRepository.makeStringToLanguageType(language)
         val enumPostType = makeStringToEnum(postType)
-        val about = aboutRepository.findByPostType(enumPostType)
+        val about = aboutRepository.findByLanguageAndPostType(languageType, enumPostType)
         val imageURL = mainImageService.createImageURL(about.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(about.attachments)
 
@@ -85,8 +86,9 @@ class AboutServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllClubs(): List<AboutDto> {
-        val clubs = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.STUDENT_CLUBS).map {
+    override fun readAllClubs(language: String): List<AboutDto> {
+        val languageType = languageRepository.makeStringToLanguageType(language)
+        val clubs = aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.STUDENT_CLUBS).map {
             val imageURL = mainImageService.createImageURL(it.mainImage)
             val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
             AboutDto.of(it, imageURL, attachmentResponses)
@@ -96,8 +98,9 @@ class AboutServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllFacilities(): List<AboutDto> {
-        val facilities = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.FACILITIES).map {
+    override fun readAllFacilities(language: String): List<AboutDto> {
+        val languageType = languageRepository.makeStringToLanguageType(language)
+        val facilities = aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.FACILITIES).map {
             val imageURL = mainImageService.createImageURL(it.mainImage)
             val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
             AboutDto.of(it, imageURL, attachmentResponses)
@@ -107,8 +110,9 @@ class AboutServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllDirections(): List<AboutDto> {
-        val directions = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.DIRECTIONS).map {
+    override fun readAllDirections(language: String): List<AboutDto> {
+        val languageType = languageRepository.makeStringToLanguageType(language)
+        val directions = aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.DIRECTIONS).map {
             val imageURL = mainImageService.createImageURL(it.mainImage)
             val attachments = attachmentService.createAttachmentResponses(it.attachments)
             AboutDto.of(it, imageURL, attachments)
