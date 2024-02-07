@@ -8,6 +8,7 @@ import java.time.LocalDateTime
 data class AboutDto(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     val id: Long? = null,
+    val language: String,
     val name: String?,
     val engName: String?,
     val description: String,
@@ -26,6 +27,7 @@ data class AboutDto(
         ): AboutDto = entity.run {
             AboutDto(
                 id = this.id,
+                language = this.language.toString().lowercase(),
                 name = this.name,
                 engName = this.engName,
                 description = this.description,

@@ -6,6 +6,7 @@ import com.wafflestudio.csereal.core.about.database.AboutEntity
 data class FacilityDto(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     val id: Long? = null,
+    val language: String,
     val name: String,
     val description: String,
     val locations: List<String>
@@ -14,6 +15,7 @@ data class FacilityDto(
         fun of(entity: AboutEntity): FacilityDto = entity.run {
             FacilityDto(
                 id = this.id,
+                language = this.language.toString().lowercase(),
                 name = this.name!!,
                 description = this.description,
                 locations = this.locations.map { it.name }
