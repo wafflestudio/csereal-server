@@ -6,8 +6,11 @@ enum class LanguageType {
     KO, EN;
 
     companion object {
-        fun makeStringToLanguageType(language: String): LanguageType {
+        fun makeStringToLanguageType(language: String?): LanguageType {
             try {
+                if (language.isNullOrEmpty()) {
+                    return KO
+                }
                 val upperLanguageType = language.uppercase()
                 return LanguageType.valueOf(upperLanguageType)
             } catch (e: IllegalArgumentException) {

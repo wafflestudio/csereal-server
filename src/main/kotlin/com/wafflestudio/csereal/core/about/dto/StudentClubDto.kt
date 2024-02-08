@@ -8,7 +8,6 @@ data class StudentClubDto(
     val id: Long? = null,
     val language: String,
     val name: String,
-    val engName: String,
     val description: String
 ) {
     companion object {
@@ -17,7 +16,6 @@ data class StudentClubDto(
                 id = this.id,
                 language = this.language.toString().lowercase(),
                 name = this.name!!,
-                engName = this.engName!!,
                 description = this.description
             )
         }
