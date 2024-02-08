@@ -17,5 +17,8 @@ enum class LanguageType {
                 throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
             }
         }
+
+        // dto로 통신할 때 소문자로 return
+        fun makeLowercase(languageType: LanguageType): String = languageType.toString().lowercase()
     }
 }

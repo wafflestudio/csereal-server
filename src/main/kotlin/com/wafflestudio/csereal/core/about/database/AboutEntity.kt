@@ -14,7 +14,7 @@ class AboutEntity(
     @Enumerated(EnumType.STRING)
     var postType: AboutPostType,
     @Enumerated(EnumType.STRING)
-    var language: LanguageType,
+    var language: LanguageType = LanguageType.KO,
     var name: String?,
 
     @Column(columnDefinition = "mediumText")
