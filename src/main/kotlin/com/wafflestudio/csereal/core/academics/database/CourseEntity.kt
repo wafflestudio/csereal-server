@@ -7,6 +7,7 @@ import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEnti
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
 import jakarta.persistence.OneToMany
+import jakarta.persistence.OneToOne
 
 @Entity(name = "course")
 class CourseEntity(
@@ -27,7 +28,10 @@ class CourseEntity(
     var description: String?,
 
     @OneToMany(mappedBy = "course", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attachments: MutableList<AttachmentEntity> = mutableListOf()
+    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+
+    @OneToOne(mappedBy = "course", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var academicsSearch: AcademicsSearchEntity? = null
 
 ) : BaseTimeEntity(), AttachmentContentEntityType {
     override fun bringAttachments() = attachments

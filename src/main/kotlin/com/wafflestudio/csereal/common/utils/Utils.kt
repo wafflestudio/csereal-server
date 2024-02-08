@@ -26,3 +26,16 @@ fun substringAroundKeyword(keyword: String, content: String, amount: Int): Pair<
         (index - frontIndex) to content.substring(frontIndex, backIndex)
     }
 }
+
+fun exchangePageNum(pageSize: Int, pageNum: Int, total: Long): Int {
+    // Validate
+    if (!(pageSize > 0 && pageNum > 0 && total >= 0)) {
+        throw RuntimeException()
+    }
+
+    return if ((pageNum - 1) * pageSize < total) {
+        pageNum
+    } else {
+        Math.ceil(total.toDouble() / pageSize).toInt()
+    }
+}

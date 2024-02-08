@@ -12,7 +12,10 @@ class ScholarshipEntity(
     val name: String,
 
     @Column(columnDefinition = "text")
-    val description: String
+    val description: String,
+
+    @OneToOne(mappedBy = "scholarship", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var academicsSearch: AcademicsSearchEntity? = null
 
 ) : BaseTimeEntity() {
 
