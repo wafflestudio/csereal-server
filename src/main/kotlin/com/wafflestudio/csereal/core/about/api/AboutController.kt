@@ -36,7 +36,7 @@ class AboutController(
     // read 목록이 하나
     @GetMapping("/{postType}")
     fun readAbout(
-        @RequestParam language: String?,
+        @RequestParam(required = false, defaultValue = "ko") language: String,
         @PathVariable postType: String
     ): ResponseEntity<AboutDto> {
         return ResponseEntity.ok(aboutService.readAbout(language, postType))
@@ -44,21 +44,21 @@ class AboutController(
 
     @GetMapping("/student-clubs")
     fun readAllClubs(
-        @RequestParam language: String?
+        @RequestParam(required = false, defaultValue = "ko") language: String
     ): ResponseEntity<List<AboutDto>> {
         return ResponseEntity.ok(aboutService.readAllClubs(language))
     }
 
     @GetMapping("/facilities")
     fun readAllFacilities(
-        @RequestParam language: String
+        @RequestParam(required = false, defaultValue = "ko") language: String
     ): ResponseEntity<List<AboutDto>> {
         return ResponseEntity.ok(aboutService.readAllFacilities(language))
     }
 
     @GetMapping("/directions")
     fun readAllDirections(
-        @RequestParam language: String
+        @RequestParam(required = false, defaultValue = "ko") language: String
     ): ResponseEntity<List<AboutDto>> {
         return ResponseEntity.ok(aboutService.readAllDirections(language))
     }

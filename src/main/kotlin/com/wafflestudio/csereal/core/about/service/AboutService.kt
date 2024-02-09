@@ -18,10 +18,10 @@ interface AboutService {
         attachments: List<MultipartFile>?
     ): AboutDto
 
-    fun readAbout(language: String?, postType: String): AboutDto
-    fun readAllClubs(language: String?): List<AboutDto>
-    fun readAllFacilities(language: String?): List<AboutDto>
-    fun readAllDirections(language: String?): List<AboutDto>
+    fun readAbout(language: String, postType: String): AboutDto
+    fun readAllClubs(language: String): List<AboutDto>
+    fun readAllFacilities(language: String): List<AboutDto>
+    fun readAllDirections(language: String): List<AboutDto>
     fun readFutureCareers(): FutureCareersPage
     fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto>
     fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage
@@ -71,7 +71,7 @@ class AboutServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAbout(language: String?, postType: String): AboutDto {
+    override fun readAbout(language: String, postType: String): AboutDto {
         val languageType = LanguageType.makeStringToLanguageType(language)
         val enumPostType = makeStringToEnum(postType)
         val about = aboutRepository.findByLanguageAndPostType(languageType, enumPostType)
@@ -82,7 +82,7 @@ class AboutServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllClubs(language: String?): List<AboutDto> {
+    override fun readAllClubs(language: String): List<AboutDto> {
         val languageType = LanguageType.makeStringToLanguageType(language)
         val clubs =
             aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.STUDENT_CLUBS).map {
@@ -95,7 +95,7 @@ class AboutServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllFacilities(language: String?): List<AboutDto> {
+    override fun readAllFacilities(language: String): List<AboutDto> {
         val languageType = LanguageType.makeStringToLanguageType(language)
         val facilities =
             aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.FACILITIES).map {
@@ -108,7 +108,7 @@ class AboutServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllDirections(language: String?): List<AboutDto> {
+    override fun readAllDirections(language: String): List<AboutDto> {
         val languageType = LanguageType.makeStringToLanguageType(language)
         val directions =
             aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.DIRECTIONS).map {
