@@ -1,11 +1,9 @@
 package com.wafflestudio.csereal.core.about.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.about.database.*
 import com.wafflestudio.csereal.core.about.dto.*
-import com.wafflestudio.csereal.core.about.dto.FutureCareersPage
-import com.wafflestudio.csereal.core.about.dto.AboutRequest
-import com.wafflestudio.csereal.core.about.dto.FutureCareersRequest
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.stereotype.Service
@@ -20,10 +18,10 @@ interface AboutService {
         attachments: List<MultipartFile>?
     ): AboutDto
 
-    fun readAbout(postType: String): AboutDto
-    fun readAllClubs(): List<AboutDto>
-    fun readAllFacilities(): List<AboutDto>
-    fun readAllDirections(): List<AboutDto>
+    fun readAbout(language: String, postType: String): AboutDto
+    fun readAllClubs(language: String): List<AboutDto>
+    fun readAllFacilities(language: String): List<AboutDto>
+    fun readAllDirections(language: String): List<AboutDto>
     fun readFutureCareers(): FutureCareersPage
     fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto>
     fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage
@@ -48,7 +46,8 @@ class AboutServiceImpl(
         attachments: List<MultipartFile>?
     ): AboutDto {
         val enumPostType = makeStringToEnum(postType)
-        val newAbout = AboutEntity.of(enumPostType, request)
+        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+        val newAbout = AboutEntity.of(enumPostType, enumLanguageType, request)
 
         if (request.locations != null) {
             for (location in request.locations) {
@@ -72,9 +71,10 @@ class AboutServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAbout(postType: String): AboutDto {
+    override fun readAbout(language: String, postType: String): AboutDto {
+        val languageType = LanguageType.makeStringToLanguageType(language)
         val enumPostType = makeStringToEnum(postType)
-        val about = aboutRepository.findByPostType(enumPostType)
+        val about = aboutRepository.findByLanguageAndPostType(languageType, enumPostType)
         val imageURL = mainImageService.createImageURL(about.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(about.attachments)
 
@@ -82,34 +82,40 @@ class AboutServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllClubs(): List<AboutDto> {
-        val clubs = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.STUDENT_CLUBS).map {
-            val imageURL = mainImageService.createImageURL(it.mainImage)
-            val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
-            AboutDto.of(it, imageURL, attachmentResponses)
-        }
+    override fun readAllClubs(language: String): List<AboutDto> {
+        val languageType = LanguageType.makeStringToLanguageType(language)
+        val clubs =
+            aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.STUDENT_CLUBS).map {
+                val imageURL = mainImageService.createImageURL(it.mainImage)
+                val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+                AboutDto.of(it, imageURL, attachmentResponses)
+            }
 
         return clubs
     }
 
     @Transactional(readOnly = true)
-    override fun readAllFacilities(): List<AboutDto> {
-        val facilities = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.FACILITIES).map {
-            val imageURL = mainImageService.createImageURL(it.mainImage)
-            val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
-            AboutDto.of(it, imageURL, attachmentResponses)
-        }
+    override fun readAllFacilities(language: String): List<AboutDto> {
+        val languageType = LanguageType.makeStringToLanguageType(language)
+        val facilities =
+            aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.FACILITIES).map {
+                val imageURL = mainImageService.createImageURL(it.mainImage)
+                val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+                AboutDto.of(it, imageURL, attachmentResponses)
+            }
 
         return facilities
     }
 
     @Transactional(readOnly = true)
-    override fun readAllDirections(): List<AboutDto> {
-        val directions = aboutRepository.findAllByPostTypeOrderByName(AboutPostType.DIRECTIONS).map {
-            val imageURL = mainImageService.createImageURL(it.mainImage)
-            val attachments = attachmentService.createAttachmentResponses(it.attachments)
-            AboutDto.of(it, imageURL, attachments)
-        }
+    override fun readAllDirections(language: String): List<AboutDto> {
+        val languageType = LanguageType.makeStringToLanguageType(language)
+        val directions =
+            aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.DIRECTIONS).map {
+                val imageURL = mainImageService.createImageURL(it.mainImage)
+                val attachments = attachmentService.createAttachmentResponses(it.attachments)
+                AboutDto.of(it, imageURL, attachments)
+            }
 
         return directions
     }
@@ -153,13 +159,15 @@ class AboutServiceImpl(
         val list = mutableListOf<AboutDto>()
 
         for (request in requestList) {
+            val language = request.language
+            val description = request.description
             val enumPostType = makeStringToEnum(request.postType)
 
             val aboutDto = AboutDto(
                 id = null,
+                language = language,
                 name = null,
-                engName = null,
-                description = request.description,
+                description = description,
                 year = null,
                 createdAt = null,
                 modifiedAt = null,
@@ -167,7 +175,9 @@ class AboutServiceImpl(
                 imageURL = null,
                 attachments = listOf()
             )
-            val newAbout = AboutEntity.of(enumPostType, aboutDto)
+
+            val languageType = LanguageType.makeStringToLanguageType(language)
+            val newAbout = AboutEntity.of(enumPostType, languageType, aboutDto)
 
             aboutRepository.save(newAbout)
 
@@ -179,13 +189,14 @@ class AboutServiceImpl(
     @Transactional
     override fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage {
         val description = request.description
+        val language = request.language
         val statList = mutableListOf<FutureCareersStatDto>()
         val companyList = mutableListOf<FutureCareersCompanyDto>()
 
         val aboutDto = AboutDto(
             id = null,
+            language = language,
             name = null,
-            engName = null,
             description = description,
             year = null,
             createdAt = null,
@@ -194,7 +205,9 @@ class AboutServiceImpl(
             imageURL = null,
             attachments = listOf()
         )
-        val newAbout = AboutEntity.of(AboutPostType.FUTURE_CAREERS, aboutDto)
+
+        val languageType = LanguageType.makeStringToLanguageType(language)
+        val newAbout = AboutEntity.of(AboutPostType.FUTURE_CAREERS, languageType, aboutDto)
         aboutRepository.save(newAbout)
 
         for (stat in request.stat) {
@@ -238,10 +251,13 @@ class AboutServiceImpl(
         val list = mutableListOf<StudentClubDto>()
 
         for (request in requestList) {
+            val language = request.language
+            val name = request.name
+
             val aboutDto = AboutDto(
                 id = null,
-                name = request.name,
-                engName = request.engName,
+                language = language,
+                name = name,
                 description = request.description,
                 year = null,
                 createdAt = null,
@@ -250,7 +266,8 @@ class AboutServiceImpl(
                 imageURL = null,
                 attachments = listOf()
             )
-            val newAbout = AboutEntity.of(AboutPostType.STUDENT_CLUBS, aboutDto)
+            val languageType = LanguageType.makeStringToLanguageType(language)
+            val newAbout = AboutEntity.of(AboutPostType.STUDENT_CLUBS, languageType, aboutDto)
 
             aboutRepository.save(newAbout)
 
@@ -264,11 +281,14 @@ class AboutServiceImpl(
         val list = mutableListOf<FacilityDto>()
 
         for (request in requestList) {
+            val language = request.language
+            val name = request.name
+            val description = request.description
             val aboutDto = AboutDto(
                 id = null,
-                name = request.name,
-                engName = null,
-                description = request.description,
+                language = language,
+                name = name,
+                description = description,
                 year = null,
                 createdAt = null,
                 modifiedAt = null,
@@ -277,7 +297,8 @@ class AboutServiceImpl(
                 attachments = listOf()
             )
 
-            val newAbout = AboutEntity.of(AboutPostType.FACILITIES, aboutDto)
+            val languageType = LanguageType.makeStringToLanguageType(language)
+            val newAbout = AboutEntity.of(AboutPostType.FACILITIES, languageType, aboutDto)
 
             for (location in request.locations) {
                 LocationEntity.create(location, newAbout)
@@ -295,11 +316,15 @@ class AboutServiceImpl(
         val list = mutableListOf<DirectionDto>()
 
         for (request in requestList) {
+            val language = request.language
+            val name = request.name
+            val description = request.description
+
             val aboutDto = AboutDto(
                 id = null,
-                name = request.name,
-                engName = request.engName,
-                description = request.description,
+                language = language,
+                name = name,
+                description = description,
                 year = null,
                 createdAt = null,
                 modifiedAt = null,
@@ -308,7 +333,8 @@ class AboutServiceImpl(
                 attachments = listOf()
             )
 
-            val newAbout = AboutEntity.of(AboutPostType.DIRECTIONS, aboutDto)
+            val languageType = LanguageType.makeStringToLanguageType(language)
+            val newAbout = AboutEntity.of(AboutPostType.DIRECTIONS, languageType, aboutDto)
 
             aboutRepository.save(newAbout)
 

@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.about.dto
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
@@ -8,8 +9,8 @@ import java.time.LocalDateTime
 data class AboutDto(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     val id: Long? = null,
+    val language: String,
     val name: String?,
-    val engName: String?,
     val description: String,
     val year: Int?,
     val createdAt: LocalDateTime?,
@@ -26,8 +27,8 @@ data class AboutDto(
         ): AboutDto = entity.run {
             AboutDto(
                 id = this.id,
+                language = LanguageType.makeLowercase(this.language),
                 name = this.name,
-                engName = this.engName,
                 description = this.description,
                 year = this.year,
                 createdAt = this.createdAt,
