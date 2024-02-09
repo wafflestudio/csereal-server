@@ -17,7 +17,7 @@ class AcademicsEntity(
     @Enumerated(EnumType.STRING)
     var language: LanguageType,
 
-    var name: String,
+    var name: String?,
     var description: String,
     var year: Int?,
     var time: String?,

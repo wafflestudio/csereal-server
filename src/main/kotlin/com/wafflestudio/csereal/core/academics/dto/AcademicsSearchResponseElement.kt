@@ -6,7 +6,7 @@ import com.wafflestudio.csereal.core.academics.database.AcademicsSearchType
 
 data class AcademicsSearchResponseElement(
     val id: Long,
-    val name: String,
+    val name: String?,
     val academicsType: AcademicsSearchType
 ) {
     companion object {
