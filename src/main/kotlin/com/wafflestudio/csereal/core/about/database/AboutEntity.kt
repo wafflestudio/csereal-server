@@ -14,9 +14,8 @@ class AboutEntity(
     @Enumerated(EnumType.STRING)
     var postType: AboutPostType,
     @Enumerated(EnumType.STRING)
-    var language: LanguageType,
+    var language: LanguageType = LanguageType.KO,
     var name: String?,
-    var engName: String?,
 
     @Column(columnDefinition = "mediumText")
     var description: String,
@@ -42,7 +41,6 @@ class AboutEntity(
                 postType = postType,
                 language = languageType,
                 name = aboutDto.name,
-                engName = aboutDto.engName,
                 description = aboutDto.description,
                 year = aboutDto.year
             )

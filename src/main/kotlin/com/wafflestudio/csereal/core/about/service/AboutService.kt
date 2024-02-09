@@ -167,7 +167,6 @@ class AboutServiceImpl(
                 id = null,
                 language = language,
                 name = null,
-                engName = null,
                 description = description,
                 year = null,
                 createdAt = null,
@@ -198,7 +197,6 @@ class AboutServiceImpl(
             id = null,
             language = language,
             name = null,
-            engName = null,
             description = description,
             year = null,
             createdAt = null,
@@ -255,13 +253,11 @@ class AboutServiceImpl(
         for (request in requestList) {
             val language = request.language
             val name = request.name
-            val engName = request.engName
 
             val aboutDto = AboutDto(
                 id = null,
                 language = language,
                 name = name,
-                engName = engName,
                 description = request.description,
                 year = null,
                 createdAt = null,
@@ -292,7 +288,6 @@ class AboutServiceImpl(
                 id = null,
                 language = language,
                 name = name,
-                engName = null,
                 description = description,
                 year = null,
                 createdAt = null,
@@ -323,14 +318,12 @@ class AboutServiceImpl(
         for (request in requestList) {
             val language = request.language
             val name = request.name
-            val engName = request.engName
             val description = request.description
 
             val aboutDto = AboutDto(
                 id = null,
                 language = language,
                 name = name,
-                engName = engName,
                 description = description,
                 year = null,
                 createdAt = null,

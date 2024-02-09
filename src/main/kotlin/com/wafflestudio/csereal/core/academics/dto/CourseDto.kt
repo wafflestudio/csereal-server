@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.academics.dto
 
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.academics.database.CourseEntity
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 
@@ -18,7 +19,7 @@ data class CourseDto(
         fun of(entity: CourseEntity, attachmentResponses: List<AttachmentResponse>): CourseDto = entity.run {
             CourseDto(
                 id = this.id,
-                language = this.language.toString().lowercase(),
+                language = LanguageType.makeLowercase(this.language),
                 classification = this.classification,
                 code = this.code,
                 name = this.name,

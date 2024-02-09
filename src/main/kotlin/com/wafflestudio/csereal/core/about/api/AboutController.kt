@@ -34,31 +34,31 @@ class AboutController(
     }
 
     // read 목록이 하나
-    @GetMapping("/{language}/{postType}")
+    @GetMapping("/{postType}")
     fun readAbout(
-        @PathVariable language: String,
+        @RequestParam(required = false, defaultValue = "ko") language: String,
         @PathVariable postType: String
     ): ResponseEntity<AboutDto> {
         return ResponseEntity.ok(aboutService.readAbout(language, postType))
     }
 
-    @GetMapping("/{language}/student-clubs")
+    @GetMapping("/student-clubs")
     fun readAllClubs(
-        @PathVariable language: String
+        @RequestParam(required = false, defaultValue = "ko") language: String
     ): ResponseEntity<List<AboutDto>> {
         return ResponseEntity.ok(aboutService.readAllClubs(language))
     }
 
-    @GetMapping("/{language}/facilities")
+    @GetMapping("/facilities")
     fun readAllFacilities(
-        @PathVariable language: String
+        @RequestParam(required = false, defaultValue = "ko") language: String
     ): ResponseEntity<List<AboutDto>> {
         return ResponseEntity.ok(aboutService.readAllFacilities(language))
     }
 
-    @GetMapping("/{language}/directions")
+    @GetMapping("/directions")
     fun readAllDirections(
-        @PathVariable language: String
+        @RequestParam(required = false, defaultValue = "ko") language: String
     ): ResponseEntity<List<AboutDto>> {
         return ResponseEntity.ok(aboutService.readAllDirections(language))
     }
