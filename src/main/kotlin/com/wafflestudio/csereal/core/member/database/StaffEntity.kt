@@ -2,15 +2,16 @@ package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.dto.StaffDto
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
-import jakarta.persistence.CascadeType
-import jakarta.persistence.Entity
-import jakarta.persistence.OneToMany
-import jakarta.persistence.OneToOne
+import jakarta.persistence.*
 
 @Entity(name = "staff")
 class StaffEntity(
+    @Enumerated(EnumType.STRING)
+    var language: LanguageType,
+
     var name: String,
     var role: String,
 
@@ -30,8 +31,9 @@ class StaffEntity(
     override fun bringMainImage(): MainImageEntity? = mainImage
 
     companion object {
-        fun of(staffDto: StaffDto): StaffEntity {
+        fun of(languageType: LanguageType, staffDto: StaffDto): StaffEntity {
             return StaffEntity(
+                language = languageType,
                 name = staffDto.name,
                 role = staffDto.role,
                 office = staffDto.office,

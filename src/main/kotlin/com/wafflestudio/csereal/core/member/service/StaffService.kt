@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.database.MemberSearchEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.member.database.StaffRepository
@@ -29,7 +30,8 @@ class StaffServiceImpl(
     private val mainImageService: MainImageService
 ) : StaffService {
     override fun createStaff(createStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto {
-        val staff = StaffEntity.of(createStaffRequest)
+        val enumLanguageType = LanguageType.makeStringToLanguageType(createStaffRequest.language)
+        val staff = StaffEntity.of(enumLanguageType, createStaffRequest)
 
         for (task in createStaffRequest.tasks) {
             TaskEntity.create(task, staff)
@@ -107,7 +109,8 @@ class StaffServiceImpl(
         val list = mutableListOf<StaffDto>()
 
         for (request in requestList) {
-            val staff = StaffEntity.of(request)
+            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+            val staff = StaffEntity.of(enumLanguageType, request)
 
             for (task in request.tasks) {
                 TaskEntity.create(task, staff)
