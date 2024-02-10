@@ -29,7 +29,7 @@ class AdmissionsController(
         return admissionsService.createAdmission(req, mainType, postType)
     }
 
-    @GetMapping
+    @GetMapping("/{mainTypeStr}/{postTypeStr}")
     fun readAdmission(
         @PathVariable(required = true) mainTypeStr: String,
         @PathVariable(required = true) postTypeStr: String,
