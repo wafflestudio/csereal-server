@@ -117,9 +117,7 @@ class StaffServiceImpl(
             }
 
             staff.memberSearch = MemberSearchEntity.create(staff)
-
             staffRepository.save(staff)
-
             list.add(StaffDto.of(staff, null))
         }
 
