@@ -18,7 +18,7 @@ enum class AdmissionsPostType {
     companion object {
         fun fromJsonValue(field: String) =
             try {
-                field.replace('_', '-')
+                field.replace('-', '_')
                     .uppercase()
                     .let { AdmissionsPostType.valueOf(it) }
             } catch (e: IllegalArgumentException) {
