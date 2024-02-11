@@ -29,8 +29,10 @@ class StaffController(
     }
 
     @GetMapping
-    fun getAllStaff(): ResponseEntity<List<SimpleStaffDto>> {
-        return ResponseEntity.ok(staffService.getAllStaff())
+    fun getAllStaff(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<List<SimpleStaffDto>> {
+        return ResponseEntity.ok(staffService.getAllStaff(language))
     }
 
     @AuthenticatedStaff

@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile
 interface StaffService {
     fun createStaff(createStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto
     fun getStaff(staffId: Long): StaffDto
-    fun getAllStaff(): List<SimpleStaffDto>
+    fun getAllStaff(language: String): List<SimpleStaffDto>
     fun updateStaff(staffId: Long, updateStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto
     fun deleteStaff(staffId: Long)
     fun migrateStaff(requestList: List<StaffDto>): List<StaffDto>
@@ -61,8 +61,10 @@ class StaffServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun getAllStaff(): List<SimpleStaffDto> {
-        return staffRepository.findAll().map {
+    override fun getAllStaff(language: String): List<SimpleStaffDto> {
+        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
+
+        return staffRepository.findAllByLanguage(enumLanguageType).map {
             val imageURL = mainImageService.createImageURL(it.mainImage)
             SimpleStaffDto.of(it, imageURL)
         }.sortedBy { it.name }
