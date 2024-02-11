@@ -1,17 +1,15 @@
 package com.wafflestudio.csereal.core.admissions.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
+import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.core.admissions.api.req.AdmissionReqBody
 import com.wafflestudio.csereal.core.admissions.dto.AdmissionsDto
-import com.wafflestudio.csereal.core.admissions.dto.AdmissionsRequest
+import com.wafflestudio.csereal.core.admissions.api.req.AdmissionMigrateElem
 import com.wafflestudio.csereal.core.admissions.service.AdmissionsService
+import com.wafflestudio.csereal.core.admissions.type.AdmissionsMainType
+import com.wafflestudio.csereal.core.admissions.type.AdmissionsPostType
 import jakarta.validation.Valid
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/api/v1/admissions")
 @RestController
@@ -19,40 +17,32 @@ class AdmissionsController(
     private val admissionsService: AdmissionsService
 ) {
     @AuthenticatedStaff
-    @PostMapping("/undergraduate/{postType}")
-    fun createUndergraduateAdmissions(
-        @PathVariable postType: String,
+    @PostMapping("/{mainTypeStr}/{postTypeStr}")
+    fun createAdmission(
+        @PathVariable(required = true) mainTypeStr: String,
+        @PathVariable(required = true) postTypeStr: String,
         @Valid @RequestBody
-        request: AdmissionsDto
+        req: AdmissionReqBody
     ): AdmissionsDto {
-        return admissionsService.createUndergraduateAdmissions(postType, request)
+        val mainType = AdmissionsMainType.fromJsonValue(mainTypeStr)
+        val postType = AdmissionsPostType.fromJsonValue(postTypeStr)
+        return admissionsService.createAdmission(req, mainType, postType)
     }
 
-    @AuthenticatedStaff
-    @PostMapping("/graduate")
-    fun createGraduateAdmissions(
-        @Valid @RequestBody
-        request: AdmissionsDto
+    @GetMapping("/{mainTypeStr}/{postTypeStr}")
+    fun readAdmission(
+        @PathVariable(required = true) mainTypeStr: String,
+        @PathVariable(required = true) postTypeStr: String,
+        @RequestParam(required = true, defaultValue = "ko") language: String
     ): AdmissionsDto {
-        return admissionsService.createGraduateAdmissions(request)
-    }
-
-    @GetMapping("/undergraduate/{postType}")
-    fun readUndergraduateAdmissions(
-        @PathVariable postType: String
-    ): ResponseEntity<AdmissionsDto> {
-        return ResponseEntity.ok(admissionsService.readUndergraduateAdmissions(postType))
-    }
-
-    @GetMapping("/graduate")
-    fun readGraduateAdmissions(): ResponseEntity<AdmissionsDto> {
-        return ResponseEntity.ok(admissionsService.readGraduateAdmissions())
+        val mainType = AdmissionsMainType.fromJsonValue(mainTypeStr)
+        val postType = AdmissionsPostType.fromJsonValue(postTypeStr)
+        val languageType = LanguageType.makeStringToLanguageType(language)
+        return admissionsService.readAdmission(mainType, postType, languageType)
     }
 
     @PostMapping("/migrate")
     fun migrateAdmissions(
-        @RequestBody requestList: List<AdmissionsRequest>
-    ): ResponseEntity<List<AdmissionsDto>> {
-        return ResponseEntity.ok(admissionsService.migrateAdmissions(requestList))
-    }
+        @RequestBody reqList: List<@Valid AdmissionMigrateElem>
+    ): List<AdmissionsDto> = admissionsService.migrateAdmissions(reqList)
 }
