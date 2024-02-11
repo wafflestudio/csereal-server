@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 data class AcademicsDto(
     val id: Long = -1, // TODO: Seperate to multiple DTOs or set this as nullable
     val language: String,
-    val name: String?,
+    val name: String,
     val description: String,
     val year: Int? = null,
     val time: String? = null,
