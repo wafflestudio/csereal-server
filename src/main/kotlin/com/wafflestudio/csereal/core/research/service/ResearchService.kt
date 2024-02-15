@@ -40,6 +40,7 @@ interface ResearchService {
         mainImage: MultipartFile?,
         attachments: List<MultipartFile>?
     ): ResearchDto
+    fun migrateLabPdf(labId: Long, pdf: MultipartFile?): LabDto
 }
 
 @Service
@@ -346,5 +347,19 @@ class ResearchServiceImpl(
         val attachmentResponses = attachmentService.createAttachmentResponses(researchDetail.attachments)
 
         return ResearchDto.of(researchDetail, imageURL, attachmentResponses)
+    }
+
+    @Transactional
+    override fun migrateLabPdf(labId: Long, pdf: MultipartFile?): LabDto {
+        val lab = labRepository.findByIdOrNull(labId)
+            ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.")
+
+        var pdfURL = ""
+        if (pdf != null) {
+            val attachmentDto = attachmentService.uploadAttachmentInLabEntity(lab, pdf)
+            pdfURL = "${endpointProperties.backend}/v1/file/${attachmentDto.filename}"
+        }
+
+        return LabDto.of(lab, pdfURL)
     }
 }
