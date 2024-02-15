@@ -35,6 +35,11 @@ interface ResearchService {
     fun updateLab(labId: Long, request: LabUpdateRequest, pdf: MultipartFile?): LabDto
     fun migrateResearchDetail(requestList: List<ResearchDto>): List<ResearchDto>
     fun migrateLabs(requestList: List<LabDto>): List<LabDto>
+    fun migrateResearchDetailImageAndAttachments(
+        researchId: Long,
+        mainImage: MultipartFile?,
+        attachments: List<MultipartFile>?
+    ): ResearchDto
 }
 
 @Service
@@ -318,5 +323,28 @@ class ResearchServiceImpl(
             list.add(LabDto.of(newLab, ""))
         }
         return list
+    }
+
+    @Transactional
+    override fun migrateResearchDetailImageAndAttachments(
+        researchId: Long,
+        mainImage: MultipartFile?,
+        attachments: List<MultipartFile>?
+    ): ResearchDto {
+        val researchDetail = researchRepository.findByIdOrNull(researchId)
+            ?: throw CserealException.Csereal404("해당 연구내용을 찾을 수 없습니다.")
+
+        if (mainImage != null) {
+            mainImageService.uploadMainImage(researchDetail, mainImage)
+        }
+
+        if (attachments != null) {
+            attachmentService.uploadAllAttachments(researchDetail, attachments)
+        }
+
+        val imageURL = mainImageService.createImageURL(researchDetail.mainImage)
+        val attachmentResponses = attachmentService.createAttachmentResponses(researchDetail.attachments)
+
+        return ResearchDto.of(researchDetail, imageURL, attachmentResponses)
     }
 }
