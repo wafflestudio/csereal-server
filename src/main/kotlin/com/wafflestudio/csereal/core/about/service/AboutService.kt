@@ -49,12 +49,6 @@ class AboutServiceImpl(
         val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
         val newAbout = AboutEntity.of(enumPostType, enumLanguageType, request)
 
-        if (request.locations != null) {
-            for (location in request.locations) {
-                LocationEntity.create(location, newAbout)
-            }
-        }
-
         if (mainImage != null) {
             mainImageService.uploadMainImage(newAbout, mainImage)
         }
@@ -277,39 +271,31 @@ class AboutServiceImpl(
     }
 
     @Transactional
-    override fun migrateFacilities(requestList: List<FacilityDto>): List<FacilityDto> {
-        val list = mutableListOf<FacilityDto>()
-
-        for (request in requestList) {
-            val language = request.language
-            val name = request.name
-            val description = request.description
-            val aboutDto = AboutDto(
+    override fun migrateFacilities(requestList: List<FacilityDto>): List<FacilityDto> =
+        requestList.map {
+            AboutDto(
                 id = null,
-                language = language,
-                name = name,
-                description = description,
+                language = it.language,
+                name = it.name,
+                description = it.description,
                 year = null,
                 createdAt = null,
                 modifiedAt = null,
-                locations = null,
+                locations = it.locations,
                 imageURL = null,
                 attachments = listOf()
-            )
-
-            val languageType = LanguageType.makeStringToLanguageType(language)
-            val newAbout = AboutEntity.of(AboutPostType.FACILITIES, languageType, aboutDto)
-
-            for (location in request.locations) {
-                LocationEntity.create(location, newAbout)
+            ).let { dto ->
+                AboutEntity.of(
+                    AboutPostType.FACILITIES,
+                    LanguageType.makeStringToLanguageType(it.language),
+                    dto
+                )
             }
-
-            aboutRepository.save(newAbout)
-
-            list.add(FacilityDto.of(newAbout))
+        }.let {
+            aboutRepository.saveAll(it)
+        }.map {
+            FacilityDto.of(it)
         }
-        return list
-    }
 
     @Transactional
     override fun migrateDirections(requestList: List<DirectionDto>): List<DirectionDto> {
