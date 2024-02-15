@@ -20,6 +20,7 @@ interface StaffService {
     fun updateStaff(staffId: Long, updateStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto
     fun deleteStaff(staffId: Long)
     fun migrateStaff(requestList: List<StaffDto>): List<StaffDto>
+    fun migrateStaffImage(staffId: Long, mainImage: MultipartFile): StaffDto
 }
 
 @Service
@@ -121,5 +122,17 @@ class StaffServiceImpl(
         }
 
         return list
+    }
+
+    @Transactional
+    override fun migrateStaffImage(staffId: Long, mainImage: MultipartFile): StaffDto {
+        val staff = staffRepository.findByIdOrNull(staffId)
+            ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다.")
+
+        mainImageService.uploadMainImage(staff, mainImage)
+
+        val imageURL = mainImageService.createImageURL(staff.mainImage)
+
+        return StaffDto.of(staff, imageURL)
     }
 }
