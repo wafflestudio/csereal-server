@@ -1,23 +1,30 @@
 package com.wafflestudio.csereal.core.admissions.dto
 
-import com.fasterxml.jackson.annotation.JsonInclude
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsEntity
 import java.time.LocalDateTime
 
 data class AdmissionsDto(
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    val id: Long? = null,
+    val id: Long,
+    val name: String,
+    val mainType: String,
+    val postType: String,
+    val language: String,
     val description: String,
-    val createdAt: LocalDateTime?,
-    val modifiedAt: LocalDateTime?
+    val createdAt: LocalDateTime,
+    val modifiedAt: LocalDateTime
 ) {
     companion object {
         fun of(entity: AdmissionsEntity): AdmissionsDto = entity.run {
             AdmissionsDto(
                 id = this.id,
+                name = this.name,
+                mainType = this.mainType.toJsonValue(),
+                postType = this.postType.toJsonValue(),
+                language = LanguageType.makeLowercase(this.language),
                 description = this.description,
-                createdAt = this.createdAt,
-                modifiedAt = this.modifiedAt
+                createdAt = this.createdAt!!,
+                modifiedAt = this.modifiedAt!!
             )
         }
     }
