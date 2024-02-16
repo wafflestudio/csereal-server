@@ -6,6 +6,7 @@ import com.wafflestudio.csereal.core.about.database.*
 import com.wafflestudio.csereal.core.about.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
@@ -28,6 +29,11 @@ interface AboutService {
     fun migrateStudentClubs(requestList: List<StudentClubDto>): List<StudentClubDto>
     fun migrateFacilities(requestList: List<FacilityDto>): List<FacilityDto>
     fun migrateDirections(requestList: List<DirectionDto>): List<DirectionDto>
+    fun migrateAboutImageAndAttachments(
+        aboutId: Long,
+        mainImage: MultipartFile?,
+        attachments: List<MultipartFile>?
+    ): AboutDto
 }
 
 @Service
@@ -341,6 +347,25 @@ class AboutServiceImpl(
             list.add(DirectionDto.of(newAbout))
         }
         return list
+    }
+
+    @Transactional
+    override fun migrateAboutImageAndAttachments(
+        aboutId: Long,
+        mainImage: MultipartFile?,
+        attachments: List<MultipartFile>?
+    ): AboutDto {
+        val about = aboutRepository.findByIdOrNull(aboutId)
+            ?: throw CserealException.Csereal404("해당 소개는 존재하지 않습니다.")
+
+        if (mainImage != null) {
+            mainImageService.uploadMainImage(about, mainImage)
+        }
+
+        val imageURL = mainImageService.createImageURL(about.mainImage)
+        val attachmentResponses = attachmentService.createAttachmentResponses(about.attachments)
+
+        return AboutDto.of(about, imageURL, attachmentResponses)
     }
 
     private fun makeStringToEnum(postType: String): AboutPostType {
