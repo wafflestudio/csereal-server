@@ -1,17 +1,26 @@
 package com.wafflestudio.csereal.core.admissions.type
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.properties.LanguageType
 
-enum class AdmissionsPostType {
+enum class AdmissionsPostType(
+    val ko: String,
+    val en: String
+) {
     // For graduate, undergraduate
-    EARLY_ADMISSION,
-    REGULAR_ADMISSION,
+    EARLY_ADMISSION("수시 모집", "Early Admission"),
+    REGULAR_ADMISSION("정시 모집", "Regular Admission"),
 
     // For international
-    UNDERGRADUATE,
-    GRADUATE,
-    EXCHANGE_VISITING,
-    SCHOLARSHIPS;
+    UNDERGRADUATE("Undergraduate", "Undergraduate"),
+    GRADUATE("Graduate", "Graduate"),
+    EXCHANGE_VISITING("Exchange/Visiting Program", "Exchange/Visiting Program"),
+    SCHOLARSHIPS("Scholarships", "Scholarships") ;
+
+    fun getLanguageValue(language: LanguageType) = when (language) {
+        LanguageType.KO -> this.ko
+        LanguageType.EN -> this.en
+    }
 
     fun toJsonValue() = this.name.lowercase()
 

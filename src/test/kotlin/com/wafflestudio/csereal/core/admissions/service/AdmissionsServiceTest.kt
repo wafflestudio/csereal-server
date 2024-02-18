@@ -35,7 +35,7 @@ class AdmissionsServiceTest(
         val req = AdmissionReqBody(
             name = "name",
             language = "ko",
-            description = "description"
+            description = "<p>description</p>"
         )
         val mainType = AdmissionsMainType.UNDERGRADUATE
         val postType = AdmissionsPostType.REGULAR_ADMISSION
@@ -59,6 +59,17 @@ class AdmissionsServiceTest(
                 entity.postType shouldBe postType
                 entity.language shouldBe LanguageType.makeStringToLanguageType(req.language)
                 entity.description shouldBe req.description
+            }
+
+            Then("검색 정보가 잘 생성되어야 한다.") {
+                val entity = admissionsRepository.findByIdOrNull(result.id)!!
+                entity.searchContent shouldBe """
+                    ${req.name}
+                    ${mainType.getLanguageValue(LanguageType.KO)}
+                    ${postType.getLanguageValue(LanguageType.KO)}
+                    description
+                    
+                """.trimIndent()
             }
         }
     }
@@ -85,7 +96,8 @@ class AdmissionsServiceTest(
             mainType = AdmissionsMainType.INTERNATIONAL,
             postType = AdmissionsPostType.EXCHANGE_VISITING,
             language = LanguageType.EN,
-            description = "description"
+            description = "description",
+            searchContent = "ss"
         ).let {
             admissionsRepository.save(it)
         }
