@@ -19,7 +19,7 @@ data class FacilityDto(
                 language = LanguageType.makeLowercase(this.language),
                 name = this.name!!,
                 description = this.description,
-                locations = this.locations.map { it.name }
+                locations = this.locations
             )
         }
     }

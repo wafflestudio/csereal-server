@@ -33,7 +33,7 @@ data class AboutDto(
                 year = this.year,
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
-                locations = this.locations.map { it.name },
+                locations = this.locations,
                 imageURL = imageURL,
                 attachments = attachmentResponses
             )
