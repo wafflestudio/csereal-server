@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
 import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.utils.StringListConverter
 import com.wafflestudio.csereal.core.about.dto.AboutDto
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
@@ -22,8 +23,9 @@ class AboutEntity(
 
     var year: Int?,
 
-    @OneToMany(mappedBy = "about", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val locations: MutableList<LocationEntity> = mutableListOf(),
+    @Column(columnDefinition = "TEXT")
+    @Convert(converter = StringListConverter::class)
+    var locations: MutableList<String> = mutableListOf(),
 
     @OneToMany(mappedBy = "")
     var attachments: MutableList<AttachmentEntity> = mutableListOf(),
@@ -42,7 +44,8 @@ class AboutEntity(
                 language = languageType,
                 name = aboutDto.name,
                 description = aboutDto.description,
-                year = aboutDto.year
+                year = aboutDto.year,
+                locations = aboutDto.locations?.toMutableList() ?: mutableListOf()
             )
         }
     }
