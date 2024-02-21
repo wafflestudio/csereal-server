@@ -24,4 +24,3 @@ class DevAuthenticationProvider(private val userRepository: UserRepository) : Au
         return UsernamePasswordAuthenticationToken::class.java.isAssignableFrom(authentication)
     }
 }
-

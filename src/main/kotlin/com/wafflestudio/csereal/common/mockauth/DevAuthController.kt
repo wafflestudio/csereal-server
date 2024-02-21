@@ -30,7 +30,9 @@ class DevAuthController(
             ?: userRepository.save(UserEntity("devUser", "Mock", "mock@abc.com", "0000-00000", Role.ROLE_STAFF))
         val customPrincipal = CustomPrincipal(mockUser)
         val authenticationToken = UsernamePasswordAuthenticationToken(
-            customPrincipal, null, listOf(
+            customPrincipal,
+            null,
+            listOf(
                 SimpleGrantedAuthority("ROLE_STAFF")
             )
         )
