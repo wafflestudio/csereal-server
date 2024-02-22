@@ -102,4 +102,15 @@ class AboutController(
     ): ResponseEntity<List<DirectionDto>> {
         return ResponseEntity.ok(aboutService.migrateDirections(requestList))
     }
+
+    @PatchMapping("/migrateImage/{aboutId}")
+    fun migrateAboutImageAndAttachment(
+        @PathVariable aboutId: Long,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
+    ): ResponseEntity<AboutDto> {
+        return ResponseEntity.ok(
+            aboutService.migrateAboutImageAndAttachments(aboutId, mainImage, attachments)
+        )
+    }
 }
