@@ -102,6 +102,31 @@ class ResearchController(
         return ResponseEntity.ok(researchService.migrateLabs(requestList))
     }
 
+    @PatchMapping("/migrateImageAndAttachments/{researchId}")
+    fun migrateResearchDetailImageAndAttachments(
+        @PathVariable researchId: Long,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
+    ): ResponseEntity<ResearchDto> {
+        return ResponseEntity.ok(
+            researchService.migrateResearchDetailImageAndAttachments(
+                researchId,
+                mainImage,
+                attachments
+            )
+        )
+    }
+
+    @PatchMapping("/lab/migratePdf/{labId}")
+    fun migrateLabPdf(
+        @PathVariable labId: Long,
+        @RequestPart("pdf") pdf: MultipartFile?
+    ): ResponseEntity<LabDto> {
+        return ResponseEntity.ok(
+            researchService.migrateLabPdf(labId, pdf)
+        )
+    }
+
     @GetMapping("/search/top")
     fun searchTop(
         @RequestParam(required = true) keyword: String,

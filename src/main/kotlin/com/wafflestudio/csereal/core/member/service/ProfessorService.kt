@@ -28,6 +28,7 @@ interface ProfessorService {
     ): ProfessorDto
     fun deleteProfessor(professorId: Long)
     fun migrateProfessors(requestList: List<ProfessorDto>): List<ProfessorDto>
+    fun migrateProfessorImage(professorId: Long, mainImage: MultipartFile): ProfessorDto
 }
 
 @Service
@@ -224,5 +225,17 @@ class ProfessorServiceImpl(
             list.add(ProfessorDto.of(professor, null))
         }
         return list
+    }
+
+    @Transactional
+    override fun migrateProfessorImage(professorId: Long, mainImage: MultipartFile): ProfessorDto {
+        val professor = professorRepository.findByIdOrNull(professorId)
+            ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다. professorId: $professorId")
+
+        mainImageService.uploadMainImage(professor, mainImage)
+
+        val imageURL = mainImageService.createImageURL(professor.mainImage)
+
+        return ProfessorDto.of(professor, imageURL)
     }
 }
