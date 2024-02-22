@@ -62,4 +62,12 @@ class ProfessorController(
     ): ResponseEntity<List<ProfessorDto>> {
         return ResponseEntity.ok(professorService.migrateProfessors(requestList))
     }
+
+    @PatchMapping("/migragteImage/{professorId}")
+    fun migrateProfessorImage(
+        @PathVariable professorId: Long,
+        @RequestPart("mainImage") mainImage: MultipartFile
+    ): ResponseEntity<ProfessorDto> {
+        return ResponseEntity.ok(professorService.migrateProfessorImage(professorId, mainImage))
+    }
 }
