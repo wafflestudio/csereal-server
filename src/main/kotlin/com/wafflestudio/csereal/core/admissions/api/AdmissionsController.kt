@@ -41,6 +41,17 @@ class AdmissionsController(
         return admissionsService.readAdmission(mainType, postType, languageType)
     }
 
+    @GetMapping("/search")
+    fun searchTopAdmissions(
+        @RequestParam(required = true) keyword: String,
+        @RequestParam(required = true, defaultValue = "ko") language: String,
+        @RequestParam(required = true) number: Int
+    ) = admissionsService.searchTopAdmission(
+        keyword,
+        LanguageType.makeStringToLanguageType(language),
+        number
+    )
+
     @PostMapping("/migrate")
     fun migrateAdmissions(
         @RequestBody reqList: List<@Valid AdmissionMigrateElem>
