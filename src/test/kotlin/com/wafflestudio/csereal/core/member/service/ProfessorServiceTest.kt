@@ -54,6 +54,7 @@ class ProfessorServiceTest(
         labEntity = labRepository.save(labEntity)
 
         val professorDto = ProfessorDto(
+            language = "ko",
             name = "name",
             email = "email",
             status = ProfessorStatus.ACTIVE,
@@ -82,6 +83,7 @@ class ProfessorServiceTest(
             Then("교수의 정보가 일치해야 한다") {
                 val professorEntity = professorRepository.findByIdOrNull(createdProfessorDto.id)!!
 
+                professorEntity.language shouldBe professorDto.language
                 professorEntity.name shouldBe professorDto.name
                 professorEntity.email shouldBe professorDto.email
                 professorEntity.status shouldBe professorDto.status
@@ -162,6 +164,7 @@ class ProfessorServiceTest(
 
         val createdProfessorDto = professorService.createProfessor(
             ProfessorDto(
+                language = "ko",
                 name = "name",
                 email = "email",
                 status = ProfessorStatus.ACTIVE,
@@ -210,6 +213,7 @@ class ProfessorServiceTest(
                 val professorEntity = professorRepository.findByIdOrNull(modifiedProfessorDto.id)
                 professorEntity shouldNotBe null
 
+                professorEntity!!.language shouldBe toModifyProfessorDto.language
                 professorEntity!!.name shouldBe toModifyProfessorDto.name
                 professorEntity.email shouldBe toModifyProfessorDto.email
                 professorEntity.status shouldBe toModifyProfessorDto.status
