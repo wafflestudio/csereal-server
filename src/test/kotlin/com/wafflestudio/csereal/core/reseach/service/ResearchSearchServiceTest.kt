@@ -47,6 +47,7 @@ class ResearchSearchServiceTest(
             // Save professors
             val professor1Dto = professorService.createProfessor(
                 createProfessorRequest = ProfessorDto(
+                    language = "ko",
                     name = "professor1",
                     email = null,
                     status = ProfessorStatus.ACTIVE,
@@ -67,6 +68,7 @@ class ResearchSearchServiceTest(
             )
             val professor2Dto = professorService.createProfessor(
                 createProfessorRequest = ProfessorDto(
+                    language = "ko",
                     name = "professor2",
                     email = null,
                     status = ProfessorStatus.ACTIVE,
@@ -160,6 +162,7 @@ class ResearchSearchServiceTest(
             When("professor가 추가된다면") {
                 val process3CreatedDto = professorService.createProfessor(
                     createProfessorRequest = ProfessorDto(
+                        language = "ko",
                         name = "newProfessor",
                         email = "email",
                         status = ProfessorStatus.ACTIVE,

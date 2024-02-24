@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.reseach.service
 
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
@@ -156,6 +157,7 @@ class ResearchServiceTest(
         // Save professors
         val professor1 = professorRepository.save(
             ProfessorEntity(
+                language = LanguageType.KO,
                 name = "professor1",
                 status = ProfessorStatus.ACTIVE,
                 academicRank = "professor",
@@ -170,6 +172,7 @@ class ResearchServiceTest(
         )
         val professor2 = professorRepository.save(
             ProfessorEntity(
+                language = LanguageType.KO,
                 name = "professor2",
                 status = ProfessorStatus.ACTIVE,
                 academicRank = "professor",
@@ -258,6 +261,7 @@ class ResearchServiceTest(
         // Save professors
         val professor1 = professorRepository.save(
             ProfessorEntity(
+                language = LanguageType.KO,
                 name = "professor1",
                 status = ProfessorStatus.ACTIVE,
                 academicRank = "professor",
@@ -272,6 +276,7 @@ class ResearchServiceTest(
         )
         val professor2 = professorRepository.save(
             ProfessorEntity(
+                language = LanguageType.KO,
                 name = "professor2",
                 status = ProfessorStatus.ACTIVE,
                 academicRank = "professor",
@@ -318,6 +323,7 @@ class ResearchServiceTest(
         When("pdf를 제외하고 Lab을 수정한다면") {
             val professor3 = professorRepository.save(
                 ProfessorEntity(
+                    language = LanguageType.KO,
                     name = "professor3",
                     status = ProfessorStatus.ACTIVE,
                     academicRank = "professor",
