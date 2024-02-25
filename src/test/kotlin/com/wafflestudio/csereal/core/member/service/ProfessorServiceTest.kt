@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.member.service
 
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.database.MemberSearchRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
@@ -35,6 +36,7 @@ class ProfessorServiceTest(
         val date = LocalDate.now()
 
         val researchEntity = ResearchEntity(
+            language = LanguageType.KO,
             name = "researchName",
             description = null,
             postType = ResearchPostType.LABS
@@ -134,6 +136,7 @@ class ProfessorServiceTest(
     Given("생성되어 있는 간단한 교수에 대하여") {
         val date = LocalDate.now()
         val researchEntity = ResearchEntity(
+            language = LanguageType.KO,
             name = "researchName",
             description = null,
             postType = ResearchPostType.LABS

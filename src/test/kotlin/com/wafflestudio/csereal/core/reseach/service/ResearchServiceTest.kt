@@ -44,6 +44,7 @@ class ResearchServiceTest(
     Given("간단한 Research를 생성하려고 할 때") {
         val researchDto = ResearchDto(
             id = -1,
+            language = "ko",
             name = "name",
             postType = ResearchPostType.CENTERS,
             description = "description",
@@ -93,6 +94,7 @@ class ResearchServiceTest(
     Given("간단한 Research를 수정하려고 할 때") {
         val researchDto = ResearchDto(
             id = -1,
+            language = "ko",
             name = "name",
             postType = ResearchPostType.CENTERS,
             description = "description",
@@ -112,6 +114,7 @@ class ResearchServiceTest(
         When("Research를 수정한다면") {
             val researchUpdateRequest = ResearchDto(
                 id = createdResearchDto.id,
+                language = "ko",
                 name = "name2",
                 postType = ResearchPostType.GROUPS,
                 description = "description2",
@@ -189,6 +192,7 @@ class ResearchServiceTest(
         // Save research
         val research = researchRepository.save(
             ResearchEntity(
+                language = LanguageType.KO,
                 name = "research",
                 postType = ResearchPostType.GROUPS,
                 description = null
@@ -293,6 +297,7 @@ class ResearchServiceTest(
         // Save research
         val research = researchRepository.save(
             ResearchEntity(
+                language = LanguageType.KO,
                 name = "research",
                 postType = ResearchPostType.GROUPS,
                 description = null
