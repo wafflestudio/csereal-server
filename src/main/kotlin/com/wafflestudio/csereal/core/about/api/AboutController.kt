@@ -36,24 +36,31 @@ class AboutController(
     // read 목록이 하나
     @GetMapping("/{postType}")
     fun readAbout(
+        @RequestParam(required = false, defaultValue = "ko") language: String,
         @PathVariable postType: String
     ): ResponseEntity<AboutDto> {
-        return ResponseEntity.ok(aboutService.readAbout(postType))
+        return ResponseEntity.ok(aboutService.readAbout(language, postType))
     }
 
     @GetMapping("/student-clubs")
-    fun readAllClubs(): ResponseEntity<List<AboutDto>> {
-        return ResponseEntity.ok(aboutService.readAllClubs())
+    fun readAllClubs(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<List<AboutDto>> {
+        return ResponseEntity.ok(aboutService.readAllClubs(language))
     }
 
     @GetMapping("/facilities")
-    fun readAllFacilities(): ResponseEntity<List<AboutDto>> {
-        return ResponseEntity.ok(aboutService.readAllFacilities())
+    fun readAllFacilities(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<List<AboutDto>> {
+        return ResponseEntity.ok(aboutService.readAllFacilities(language))
     }
 
     @GetMapping("/directions")
-    fun readAllDirections(): ResponseEntity<List<AboutDto>> {
-        return ResponseEntity.ok(aboutService.readAllDirections())
+    fun readAllDirections(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<List<AboutDto>> {
+        return ResponseEntity.ok(aboutService.readAllDirections(language))
     }
 
     @GetMapping("/future-careers")
@@ -94,5 +101,16 @@ class AboutController(
         @RequestBody requestList: List<DirectionDto>
     ): ResponseEntity<List<DirectionDto>> {
         return ResponseEntity.ok(aboutService.migrateDirections(requestList))
+    }
+
+    @PatchMapping("/migrateImage/{aboutId}")
+    fun migrateAboutImageAndAttachment(
+        @PathVariable aboutId: Long,
+        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
+    ): ResponseEntity<AboutDto> {
+        return ResponseEntity.ok(
+            aboutService.migrateAboutImageAndAttachments(aboutId, mainImage, attachments)
+        )
     }
 }

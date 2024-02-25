@@ -27,6 +27,7 @@ class StaffServiceTest(
 
     Given("이미지 없는 행정직원을 생성하려고 할 떄") {
         val staffDto = StaffDto(
+            language = "ko",
             name = "name",
             role = "role",
             office = "office",
@@ -75,6 +76,7 @@ class StaffServiceTest(
 
     Given("이미지 없는 행정직원을 수정할 때") {
         val staffDto = StaffDto(
+            language = "ko",
             name = "name",
             role = "role",
             office = "office",
@@ -87,6 +89,7 @@ class StaffServiceTest(
 
         When("행정직원을 수정하면") {
             val updateStaffDto = StaffDto(
+                language = "ko",
                 name = "name2",
                 role = "role2",
                 office = "office2",

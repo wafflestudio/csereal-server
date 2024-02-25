@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.academics.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.academics.database.*
 import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
@@ -23,12 +24,16 @@ interface AcademicsService {
     fun readAcademicsYearResponses(studentType: String, postType: String): List<AcademicsYearResponse>
     fun readGeneralStudies(): GeneralStudiesPageResponse
     fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto
-    fun readAllCourses(studentType: String): List<CourseDto>
-    fun readCourse(name: String): CourseDto
+    fun readAllCourses(language: String, studentType: String): List<CourseDto>
+    fun readCourse(language: String, name: String): CourseDto
     fun createScholarshipDetail(studentType: String, request: ScholarshipDto): ScholarshipDto
     fun readAllScholarship(studentType: String): ScholarshipPageResponse
     fun readScholarship(scholarshipId: Long): ScholarshipDto
 }
+
+// TODO: add Update, Delete method
+//       remember to update academicsSearch Field on Update method
+//       remember to mark delete of academicsSearch Field on Delete mark method
 
 @Service
 class AcademicsServiceImpl(
@@ -46,11 +51,16 @@ class AcademicsServiceImpl(
     ): AcademicsDto {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val enumPostType = makeStringToAcademicsPostType(postType)
-
-        val newAcademics = AcademicsEntity.of(enumStudentType, enumPostType, request)
+        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+        val newAcademics = AcademicsEntity.of(enumStudentType, enumPostType, enumLanguageType, request)
 
         if (attachments != null) {
             attachmentService.uploadAllAttachments(newAcademics, attachments)
+        }
+
+        // create search data
+        newAcademics.apply {
+            academicsSearch = AcademicsSearchEntity.create(this)
         }
 
         academicsRepository.save(newAcademics)
@@ -87,6 +97,7 @@ class AcademicsServiceImpl(
         return academicsYearResponses
     }
 
+    @Transactional(readOnly = true)
     override fun readGeneralStudies(): GeneralStudiesPageResponse {
         val academicsEntity = academicsRepository.findByStudentTypeAndPostType(
             AcademicsStudentType.UNDERGRADUATE,
@@ -103,12 +114,18 @@ class AcademicsServiceImpl(
     @Transactional
     override fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val newCourse = CourseEntity.of(enumStudentType, request)
+        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+
+        val newCourse = CourseEntity.of(enumStudentType, enumLanguageType, request)
 
         if (attachments != null) {
             attachmentService.uploadAllAttachments(newCourse, attachments)
         }
 
+        // create search data
+        newCourse.apply {
+            academicsSearch = AcademicsSearchEntity.create(this)
+        }
         courseRepository.save(newCourse)
 
         val attachmentResponses = attachmentService.createAttachmentResponses(newCourse.attachments)
@@ -117,19 +134,21 @@ class AcademicsServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllCourses(studentType: String): List<CourseDto> {
+    override fun readAllCourses(language: String, studentType: String): List<CourseDto> {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
-
-        val courseDtoList = courseRepository.findAllByStudentTypeOrderByNameAsc(enumStudentType).map {
-            val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
-            CourseDto.of(it, attachmentResponses)
-        }
+        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
+        val courseDtoList =
+            courseRepository.findAllByLanguageAndStudentTypeOrderByNameAsc(enumLanguageType, enumStudentType).map {
+                val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+                CourseDto.of(it, attachmentResponses)
+            }
         return courseDtoList
     }
 
     @Transactional(readOnly = true)
-    override fun readCourse(name: String): CourseDto {
-        val course = courseRepository.findByName(name)
+    override fun readCourse(language: String, name: String): CourseDto {
+        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
+        val course = courseRepository.findByLanguageAndName(enumLanguageType, name)
         val attachmentResponses = attachmentService.createAttachmentResponses(course.attachments)
 
         return CourseDto.of(course, attachmentResponses)
@@ -138,9 +157,14 @@ class AcademicsServiceImpl(
     @Transactional
     override fun createScholarshipDetail(studentType: String, request: ScholarshipDto): ScholarshipDto {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val newScholarship = ScholarshipEntity.of(enumStudentType, request)
+        var newScholarship = ScholarshipEntity.of(enumStudentType, request)
 
-        scholarshipRepository.save(newScholarship)
+        // create search data
+        newScholarship.apply {
+            academicsSearch = AcademicsSearchEntity.create(this)
+        }
+
+        newScholarship = scholarshipRepository.save(newScholarship)
 
         return ScholarshipDto.of(newScholarship)
     }

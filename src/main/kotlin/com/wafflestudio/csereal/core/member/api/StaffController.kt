@@ -29,8 +29,10 @@ class StaffController(
     }
 
     @GetMapping
-    fun getAllStaff(): ResponseEntity<List<SimpleStaffDto>> {
-        return ResponseEntity.ok(staffService.getAllStaff())
+    fun getAllStaff(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<List<SimpleStaffDto>> {
+        return ResponseEntity.ok(staffService.getAllStaff(language))
     }
 
     @AuthenticatedStaff
@@ -54,5 +56,13 @@ class StaffController(
         @RequestBody requestList: List<StaffDto>
     ): ResponseEntity<List<StaffDto>> {
         return ResponseEntity.ok(staffService.migrateStaff(requestList))
+    }
+
+    @PatchMapping("/migrateImage/{staffId}")
+    fun migrateStaffImage(
+        @PathVariable staffId: Long,
+        @RequestPart("mainImage") mainImage: MultipartFile
+    ): ResponseEntity<StaffDto> {
+        return ResponseEntity.ok(staffService.migrateStaffImage(staffId, mainImage))
     }
 }

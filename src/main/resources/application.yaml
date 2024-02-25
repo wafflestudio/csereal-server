@@ -3,20 +3,6 @@ spring:
         active: local
     datasource:
         driver-class-name: com.mysql.cj.jdbc.Driver
-    security:
-        oauth2:
-            client:
-                registration:
-                    idsnucse:
-                        client-id: waffle-dev-local-testing
-                        client-secret: ${OIDC_CLIENT_SECRET_DEV}
-                        authorization-grant-type: authorization_code
-                        scope: openid, profile, email
-                        redirect-uri: http://localhost:8080/api/v1/login/oauth2/code/idsnucse
-                provider:
-                    idsnucse:
-                        issuer-uri: https://id-dev.bacchus.io/o
-                        jwk-set-uri: https://id-dev.bacchus.io/o/jwks
     servlet:
         multipart:
             enabled: true
@@ -64,6 +50,20 @@ spring:
         properties:
             hibernate:
                 dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
+    security:
+        oauth2:
+            client:
+                registration:
+                    idsnucse:
+                        client-id: cse-waffle-dev
+                        client-secret: ${OIDC_CLIENT_SECRET}
+                        authorization-grant-type: authorization_code
+                        scope: openid, profile, email
+                        redirect-uri: http://localhost:8080/api/v1/login/oauth2/code/idsnucse
+                provider:
+                    idsnucse:
+                        issuer-uri: https://id.snucse.org/o
+                        jwk-set-uri: https://id.snucse.org/o/jwks
 
 logging.level:
     default: INFO

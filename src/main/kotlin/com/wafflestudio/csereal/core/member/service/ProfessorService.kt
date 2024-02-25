@@ -5,8 +5,12 @@ import com.wafflestudio.csereal.core.member.database.*
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
 import com.wafflestudio.csereal.core.member.dto.SimpleProfessorDto
+import com.wafflestudio.csereal.core.member.event.ProfessorCreatedEvent
+import com.wafflestudio.csereal.core.member.event.ProfessorDeletedEvent
+import com.wafflestudio.csereal.core.member.event.ProfessorModifiedEvent
 import com.wafflestudio.csereal.core.research.database.LabRepository
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -24,6 +28,7 @@ interface ProfessorService {
     ): ProfessorDto
     fun deleteProfessor(professorId: Long)
     fun migrateProfessors(requestList: List<ProfessorDto>): List<ProfessorDto>
+    fun migrateProfessorImage(professorId: Long, mainImage: MultipartFile): ProfessorDto
 }
 
 @Service
@@ -31,7 +36,8 @@ interface ProfessorService {
 class ProfessorServiceImpl(
     private val labRepository: LabRepository,
     private val professorRepository: ProfessorRepository,
-    private val mainImageService: MainImageService
+    private val mainImageService: MainImageService,
+    private val applicationEventPublisher: ApplicationEventPublisher
 ) : ProfessorService {
     override fun createProfessor(createProfessorRequest: ProfessorDto, mainImage: MultipartFile?): ProfessorDto {
         val professor = ProfessorEntity.of(createProfessorRequest)
@@ -62,6 +68,10 @@ class ProfessorServiceImpl(
         professorRepository.save(professor)
 
         val imageURL = mainImageService.createImageURL(professor.mainImage)
+
+        applicationEventPublisher.publishEvent(
+            ProfessorCreatedEvent.of(professor)
+        )
 
         return ProfessorDto.of(professor, imageURL)
     }
@@ -108,6 +118,8 @@ class ProfessorServiceImpl(
     ): ProfessorDto {
         val professor = professorRepository.findByIdOrNull(professorId)
             ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다. professorId: $professorId")
+
+        val outdatedLabId = professor.lab?.id
 
         if (updateProfessorRequest.labId != null && updateProfessorRequest.labId != professor.lab?.id) {
             val lab = labRepository.findByIdOrNull(updateProfessorRequest.labId)
@@ -162,13 +174,24 @@ class ProfessorServiceImpl(
         // 검색 엔티티 업데이트
         professor.memberSearch!!.update(professor)
 
+        // update event 생성
+        applicationEventPublisher.publishEvent(
+            ProfessorModifiedEvent.of(professor, outdatedLabId)
+        )
+
         val imageURL = mainImageService.createImageURL(professor.mainImage)
 
         return ProfessorDto.of(professor, imageURL)
     }
 
     override fun deleteProfessor(professorId: Long) {
+        val professorEntity = professorRepository.findByIdOrNull(professorId) ?: return
+
         professorRepository.deleteById(professorId)
+
+        applicationEventPublisher.publishEvent(
+            ProfessorDeletedEvent.of(professorEntity)
+        )
     }
 
     @Transactional
@@ -202,5 +225,17 @@ class ProfessorServiceImpl(
             list.add(ProfessorDto.of(professor, null))
         }
         return list
+    }
+
+    @Transactional
+    override fun migrateProfessorImage(professorId: Long, mainImage: MultipartFile): ProfessorDto {
+        val professor = professorRepository.findByIdOrNull(professorId)
+            ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다. professorId: $professorId")
+
+        mainImageService.uploadMainImage(professor, mainImage)
+
+        val imageURL = mainImageService.createImageURL(professor.mainImage)
+
+        return ProfessorDto.of(professor, imageURL)
     }
 }

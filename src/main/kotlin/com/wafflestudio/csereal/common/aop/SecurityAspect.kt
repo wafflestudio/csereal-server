@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.common.aop
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.mockauth.CustomPrincipal
 import com.wafflestudio.csereal.core.user.database.Role
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
@@ -37,6 +38,11 @@ class SecurityAspect(private val userRepository: UserRepository) {
     private fun getLoginUser(): UserEntity {
         val authentication = SecurityContextHolder.getContext().authentication
         val principal = authentication.principal
+
+        // for dev Mock User
+        if (principal is CustomPrincipal) {
+            return principal.userEntity
+        }
 
         if (principal !is OidcUser) {
             throw CserealException.Csereal401("로그인이 필요합니다.")
