@@ -42,6 +42,7 @@ class ProfessorServiceTest(
             postType = ResearchPostType.LABS
         )
         var labEntity = LabEntity(
+            language = LanguageType.KO,
             name = "labName",
             location = null,
             tel = null,
@@ -142,6 +143,7 @@ class ProfessorServiceTest(
             postType = ResearchPostType.LABS
         )
         val labEntity1 = LabEntity(
+            language = LanguageType.KO,
             name = "labName1",
             location = null,
             tel = null,
@@ -152,6 +154,7 @@ class ProfessorServiceTest(
             research = researchEntity
         )
         val labEntity2 = LabEntity(
+            language = LanguageType.KO,
             name = "labName2",
             location = null,
             tel = null,

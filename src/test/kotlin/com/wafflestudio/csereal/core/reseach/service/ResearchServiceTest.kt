@@ -201,6 +201,7 @@ class ResearchServiceTest(
 
         val labDto = LabDto(
             id = -1,
+            language = "ko",
             name = "name",
             professors = listOf(
                 LabProfessorResponse(professor1.id, professor1.name),
@@ -307,6 +308,7 @@ class ResearchServiceTest(
         // Save lab
         val labDto = LabDto(
             id = -1,
+            language = "ko",
             name = "name",
             professors = listOf(
                 LabProfessorResponse(professor1.id, professor1.name),

@@ -184,7 +184,8 @@ class ResearchServiceImpl(
             throw CserealException.Csereal404("해당 게시글은 연구그룹이어야 합니다.")
         }
 
-        val newLab = LabEntity.of(request, researchGroup)
+        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+        val newLab = LabEntity.of(enumLanguageType, request, researchGroup)
 
         if (request.professors != null) {
             for (professor in request.professors) {
@@ -318,7 +319,8 @@ class ResearchServiceImpl(
                 throw CserealException.Csereal404("해당 게시글은 연구그룹이어야 합니다.")
             }
 
-            val newLab = LabEntity.of(request, researchGroup)
+            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+            val newLab = LabEntity.of(enumLanguageType, request, researchGroup)
 
             newLab.researchSearch = ResearchSearchEntity.create(newLab)
 
