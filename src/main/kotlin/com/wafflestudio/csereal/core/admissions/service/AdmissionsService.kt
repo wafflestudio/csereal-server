@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.admissions.api.req.AdmissionMigrateElem
 import com.wafflestudio.csereal.core.admissions.api.req.AdmissionReqBody
+import com.wafflestudio.csereal.core.admissions.api.res.AdmissionSearchResBody
 import com.wafflestudio.csereal.core.admissions.api.res.AdmissionSearchResElem
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsEntity
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsRepository
@@ -28,8 +29,15 @@ interface AdmissionsService {
 
     fun migrateAdmissions(requestList: List<AdmissionMigrateElem>): List<AdmissionsDto>
 
-    @Transactional(readOnly = true)
-    fun searchTopAdmission(keyword: String, language: LanguageType, number: Int): List<AdmissionSearchResElem>
+    fun searchPageAdmission(
+        keyword: String,
+        language: LanguageType,
+        pageSize: Int,
+        pageNum: Int,
+        amount: Int
+    ): AdmissionSearchResBody
+
+    fun searchTopAdmission(keyword: String, language: LanguageType, number: Int, amount: Int): AdmissionSearchResBody
 }
 
 @Service
@@ -60,10 +68,37 @@ class AdmissionsServiceImpl(
         ?: throw CserealException.Csereal404("해당하는 페이지를 찾을 수 없습니다.")
 
     @Transactional(readOnly = true)
-    override fun searchTopAdmission(keyword: String, language: LanguageType, number: Int) =
-        admissionsRepository.searchTopAdmissions(keyword, language, number).map {
-            AdmissionSearchResElem.of(it)
-        }
+    override fun searchTopAdmission(
+        keyword: String,
+        language: LanguageType,
+        number: Int,
+        amount: Int
+    ): AdmissionSearchResBody {
+        val (admissions, total) = admissionsRepository.searchAdmissions(keyword, language, number, 1)
+        return AdmissionSearchResBody(
+            total = total,
+            admissions = admissions.map {
+                AdmissionSearchResElem.of(it, keyword, amount)
+            }
+        )
+    }
+
+    @Transactional(readOnly = true)
+    override fun searchPageAdmission(
+        keyword: String,
+        language: LanguageType,
+        pageSize: Int,
+        pageNum: Int,
+        amount: Int
+    ): AdmissionSearchResBody {
+        val (admissions, total) = admissionsRepository.searchAdmissions(keyword, language, pageSize, pageNum)
+        return AdmissionSearchResBody(
+            total = total,
+            admissions = admissions.map {
+                AdmissionSearchResElem.of(it, keyword, amount)
+            }
+        )
+    }
 
     @Transactional
     override fun migrateAdmissions(requestList: List<AdmissionMigrateElem>) = requestList.map {
