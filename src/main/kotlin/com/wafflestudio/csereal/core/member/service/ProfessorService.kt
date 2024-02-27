@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.database.*
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
@@ -40,7 +41,8 @@ class ProfessorServiceImpl(
     private val applicationEventPublisher: ApplicationEventPublisher
 ) : ProfessorService {
     override fun createProfessor(createProfessorRequest: ProfessorDto, mainImage: MultipartFile?): ProfessorDto {
-        val professor = ProfessorEntity.of(createProfessorRequest)
+        val enumLanguageType = LanguageType.makeStringToLanguageType(createProfessorRequest.language)
+        val professor = ProfessorEntity.of(enumLanguageType, createProfessorRequest)
         if (createProfessorRequest.labId != null) {
             val lab = labRepository.findByIdOrNull(createProfessorRequest.labId)
                 ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다. LabId: ${createProfessorRequest.labId}")
@@ -199,7 +201,8 @@ class ProfessorServiceImpl(
         val list = mutableListOf<ProfessorDto>()
 
         for (request in requestList) {
-            val professor = ProfessorEntity.of(request)
+            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+            val professor = ProfessorEntity.of(enumLanguageType, request)
             if (request.labName != null) {
                 val lab = labRepository.findByName(request.labName)
                     ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다. LabName: ${request.labName}")

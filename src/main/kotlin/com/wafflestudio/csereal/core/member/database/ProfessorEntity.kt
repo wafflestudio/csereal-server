@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.research.database.LabEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
@@ -10,6 +11,8 @@ import java.time.LocalDate
 
 @Entity(name = "professor")
 class ProfessorEntity(
+    @Enumerated(EnumType.STRING)
+    var language: LanguageType,
 
     var name: String,
 
@@ -49,8 +52,9 @@ class ProfessorEntity(
     override fun bringMainImage(): MainImageEntity? = mainImage
 
     companion object {
-        fun of(professorDto: ProfessorDto): ProfessorEntity {
+        fun of(languageType: LanguageType, professorDto: ProfessorDto): ProfessorEntity {
             return ProfessorEntity(
+                language = languageType,
                 name = professorDto.name,
                 status = professorDto.status,
                 academicRank = professorDto.academicRank,

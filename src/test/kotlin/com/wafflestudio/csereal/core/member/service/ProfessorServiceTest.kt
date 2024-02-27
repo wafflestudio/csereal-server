@@ -54,6 +54,7 @@ class ProfessorServiceTest(
         labEntity = labRepository.save(labEntity)
 
         val professorDto = ProfessorDto(
+            language = "ko",
             name = "name",
             email = "email",
             status = ProfessorStatus.ACTIVE,
@@ -162,6 +163,7 @@ class ProfessorServiceTest(
 
         val createdProfessorDto = professorService.createProfessor(
             ProfessorDto(
+                language = "ko",
                 name = "name",
                 email = "email",
                 status = ProfessorStatus.ACTIVE,
