@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.member.dto
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
 import java.time.LocalDate
@@ -8,6 +9,7 @@ import java.time.LocalDate
 data class ProfessorDto(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     var id: Long? = null,
+    val language: String,
     val name: String,
     val status: ProfessorStatus,
     val academicRank: String,
@@ -31,6 +33,7 @@ data class ProfessorDto(
         fun of(professorEntity: ProfessorEntity, imageURL: String?): ProfessorDto {
             return ProfessorDto(
                 id = professorEntity.id,
+                language = LanguageType.makeLowercase(professorEntity.language),
                 name = professorEntity.name,
                 status = professorEntity.status,
                 academicRank = professorEntity.academicRank,
