@@ -2,6 +2,8 @@ package com.wafflestudio.csereal.core.about.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.core.about.api.res.AboutSearchElementDto
+import com.wafflestudio.csereal.core.about.api.res.AboutSearchResBody
 import com.wafflestudio.csereal.core.about.database.*
 import com.wafflestudio.csereal.core.about.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService

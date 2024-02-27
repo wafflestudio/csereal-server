@@ -1,8 +1,10 @@
-package com.wafflestudio.csereal.core.about.database
+package com.wafflestudio.csereal.core.about.api.res
 
 import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.common.utils.substringAroundKeyword
+import com.wafflestudio.csereal.core.about.database.AboutEntity
+import com.wafflestudio.csereal.core.about.database.AboutPostType
 
 data class AboutSearchElementDto private constructor(
     val id: Long,

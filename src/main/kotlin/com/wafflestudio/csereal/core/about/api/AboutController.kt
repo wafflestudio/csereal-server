@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.about.api
 
 import com.wafflestudio.csereal.common.properties.LanguageType
-import com.wafflestudio.csereal.core.about.database.AboutSearchResBody
+import com.wafflestudio.csereal.core.about.api.res.AboutSearchResBody
 import com.wafflestudio.csereal.core.about.dto.*
 import com.wafflestudio.csereal.core.about.dto.AboutRequest
 import com.wafflestudio.csereal.core.about.dto.FutureCareersRequest
