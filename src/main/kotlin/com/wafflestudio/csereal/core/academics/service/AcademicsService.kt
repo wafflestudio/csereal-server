@@ -157,8 +157,9 @@ class AcademicsServiceImpl(
 
     @Transactional
     override fun createScholarshipDetail(studentType: String, request: ScholarshipDto): ScholarshipDto {
+        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        var newScholarship = ScholarshipEntity.of(enumStudentType, request)
+        var newScholarship = ScholarshipEntity.of(enumLanguageType, enumStudentType, request)
 
         // create search data
         newScholarship.apply {
