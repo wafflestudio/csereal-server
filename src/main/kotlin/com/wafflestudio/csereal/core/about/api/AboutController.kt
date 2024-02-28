@@ -7,6 +7,7 @@ import com.wafflestudio.csereal.core.about.dto.AboutRequest
 import com.wafflestudio.csereal.core.about.dto.FutureCareersRequest
 import com.wafflestudio.csereal.core.about.service.AboutService
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Positive
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -72,9 +73,9 @@ class AboutController(
     @GetMapping("/search/top")
     fun searchTopAbout(
         @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true) number: Int,
+        @RequestParam(required = true) @Valid @Positive number: Int,
         @RequestParam(required = true, defaultValue = "ko") language: String,
-        @RequestParam(required = false, defaultValue = "30") amount: Int
+        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
     ): AboutSearchResBody = aboutService.searchTopAbout(
         keyword,
         LanguageType.makeStringToLanguageType(language),
@@ -85,10 +86,10 @@ class AboutController(
     @GetMapping("/search")
     fun searchPageAbout(
         @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true) pageNum: Int,
-        @RequestParam(required = true) pageSize: Int,
+        @RequestParam(required = true) @Valid @Positive pageNum: Int,
+        @RequestParam(required = true) @Valid @Positive pageSize: Int,
         @RequestParam(required = true, defaultValue = "ko") language: String,
-        @RequestParam(required = false, defaultValue = "30") amount: Int
+        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
     ): AboutSearchResBody = aboutService.searchPageAbout(
         keyword,
         LanguageType.makeStringToLanguageType(language),
