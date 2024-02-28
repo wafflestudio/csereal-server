@@ -29,6 +29,7 @@ interface AcademicsService {
     fun createScholarshipDetail(studentType: String, request: ScholarshipDto): ScholarshipDto
     fun readAllScholarship(studentType: String): ScholarshipPageResponse
     fun readScholarship(scholarshipId: Long): ScholarshipDto
+    fun migrateCourses(studentType: String, requestList: List<CourseDto>): List<CourseDto>
 }
 
 // TODO: add Update, Delete method
@@ -187,6 +188,25 @@ class AcademicsServiceImpl(
         val scholarship = scholarshipRepository.findByIdOrNull(scholarshipId)
             ?: throw CserealException.Csereal404("id: $scholarshipId 에 해당하는 장학제도를 찾을 수 없습니다")
         return ScholarshipDto.of(scholarship)
+    }
+
+    @Transactional
+    override fun migrateCourses(studentType: String, requestList: List<CourseDto>): List<CourseDto> {
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val list = mutableListOf<CourseDto>()
+        for (request in requestList) {
+            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+            val newCourse = CourseEntity.of(enumStudentType, enumLanguageType, request)
+
+            newCourse.apply {
+                academicsSearch = AcademicsSearchEntity.create(this)
+            }
+            courseRepository.save(newCourse)
+
+            list.add(CourseDto.of(newCourse, listOf()))
+        }
+
+        return list
     }
 
     private fun makeStringToAcademicsStudentType(postType: String): AcademicsStudentType {
