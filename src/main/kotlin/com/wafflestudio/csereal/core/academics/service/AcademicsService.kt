@@ -29,7 +29,9 @@ interface AcademicsService {
     fun createScholarshipDetail(studentType: String, request: ScholarshipDto): ScholarshipDto
     fun readAllScholarship(studentType: String): ScholarshipPageResponse
     fun readScholarship(scholarshipId: Long): ScholarshipDto
+    fun migrateAcademicsDetail(studentType: String, postType: String, requestList: List<AcademicsDto>): List<AcademicsDto>
     fun migrateCourses(studentType: String, requestList: List<CourseDto>): List<CourseDto>
+    fun migrateScholarshipDetail(studentType: String, requestList: List<ScholarshipDto>): List<ScholarshipDto>
 }
 
 // TODO: add Update, Delete method
@@ -192,6 +194,36 @@ class AcademicsServiceImpl(
     }
 
     @Transactional
+    override fun migrateAcademicsDetail(
+        studentType: String,
+        postType: String,
+        requestList: List<AcademicsDto>
+    ): List<AcademicsDto> {
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val enumPostType = makeStringToAcademicsPostType(postType)
+        val list = mutableListOf<AcademicsDto>()
+        for (request in requestList) {
+            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+            val newAcademics = AcademicsEntity.of(
+                enumStudentType,
+                enumPostType,
+                enumLanguageType,
+                request
+            )
+
+            newAcademics.apply {
+                academicsSearch = AcademicsSearchEntity.create(this)
+            }
+
+            academicsRepository.save(newAcademics)
+
+            list.add(AcademicsDto.of(newAcademics, listOf()))
+        }
+
+        return list
+    }
+
+    @Transactional
     override fun migrateCourses(studentType: String, requestList: List<CourseDto>): List<CourseDto> {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val list = mutableListOf<CourseDto>()
@@ -205,6 +237,33 @@ class AcademicsServiceImpl(
             courseRepository.save(newCourse)
 
             list.add(CourseDto.of(newCourse, listOf()))
+        }
+
+        return list
+    }
+
+    @Transactional
+    override fun migrateScholarshipDetail(
+        studentType: String,
+        requestList: List<ScholarshipDto>
+    ): List<ScholarshipDto> {
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val list = mutableListOf<ScholarshipDto>()
+        for (request in requestList) {
+            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+            val newScholarship = ScholarshipEntity.of(
+                enumLanguageType,
+                enumStudentType,
+                request
+            )
+
+            newScholarship.apply {
+                academicsSearch = AcademicsSearchEntity.create(this)
+            }
+
+            scholarshipRepository.save(newScholarship)
+
+            list.add(ScholarshipDto.of(newScholarship))
         }
 
         return list

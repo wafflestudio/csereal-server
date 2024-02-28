@@ -100,12 +100,33 @@ class AcademicsController(
         return ResponseEntity.ok(academicsService.readScholarship(scholarshipId))
     }
 
+    @PostMapping("/{studentType}/{postType}/migrate")
+    fun migrateAcademicsDetail(
+        @PathVariable studentType: String,
+        @PathVariable postType: String,
+        @RequestBody requestList: List<AcademicsDto>
+    ): ResponseEntity<List<AcademicsDto>> {
+        return ResponseEntity.ok(
+            academicsService.migrateAcademicsDetail(studentType, postType, requestList)
+        )
+    }
+
     @PostMapping("/course/migrate/{studentType}")
     fun migrateCourses(
         @PathVariable studentType: String,
         @RequestBody requestList: List<CourseDto>
     ): ResponseEntity<List<CourseDto>> {
         return ResponseEntity.ok(academicsService.migrateCourses(studentType, requestList))
+    }
+
+    @PostMapping("/{studentType}/scholarshipDetail/migrate")
+    fun migrateScholarshipDetail(
+        @PathVariable studentType: String,
+        @RequestBody requestList: List<ScholarshipDto>
+    ): ResponseEntity<List<ScholarshipDto>> {
+        return ResponseEntity.ok(
+            academicsService.migrateScholarshipDetail(studentType, requestList)
+        )
     }
 
     @GetMapping("/search/top")
