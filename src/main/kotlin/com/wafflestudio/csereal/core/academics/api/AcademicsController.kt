@@ -129,6 +129,19 @@ class AcademicsController(
         )
     }
 
+    @PatchMapping("/migrateAttachment/{academicsId}")
+    fun migrateAcademicsDetailAttachments(
+        @PathVariable academicsId: Long,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
+    ): ResponseEntity<AcademicsDto> {
+        return ResponseEntity.ok(
+            academicsService.migrateAcademicsDetailAttachments(
+                academicsId,
+                attachments
+            )
+        )
+    }
+
     @GetMapping("/search/top")
     fun searchTop(
         @RequestParam(required = true) keyword: String,

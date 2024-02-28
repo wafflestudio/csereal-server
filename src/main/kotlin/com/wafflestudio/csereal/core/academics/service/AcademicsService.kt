@@ -29,9 +29,20 @@ interface AcademicsService {
     fun createScholarshipDetail(studentType: String, request: ScholarshipDto): ScholarshipDto
     fun readAllScholarship(studentType: String): ScholarshipPageResponse
     fun readScholarship(scholarshipId: Long): ScholarshipDto
-    fun migrateAcademicsDetail(studentType: String, postType: String, requestList: List<AcademicsDto>): List<AcademicsDto>
+    fun migrateAcademicsDetail(
+        studentType: String,
+        postType: String,
+        requestList: List<AcademicsDto>
+    ): List<AcademicsDto>
     fun migrateCourses(studentType: String, requestList: List<CourseDto>): List<CourseDto>
-    fun migrateScholarshipDetail(studentType: String, requestList: List<ScholarshipDto>): List<ScholarshipDto>
+    fun migrateScholarshipDetail(
+        studentType: String,
+        requestList: List<ScholarshipDto>
+    ): List<ScholarshipDto>
+    fun migrateAcademicsDetailAttachments(
+        academicsId: Long,
+        attachments: List<MultipartFile>?
+    ): AcademicsDto
 }
 
 // TODO: add Update, Delete method
@@ -267,6 +278,25 @@ class AcademicsServiceImpl(
         }
 
         return list
+    }
+
+    @Transactional
+    override fun migrateAcademicsDetailAttachments(
+        academicsId: Long,
+        attachments: List<MultipartFile>?
+    ): AcademicsDto {
+        val academics = academicsRepository.findByIdOrNull(academicsId)
+            ?: throw CserealException.Csereal404("해당 내용을 찾을 수 없습니다.")
+
+        if (attachments != null) {
+            attachmentService.uploadAllAttachments(academics, attachments)
+        }
+
+        val attachmentResponses = attachmentService.createAttachmentResponses(
+            academics.attachments
+        )
+
+        return AcademicsDto.of(academics, attachmentResponses)
     }
 
     private fun makeStringToAcademicsStudentType(postType: String): AcademicsStudentType {
