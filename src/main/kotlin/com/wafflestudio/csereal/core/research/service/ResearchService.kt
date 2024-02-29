@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.research.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.properties.EndpointProperties
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.research.database.*
 import com.wafflestudio.csereal.core.research.dto.*
@@ -58,7 +59,8 @@ class ResearchServiceImpl(
         mainImage: MultipartFile?,
         attachments: List<MultipartFile>?
     ): ResearchDto {
-        val newResearch = ResearchEntity.of(request)
+        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+        val newResearch = ResearchEntity.of(enumLanguageType, request)
 
         if (request.labs != null) {
             for (lab in request.labs) {
@@ -182,7 +184,8 @@ class ResearchServiceImpl(
             throw CserealException.Csereal404("해당 게시글은 연구그룹이어야 합니다.")
         }
 
-        val newLab = LabEntity.of(request, researchGroup)
+        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+        val newLab = LabEntity.of(enumLanguageType, request, researchGroup)
 
         if (request.professors != null) {
             for (professor in request.professors) {
@@ -292,7 +295,8 @@ class ResearchServiceImpl(
     override fun migrateResearchDetail(requestList: List<ResearchDto>): List<ResearchDto> {
         val list = mutableListOf<ResearchDto>()
         for (request in requestList) {
-            val newResearch = ResearchEntity.of(request)
+            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+            val newResearch = ResearchEntity.of(enumLanguageType, request)
 
             newResearch.researchSearch = ResearchSearchEntity.create(newResearch)
 
@@ -315,7 +319,8 @@ class ResearchServiceImpl(
                 throw CserealException.Csereal404("해당 게시글은 연구그룹이어야 합니다.")
             }
 
-            val newLab = LabEntity.of(request, researchGroup)
+            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+            val newLab = LabEntity.of(enumLanguageType, request, researchGroup)
 
             newLab.researchSearch = ResearchSearchEntity.create(newLab)
 

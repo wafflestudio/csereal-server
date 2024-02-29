@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.research.dto
 
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.research.database.ResearchPostType
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
@@ -8,6 +9,7 @@ import java.time.LocalDateTime
 data class ResearchDto(
     val id: Long,
     val postType: ResearchPostType,
+    val language: String,
     val name: String,
     val description: String?,
     val createdAt: LocalDateTime?,
@@ -21,6 +23,7 @@ data class ResearchDto(
             ResearchDto(
                 id = this.id,
                 postType = this.postType,
+                language = LanguageType.makeLowercase(entity.language),
                 name = this.name,
                 description = this.description,
                 createdAt = this.createdAt,
