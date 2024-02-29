@@ -9,6 +9,7 @@ import com.wafflestudio.csereal.core.admissions.service.AdmissionsService
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsMainType
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsPostType
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Positive
 import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/api/v1/admissions")
@@ -41,15 +42,32 @@ class AdmissionsController(
         return admissionsService.readAdmission(mainType, postType, languageType)
     }
 
-    @GetMapping("/search")
+    @GetMapping("/search/top")
     fun searchTopAdmissions(
         @RequestParam(required = true) keyword: String,
         @RequestParam(required = true, defaultValue = "ko") language: String,
-        @RequestParam(required = true) number: Int
+        @RequestParam(required = true) @Valid @Positive number: Int,
+        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
     ) = admissionsService.searchTopAdmission(
         keyword,
         LanguageType.makeStringToLanguageType(language),
-        number
+        number,
+        amount
+    )
+
+    @GetMapping("/search")
+    fun searchPageAdmissions(
+        @RequestParam(required = true) keyword: String,
+        @RequestParam(required = true, defaultValue = "ko") language: String,
+        @RequestParam(required = true) @Valid @Positive pageSize: Int,
+        @RequestParam(required = true) @Valid @Positive pageNum: Int,
+        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
+    ) = admissionsService.searchPageAdmission(
+        keyword,
+        LanguageType.makeStringToLanguageType(language),
+        pageSize,
+        pageNum,
+        amount
     )
 
     @PostMapping("/migrate")
