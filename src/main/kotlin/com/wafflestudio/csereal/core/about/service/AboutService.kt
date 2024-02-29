@@ -217,6 +217,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto> {
+        // Todo: add about migrate search
         val list = mutableListOf<AboutDto>()
 
         for (request in requestList) {
@@ -250,6 +251,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage {
+        // Todo: add about migrate search
         val description = request.description
         val language = request.language
         val statList = mutableListOf<FutureCareersStatDto>()
@@ -312,6 +314,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun migrateStudentClubs(requestList: List<StudentClubDto>): List<StudentClubDto> {
+        // Todo: add about migrate search
         val list = mutableListOf<StudentClubDto>()
 
         for (request in requestList) {
@@ -343,6 +346,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun migrateFacilities(requestList: List<FacilityDto>): List<FacilityDto> =
+        // Todo: add about migrate search
         requestList.map {
             AboutDto(
                 id = null,
@@ -372,6 +376,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun migrateDirections(requestList: List<DirectionDto>): List<DirectionDto> {
+        // Todo: add about migrate search
         val list = mutableListOf<DirectionDto>()
 
         for (request in requestList) {
