@@ -1,13 +1,13 @@
 package com.wafflestudio.csereal.core.research.service
 
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.event.ProfessorCreatedEvent
 import com.wafflestudio.csereal.core.member.event.ProfessorDeletedEvent
 import com.wafflestudio.csereal.core.member.event.ProfessorModifiedEvent
 import com.wafflestudio.csereal.core.research.database.LabRepository
 import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
 import com.wafflestudio.csereal.core.research.database.ResearchSearchRepository
-import com.wafflestudio.csereal.core.research.dto.ResearchSearchPageResponse
-import com.wafflestudio.csereal.core.research.dto.ResearchSearchTopResponse
+import com.wafflestudio.csereal.core.research.api.res.ResearchSearchResBody
 import org.springframework.context.event.EventListener
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -18,8 +18,14 @@ interface ResearchSearchService {
     fun professorDeletedEventListener(professorDeletedEvent: ProfessorDeletedEvent)
     fun professorModifiedEventListener(professorModifiedEvent: ProfessorModifiedEvent)
     fun deleteResearchSearch(researchSearchEntity: ResearchSearchEntity)
-    fun searchTopResearch(keyword: String, number: Int): ResearchSearchTopResponse
-    fun searchResearch(keyword: String, pageSize: Int, pageNum: Int): ResearchSearchPageResponse
+    fun searchTopResearch(keyword: String, language: LanguageType, number: Int, amount: Int): ResearchSearchResBody
+    fun searchResearch(
+        keyword: String,
+        language: LanguageType,
+        pageSize: Int,
+        pageNum: Int,
+        amount: Int
+    ): ResearchSearchResBody
 }
 
 @Service
@@ -28,15 +34,36 @@ class ResearchSearchServiceImpl(
     private val researchSearchRepository: ResearchSearchRepository
 ) : ResearchSearchService {
     @Transactional(readOnly = true)
-    override fun searchTopResearch(keyword: String, number: Int): ResearchSearchTopResponse =
-        ResearchSearchTopResponse.of(
-            researchSearchRepository.searchTopResearch(keyword, number)
-        )
+    override fun searchTopResearch(
+        keyword: String,
+        language: LanguageType,
+        number: Int,
+        amount: Int
+    ): ResearchSearchResBody =
+        researchSearchRepository.searchResearch(keyword, language, number, 1).let {
+            ResearchSearchResBody.of(
+                researches = it.first,
+                keyword = keyword,
+                amount = amount,
+                total = it.second
+            )
+        }
 
     @Transactional(readOnly = true)
-    override fun searchResearch(keyword: String, pageSize: Int, pageNum: Int): ResearchSearchPageResponse =
-        researchSearchRepository.searchResearch(keyword, pageSize, pageNum).let {
-            ResearchSearchPageResponse.of(it.first, it.second)
+    override fun searchResearch(
+        keyword: String,
+        language: LanguageType,
+        pageSize: Int,
+        pageNum: Int,
+        amount: Int
+    ): ResearchSearchResBody =
+        researchSearchRepository.searchResearch(keyword, language, pageSize, pageNum).let {
+            ResearchSearchResBody.of(
+                researches = it.first,
+                keyword = keyword,
+                amount = amount,
+                total = it.second
+            )
         }
 
     @EventListener
