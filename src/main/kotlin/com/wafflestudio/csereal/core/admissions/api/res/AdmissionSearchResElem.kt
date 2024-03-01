@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.admissions.api.res
 
 import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.utils.substringAroundKeyword
+import com.wafflestudio.csereal.core.admissions.database.AdmissionsEntity
 
 data class AdmissionSearchResElem private constructor(
     val id: Long,
