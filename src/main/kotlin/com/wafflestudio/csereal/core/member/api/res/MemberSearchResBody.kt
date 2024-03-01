@@ -4,7 +4,7 @@ import com.wafflestudio.csereal.core.member.database.MemberSearchEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 
 data class MemberSearchResBody(
-    val members: List<MemberSearchResponseElement>,
+    val results: List<MemberSearchResponseElement>,
     val total: Long
 ) {
     companion object {
@@ -13,7 +13,7 @@ data class MemberSearchResBody(
             total: Long,
             imageURLMaker: (MainImageEntity?) -> String?
         ) = MemberSearchResBody(
-            members = members.map { MemberSearchResponseElement.of(it, imageURLMaker) },
+            results = members.map { MemberSearchResponseElement.of(it, imageURLMaker) },
             total = total
         )
     }
