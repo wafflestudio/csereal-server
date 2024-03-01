@@ -271,6 +271,7 @@ class AboutServiceImpl(
         )
 
         val languageType = LanguageType.makeStringToLanguageType(language)
+        
         var newAbout = AboutEntity.of(AboutPostType.FUTURE_CAREERS, languageType, aboutDto)
 
         for (stat in request.stat) {
@@ -334,6 +335,7 @@ class AboutServiceImpl(
                 attachments = listOf()
             )
             val languageType = LanguageType.makeStringToLanguageType(language)
+
             var newAbout = AboutEntity.of(AboutPostType.STUDENT_CLUBS, languageType, aboutDto)
 
             syncSearchOfAbout(newAbout)
@@ -346,7 +348,6 @@ class AboutServiceImpl(
 
     @Transactional
     override fun migrateFacilities(requestList: List<FacilityDto>): List<FacilityDto> =
-        // Todo: add about migrate search
         requestList.map {
             AboutDto(
                 id = null,

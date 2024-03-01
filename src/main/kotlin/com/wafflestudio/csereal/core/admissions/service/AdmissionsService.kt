@@ -102,7 +102,6 @@ class AdmissionsServiceImpl(
 
     @Transactional
     override fun migrateAdmissions(requestList: List<AdmissionMigrateElem>) = requestList.map {
-        // Todo: add admission migrate search
         val mainType = AdmissionsMainType.fromJsonValue(it.mainType)
         val postType = AdmissionsPostType.fromJsonValue(it.postType)
         val language = LanguageType.makeStringToLanguageType(it.language)
