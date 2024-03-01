@@ -28,13 +28,17 @@ class ResearchController(
     }
 
     @GetMapping("/groups")
-    fun readAllResearchGroups(): ResponseEntity<ResearchGroupResponse> {
-        return ResponseEntity.ok(researchService.readAllResearchGroups())
+    fun readAllResearchGroups(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<ResearchGroupResponse> {
+        return ResponseEntity.ok(researchService.readAllResearchGroups(language))
     }
 
     @GetMapping("/centers")
-    fun readAllResearchCenters(): ResponseEntity<List<ResearchDto>> {
-        return ResponseEntity.ok(researchService.readAllResearchCenters())
+    fun readAllResearchCenters(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<List<ResearchDto>> {
+        return ResponseEntity.ok(researchService.readAllResearchCenters(language))
     }
 
     @AuthenticatedStaff
@@ -62,8 +66,10 @@ class ResearchController(
     }
 
     @GetMapping("/labs")
-    fun readAllLabs(): ResponseEntity<List<LabDto>> {
-        return ResponseEntity.ok(researchService.readAllLabs())
+    fun readAllLabs(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<List<LabDto>> {
+        return ResponseEntity.ok(researchService.readAllLabs(language))
     }
 
     @GetMapping("/lab/{labId}")
