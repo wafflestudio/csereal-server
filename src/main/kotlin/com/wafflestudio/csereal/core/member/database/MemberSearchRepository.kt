@@ -2,7 +2,9 @@ package com.wafflestudio.csereal.core.member.database
 
 import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.common.repository.CommonRepository
+import com.wafflestudio.csereal.common.utils.exchangePageNum
 import com.wafflestudio.csereal.core.member.database.QMemberSearchEntity.memberSearchEntity
 import com.wafflestudio.csereal.core.member.database.QProfessorEntity.professorEntity
 import com.wafflestudio.csereal.core.member.database.QStaffEntity.staffEntity
@@ -13,8 +15,12 @@ interface MemberSearchRepository :
     JpaRepository<MemberSearchEntity, Long>, MemberSearchRepositoryCustom
 
 interface MemberSearchRepositoryCustom {
-    fun searchTopMember(keyword: String, number: Int): List<MemberSearchEntity>
-    fun searchMember(keyword: String, pageSize: Int, pageNum: Int): Pair<List<MemberSearchEntity>, Long>
+    fun searchMember(
+        keyword: String,
+        language: LanguageType,
+        pageSize: Int,
+        pageNum: Int
+    ): Pair<List<MemberSearchEntity>, Long>
 }
 
 @Repository
@@ -23,15 +29,14 @@ class MemberSearchRepositoryCustomImpl(
     private val commonRepository: CommonRepository
 ) : MemberSearchRepositoryCustom {
 
-    override fun searchTopMember(keyword: String, number: Int): List<MemberSearchEntity> {
-        return searchQuery(keyword)
-            .limit(number.toLong())
-            .fetch()
-    }
-
-    override fun searchMember(keyword: String, pageSize: Int, pageNum: Int): Pair<List<MemberSearchEntity>, Long> {
-        val query = searchQuery(keyword)
-        val total = getSearchCount(keyword)
+    override fun searchMember(
+        keyword: String,
+        language: LanguageType,
+        pageSize: Int,
+        pageNum: Int
+    ): Pair<List<MemberSearchEntity>, Long> {
+        val query = searchQuery(keyword, language)
+        val total = getSearchCount(keyword, language)
 
         val validPageNum = exchangePageNum(pageSize, pageNum, total)
         val queryResult = query
@@ -42,7 +47,7 @@ class MemberSearchRepositoryCustomImpl(
         return queryResult to total
     }
 
-    fun searchQuery(keyword: String): JPAQuery<MemberSearchEntity> {
+    fun searchQuery(keyword: String, language: LanguageType): JPAQuery<MemberSearchEntity> {
         val searchDoubleTemplate = commonRepository.searchFullSingleTextTemplate(
             keyword,
             memberSearchEntity.content
@@ -61,11 +66,12 @@ class MemberSearchRepositoryCustomImpl(
                 staffEntity
             ).fetchJoin()
             .where(
-                searchDoubleTemplate.gt(0.0)
+                searchDoubleTemplate.gt(0.0),
+                memberSearchEntity.language.eq(language)
             )
     }
 
-    fun getSearchCount(keyword: String): Long {
+    fun getSearchCount(keyword: String, language: LanguageType): Long {
         val searchDoubleTemplate = commonRepository.searchFullSingleTextTemplate(
             keyword,
             memberSearchEntity.content
@@ -77,15 +83,8 @@ class MemberSearchRepositoryCustomImpl(
         ).from(
             memberSearchEntity
         ).where(
-            searchDoubleTemplate.gt(0.0)
+            searchDoubleTemplate.gt(0.0),
+            memberSearchEntity.language.eq(language)
         ).fetchOne()!!
-    }
-
-    fun exchangePageNum(pageSize: Int, pageNum: Int, total: Long): Int {
-        return if ((pageNum - 1) * pageSize < total) {
-            pageNum
-        } else {
-            Math.ceil(total.toDouble() / pageSize).toInt()
-        }
     }
 }
