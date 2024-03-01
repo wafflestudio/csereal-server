@@ -26,6 +26,7 @@ interface AcademicsService {
         studentType: String,
         postType: String
     ): List<AcademicsYearResponse>
+    fun readDegreeRequirements(language: String): DegreeRequirementsPageResponse
     fun readGeneralStudies(language: String): GeneralStudiesPageResponse
     fun createCourse(
         studentType: String,
@@ -136,6 +137,26 @@ class AcademicsServiceImpl(
         }
 
         return academicsYearResponses
+    }
+
+    @Transactional(readOnly = true)
+    override fun readDegreeRequirements(language: String): DegreeRequirementsPageResponse {
+        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
+        val academicsEntity =
+            academicsRepository.findByLanguageAndStudentTypeAndPostType(
+                enumLanguageType,
+                AcademicsStudentType.UNDERGRADUATE,
+                AcademicsPostType.DEGREE_REQUIREMENTS
+            )
+
+        val yearList =
+            academicsRepository.findAllByLanguageAndStudentTypeAndPostTypeOrderByYearDesc(
+                enumLanguageType,
+                AcademicsStudentType.UNDERGRADUATE,
+                AcademicsPostType.DEGREE_REQUIREMENTS_YEAR_LIST
+            )
+
+        return DegreeRequirementsPageResponse.of(academicsEntity, yearList)
     }
 
     @Transactional(readOnly = true)
