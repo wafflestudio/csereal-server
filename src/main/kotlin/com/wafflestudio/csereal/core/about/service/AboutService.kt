@@ -27,7 +27,12 @@ interface AboutService {
     fun readAllDirections(language: String): List<AboutDto>
     fun readFutureCareers(): FutureCareersPage
 
-    fun searchTopAbout(keyword: String, language: LanguageType, number: Int, amount: Int): AboutSearchResBody
+    fun searchTopAbout(
+        keyword: String,
+        language: LanguageType,
+        number: Int,
+        amount: Int
+    ): AboutSearchResBody
 
     fun searchPageAbout(
         keyword: String,
@@ -114,7 +119,10 @@ class AboutServiceImpl(
     override fun readAllFacilities(language: String): List<AboutDto> {
         val languageType = LanguageType.makeStringToLanguageType(language)
         val facilities =
-            aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.FACILITIES).map {
+            aboutRepository.findAllByLanguageAndPostTypeOrderByName(
+                languageType,
+                AboutPostType.FACILITIES
+            ).map {
                 val imageURL = mainImageService.createImageURL(it.mainImage)
                 val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
                 AboutDto.of(it, imageURL, attachmentResponses)
@@ -127,7 +135,10 @@ class AboutServiceImpl(
     override fun readAllDirections(language: String): List<AboutDto> {
         val languageType = LanguageType.makeStringToLanguageType(language)
         val directions =
-            aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.DIRECTIONS).map {
+            aboutRepository.findAllByLanguageAndPostTypeOrderByName(
+                languageType,
+                AboutPostType.DIRECTIONS
+            ).map {
                 val imageURL = mainImageService.createImageURL(it.mainImage)
                 val attachments = attachmentService.createAttachmentResponses(it.attachments)
                 AboutDto.of(it, imageURL, attachments)
@@ -206,7 +217,12 @@ class AboutServiceImpl(
         pageNum: Int,
         amount: Int
     ): AboutSearchResBody {
-        val (searchEntities, searchCnt) = aboutRepository.searchAbouts(keyword, language, pageSize, pageNum)
+        val (searchEntities, searchCnt) = aboutRepository.searchAbouts(
+            keyword,
+            language,
+            pageSize,
+            pageNum
+        )
         return AboutSearchResBody(
             searchCnt,
             searchEntities.map {
