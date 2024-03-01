@@ -20,14 +20,25 @@ interface AcademicsService {
         attachments: List<MultipartFile>?
     ): AcademicsDto
 
-    fun readGuide(studentType: String): GuidePageResponse
-    fun readAcademicsYearResponses(studentType: String, postType: String): List<AcademicsYearResponse>
-    fun readGeneralStudies(): GeneralStudiesPageResponse
-    fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto
+    fun readGuide(language: String, studentType: String): GuidePageResponse
+    fun readAcademicsYearResponses(
+        language: String,
+        studentType: String,
+        postType: String
+    ): List<AcademicsYearResponse>
+    fun readGeneralStudies(language: String): GeneralStudiesPageResponse
+    fun createCourse(
+        studentType: String,
+        request: CourseDto,
+        attachments: List<MultipartFile>?
+    ): CourseDto
     fun readAllCourses(language: String, studentType: String): List<CourseDto>
     fun readCourse(language: String, name: String): CourseDto
-    fun createScholarshipDetail(studentType: String, request: ScholarshipDto): ScholarshipDto
-    fun readAllScholarship(studentType: String): ScholarshipPageResponse
+    fun createScholarshipDetail(
+        studentType: String,
+        request: ScholarshipDto
+    ): ScholarshipDto
+    fun readAllScholarship(language: String, studentType: String): ScholarshipPageResponse
     fun readScholarship(scholarshipId: Long): ScholarshipDto
     fun migrateAcademicsDetail(
         studentType: String,
@@ -66,7 +77,8 @@ class AcademicsServiceImpl(
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val enumPostType = makeStringToAcademicsPostType(postType)
         val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-        val newAcademics = AcademicsEntity.of(enumStudentType, enumPostType, enumLanguageType, request)
+        val newAcademics =
+            AcademicsEntity.of(enumStudentType, enumPostType, enumLanguageType, request)
 
         if (attachments != null) {
             attachmentService.uploadAllAttachments(newAcademics, attachments)
@@ -79,29 +91,44 @@ class AcademicsServiceImpl(
 
         academicsRepository.save(newAcademics)
 
-        val attachmentResponses = attachmentService.createAttachmentResponses(newAcademics.attachments)
+        val attachmentResponses =
+            attachmentService.createAttachmentResponses(newAcademics.attachments)
 
         return AcademicsDto.of(newAcademics, attachmentResponses)
     }
 
     @Transactional(readOnly = true)
-    override fun readGuide(studentType: String): GuidePageResponse {
+    override fun readGuide(language: String, studentType: String): GuidePageResponse {
+        val languageType = LanguageType.makeStringToLanguageType(language)
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
 
-        val academicsEntity = academicsRepository.findByStudentTypeAndPostType(enumStudentType, AcademicsPostType.GUIDE)
-        val attachmentResponses = attachmentService.createAttachmentResponses(academicsEntity.attachments)
+        val academicsEntity =
+            academicsRepository.findByLanguageAndStudentTypeAndPostType(
+                languageType,
+                enumStudentType,
+                AcademicsPostType.GUIDE
+            )
+        val attachmentResponses =
+            attachmentService.createAttachmentResponses(academicsEntity.attachments)
         return GuidePageResponse.of(academicsEntity, attachmentResponses)
     }
 
     @Transactional(readOnly = true)
-    override fun readAcademicsYearResponses(studentType: String, postType: String): List<AcademicsYearResponse> {
+    override fun readAcademicsYearResponses(
+        language: String,
+        studentType: String,
+        postType: String
+    ): List<AcademicsYearResponse> {
+        val languageType = LanguageType.makeStringToLanguageType(language)
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val enumPostType = makeStringToAcademicsPostType(postType)
 
-        val academicsEntityList = academicsRepository.findAllByStudentTypeAndPostTypeOrderByYearDesc(
-            enumStudentType,
-            enumPostType
-        )
+        val academicsEntityList =
+            academicsRepository.findAllByLanguageAndStudentTypeAndPostTypeOrderByYearDesc(
+                languageType,
+                enumStudentType,
+                enumPostType
+            )
 
         val academicsYearResponses = academicsEntityList.map {
             val attachments = attachmentService.createAttachmentResponses(it.attachments)
@@ -112,21 +139,30 @@ class AcademicsServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readGeneralStudies(): GeneralStudiesPageResponse {
-        val academicsEntity = academicsRepository.findByStudentTypeAndPostType(
-            AcademicsStudentType.UNDERGRADUATE,
-            AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS
-        )
-        val subjectChangesList = academicsRepository.findAllByStudentTypeAndPostTypeOrderByTimeDesc(
-            AcademicsStudentType.UNDERGRADUATE,
-            AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS_SUBJECT_CHANGES
-        )
+    override fun readGeneralStudies(language: String): GeneralStudiesPageResponse {
+        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
+        val academicsEntity =
+            academicsRepository.findByLanguageAndStudentTypeAndPostType(
+                enumLanguageType,
+                AcademicsStudentType.UNDERGRADUATE,
+                AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS
+            )
+        val subjectChangesList =
+            academicsRepository.findAllByLanguageAndStudentTypeAndPostTypeOrderByTimeDesc(
+                enumLanguageType,
+                AcademicsStudentType.UNDERGRADUATE,
+                AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS_SUBJECT_CHANGES
+            )
 
         return GeneralStudiesPageResponse.of(academicsEntity, subjectChangesList)
     }
 
     @Transactional
-    override fun createCourse(studentType: String, request: CourseDto, attachments: List<MultipartFile>?): CourseDto {
+    override fun createCourse(
+        studentType: String,
+        request: CourseDto,
+        attachments: List<MultipartFile>?
+    ): CourseDto {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
 
@@ -142,7 +178,8 @@ class AcademicsServiceImpl(
         }
         courseRepository.save(newCourse)
 
-        val attachmentResponses = attachmentService.createAttachmentResponses(newCourse.attachments)
+        val attachmentResponses =
+            attachmentService.createAttachmentResponses(newCourse.attachments)
 
         return CourseDto.of(newCourse, attachmentResponses)
     }
@@ -152,8 +189,13 @@ class AcademicsServiceImpl(
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val enumLanguageType = LanguageType.makeStringToLanguageType(language)
         val courseDtoList =
-            courseRepository.findAllByLanguageAndStudentTypeOrderByNameAsc(enumLanguageType, enumStudentType).map {
-                val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+            courseRepository.findAllByLanguageAndStudentTypeOrderByNameAsc(
+                enumLanguageType,
+                enumStudentType
+            ).map {
+                val attachmentResponses =
+                    attachmentService.createAttachmentResponses(it.attachments)
+
                 CourseDto.of(it, attachmentResponses)
             }
         return courseDtoList
@@ -185,13 +227,16 @@ class AcademicsServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllScholarship(studentType: String): ScholarshipPageResponse {
+    override fun readAllScholarship(language: String, studentType: String): ScholarshipPageResponse {
+        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
 
-        val academicsEntity = academicsRepository.findByStudentTypeAndPostType(
-            enumStudentType,
-            AcademicsPostType.SCHOLARSHIP
-        )
+        val academicsEntity =
+            academicsRepository.findByLanguageAndStudentTypeAndPostType(
+                enumLanguageType,
+                enumStudentType,
+                AcademicsPostType.SCHOLARSHIP
+            )
         val scholarshipEntityList = scholarshipRepository.findAllByStudentType(enumStudentType)
 
         return ScholarshipPageResponse.of(academicsEntity, scholarshipEntityList)
@@ -200,7 +245,7 @@ class AcademicsServiceImpl(
     @Transactional(readOnly = true)
     override fun readScholarship(scholarshipId: Long): ScholarshipDto {
         val scholarship = scholarshipRepository.findByIdOrNull(scholarshipId)
-            ?: throw CserealException.Csereal404("id: $scholarshipId 에 해당하는 장학제도를 찾을 수 없습니다")
+            ?: throw CserealException.Csereal404("해당하는 장학제도를 찾을 수 없습니다")
         return ScholarshipDto.of(scholarship)
     }
 
@@ -235,7 +280,10 @@ class AcademicsServiceImpl(
     }
 
     @Transactional
-    override fun migrateCourses(studentType: String, requestList: List<CourseDto>): List<CourseDto> {
+    override fun migrateCourses(
+        studentType: String,
+        requestList: List<CourseDto>
+    ): List<CourseDto> {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         val list = mutableListOf<CourseDto>()
         for (request in requestList) {
