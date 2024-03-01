@@ -21,6 +21,8 @@ class CourseEntity(
     var name: String,
     var credit: Int,
     var grade: String,
+
+    @Column(columnDefinition = "mediumText")
     var description: String?,
 
     @OneToMany(mappedBy = "course", cascade = [CascadeType.ALL], orphanRemoval = true)

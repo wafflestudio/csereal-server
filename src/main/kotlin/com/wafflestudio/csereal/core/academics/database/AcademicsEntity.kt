@@ -18,6 +18,8 @@ class AcademicsEntity(
     var language: LanguageType,
 
     var name: String,
+
+    @Column(columnDefinition = "mediumText")
     var description: String,
     var year: Int?,
     var time: String?,

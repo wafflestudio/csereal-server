@@ -233,6 +233,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto> {
+        // Todo: add about migrate search
         val list = mutableListOf<AboutDto>()
 
         for (request in requestList) {
@@ -266,6 +267,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage {
+        // Todo: add about migrate search
         val description = request.description
         val language = request.language
         val statList = mutableListOf<FutureCareersStatDto>()
@@ -285,6 +287,7 @@ class AboutServiceImpl(
         )
 
         val languageType = LanguageType.makeStringToLanguageType(language)
+        
         var newAbout = AboutEntity.of(AboutPostType.FUTURE_CAREERS, languageType, aboutDto)
 
         for (stat in request.stat) {
@@ -328,6 +331,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun migrateStudentClubs(requestList: List<StudentClubDto>): List<StudentClubDto> {
+        // Todo: add about migrate search
         val list = mutableListOf<StudentClubDto>()
 
         for (request in requestList) {
@@ -347,6 +351,7 @@ class AboutServiceImpl(
                 attachments = listOf()
             )
             val languageType = LanguageType.makeStringToLanguageType(language)
+
             var newAbout = AboutEntity.of(AboutPostType.STUDENT_CLUBS, languageType, aboutDto)
 
             syncSearchOfAbout(newAbout)
@@ -388,6 +393,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun migrateDirections(requestList: List<DirectionDto>): List<DirectionDto> {
+        // Todo: add about migrate search
         val list = mutableListOf<DirectionDto>()
 
         for (request in requestList) {
