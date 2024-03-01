@@ -86,13 +86,6 @@ class AcademicsController(
         return ResponseEntity.ok(academicsService.readDegreeRequirements(language))
     }
 
-    @GetMapping("/undergraduate/general-studies-requirements")
-    fun readGeneralStudiesRequirements(
-        @RequestParam(required = false, defaultValue = "ko") language: String
-    ): ResponseEntity<GeneralStudiesPageResponse> {
-        return ResponseEntity.ok(academicsService.readGeneralStudies(language))
-    }
-
     @AuthenticatedStaff
     @PostMapping("/{studentType}/scholarshipDetail")
     fun createScholarshipDetail(
