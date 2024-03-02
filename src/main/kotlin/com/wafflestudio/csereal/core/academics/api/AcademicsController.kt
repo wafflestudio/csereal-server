@@ -28,22 +28,28 @@ class AcademicsController(
         request: AcademicsDto,
         @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<AcademicsDto> {
-        return ResponseEntity.ok(academicsService.createAcademics(studentType, postType, request, attachments))
+        return ResponseEntity.ok(
+            academicsService.createAcademics(studentType, postType, request, attachments)
+        )
     }
 
     @GetMapping("/{studentType}/guide")
     fun readGuide(
+        @RequestParam(required = false, defaultValue = "ko") language: String,
         @PathVariable studentType: String
     ): ResponseEntity<GuidePageResponse> {
-        return ResponseEntity.ok(academicsService.readGuide(studentType))
+        return ResponseEntity.ok(academicsService.readGuide(language, studentType))
     }
 
     @GetMapping("/{studentType}/{postType}")
     fun readAcademicsYearResponses(
+        @RequestParam(required = false, defaultValue = "ko") language: String,
         @PathVariable studentType: String,
         @PathVariable postType: String
     ): ResponseEntity<List<AcademicsYearResponse>> {
-        return ResponseEntity.ok(academicsService.readAcademicsYearResponses(studentType, postType))
+        return ResponseEntity.ok(
+            academicsService.readAcademicsYearResponses(language, studentType, postType)
+        )
     }
 
     //교과목 정보
@@ -75,9 +81,11 @@ class AcademicsController(
         return ResponseEntity.ok(academicsService.readCourse(language, name))
     }
 
-    @GetMapping("/undergraduate/general-studies-requirements")
-    fun readGeneralStudiesRequirements(): ResponseEntity<GeneralStudiesPageResponse> {
-        return ResponseEntity.ok(academicsService.readGeneralStudies())
+    @GetMapping("/undergraduate/degree-requirements")
+    fun readDegreeRequirements(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<DegreeRequirementsPageResponse> {
+        return ResponseEntity.ok(academicsService.readDegreeRequirements(language))
     }
 
     @AuthenticatedStaff
@@ -92,13 +100,16 @@ class AcademicsController(
 
     @GetMapping("/{studentType}/scholarship")
     fun readAllScholarship(
+        @RequestParam(required = false, defaultValue = "ko") language: String,
         @PathVariable studentType: String
     ): ResponseEntity<ScholarshipPageResponse> {
-        return ResponseEntity.ok(academicsService.readAllScholarship(studentType))
+        return ResponseEntity.ok(academicsService.readAllScholarship(language, studentType))
     }
 
     @GetMapping("/scholarship/{scholarshipId}")
-    fun getScholarship(@PathVariable scholarshipId: Long): ResponseEntity<ScholarshipDto> {
+    fun getScholarship(
+        @PathVariable scholarshipId: Long
+    ): ResponseEntity<ScholarshipDto> {
         return ResponseEntity.ok(academicsService.readScholarship(scholarshipId))
     }
 

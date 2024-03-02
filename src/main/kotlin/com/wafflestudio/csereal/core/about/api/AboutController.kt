@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.about.api
 
+import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.about.api.res.AboutSearchResBody
 import com.wafflestudio.csereal.core.about.dto.*
@@ -22,7 +23,7 @@ class AboutController(
     // postType: directions / name -> by-public-transit, by-car, from-far-away
 
     // Todo: 학부장 인사말(greetings) signature
-//    @AuthenticatedStaff
+    @AuthenticatedStaff
     @PostMapping("/{postType}")
     fun createAbout(
         @PathVariable postType: String,

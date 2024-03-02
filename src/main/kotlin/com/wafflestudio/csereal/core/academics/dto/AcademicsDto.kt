@@ -11,7 +11,6 @@ data class AcademicsDto(
     val name: String,
     val description: String,
     val year: Int? = null,
-    val time: String? = null,
     val createdAt: LocalDateTime? = null,
     val modifiedAt: LocalDateTime? = null,
     val attachments: List<AttachmentResponse>? = null
@@ -24,7 +23,6 @@ data class AcademicsDto(
                 name = this.name,
                 description = this.description,
                 year = this.year,
-                time = this.time,
                 createdAt = this.createdAt,
                 modifiedAt = this.modifiedAt,
                 attachments = attachmentResponses
