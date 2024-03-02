@@ -1,12 +1,15 @@
 package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.properties.LanguageType
 import jakarta.persistence.*
 
 @Entity(name = "member_search")
 class MemberSearchEntity(
     @Column(columnDefinition = "TEXT")
     var content: String,
+
+    val language: LanguageType,
 
     @OneToOne
     @JoinColumn(name = "professor_id")
@@ -20,6 +23,7 @@ class MemberSearchEntity(
         fun create(professor: ProfessorEntity): MemberSearchEntity {
             return MemberSearchEntity(
                 content = createContent(professor),
+                language = professor.language,
                 professor = professor
             )
         }
@@ -27,6 +31,7 @@ class MemberSearchEntity(
         fun create(staff: StaffEntity): MemberSearchEntity {
             return MemberSearchEntity(
                 content = createContent(staff),
+                language = staff.language,
                 staff = staff
             )
         }

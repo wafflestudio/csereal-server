@@ -2,20 +2,25 @@ package com.wafflestudio.csereal.core.academics.database
 
 import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.common.repository.CommonRepository
+import com.wafflestudio.csereal.common.utils.exchangePageNum
 import com.wafflestudio.csereal.core.academics.database.QAcademicsEntity.academicsEntity
 import com.wafflestudio.csereal.core.academics.database.QAcademicsSearchEntity.academicsSearchEntity
 import com.wafflestudio.csereal.core.academics.database.QCourseEntity.courseEntity
 import com.wafflestudio.csereal.core.academics.database.QScholarshipEntity.scholarshipEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
-import com.wafflestudio.csereal.common.utils.exchangePageNum
 
 interface AcademicsSearchRepository : JpaRepository<AcademicsSearchEntity, Long>, AcademicsSearchCustomRepository
 
 interface AcademicsSearchCustomRepository {
-    fun searchAcademics(keyword: String, pageSize: Int, pageNum: Int): Pair<List<AcademicsSearchEntity>, Long>
-    fun searchTopAcademics(keyword: String, number: Int): List<AcademicsSearchEntity>
+    fun searchAcademics(
+        keyword: String,
+        language: LanguageType,
+        pageSize: Int,
+        pageNum: Int
+    ): Pair<List<AcademicsSearchEntity>, Long>
 }
 
 @Repository
@@ -23,22 +28,18 @@ class AcademicsSearchCustomRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
     private val commonRepository: CommonRepository
 ) : AcademicsSearchCustomRepository {
-    override fun searchTopAcademics(keyword: String, number: Int): List<AcademicsSearchEntity> {
-        return searchQuery(keyword)
-            .limit(number.toLong())
-            .fetch()
-    }
-
     override fun searchAcademics(
         keyword: String,
+        language: LanguageType,
         pageSize: Int,
         pageNum: Int
     ): Pair<List<AcademicsSearchEntity>, Long> {
-        val query = searchQuery(keyword)
-        val total = getSearchCount(keyword)
+        val query = searchQuery(keyword, language)
+        val total = getSearchCount(keyword, language)
 
         val validPageNum = exchangePageNum(pageSize, pageNum, total)
         val validOffset = (if (validPageNum >= 1) validPageNum - 1 else 0) * pageSize.toLong()
+
         val queryResult = query.offset(validOffset)
             .limit(pageSize.toLong())
             .fetch()
@@ -46,7 +47,7 @@ class AcademicsSearchCustomRepositoryImpl(
         return queryResult to total
     }
 
-    fun searchQuery(keyword: String): JPAQuery<AcademicsSearchEntity> {
+    fun searchQuery(keyword: String, language: LanguageType): JPAQuery<AcademicsSearchEntity> {
         val searchDoubleTemplate = commonRepository.searchFullSingleTextTemplate(
             keyword,
             academicsSearchEntity.content
@@ -67,11 +68,12 @@ class AcademicsSearchCustomRepositoryImpl(
                 scholarshipEntity
             ).fetchJoin()
             .where(
-                searchDoubleTemplate.gt(0.0)
+                searchDoubleTemplate.gt(0.0),
+                academicsSearchEntity.language.eq(language)
             )
     }
 
-    fun getSearchCount(keyword: String): Long {
+    fun getSearchCount(keyword: String, language: LanguageType): Long {
         val searchDoubleTemplate = commonRepository.searchFullSingleTextTemplate(
             keyword,
             academicsSearchEntity.content
@@ -81,7 +83,8 @@ class AcademicsSearchCustomRepositoryImpl(
             academicsSearchEntity.countDistinct()
         ).from(academicsSearchEntity)
             .where(
-                searchDoubleTemplate.gt(0.0)
+                searchDoubleTemplate.gt(0.0),
+                academicsSearchEntity.language.eq(language)
             ).fetchOne()!!
     }
 }

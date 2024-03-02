@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.academics.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import jakarta.persistence.*
 
@@ -8,6 +9,9 @@ import jakarta.persistence.*
 class AcademicsSearchEntity(
     @Column(columnDefinition = "TEXT", nullable = false)
     var content: String,
+
+    @Enumerated(value = EnumType.STRING)
+    val language: LanguageType,
 
     @OneToOne
     @JoinColumn(name = "academics_id")
@@ -26,6 +30,7 @@ class AcademicsSearchEntity(
         fun create(academics: AcademicsEntity): AcademicsSearchEntity {
             return AcademicsSearchEntity(
                 academics = academics,
+                language = academics.language,
                 content = createContent(academics)
             )
         }
@@ -33,6 +38,7 @@ class AcademicsSearchEntity(
         fun create(course: CourseEntity): AcademicsSearchEntity {
             return AcademicsSearchEntity(
                 course = course,
+                language = course.language,
                 content = createContent(course)
             )
         }
@@ -40,6 +46,7 @@ class AcademicsSearchEntity(
         fun create(scholarship: ScholarshipEntity): AcademicsSearchEntity {
             return AcademicsSearchEntity(
                 scholarship = scholarship,
+                language = scholarship.language,
                 content = createContent(scholarship)
             )
         }
@@ -47,7 +54,6 @@ class AcademicsSearchEntity(
         fun createContent(academics: AcademicsEntity): String {
             val sb = StringBuilder()
             academics.name.let { sb.appendLine(it) }
-            academics.time?.let { sb.appendLine(it) }
             academics.year?.let { sb.appendLine(it) }
             sb.appendLine(academics.studentType.value)
             sb.appendLine(

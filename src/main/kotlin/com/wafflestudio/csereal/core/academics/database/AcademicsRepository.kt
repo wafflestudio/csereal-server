@@ -1,17 +1,16 @@
 package com.wafflestudio.csereal.core.academics.database
 
+import com.wafflestudio.csereal.common.properties.LanguageType
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface AcademicsRepository : JpaRepository<AcademicsEntity, Long> {
-    fun findByStudentTypeAndPostType(
+    fun findByLanguageAndStudentTypeAndPostType(
+        languageType: LanguageType,
         studentType: AcademicsStudentType,
         postType: AcademicsPostType
     ): AcademicsEntity
-    fun findAllByStudentTypeAndPostTypeOrderByYearDesc(
-        studentType: AcademicsStudentType,
-        postType: AcademicsPostType
-    ): List<AcademicsEntity>
-    fun findAllByStudentTypeAndPostTypeOrderByTimeDesc(
+    fun findAllByLanguageAndStudentTypeAndPostTypeOrderByYearDesc(
+        languageType: LanguageType,
         studentType: AcademicsStudentType,
         postType: AcademicsPostType
     ): List<AcademicsEntity>
