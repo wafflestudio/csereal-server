@@ -17,9 +17,11 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 class ResearchServiceTest(
     private val researchService: ResearchService,
@@ -79,6 +81,7 @@ class ResearchServiceTest(
                 val research = researchRepository.findByIdOrNull(createdResearchDto.id)!!
                 val researchSearch = research.researchSearch
                 researchSearch shouldNotBe null
+                researchSearch!!.language shouldBe LanguageType.KO
 
                 researchSearch!!.content shouldBe
                     """
@@ -243,6 +246,7 @@ class ResearchServiceTest(
                 val lab = labRepository.findByIdOrNull(createdLabDto.id)!!
                 val researchSearch = lab.researchSearch
                 researchSearch shouldNotBe null
+                researchSearch!!.language shouldBe LanguageType.KO
 
                 researchSearch!!.content shouldBe
                     """
