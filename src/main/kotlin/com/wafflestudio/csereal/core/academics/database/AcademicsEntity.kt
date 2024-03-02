@@ -22,7 +22,6 @@ class AcademicsEntity(
     @Column(columnDefinition = "mediumText")
     var description: String,
     var year: Int?,
-    var time: String?,
 
     @OneToMany(mappedBy = "academics", cascade = [CascadeType.ALL], orphanRemoval = true)
     var attachments: MutableList<AttachmentEntity> = mutableListOf(),
@@ -46,8 +45,7 @@ class AcademicsEntity(
                 language = languageType,
                 name = academicsDto.name,
                 description = academicsDto.description,
-                year = academicsDto.year,
-                time = academicsDto.time
+                year = academicsDto.year
             )
         }
     }
