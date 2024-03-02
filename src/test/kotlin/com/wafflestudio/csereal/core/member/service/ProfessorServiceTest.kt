@@ -14,9 +14,11 @@ import io.kotest.matchers.shouldNotBe
 import jakarta.transaction.Transactional
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 
 @SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 class ProfessorServiceTest(
     private val professorService: ProfessorService,
@@ -107,6 +109,7 @@ class ProfessorServiceTest(
                 val memberSearchEntity = memberSearchRepository.findAll()[0]
 
                 memberSearchEntity.professor?.id shouldBe createdProfessorDto.id
+                memberSearchEntity.language shouldBe LanguageType.KO
 
                 val contentExpected = """
                         name

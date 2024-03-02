@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.member.service
 
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.database.MemberSearchRepository
 import com.wafflestudio.csereal.core.member.database.StaffRepository
 import com.wafflestudio.csereal.core.member.dto.StaffDto
@@ -11,8 +12,10 @@ import io.kotest.matchers.shouldNotBe
 import jakarta.transaction.Transactional
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 class StaffServiceTest(
     private val staffService: StaffService,
@@ -60,6 +63,7 @@ class StaffServiceTest(
                 val staffEntity = staffRepository.findByIdOrNull(createdStaffDto.id!!)!!
                 val memberSearch = staffEntity.memberSearch!!
 
+                memberSearch.language shouldBe LanguageType.KO
                 memberSearch.content shouldBe """
                     name
                     role
