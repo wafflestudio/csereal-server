@@ -1,17 +1,15 @@
 package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.properties.LanguageType
-import com.wafflestudio.csereal.core.member.database.MemberSearchRepository
 import com.wafflestudio.csereal.core.member.api.res.MemberSearchResBody
+import com.wafflestudio.csereal.core.member.database.MemberSearchRepository
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface MemberSearchService {
-    @Transactional(readOnly = true)
     fun searchTopMember(keyword: String, language: LanguageType, number: Int): MemberSearchResBody
 
-    @Transactional(readOnly = true)
     fun searchMember(keyword: String, language: LanguageType, pageSize: Int, pageNum: Int): MemberSearchResBody
 }
 
