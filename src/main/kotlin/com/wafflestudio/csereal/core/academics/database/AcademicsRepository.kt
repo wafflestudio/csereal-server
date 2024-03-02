@@ -14,9 +14,4 @@ interface AcademicsRepository : JpaRepository<AcademicsEntity, Long> {
         studentType: AcademicsStudentType,
         postType: AcademicsPostType
     ): List<AcademicsEntity>
-    fun findAllByLanguageAndStudentTypeAndPostTypeOrderByTimeDesc(
-        languageType: LanguageType,
-        studentType: AcademicsStudentType,
-        postType: AcademicsPostType
-    ): List<AcademicsEntity>
 }
