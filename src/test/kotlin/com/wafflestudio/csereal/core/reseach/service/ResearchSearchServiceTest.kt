@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.reseach.service
 
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
@@ -47,6 +48,7 @@ class ResearchSearchServiceTest(
             // Save professors
             val professor1Dto = professorService.createProfessor(
                 createProfessorRequest = ProfessorDto(
+                    language = "ko",
                     name = "professor1",
                     email = null,
                     status = ProfessorStatus.ACTIVE,
@@ -67,6 +69,7 @@ class ResearchSearchServiceTest(
             )
             val professor2Dto = professorService.createProfessor(
                 createProfessorRequest = ProfessorDto(
+                    language = "ko",
                     name = "professor2",
                     email = null,
                     status = ProfessorStatus.ACTIVE,
@@ -92,6 +95,7 @@ class ResearchSearchServiceTest(
             // Save research
             val research = researchRepository.save(
                 ResearchEntity(
+                    language = LanguageType.KO,
                     name = "research",
                     postType = ResearchPostType.GROUPS,
                     description = null
@@ -101,6 +105,7 @@ class ResearchSearchServiceTest(
             // Save lab
             val labDto = LabDto(
                 id = -1,
+                language = "ko",
                 name = "name",
                 professors = listOf(
                     LabProfessorResponse(professor1.id, professor1.name),
@@ -118,6 +123,7 @@ class ResearchSearchServiceTest(
 
             val emptyLabDto = LabDto(
                 id = -1,
+                language = "ko",
                 name = "nameE",
                 professors = listOf(),
                 acronym = "acronymE",
@@ -160,6 +166,7 @@ class ResearchSearchServiceTest(
             When("professor가 추가된다면") {
                 val process3CreatedDto = professorService.createProfessor(
                     createProfessorRequest = ProfessorDto(
+                        language = "ko",
                         name = "newProfessor",
                         email = "email",
                         status = ProfessorStatus.ACTIVE,

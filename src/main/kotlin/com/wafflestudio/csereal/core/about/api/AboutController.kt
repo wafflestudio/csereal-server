@@ -1,11 +1,14 @@
 package com.wafflestudio.csereal.core.about.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
+import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.core.about.api.res.AboutSearchResBody
 import com.wafflestudio.csereal.core.about.dto.*
 import com.wafflestudio.csereal.core.about.dto.AboutRequest
 import com.wafflestudio.csereal.core.about.dto.FutureCareersRequest
 import com.wafflestudio.csereal.core.about.service.AboutService
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Positive
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -67,6 +70,34 @@ class AboutController(
     fun readFutureCareers(): ResponseEntity<FutureCareersPage> {
         return ResponseEntity.ok(aboutService.readFutureCareers())
     }
+
+    @GetMapping("/search/top")
+    fun searchTopAbout(
+        @RequestParam(required = true) keyword: String,
+        @RequestParam(required = true) @Valid @Positive number: Int,
+        @RequestParam(required = true, defaultValue = "ko") language: String,
+        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
+    ): AboutSearchResBody = aboutService.searchTopAbout(
+        keyword,
+        LanguageType.makeStringToLanguageType(language),
+        number,
+        amount
+    )
+
+    @GetMapping("/search")
+    fun searchPageAbout(
+        @RequestParam(required = true) keyword: String,
+        @RequestParam(required = true) @Valid @Positive pageNum: Int,
+        @RequestParam(required = true) @Valid @Positive pageSize: Int,
+        @RequestParam(required = true, defaultValue = "ko") language: String,
+        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
+    ): AboutSearchResBody = aboutService.searchPageAbout(
+        keyword,
+        LanguageType.makeStringToLanguageType(language),
+        pageSize,
+        pageNum,
+        amount
+    )
 
     @PostMapping("/migrate")
     fun migrateAbout(

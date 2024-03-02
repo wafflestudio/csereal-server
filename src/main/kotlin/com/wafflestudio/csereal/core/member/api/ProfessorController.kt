@@ -30,13 +30,17 @@ class ProfessorController(
     }
 
     @GetMapping("/active")
-    fun getActiveProfessors(): ResponseEntity<ProfessorPageDto> {
-        return ResponseEntity.ok(professorService.getActiveProfessors())
+    fun getActiveProfessors(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<ProfessorPageDto> {
+        return ResponseEntity.ok(professorService.getActiveProfessors(language))
     }
 
     @GetMapping("/inactive")
-    fun getInactiveProfessors(): ResponseEntity<List<SimpleProfessorDto>> {
-        return ResponseEntity.ok(professorService.getInactiveProfessors())
+    fun getInactiveProfessors(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<List<SimpleProfessorDto>> {
+        return ResponseEntity.ok(professorService.getInactiveProfessors(language))
     }
 
     @AuthenticatedStaff
@@ -46,7 +50,9 @@ class ProfessorController(
         @RequestPart("request") updateProfessorRequest: ProfessorDto,
         @RequestPart("mainImage") mainImage: MultipartFile?
     ): ResponseEntity<ProfessorDto> {
-        return ResponseEntity.ok(professorService.updateProfessor(professorId, updateProfessorRequest, mainImage))
+        return ResponseEntity.ok(
+            professorService.updateProfessor(professorId, updateProfessorRequest, mainImage)
+        )
     }
 
     @AuthenticatedStaff
@@ -63,7 +69,7 @@ class ProfessorController(
         return ResponseEntity.ok(professorService.migrateProfessors(requestList))
     }
 
-    @PatchMapping("/migragteImage/{professorId}")
+    @PatchMapping("/migrateImage/{professorId}")
     fun migrateProfessorImage(
         @PathVariable professorId: Long,
         @RequestPart("mainImage") mainImage: MultipartFile

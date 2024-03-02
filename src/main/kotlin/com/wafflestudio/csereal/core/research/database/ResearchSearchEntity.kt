@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.research.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.conference.database.ConferenceEntity
 import jakarta.persistence.*
@@ -9,6 +10,9 @@ import jakarta.persistence.*
 class ResearchSearchEntity(
     @Column(columnDefinition = "TEXT")
     var content: String,
+
+    @Enumerated(value = EnumType.STRING)
+    val language: LanguageType,
 
     @OneToOne
     @JoinColumn(name = "research_id")
@@ -26,6 +30,7 @@ class ResearchSearchEntity(
         fun create(research: ResearchEntity): ResearchSearchEntity {
             return ResearchSearchEntity(
                 content = createContent(research),
+                language = research.language,
                 research = research
             )
         }
@@ -33,6 +38,7 @@ class ResearchSearchEntity(
         fun create(lab: LabEntity): ResearchSearchEntity {
             return ResearchSearchEntity(
                 content = createContent(lab),
+                language = lab.language,
                 lab = lab
             )
         }
@@ -40,6 +46,7 @@ class ResearchSearchEntity(
         fun create(conference: ConferenceEntity): ResearchSearchEntity {
             return ResearchSearchEntity(
                 content = createContent(conference),
+                language = conference.language,
                 conferenceElement = conference
             )
         }

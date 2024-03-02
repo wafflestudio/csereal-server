@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.research.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.properties.EndpointProperties
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.research.database.*
 import com.wafflestudio.csereal.core.research.dto.*
@@ -20,8 +21,8 @@ interface ResearchService {
         attachments: List<MultipartFile>?
     ): ResearchDto
 
-    fun readAllResearchGroups(): ResearchGroupResponse
-    fun readAllResearchCenters(): List<ResearchDto>
+    fun readAllResearchGroups(language: String): ResearchGroupResponse
+    fun readAllResearchCenters(language: String): List<ResearchDto>
     fun updateResearchDetail(
         researchId: Long,
         request: ResearchDto,
@@ -30,7 +31,7 @@ interface ResearchService {
     ): ResearchDto
 
     fun createLab(request: LabDto, pdf: MultipartFile?): LabDto
-    fun readAllLabs(): List<LabDto>
+    fun readAllLabs(language: String): List<LabDto>
     fun readLab(labId: Long): LabDto
     fun updateLab(labId: Long, request: LabUpdateRequest, pdf: MultipartFile?): LabDto
     fun migrateResearchDetail(requestList: List<ResearchDto>): List<ResearchDto>
@@ -58,7 +59,8 @@ class ResearchServiceImpl(
         mainImage: MultipartFile?,
         attachments: List<MultipartFile>?
     ): ResearchDto {
-        val newResearch = ResearchEntity.of(request)
+        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+        val newResearch = ResearchEntity.of(enumLanguageType, request)
 
         if (request.labs != null) {
             for (lab in request.labs) {
@@ -82,37 +84,49 @@ class ResearchServiceImpl(
         researchRepository.save(newResearch)
 
         val imageURL = mainImageService.createImageURL(newResearch.mainImage)
-        val attachmentResponses = attachmentService.createAttachmentResponses(newResearch.attachments)
+        val attachmentResponses =
+            attachmentService.createAttachmentResponses(newResearch.attachments)
 
         return ResearchDto.of(newResearch, imageURL, attachmentResponses)
     }
 
     @Transactional(readOnly = true)
-    override fun readAllResearchGroups(): ResearchGroupResponse {
+    override fun readAllResearchGroups(language: String): ResearchGroupResponse {
         // Todo: description 수정 필요
         val description = "세계가 주목하는 컴퓨터공학부의 많은 교수들은 ACM, IEEE 등 " +
-            "세계적인 컴퓨터관련 주요 학회에서 국제학술지 편집위원, 국제학술회의 위원장, 기조연설자 등으로 활발하게 활동하고 있습니다. " +
-            "정부 지원과제, 민간 산업체 지원 연구과제 등도 성공적으로 수행, 우수한 성과들을 내놓고 있으며, " +
-            "오늘도 인류가 꿈꾸는 행복하고 편리한 세상을 위해 변화와 혁신, 연구와 도전을 계속하고 있습니다."
+            "세계적인 컴퓨터관련 주요 학회에서 국제학술지 편집위원, 국제학술회의 위원장, " +
+            "기조연설자 등으로 활발하게 활동하고 있습니다. 정부 지원과제, 민간 산업체 지원 " +
+            "연구과제 등도 성공적으로 수행, 우수한 성과들을 내놓고 있으며, 오늘도 인류가 " +
+            "꿈꾸는 행복하고 편리한 세상을 위해 변화와 혁신, 연구와 도전을 계속하고 있습니다."
 
-        val researchGroups = researchRepository.findAllByPostTypeOrderByName(ResearchPostType.GROUPS).map {
-            val imageURL = mainImageService.createImageURL(it.mainImage)
-            val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
+        val researchGroups =
+            researchRepository.findAllByPostTypeAndLanguageOrderByName(
+                ResearchPostType.GROUPS,
+                enumLanguageType
+            ).map {
+                val imageURL = mainImageService.createImageURL(it.mainImage)
+                val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
 
-            ResearchDto.of(it, imageURL, attachmentResponses)
-        }
+                ResearchDto.of(it, imageURL, attachmentResponses)
+            }
 
         return ResearchGroupResponse(description, researchGroups)
     }
 
     @Transactional(readOnly = true)
-    override fun readAllResearchCenters(): List<ResearchDto> {
-        val researchCenters = researchRepository.findAllByPostTypeOrderByName(ResearchPostType.CENTERS).map {
-            val imageURL = mainImageService.createImageURL(it.mainImage)
-            val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+    override fun readAllResearchCenters(language: String): List<ResearchDto> {
+        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
+        val researchCenters =
+            researchRepository.findAllByPostTypeAndLanguageOrderByName(
+                ResearchPostType.CENTERS,
+                enumLanguageType
+            ).map {
+                val imageURL = mainImageService.createImageURL(it.mainImage)
+                val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
 
-            ResearchDto.of(it, imageURL, attachmentResponses)
-        }
+                ResearchDto.of(it, imageURL, attachmentResponses)
+            }
 
         return researchCenters
     }
@@ -182,7 +196,8 @@ class ResearchServiceImpl(
             throw CserealException.Csereal404("해당 게시글은 연구그룹이어야 합니다.")
         }
 
-        val newLab = LabEntity.of(request, researchGroup)
+        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+        val newLab = LabEntity.of(enumLanguageType, request, researchGroup)
 
         if (request.professors != null) {
             for (professor in request.professors) {
@@ -208,8 +223,9 @@ class ResearchServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllLabs(): List<LabDto> {
-        val labs = labRepository.findAllByOrderByName().map {
+    override fun readAllLabs(language: String): List<LabDto> {
+        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
+        val labs = labRepository.findAllByLanguageOrderByName(enumLanguageType).map {
             var pdfURL = ""
             if (it.pdf != null) {
                 pdfURL = createPdfURL(it.pdf!!)
@@ -292,7 +308,8 @@ class ResearchServiceImpl(
     override fun migrateResearchDetail(requestList: List<ResearchDto>): List<ResearchDto> {
         val list = mutableListOf<ResearchDto>()
         for (request in requestList) {
-            val newResearch = ResearchEntity.of(request)
+            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+            val newResearch = ResearchEntity.of(enumLanguageType, request)
 
             newResearch.researchSearch = ResearchSearchEntity.create(newResearch)
 
@@ -315,7 +332,8 @@ class ResearchServiceImpl(
                 throw CserealException.Csereal404("해당 게시글은 연구그룹이어야 합니다.")
             }
 
-            val newLab = LabEntity.of(request, researchGroup)
+            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+            val newLab = LabEntity.of(enumLanguageType, request, researchGroup)
 
             newLab.researchSearch = ResearchSearchEntity.create(newLab)
 

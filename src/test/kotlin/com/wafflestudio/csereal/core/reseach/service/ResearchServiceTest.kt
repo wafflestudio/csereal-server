@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.reseach.service
 
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
@@ -16,9 +17,11 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 class ResearchServiceTest(
     private val researchService: ResearchService,
@@ -43,6 +46,7 @@ class ResearchServiceTest(
     Given("간단한 Research를 생성하려고 할 때") {
         val researchDto = ResearchDto(
             id = -1,
+            language = "ko",
             name = "name",
             postType = ResearchPostType.CENTERS,
             description = "description",
@@ -77,6 +81,7 @@ class ResearchServiceTest(
                 val research = researchRepository.findByIdOrNull(createdResearchDto.id)!!
                 val researchSearch = research.researchSearch
                 researchSearch shouldNotBe null
+                researchSearch!!.language shouldBe LanguageType.KO
 
                 researchSearch!!.content shouldBe
                     """
@@ -92,6 +97,7 @@ class ResearchServiceTest(
     Given("간단한 Research를 수정하려고 할 때") {
         val researchDto = ResearchDto(
             id = -1,
+            language = "ko",
             name = "name",
             postType = ResearchPostType.CENTERS,
             description = "description",
@@ -111,6 +117,7 @@ class ResearchServiceTest(
         When("Research를 수정한다면") {
             val researchUpdateRequest = ResearchDto(
                 id = createdResearchDto.id,
+                language = "ko",
                 name = "name2",
                 postType = ResearchPostType.GROUPS,
                 description = "description2",
@@ -156,6 +163,7 @@ class ResearchServiceTest(
         // Save professors
         val professor1 = professorRepository.save(
             ProfessorEntity(
+                language = LanguageType.KO,
                 name = "professor1",
                 status = ProfessorStatus.ACTIVE,
                 academicRank = "professor",
@@ -170,6 +178,7 @@ class ResearchServiceTest(
         )
         val professor2 = professorRepository.save(
             ProfessorEntity(
+                language = LanguageType.KO,
                 name = "professor2",
                 status = ProfessorStatus.ACTIVE,
                 academicRank = "professor",
@@ -186,6 +195,7 @@ class ResearchServiceTest(
         // Save research
         val research = researchRepository.save(
             ResearchEntity(
+                language = LanguageType.KO,
                 name = "research",
                 postType = ResearchPostType.GROUPS,
                 description = null
@@ -194,6 +204,7 @@ class ResearchServiceTest(
 
         val labDto = LabDto(
             id = -1,
+            language = "ko",
             name = "name",
             professors = listOf(
                 LabProfessorResponse(professor1.id, professor1.name),
@@ -235,6 +246,7 @@ class ResearchServiceTest(
                 val lab = labRepository.findByIdOrNull(createdLabDto.id)!!
                 val researchSearch = lab.researchSearch
                 researchSearch shouldNotBe null
+                researchSearch!!.language shouldBe LanguageType.KO
 
                 researchSearch!!.content shouldBe
                     """
@@ -258,6 +270,7 @@ class ResearchServiceTest(
         // Save professors
         val professor1 = professorRepository.save(
             ProfessorEntity(
+                language = LanguageType.KO,
                 name = "professor1",
                 status = ProfessorStatus.ACTIVE,
                 academicRank = "professor",
@@ -272,6 +285,7 @@ class ResearchServiceTest(
         )
         val professor2 = professorRepository.save(
             ProfessorEntity(
+                language = LanguageType.KO,
                 name = "professor2",
                 status = ProfessorStatus.ACTIVE,
                 academicRank = "professor",
@@ -288,6 +302,7 @@ class ResearchServiceTest(
         // Save research
         val research = researchRepository.save(
             ResearchEntity(
+                language = LanguageType.KO,
                 name = "research",
                 postType = ResearchPostType.GROUPS,
                 description = null
@@ -297,6 +312,7 @@ class ResearchServiceTest(
         // Save lab
         val labDto = LabDto(
             id = -1,
+            language = "ko",
             name = "name",
             professors = listOf(
                 LabProfessorResponse(professor1.id, professor1.name),
@@ -318,6 +334,7 @@ class ResearchServiceTest(
         When("pdf를 제외하고 Lab을 수정한다면") {
             val professor3 = professorRepository.save(
                 ProfessorEntity(
+                    language = LanguageType.KO,
                     name = "professor3",
                     status = ProfessorStatus.ACTIVE,
                     academicRank = "professor",

@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.conference.service
 
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.conference.database.ConferenceEntity
 import com.wafflestudio.csereal.core.conference.database.ConferencePageEntity
 import com.wafflestudio.csereal.core.conference.database.ConferencePageRepository
@@ -76,18 +77,21 @@ class ConferenceServiceTest(
         val conferences = conferenceRepository.saveAll(
             listOf(
                 ConferenceEntity(
+                    language = LanguageType.KO,
                     code = "code1",
                     name = "name1",
                     abbreviation = "abbreviation1",
                     conferencePage = conferencePage
                 ),
                 ConferenceEntity(
+                    language = LanguageType.KO,
                     code = "code2",
                     name = "name2",
                     abbreviation = "abbreviation2",
                     conferencePage = conferencePage
                 ),
                 ConferenceEntity(
+                    language = LanguageType.KO,
                     code = "code3",
                     name = "name3",
                     abbreviation = "abbreviation3",
@@ -105,11 +109,13 @@ class ConferenceServiceTest(
             val deleteConferenceId = conferences[1].id
             val modifiedConference = ConferenceDto(
                 id = conferences.first().id,
+                language = "ko",
                 code = "code0",
                 name = "modifiedName",
                 abbreviation = "modifiedAbbreviation"
             )
             val newConference = ConferenceDto(
+                language = "ko",
                 code = "code9",
                 name = "newName",
                 abbreviation = "newAbbreviation"

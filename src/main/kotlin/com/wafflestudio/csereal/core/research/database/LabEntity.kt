@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.research.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.research.dto.LabDto
 import com.wafflestudio.csereal.core.research.dto.LabUpdateRequest
@@ -9,6 +10,7 @@ import jakarta.persistence.*
 
 @Entity(name = "lab")
 class LabEntity(
+    var language: LanguageType,
     var name: String,
 
     @OneToMany(mappedBy = "lab")
@@ -36,8 +38,9 @@ class LabEntity(
 
 ) : BaseTimeEntity() {
     companion object {
-        fun of(labDto: LabDto, researchGroup: ResearchEntity): LabEntity {
+        fun of(languageType: LanguageType, labDto: LabDto, researchGroup: ResearchEntity): LabEntity {
             return LabEntity(
+                language = languageType,
                 name = labDto.name,
                 location = labDto.location,
                 tel = labDto.tel,

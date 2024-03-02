@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.conference.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.conference.database.ConferenceEntity
 import com.wafflestudio.csereal.core.conference.database.ConferencePageEntity
 import com.wafflestudio.csereal.core.conference.database.ConferencePageRepository
@@ -40,7 +41,9 @@ class ConferenceServiceImpl(
     }
 
     @Transactional
-    override fun modifyConferences(conferenceModifyRequest: ConferenceModifyRequest): ConferencePage {
+    override fun modifyConferences(
+        conferenceModifyRequest: ConferenceModifyRequest
+    ): ConferencePage {
         val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
             "loggedInUser",
             RequestAttributes.SCOPE_REQUEST
@@ -76,7 +79,8 @@ class ConferenceServiceImpl(
         val conferencePage = ConferencePageEntity.of(user)
         conferencePageRepository.save(conferencePage)
         for (request in requestList) {
-            val conference = ConferenceEntity.of(request, conferencePage)
+            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+            val conference = ConferenceEntity.of(enumLanguageType, request, conferencePage)
 
             conferenceRepository.save(conference)
 
@@ -94,7 +98,9 @@ class ConferenceServiceImpl(
         conferenceDto: ConferenceDto,
         conferencePage: ConferencePageEntity
     ): ConferenceEntity {
+        val enumLanguageType = LanguageType.makeStringToLanguageType(conferenceDto.language)
         val newConference = ConferenceEntity.of(
+            enumLanguageType,
             conferenceDto,
             conferencePage
         )

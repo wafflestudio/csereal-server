@@ -2,6 +2,8 @@ package com.wafflestudio.csereal.core.about.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.core.about.api.res.AboutSearchElementDto
+import com.wafflestudio.csereal.core.about.api.res.AboutSearchResBody
 import com.wafflestudio.csereal.core.about.database.*
 import com.wafflestudio.csereal.core.about.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
@@ -24,6 +26,22 @@ interface AboutService {
     fun readAllFacilities(language: String): List<AboutDto>
     fun readAllDirections(language: String): List<AboutDto>
     fun readFutureCareers(): FutureCareersPage
+
+    fun searchTopAbout(
+        keyword: String,
+        language: LanguageType,
+        number: Int,
+        amount: Int
+    ): AboutSearchResBody
+
+    fun searchPageAbout(
+        keyword: String,
+        language: LanguageType,
+        pageSize: Int,
+        pageNum: Int,
+        amount: Int
+    ): AboutSearchResBody
+
     fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto>
     fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage
     fun migrateStudentClubs(requestList: List<StudentClubDto>): List<StudentClubDto>
@@ -53,7 +71,7 @@ class AboutServiceImpl(
     ): AboutDto {
         val enumPostType = makeStringToEnum(postType)
         val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-        val newAbout = AboutEntity.of(enumPostType, enumLanguageType, request)
+        var newAbout = AboutEntity.of(enumPostType, enumLanguageType, request)
 
         if (mainImage != null) {
             mainImageService.uploadMainImage(newAbout, mainImage)
@@ -62,10 +80,14 @@ class AboutServiceImpl(
         if (attachments != null) {
             attachmentService.uploadAllAttachments(newAbout, attachments)
         }
-        aboutRepository.save(newAbout)
+
+        syncSearchOfAbout(newAbout)
+
+        newAbout = aboutRepository.save(newAbout)
 
         val imageURL = mainImageService.createImageURL(newAbout.mainImage)
-        val attachmentResponses = attachmentService.createAttachmentResponses(newAbout.attachments)
+        val attachmentResponses =
+            attachmentService.createAttachmentResponses(newAbout.attachments)
 
         return AboutDto.of(newAbout, imageURL, attachmentResponses)
     }
@@ -85,9 +107,13 @@ class AboutServiceImpl(
     override fun readAllClubs(language: String): List<AboutDto> {
         val languageType = LanguageType.makeStringToLanguageType(language)
         val clubs =
-            aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.STUDENT_CLUBS).map {
+            aboutRepository.findAllByLanguageAndPostTypeOrderByName(
+                languageType,
+                AboutPostType.STUDENT_CLUBS
+            ).map {
                 val imageURL = mainImageService.createImageURL(it.mainImage)
-                val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+                val attachmentResponses =
+                    attachmentService.createAttachmentResponses(it.attachments)
                 AboutDto.of(it, imageURL, attachmentResponses)
             }
 
@@ -98,9 +124,13 @@ class AboutServiceImpl(
     override fun readAllFacilities(language: String): List<AboutDto> {
         val languageType = LanguageType.makeStringToLanguageType(language)
         val facilities =
-            aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.FACILITIES).map {
+            aboutRepository.findAllByLanguageAndPostTypeOrderByName(
+                languageType,
+                AboutPostType.FACILITIES
+            ).map {
                 val imageURL = mainImageService.createImageURL(it.mainImage)
-                val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
+                val attachmentResponses =
+                    attachmentService.createAttachmentResponses(it.attachments)
                 AboutDto.of(it, imageURL, attachmentResponses)
             }
 
@@ -111,7 +141,10 @@ class AboutServiceImpl(
     override fun readAllDirections(language: String): List<AboutDto> {
         val languageType = LanguageType.makeStringToLanguageType(language)
         val directions =
-            aboutRepository.findAllByLanguageAndPostTypeOrderByName(languageType, AboutPostType.DIRECTIONS).map {
+            aboutRepository.findAllByLanguageAndPostTypeOrderByName(
+                languageType,
+                AboutPostType.DIRECTIONS
+            ).map {
                 val imageURL = mainImageService.createImageURL(it.mainImage)
                 val attachments = attachmentService.createAttachmentResponses(it.attachments)
                 AboutDto.of(it, imageURL, attachments)
@@ -155,7 +188,59 @@ class AboutServiceImpl(
     }
 
     @Transactional
+    fun syncSearchOfAbout(about: AboutEntity) {
+        if (about.postType == AboutPostType.FUTURE_CAREERS) {
+            about.syncSearchContent(
+                statRepository.findAll().map { it.name },
+                companyRepository.findAll().map { it.name }
+            )
+        } else {
+            about.syncSearchContent()
+        }
+    }
+
+    @Transactional(readOnly = true)
+    override fun searchTopAbout(
+        keyword: String,
+        language: LanguageType,
+        number: Int,
+        amount: Int
+    ): AboutSearchResBody {
+        val (searchEntities, searchCnt) =
+            aboutRepository.searchAbouts(keyword, language, number, 1)
+        return AboutSearchResBody(
+            searchCnt,
+            searchEntities.map {
+                AboutSearchElementDto.of(it, keyword, amount)
+            }
+        )
+    }
+
+    @Transactional(readOnly = true)
+    override fun searchPageAbout(
+        keyword: String,
+        language: LanguageType,
+        pageSize: Int,
+        pageNum: Int,
+        amount: Int
+    ): AboutSearchResBody {
+        val (searchEntities, searchCnt) = aboutRepository.searchAbouts(
+            keyword,
+            language,
+            pageSize,
+            pageNum
+        )
+        return AboutSearchResBody(
+            searchCnt,
+            searchEntities.map {
+                AboutSearchElementDto.of(it, keyword, amount)
+            }
+        )
+    }
+
+    @Transactional
     override fun migrateAbout(requestList: List<AboutRequest>): List<AboutDto> {
+        // Todo: add about migrate search
         val list = mutableListOf<AboutDto>()
 
         for (request in requestList) {
@@ -177,9 +262,10 @@ class AboutServiceImpl(
             )
 
             val languageType = LanguageType.makeStringToLanguageType(language)
-            val newAbout = AboutEntity.of(enumPostType, languageType, aboutDto)
+            var newAbout = AboutEntity.of(enumPostType, languageType, aboutDto)
+            syncSearchOfAbout(newAbout)
 
-            aboutRepository.save(newAbout)
+            newAbout = aboutRepository.save(newAbout)
 
             list.add(AboutDto.of(newAbout, null, listOf()))
         }
@@ -188,6 +274,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun migrateFutureCareers(request: FutureCareersRequest): FutureCareersPage {
+        // Todo: add about migrate search
         val description = request.description
         val language = request.language
         val statList = mutableListOf<FutureCareersStatDto>()
@@ -207,8 +294,8 @@ class AboutServiceImpl(
         )
 
         val languageType = LanguageType.makeStringToLanguageType(language)
-        val newAbout = AboutEntity.of(AboutPostType.FUTURE_CAREERS, languageType, aboutDto)
-        aboutRepository.save(newAbout)
+
+        var newAbout = AboutEntity.of(AboutPostType.FUTURE_CAREERS, languageType, aboutDto)
 
         for (stat in request.stat) {
             val year = stat.year
@@ -243,6 +330,9 @@ class AboutServiceImpl(
             companyList.add(company)
         }
 
+        syncSearchOfAbout(newAbout)
+        newAbout = aboutRepository.save(newAbout)
+
         return FutureCareersPage(description, statList.toList(), companyList.toList())
     }
 
@@ -267,9 +357,11 @@ class AboutServiceImpl(
                 attachments = listOf()
             )
             val languageType = LanguageType.makeStringToLanguageType(language)
-            val newAbout = AboutEntity.of(AboutPostType.STUDENT_CLUBS, languageType, aboutDto)
 
-            aboutRepository.save(newAbout)
+            var newAbout = AboutEntity.of(AboutPostType.STUDENT_CLUBS, languageType, aboutDto)
+
+            syncSearchOfAbout(newAbout)
+            newAbout = aboutRepository.save(newAbout)
 
             list.add(StudentClubDto.of(newAbout))
         }
@@ -278,6 +370,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun migrateFacilities(requestList: List<FacilityDto>): List<FacilityDto> =
+        // Todo: add about migrate search
         requestList.map {
             AboutDto(
                 id = null,
@@ -296,6 +389,8 @@ class AboutServiceImpl(
                     LanguageType.makeStringToLanguageType(it.language),
                     dto
                 )
+            }.also {
+                syncSearchOfAbout(it)
             }
         }.let {
             aboutRepository.saveAll(it)
@@ -305,6 +400,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun migrateDirections(requestList: List<DirectionDto>): List<DirectionDto> {
+        // Todo: add about migrate search
         val list = mutableListOf<DirectionDto>()
 
         for (request in requestList) {
@@ -326,9 +422,10 @@ class AboutServiceImpl(
             )
 
             val languageType = LanguageType.makeStringToLanguageType(language)
-            val newAbout = AboutEntity.of(AboutPostType.DIRECTIONS, languageType, aboutDto)
+            var newAbout = AboutEntity.of(AboutPostType.DIRECTIONS, languageType, aboutDto)
+            syncSearchOfAbout(newAbout)
 
-            aboutRepository.save(newAbout)
+            newAbout = aboutRepository.save(newAbout)
 
             list.add(DirectionDto.of(newAbout))
         }
@@ -349,7 +446,8 @@ class AboutServiceImpl(
         }
 
         val imageURL = mainImageService.createImageURL(about.mainImage)
-        val attachmentResponses = attachmentService.createAttachmentResponses(about.attachments)
+        val attachmentResponses =
+            attachmentService.createAttachmentResponses(about.attachments)
 
         return AboutDto.of(about, imageURL, attachmentResponses)
     }

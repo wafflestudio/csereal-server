@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.member.service
 
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.database.MemberSearchRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
@@ -13,9 +14,11 @@ import io.kotest.matchers.shouldNotBe
 import jakarta.transaction.Transactional
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 
 @SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 class ProfessorServiceTest(
     private val professorService: ProfessorService,
@@ -35,11 +38,13 @@ class ProfessorServiceTest(
         val date = LocalDate.now()
 
         val researchEntity = ResearchEntity(
+            language = LanguageType.KO,
             name = "researchName",
             description = null,
             postType = ResearchPostType.LABS
         )
         var labEntity = LabEntity(
+            language = LanguageType.KO,
             name = "labName",
             location = null,
             tel = null,
@@ -54,6 +59,7 @@ class ProfessorServiceTest(
         labEntity = labRepository.save(labEntity)
 
         val professorDto = ProfessorDto(
+            language = "ko",
             name = "name",
             email = "email",
             status = ProfessorStatus.ACTIVE,
@@ -103,6 +109,7 @@ class ProfessorServiceTest(
                 val memberSearchEntity = memberSearchRepository.findAll()[0]
 
                 memberSearchEntity.professor?.id shouldBe createdProfessorDto.id
+                memberSearchEntity.language shouldBe LanguageType.KO
 
                 val contentExpected = """
                         name
@@ -133,11 +140,13 @@ class ProfessorServiceTest(
     Given("생성되어 있는 간단한 교수에 대하여") {
         val date = LocalDate.now()
         val researchEntity = ResearchEntity(
+            language = LanguageType.KO,
             name = "researchName",
             description = null,
             postType = ResearchPostType.LABS
         )
         val labEntity1 = LabEntity(
+            language = LanguageType.KO,
             name = "labName1",
             location = null,
             tel = null,
@@ -148,6 +157,7 @@ class ProfessorServiceTest(
             research = researchEntity
         )
         val labEntity2 = LabEntity(
+            language = LanguageType.KO,
             name = "labName2",
             location = null,
             tel = null,
@@ -162,6 +172,7 @@ class ProfessorServiceTest(
 
         val createdProfessorDto = professorService.createProfessor(
             ProfessorDto(
+                language = "ko",
                 name = "name",
                 email = "email",
                 status = ProfessorStatus.ACTIVE,

@@ -1,10 +1,15 @@
 package com.wafflestudio.csereal.core.research.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
-import com.wafflestudio.csereal.core.research.dto.*
+import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.core.research.dto.LabDto
+import com.wafflestudio.csereal.core.research.dto.LabUpdateRequest
+import com.wafflestudio.csereal.core.research.dto.ResearchDto
+import com.wafflestudio.csereal.core.research.dto.ResearchGroupResponse
 import com.wafflestudio.csereal.core.research.service.ResearchSearchService
 import com.wafflestudio.csereal.core.research.service.ResearchService
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Positive
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -28,13 +33,17 @@ class ResearchController(
     }
 
     @GetMapping("/groups")
-    fun readAllResearchGroups(): ResponseEntity<ResearchGroupResponse> {
-        return ResponseEntity.ok(researchService.readAllResearchGroups())
+    fun readAllResearchGroups(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<ResearchGroupResponse> {
+        return ResponseEntity.ok(researchService.readAllResearchGroups(language))
     }
 
     @GetMapping("/centers")
-    fun readAllResearchCenters(): ResponseEntity<List<ResearchDto>> {
-        return ResponseEntity.ok(researchService.readAllResearchCenters())
+    fun readAllResearchCenters(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<List<ResearchDto>> {
+        return ResponseEntity.ok(researchService.readAllResearchCenters(language))
     }
 
     @AuthenticatedStaff
@@ -62,8 +71,10 @@ class ResearchController(
     }
 
     @GetMapping("/labs")
-    fun readAllLabs(): ResponseEntity<List<LabDto>> {
-        return ResponseEntity.ok(researchService.readAllLabs())
+    fun readAllLabs(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<List<LabDto>> {
+        return ResponseEntity.ok(researchService.readAllLabs(language))
     }
 
     @GetMapping("/lab/{labId}")
@@ -130,13 +141,28 @@ class ResearchController(
     @GetMapping("/search/top")
     fun searchTop(
         @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true) number: Int
-    ) = researchSearchService.searchTopResearch(keyword, number)
+        @RequestParam(required = true) @Valid @Positive number: Int,
+        @RequestParam(required = true, defaultValue = "ko") language: String,
+        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
+    ) = researchSearchService.searchTopResearch(
+        keyword,
+        LanguageType.makeStringToLanguageType(language),
+        number,
+        amount
+    )
 
     @GetMapping("/search")
     fun searchPage(
         @RequestParam(required = true) keyword: String,
         @RequestParam(required = true) pageSize: Int,
-        @RequestParam(required = true) pageNum: Int
-    ) = researchSearchService.searchResearch(keyword, pageSize, pageNum)
+        @RequestParam(required = true) pageNum: Int,
+        @RequestParam(required = true, defaultValue = "ko") language: String,
+        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
+    ) = researchSearchService.searchResearch(
+        keyword,
+        LanguageType.makeStringToLanguageType(language),
+        pageSize,
+        pageNum,
+        amount
+    )
 }

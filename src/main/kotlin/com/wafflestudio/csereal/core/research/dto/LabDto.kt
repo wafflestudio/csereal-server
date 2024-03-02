@@ -1,9 +1,11 @@
 package com.wafflestudio.csereal.core.research.dto
 
+import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.research.database.LabEntity
 
 data class LabDto(
     val id: Long,
+    val language: String,
     val name: String,
     val professors: List<LabProfessorResponse>?,
     val location: String?,
@@ -19,6 +21,7 @@ data class LabDto(
         fun of(entity: LabEntity, pdfURL: String): LabDto = entity.run {
             LabDto(
                 id = this.id,
+                language = LanguageType.makeLowercase(entity.language),
                 name = this.name,
                 professors = this.professors.map { LabProfessorResponse(id = it.id, name = it.name) },
                 location = this.location,
