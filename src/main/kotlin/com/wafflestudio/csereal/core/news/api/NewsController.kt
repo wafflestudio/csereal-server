@@ -29,6 +29,7 @@ class NewsController(
         @RequestParam(required = false) tag: List<String>?,
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
+        @RequestParam(required = false, defaultValue = "10") pageSize: Int,
         @AuthenticationPrincipal oidcUser: OidcUser?
     ): ResponseEntity<NewsSearchResponse> {
         val isStaff = oidcUser?.let {
@@ -37,7 +38,6 @@ class NewsController(
             user?.role == Role.ROLE_STAFF
         } ?: false
 
-        val pageSize = 10
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
