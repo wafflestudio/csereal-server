@@ -24,6 +24,7 @@ class SeminarController(
     fun searchSeminar(
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
+        @RequestParam(required = false) pageSize: Int?,
         @AuthenticationPrincipal oidcUser: OidcUser?
     ): ResponseEntity<SeminarSearchResponse> {
         val isStaff = oidcUser?.let {
@@ -32,10 +33,10 @@ class SeminarController(
             user?.role == Role.ROLE_STAFF
         } ?: false
 
-        val pageSize = 10
+        val pgSize = pageSize ?: 10
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
-        val pageRequest = PageRequest.of(page - 1, pageSize)
+        val pageRequest = PageRequest.of(page - 1, pgSize)
         return ResponseEntity.ok(seminarService.searchSeminar(keyword, pageRequest, usePageBtn, isStaff))
     }
 

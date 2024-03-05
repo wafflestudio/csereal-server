@@ -28,6 +28,7 @@ class NoticeController(
         @RequestParam(required = false) tag: List<String>?,
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
+        @RequestParam(required = false) pageSize: Int?,
         @AuthenticationPrincipal oidcUser: OidcUser?
     ): ResponseEntity<NoticeSearchResponse> {
         val isStaff = oidcUser?.let {
@@ -38,8 +39,8 @@ class NoticeController(
 
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
-        val pageSize = 20
-        val pageRequest = PageRequest.of(page - 1, pageSize)
+        val pgSize = pageSize ?: 20
+        val pageRequest = PageRequest.of(page - 1, pgSize)
         return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, isStaff))
     }
 
