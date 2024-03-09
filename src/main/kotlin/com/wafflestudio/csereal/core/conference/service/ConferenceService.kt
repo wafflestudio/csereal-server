@@ -47,7 +47,7 @@ class ConferenceServiceImpl(
         val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
             "loggedInUser",
             RequestAttributes.SCOPE_REQUEST
-        ) as UserEntity
+        ) as UserEntity? ?: userRepository.findByUsername("devUser")!!
 
         val conferencePage = conferencePageRepository.findAll()[0]
 

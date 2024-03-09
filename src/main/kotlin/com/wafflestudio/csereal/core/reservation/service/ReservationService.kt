@@ -6,6 +6,7 @@ import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
 import com.wafflestudio.csereal.core.user.database.UserEntity
+import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -26,14 +27,15 @@ interface ReservationService {
 @Transactional
 class ReservationServiceImpl(
     private val reservationRepository: ReservationRepository,
-    private val roomRepository: RoomRepository
+    private val roomRepository: RoomRepository,
+    private val userRepository: UserRepository
 ) : ReservationService {
 
     override fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto> {
         val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
             "loggedInUser",
             RequestAttributes.SCOPE_REQUEST
-        ) as UserEntity
+        ) as UserEntity? ?: userRepository.findByUsername("devUser")!!
 
         val room =
             roomRepository.findByIdOrNull(reserveRequest.roomId) ?: throw CserealException.Csereal404("Room Not Found")

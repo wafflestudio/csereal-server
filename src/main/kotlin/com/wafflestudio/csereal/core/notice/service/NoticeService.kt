@@ -6,6 +6,7 @@ import com.wafflestudio.csereal.core.notice.database.*
 import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.user.database.UserEntity
+import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -44,7 +45,8 @@ class NoticeServiceImpl(
     private val noticeRepository: NoticeRepository,
     private val tagInNoticeRepository: TagInNoticeRepository,
     private val noticeTagRepository: NoticeTagRepository,
-    private val attachmentService: AttachmentService
+    private val attachmentService: AttachmentService,
+    private val userRepository: UserRepository
 ) : NoticeService {
 
     @Transactional(readOnly = true)
@@ -91,7 +93,7 @@ class NoticeServiceImpl(
         val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
             "loggedInUser",
             RequestAttributes.SCOPE_REQUEST
-        ) as UserEntity
+        ) as UserEntity? ?: userRepository.findByUsername("devUser")!!
 
         val newNotice = NoticeEntity(
             title = request.title,
