@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.news.api
 
+import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
+import com.wafflestudio.csereal.common.mockauth.CustomPrincipal
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
 import com.wafflestudio.csereal.core.news.service.NewsService
@@ -13,7 +15,7 @@ import org.hibernate.validator.constraints.Length
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -29,15 +31,21 @@ class NewsController(
         @RequestParam(required = false) tag: List<String>?,
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
-        @AuthenticationPrincipal oidcUser: OidcUser?
+        @RequestParam(required = false, defaultValue = "10") pageSize: Int,
+        authentication: Authentication?
     ): ResponseEntity<NewsSearchResponse> {
-        val isStaff = oidcUser?.let {
-            val username = it.idToken.getClaim<String>("username")
+        val principal = authentication?.principal
+
+        val isStaff = principal?.let {
+            val username = when (principal) {
+                is OidcUser -> principal.idToken.getClaim("username")
+                is CustomPrincipal -> principal.userEntity.username
+                else -> throw CserealException.Csereal401("Unsupported principal type")
+            }
             val user = userRepository.findByUsername(username)
             user?.role == Role.ROLE_STAFF
         } ?: false
 
-        val pageSize = 10
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)

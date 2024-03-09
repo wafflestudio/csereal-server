@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.seminar.api
 
+import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
+import com.wafflestudio.csereal.common.mockauth.CustomPrincipal
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
 import com.wafflestudio.csereal.core.seminar.service.SeminarService
@@ -9,7 +11,7 @@ import com.wafflestudio.csereal.core.user.database.UserRepository
 import jakarta.validation.Valid
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -24,15 +26,21 @@ class SeminarController(
     fun searchSeminar(
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
-        @AuthenticationPrincipal oidcUser: OidcUser?
+        @RequestParam(required = false, defaultValue = "10") pageSize: Int,
+        authentication: Authentication?
     ): ResponseEntity<SeminarSearchResponse> {
-        val isStaff = oidcUser?.let {
-            val username = it.idToken.getClaim<String>("username")
+        val principal = authentication?.principal
+
+        val isStaff = principal?.let {
+            val username = when (principal) {
+                is OidcUser -> principal.idToken.getClaim("username")
+                is CustomPrincipal -> principal.userEntity.username
+                else -> throw CserealException.Csereal401("Unsupported principal type")
+            }
             val user = userRepository.findByUsername(username)
             user?.role == Role.ROLE_STAFF
         } ?: false
 
-        val pageSize = 10
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)

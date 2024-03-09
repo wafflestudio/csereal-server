@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.notice.api
 
+import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
+import com.wafflestudio.csereal.common.mockauth.CustomPrincipal
 import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.notice.service.NoticeService
 import com.wafflestudio.csereal.core.user.database.Role
@@ -12,7 +14,7 @@ import org.hibernate.validator.constraints.Length
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -28,17 +30,23 @@ class NoticeController(
         @RequestParam(required = false) tag: List<String>?,
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
-        @AuthenticationPrincipal oidcUser: OidcUser?
+        @RequestParam(required = false, defaultValue = "20") pageSize: Int,
+        authentication: Authentication?
     ): ResponseEntity<NoticeSearchResponse> {
-        val isStaff = oidcUser?.let {
-            val username = it.idToken.getClaim<String>("username")
+        val principal = authentication?.principal
+
+        val isStaff = principal?.let {
+            val username = when (principal) {
+                is OidcUser -> principal.idToken.getClaim("username")
+                is CustomPrincipal -> principal.userEntity.username
+                else -> throw CserealException.Csereal401("Unsupported principal type")
+            }
             val user = userRepository.findByUsername(username)
             user?.role == Role.ROLE_STAFF
         } ?: false
 
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
-        val pageSize = 20
         val pageRequest = PageRequest.of(page - 1, pageSize)
         return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, isStaff))
     }

@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.reservation.api
 
+import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.aop.AuthenticatedForReservation
+import com.wafflestudio.csereal.common.mockauth.CustomPrincipal
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
@@ -8,7 +10,7 @@ import com.wafflestudio.csereal.core.reservation.service.ReservationService
 import com.wafflestudio.csereal.core.user.database.Role
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -54,10 +56,16 @@ class ReservationController(
     @GetMapping("/{reservationId}")
     fun getReservation(
         @PathVariable reservationId: Long,
-        @AuthenticationPrincipal oidcUser: OidcUser?
+        authentication: Authentication?
     ): ResponseEntity<ReservationDto> {
-        val isStaff = oidcUser?.let {
-            val username = it.idToken.getClaim<String>("username")
+        val principal = authentication?.principal
+
+        val isStaff = principal?.let {
+            val username = when (principal) {
+                is OidcUser -> principal.idToken.getClaim("username")
+                is CustomPrincipal -> principal.userEntity.username
+                else -> throw CserealException.Csereal401("Unsupported principal type")
+            }
             val user = userRepository.findByUsername(username)
             user?.role == Role.ROLE_STAFF
         } ?: false
