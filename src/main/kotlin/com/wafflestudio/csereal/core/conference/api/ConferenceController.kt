@@ -27,7 +27,6 @@ class ConferenceController(
         return ResponseEntity.ok(conferenceService.modifyConferences(conferenceModifyRequest))
     }
 
-    @AuthenticatedStaff
     @PostMapping("/migrate")
     fun migrateConferences(
         @RequestBody requestList: List<ConferenceDto>
