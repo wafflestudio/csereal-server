@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 
 //TODO: 정식 릴리즈 후에는 dev 서버에서만 가능하게
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 class DevAuthController(
     private val authenticationManager: AuthenticationManager,
     private val userRepository: UserRepository,
