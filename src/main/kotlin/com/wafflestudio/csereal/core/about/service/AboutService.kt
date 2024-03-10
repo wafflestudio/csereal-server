@@ -22,7 +22,7 @@ interface AboutService {
     ): AboutDto
 
     fun readAbout(language: String, postType: String): AboutDto
-    fun readAllClubs(language: String): List<AboutDto>
+    fun readAllClubs(language: String): List<StudentClubDto>
     fun readAllFacilities(language: String): List<AboutDto>
     fun readAllDirections(language: String): List<AboutDto>
     fun readFutureCareers(): FutureCareersPage
@@ -104,17 +104,19 @@ class AboutServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllClubs(language: String): List<AboutDto> {
+    override fun readAllClubs(language: String): List<StudentClubDto> {
         val languageType = LanguageType.makeStringToLanguageType(language)
         val clubs =
             aboutRepository.findAllByLanguageAndPostTypeOrderByName(
                 languageType,
                 AboutPostType.STUDENT_CLUBS
             ).map {
+                val name = it.name!!.split("(")[0]
+                val engName = it.name!!.split("(")[1].replaceFirst(")", "")
                 val imageURL = mainImageService.createImageURL(it.mainImage)
                 val attachmentResponses =
                     attachmentService.createAttachmentResponses(it.attachments)
-                AboutDto.of(it, imageURL, attachmentResponses)
+                StudentClubDto.of(it, name, engName, imageURL, attachmentResponses)
             }
 
         return clubs
@@ -342,7 +344,8 @@ class AboutServiceImpl(
 
         for (request in requestList) {
             val language = request.language
-            val name = request.name
+            val name = request.name.split("(")[0]
+            val engName = request.name.split("(")[1].replaceFirst(")", "")
 
             val aboutDto = AboutDto(
                 id = null,
@@ -363,7 +366,7 @@ class AboutServiceImpl(
             syncSearchOfAbout(newAbout)
             newAbout = aboutRepository.save(newAbout)
 
-            list.add(StudentClubDto.of(newAbout))
+            list.add(StudentClubDto.of(newAbout, name, engName, null, listOf()))
         }
         return list
     }

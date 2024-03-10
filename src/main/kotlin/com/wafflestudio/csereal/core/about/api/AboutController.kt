@@ -48,7 +48,7 @@ class AboutController(
     @GetMapping("/student-clubs")
     fun readAllClubs(
         @RequestParam(required = false, defaultValue = "ko") language: String
-    ): ResponseEntity<List<AboutDto>> {
+    ): ResponseEntity<List<StudentClubDto>> {
         return ResponseEntity.ok(aboutService.readAllClubs(language))
     }
 
