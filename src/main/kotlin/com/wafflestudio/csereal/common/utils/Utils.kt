@@ -28,7 +28,7 @@ fun substringAroundKeyword(keyword: String, content: String, amount: Int): Pair<
     }
 }
 
-fun exchangePageNum(pageSize: Int, pageNum: Int, total: Long): Int {
+fun exchangeValidPageNum(pageSize: Int, pageNum: Int, total: Long): Int {
     // Validate
     if (!(pageSize > 0 && pageNum > 0 && total >= 0)) {
         throw RuntimeException()
