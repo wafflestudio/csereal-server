@@ -58,6 +58,7 @@ class ResearchSearchEntity(
                 appendLine(cleanTextFromHtml(it))
             }
             research.labs.forEach { appendLine(it.name) }
+            research.websiteURL?.let { appendLine(it) }
         }.toString()
 
         fun createContent(lab: LabEntity) = StringBuilder().apply {

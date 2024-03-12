@@ -167,7 +167,10 @@ class AcademicsServiceImpl(
                 enumLanguageType,
                 AcademicsStudentType.UNDERGRADUATE,
                 AcademicsPostType.DEGREE_REQUIREMENTS_YEAR_LIST
-            )
+            ).map {
+                val attachments = attachmentService.createAttachmentResponses(it.attachments)
+                DegreeRequirementsDto.of(it, attachments)
+            }
 
         return DegreeRequirementsPageResponse.of(academicsEntity, yearList)
     }

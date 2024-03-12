@@ -98,7 +98,8 @@ class ResearchSearchServiceTest(
                     language = LanguageType.KO,
                     name = "research",
                     postType = ResearchPostType.GROUPS,
-                    description = null
+                    description = null,
+                    websiteURL = null
                 )
             )
 
