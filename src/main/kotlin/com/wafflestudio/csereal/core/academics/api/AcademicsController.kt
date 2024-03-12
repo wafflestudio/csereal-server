@@ -41,6 +41,13 @@ class AcademicsController(
         return ResponseEntity.ok(academicsService.readGuide(language, studentType))
     }
 
+    @GetMapping("/undergraduate/general-studies-requirements")
+    fun readGeneralStudiesRequirements(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<GeneralStudiesRequirementsPageResponse> {
+        return ResponseEntity.ok(academicsService.readGeneralStudiesRequirements(language))
+    }
+
     @GetMapping("/{studentType}/{postType}")
     fun readAcademicsYearResponses(
         @RequestParam(required = false, defaultValue = "ko") language: String,
