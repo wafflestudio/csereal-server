@@ -50,6 +50,7 @@ class ResearchServiceTest(
             name = "name",
             postType = ResearchPostType.CENTERS,
             description = "description",
+            websiteURL = null,
             createdAt = null,
             modifiedAt = null,
             labs = null,
@@ -101,6 +102,7 @@ class ResearchServiceTest(
             name = "name",
             postType = ResearchPostType.CENTERS,
             description = "description",
+            websiteURL = null,
             createdAt = null,
             modifiedAt = null,
             labs = null,
@@ -121,6 +123,7 @@ class ResearchServiceTest(
                 name = "name2",
                 postType = ResearchPostType.GROUPS,
                 description = "description2",
+                websiteURL = null,
                 createdAt = null,
                 modifiedAt = null,
                 labs = null,
@@ -198,7 +201,8 @@ class ResearchServiceTest(
                 language = LanguageType.KO,
                 name = "research",
                 postType = ResearchPostType.GROUPS,
-                description = null
+                description = null,
+                websiteURL = null
             )
         )
 
@@ -305,7 +309,8 @@ class ResearchServiceTest(
                 language = LanguageType.KO,
                 name = "research",
                 postType = ResearchPostType.GROUPS,
-                description = null
+                description = null,
+                websiteURL = null
             )
         )
 
