@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.common.util
 
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
-import com.wafflestudio.csereal.common.utils.exchangePageNum
+import com.wafflestudio.csereal.common.utils.exchangeValidPageNum
 import com.wafflestudio.csereal.common.utils.substringAroundKeyword
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
@@ -112,13 +112,13 @@ class UtilsTest : BehaviorSpec({
 
             Then("should throw AssertionError") {
                 shouldThrow<RuntimeException> {
-                    exchangePageNum(totalMinus.first, totalMinus.second, totalMinus.third)
+                    exchangeValidPageNum(totalMinus.first, totalMinus.second, totalMinus.third)
                 }
                 shouldThrow<RuntimeException> {
-                    exchangePageNum(pageSizeZero.first, pageSizeZero.second, pageSizeZero.third)
+                    exchangeValidPageNum(pageSizeZero.first, pageSizeZero.second, pageSizeZero.third)
                 }
                 shouldThrow<RuntimeException> {
-                    exchangePageNum(pageNumZero.first, pageNumZero.second, pageNumZero.third)
+                    exchangeValidPageNum(pageNumZero.first, pageNumZero.second, pageNumZero.third)
                 }
             }
         }
@@ -129,7 +129,7 @@ class UtilsTest : BehaviorSpec({
             val pageNum = 3
 
             Then("Should return pageNum itself") {
-                val resultPageNum = exchangePageNum(pageSize, pageNum, total)
+                val resultPageNum = exchangeValidPageNum(pageSize, pageNum, total)
                 resultPageNum shouldBe pageNum
             }
         }
@@ -140,8 +140,19 @@ class UtilsTest : BehaviorSpec({
             val pageNum = 15
 
             Then("Should return last page number") {
-                val resultPageNum = exchangePageNum(pageSize, pageNum, total)
+                val resultPageNum = exchangeValidPageNum(pageSize, pageNum, total)
                 resultPageNum shouldBe 11
+            }
+        }
+
+        When("Given total count is zero") {
+            val pageSize = 10
+            val total = 0L
+            val pageNum = 1
+
+            Then("Should return first page number") {
+                val resultPageNum = exchangeValidPageNum(pageSize, pageNum, total)
+                resultPageNum shouldBe 1
             }
         }
     }
