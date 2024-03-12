@@ -7,10 +7,10 @@ class DegreeRequirementsPageResponse(
     val yearList: List<DegreeRequirementsDto>
 ) {
     companion object {
-        fun of(entity: AcademicsEntity, yearList: List<AcademicsEntity>) = entity.run {
+        fun of(entity: AcademicsEntity, yearList: List<DegreeRequirementsDto>) = entity.run {
             DegreeRequirementsPageResponse(
                 description = this.description,
-                yearList = yearList.map { DegreeRequirementsDto.of(it) }
+                yearList = yearList
             )
         }
     }
