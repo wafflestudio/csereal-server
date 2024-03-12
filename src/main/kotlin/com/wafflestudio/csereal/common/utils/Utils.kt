@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.common.utils
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import org.jsoup.safety.Safelist
+import kotlin.math.ceil
 
 fun cleanTextFromHtml(description: String): String {
     val cleanDescription = Jsoup.clean(description, Safelist.none())
@@ -33,9 +34,9 @@ fun exchangePageNum(pageSize: Int, pageNum: Int, total: Long): Int {
         throw RuntimeException()
     }
 
-    return if ((pageNum - 1) * pageSize < total) {
-        pageNum
-    } else {
-        Math.ceil(total.toDouble() / pageSize).toInt()
+    return when {
+        total == 0L -> 1
+        (pageNum - 1) * pageSize < total -> pageNum
+        else -> ceil(total.toDouble() / pageSize).toInt()
     }
 }
