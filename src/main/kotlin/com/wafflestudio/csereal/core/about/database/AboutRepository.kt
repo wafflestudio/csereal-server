@@ -4,7 +4,7 @@ import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.common.repository.CommonRepository
-import com.wafflestudio.csereal.common.utils.exchangePageNum
+import com.wafflestudio.csereal.common.utils.exchangeValidPageNum
 import com.wafflestudio.csereal.core.about.database.QAboutEntity.aboutEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
@@ -41,10 +41,8 @@ class AboutCustomRepositoryImpl(
         pageNum: Int
     ): Pair<List<AboutEntity>, Long> {
         val total = searchCount(keyword, language)
-        val validPageNum = exchangePageNum(pageSize, pageNum, total)
-        val validOffset = (
-            if (validPageNum >= 1) validPageNum - 1 else 0
-            ) * pageSize.toLong()
+        val validPageNum = exchangeValidPageNum(pageSize, pageNum, total)
+        val validOffset = (validPageNum - 1) * pageSize.toLong()
 
         val queryResult = searchQueryExpr(keyword, language)
             .offset(validOffset)
