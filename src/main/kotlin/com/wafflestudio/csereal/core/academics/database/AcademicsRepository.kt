@@ -9,6 +9,12 @@ interface AcademicsRepository : JpaRepository<AcademicsEntity, Long> {
         studentType: AcademicsStudentType,
         postType: AcademicsPostType
     ): AcademicsEntity
+    fun findByLanguageAndStudentTypeAndPostTypeAndYear(
+        languageType: LanguageType,
+        studentType: AcademicsStudentType,
+        postType: AcademicsPostType,
+        year: Int?
+    ): AcademicsEntity
     fun findAllByLanguageAndStudentTypeAndPostTypeOrderByYearDesc(
         languageType: LanguageType,
         studentType: AcademicsStudentType,

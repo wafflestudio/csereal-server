@@ -142,14 +142,26 @@ class AcademicsServiceImpl(
     @Transactional(readOnly = true)
     override fun readGeneralStudiesRequirements(language: String): GeneralStudiesRequirementsPageResponse {
         val enumLanguageType = LanguageType.makeStringToLanguageType(language)
-        val academicsEntity =
+        val overview =
+            academicsRepository.findByLanguageAndStudentTypeAndPostTypeAndYear(
+                enumLanguageType,
+                AcademicsStudentType.UNDERGRADUATE,
+                AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS,
+                null
+            )
+        val subjectChanges =
             academicsRepository.findByLanguageAndStudentTypeAndPostType(
                 enumLanguageType,
                 AcademicsStudentType.UNDERGRADUATE,
-                AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS
+                AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS_SUBJECT_CHANGES
             )
-
-        return GeneralStudiesRequirementsPageResponse.of(academicsEntity)
+        val generalStudiesEntity =
+            academicsRepository.findAllByLanguageAndStudentTypeAndPostTypeOrderByYearDesc(
+                enumLanguageType,
+                AcademicsStudentType.UNDERGRADUATE,
+                AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS
+            ).filter { academicsEntity -> academicsEntity.year != null }
+        return GeneralStudiesRequirementsPageResponse.of(overview, subjectChanges, generalStudiesEntity)
     }
 
     @Transactional(readOnly = true)
