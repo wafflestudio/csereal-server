@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.common.config
 
 import com.wafflestudio.csereal.common.CserealException
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.BindingResult
@@ -12,6 +13,7 @@ import java.sql.SQLIntegrityConstraintViolationException
 
 @RestControllerAdvice
 class CserealExceptionHandler {
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     // @Valid로 인해 오류 떴을 때 메시지 전송
     @ExceptionHandler(value = [MethodArgumentNotValidException::class])
@@ -29,12 +31,14 @@ class CserealExceptionHandler {
     // db에서 중복된 값 있을 때
     @ExceptionHandler(value = [SQLIntegrityConstraintViolationException::class])
     fun handle(e: SQLIntegrityConstraintViolationException): ResponseEntity<Any> {
+        log.error(e.stackTraceToString())
         return ResponseEntity("중복된 값이 있습니다.", HttpStatus.CONFLICT)
     }
 
     // oidc provider 서버에 문제가 있을때
     @ExceptionHandler(value = [RestClientException::class])
     fun handle(e: RestClientException): ResponseEntity<Any> {
+        log.error(e.stackTraceToString())
         return ResponseEntity("idsnucse error: ${e.message}", HttpStatus.BAD_GATEWAY)
     }
 }
