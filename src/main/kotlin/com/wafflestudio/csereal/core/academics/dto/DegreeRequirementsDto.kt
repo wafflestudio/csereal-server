@@ -5,7 +5,6 @@ import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 
 class DegreeRequirementsDto(
     val year: Int,
-    val description: String,
     val attachments: List<AttachmentResponse>
 
 ) {
@@ -13,7 +12,6 @@ class DegreeRequirementsDto(
         fun of(entity: AcademicsEntity, attachments: List<AttachmentResponse>) = entity.run {
             DegreeRequirementsDto(
                 year = this.year!!,
-                description = this.description,
                 attachments = attachments
             )
         }
