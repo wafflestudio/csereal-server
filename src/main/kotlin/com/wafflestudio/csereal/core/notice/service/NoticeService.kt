@@ -23,9 +23,9 @@ interface NoticeService {
         isStaff: Boolean
     ): NoticeSearchResponse
 
-    fun searchTotalNotice(keyword: String, number: Int, stringLength: Int): NoticeTotalSearchResponse
+    fun searchTotalNotice(keyword: String, number: Int, stringLength: Int, isStaff: Boolean): NoticeTotalSearchResponse
 
-    fun readNotice(noticeId: Long): NoticeDto
+    fun readNotice(noticeId: Long, isStaff: Boolean): NoticeDto
     fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
     fun updateNotice(
         noticeId: Long,
@@ -62,13 +62,17 @@ class NoticeServiceImpl(
     override fun searchTotalNotice(
         keyword: String,
         number: Int,
-        stringLength: Int
-    ) = noticeRepository.totalSearchNotice(keyword, number, stringLength)
+        stringLength: Int,
+        isStaff: Boolean
+    ) = noticeRepository.totalSearchNotice(keyword, number, stringLength, isStaff)
 
     @Transactional(readOnly = true)
-    override fun readNotice(noticeId: Long): NoticeDto {
-        val notice = noticeRepository.findByIdOrNull(noticeId)
-            ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
+    override fun readNotice(noticeId: Long, isStaff: Boolean): NoticeDto {
+        val notice = if (isStaff) {
+            noticeRepository.findByIdOrNull(noticeId)
+        } else {
+            noticeRepository.findByIdAndIsPrivateFalse(noticeId)
+        } ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
 
         if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
 
