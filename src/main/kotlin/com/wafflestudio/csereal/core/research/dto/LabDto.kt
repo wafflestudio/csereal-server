@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.research.dto
 
 import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.research.database.LabEntity
+import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 
 data class LabDto(
     val id: Long,
@@ -11,14 +12,14 @@ data class LabDto(
     val location: String?,
     val tel: String?,
     val acronym: String?,
-    val pdf: String?,
+    val attachments: List<AttachmentResponse>? = null,
     val youtube: String?,
     val group: String,
     val description: String?,
     val websiteURL: String?
 ) {
     companion object {
-        fun of(entity: LabEntity, pdfURL: String): LabDto = entity.run {
+        fun of(entity: LabEntity, attachments: List<AttachmentResponse>): LabDto = entity.run {
             LabDto(
                 id = this.id,
                 language = LanguageType.makeLowercase(entity.language),
@@ -27,7 +28,7 @@ data class LabDto(
                 location = this.location,
                 tel = this.tel,
                 acronym = this.acronym,
-                pdf = pdfURL,
+                attachments = attachments,
                 youtube = this.youtube,
                 group = this.research.name,
                 description = this.description,

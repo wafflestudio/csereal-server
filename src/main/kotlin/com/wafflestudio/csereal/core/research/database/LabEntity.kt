@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.research.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.research.dto.LabDto
@@ -20,9 +21,6 @@ class LabEntity(
     var tel: String?,
     var acronym: String?,
 
-    @OneToOne
-    var pdf: AttachmentEntity? = null,
-
     var youtube: String?,
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -33,10 +31,14 @@ class LabEntity(
     var description: String?,
     var websiteURL: String?,
 
+    @OneToMany(mappedBy = "lab", cascade = [CascadeType.ALL])
+    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+
     @OneToOne(mappedBy = "lab", cascade = [CascadeType.ALL], orphanRemoval = true)
     var researchSearch: ResearchSearchEntity? = null
 
-) : BaseTimeEntity() {
+) : BaseTimeEntity(), AttachmentContentEntityType {
+    override fun bringAttachments() = attachments
     companion object {
         fun of(languageType: LanguageType, labDto: LabDto, researchGroup: ResearchEntity): LabEntity {
             return LabEntity(

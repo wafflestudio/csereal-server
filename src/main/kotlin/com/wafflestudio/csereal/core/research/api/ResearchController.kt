@@ -65,9 +65,9 @@ class ResearchController(
         @Valid
         @RequestPart("request")
         request: LabDto,
-        @RequestPart("pdf") pdf: MultipartFile?
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<LabDto> {
-        return ResponseEntity.ok(researchService.createLab(request, pdf))
+        return ResponseEntity.ok(researchService.createLab(request, attachments))
     }
 
     @GetMapping("/labs")
@@ -94,9 +94,9 @@ class ResearchController(
         @Valid
         @RequestPart("request")
         request: LabUpdateRequest,
-        @RequestPart("pdf") pdf: MultipartFile?
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<LabDto> {
-        return ResponseEntity.ok(researchService.updateLab(labId, request, pdf))
+        return ResponseEntity.ok(researchService.updateLab(labId, request, attachments))
     }
 
     @PostMapping("/migrate")
@@ -128,13 +128,13 @@ class ResearchController(
         )
     }
 
-    @PatchMapping("/lab/migratePdf/{labId}")
-    fun migrateLabPdf(
+    @PatchMapping("/lab/migrateAttachments/{labId}")
+    fun migrateLabAttachments(
         @PathVariable labId: Long,
-        @RequestPart("pdf") pdf: MultipartFile?
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<LabDto> {
         return ResponseEntity.ok(
-            researchService.migrateLabPdf(labId, pdf)
+            researchService.migrateLabAttachments(labId, attachments)
         )
     }
 

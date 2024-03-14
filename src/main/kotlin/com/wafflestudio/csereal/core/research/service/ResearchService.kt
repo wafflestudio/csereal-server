@@ -30,10 +30,14 @@ interface ResearchService {
         attachments: List<MultipartFile>?
     ): ResearchDto
 
-    fun createLab(request: LabDto, pdf: MultipartFile?): LabDto
+    fun createLab(request: LabDto, attachments: List<MultipartFile>?): LabDto
     fun readAllLabs(language: String): List<LabDto>
     fun readLab(labId: Long): LabDto
-    fun updateLab(labId: Long, request: LabUpdateRequest, pdf: MultipartFile?): LabDto
+    fun updateLab(
+        labId: Long,
+        request: LabUpdateRequest,
+        newAttachments: List<MultipartFile>?
+    ): LabDto
     fun migrateResearchDetail(requestList: List<ResearchDto>): List<ResearchDto>
     fun migrateLabs(requestList: List<LabDto>): List<LabDto>
     fun migrateResearchDetailImageAndAttachments(
@@ -41,7 +45,10 @@ interface ResearchService {
         mainImage: MultipartFile?,
         attachments: List<MultipartFile>?
     ): ResearchDto
-    fun migrateLabPdf(labId: Long, pdf: MultipartFile?): LabDto
+    fun migrateLabAttachments(
+        labId: Long,
+        attachments: List<MultipartFile>?
+    ): LabDto
 }
 
 @Service
@@ -188,7 +195,7 @@ class ResearchServiceImpl(
     }
 
     @Transactional
-    override fun createLab(request: LabDto, pdf: MultipartFile?): LabDto {
+    override fun createLab(request: LabDto, attachments: List<MultipartFile>?): LabDto {
         val researchGroup = researchRepository.findByName(request.group!!)
             ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = ${request.group})")
 
@@ -209,28 +216,28 @@ class ResearchServiceImpl(
             }
         }
 
-        var pdfURL = ""
-        if (pdf != null) {
-            val attachmentDto = attachmentService.uploadAttachmentInLabEntity(newLab, pdf)
-            pdfURL = "${endpointProperties.backend}/v1/file/${attachmentDto.filename}"
+        if (attachments != null) {
+            attachmentService.uploadAllAttachments(newLab, attachments)
         }
 
         newLab.researchSearch = ResearchSearchEntity.create(newLab)
 
         labRepository.save(newLab)
 
-        return LabDto.of(newLab, pdfURL)
+        val attachmentResponses =
+            attachmentService.createAttachmentResponses(newLab.attachments)
+
+        return LabDto.of(newLab, attachmentResponses)
     }
 
     @Transactional(readOnly = true)
     override fun readAllLabs(language: String): List<LabDto> {
         val enumLanguageType = LanguageType.makeStringToLanguageType(language)
+
         val labs = labRepository.findAllByLanguageOrderByName(enumLanguageType).map {
-            var pdfURL = ""
-            if (it.pdf != null) {
-                pdfURL = createPdfURL(it.pdf!!)
-            }
-            LabDto.of(it, pdfURL)
+            val attachmentResponses =
+                attachmentService.createAttachmentResponses(it.attachments)
+            LabDto.of(it, attachmentResponses)
         }
 
         return labs
@@ -240,12 +247,11 @@ class ResearchServiceImpl(
     override fun readLab(labId: Long): LabDto {
         val lab = labRepository.findByIdOrNull(labId)
             ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$labId)")
-        var pdfURL = ""
-        if (lab.pdf != null) {
-            pdfURL = createPdfURL(lab.pdf!!)
-        }
 
-        return LabDto.of(lab, pdfURL)
+        val attachmentResponses =
+            attachmentService.createAttachmentResponses(lab.attachments)
+
+        return LabDto.of(lab, attachmentResponses)
     }
 
     private fun createPdfURL(pdf: AttachmentEntity): String {
@@ -253,7 +259,11 @@ class ResearchServiceImpl(
     }
 
     @Transactional
-    override fun updateLab(labId: Long, request: LabUpdateRequest, pdf: MultipartFile?): LabDto {
+    override fun updateLab(
+        labId: Long,
+        request: LabUpdateRequest,
+        newAttachments: List<MultipartFile>?
+    ): LabDto {
         val labEntity = labRepository.findByIdOrNull(labId)
             ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$labId)")
 
@@ -281,14 +291,14 @@ class ResearchServiceImpl(
             professor.lab = labEntity
         }
 
-        // update pdf
-        if (request.pdfModified) {
-            labEntity.pdf?.let { attachmentService.deleteAttachment(it) }
+        // update attachments
+        val oldAttachments =
+            attachmentService.createAttachmentResponses(labEntity.attachments)
 
-            pdf?.let {
-                val attachmentDto = attachmentService.uploadAttachmentInLabEntity(labEntity, it)
-            }
+        if (newAttachments != null) {
+            attachmentService.uploadAllAttachments(labEntity, newAttachments)
         }
+        val attachmentResponses = attachmentService.createAttachmentResponses(labEntity.attachments)
 
         // update researchSearch
         labEntity.researchSearch?.update(labEntity)
@@ -296,12 +306,7 @@ class ResearchServiceImpl(
                 labEntity.researchSearch = ResearchSearchEntity.create(labEntity)
             }
 
-        return LabDto.of(
-            labEntity,
-            labEntity.pdf?.let {
-                createPdfURL(it)
-            } ?: ""
-        )
+        return LabDto.of(labEntity, attachmentResponses)
     }
 
     @Transactional
@@ -339,7 +344,7 @@ class ResearchServiceImpl(
 
             labRepository.save(newLab)
 
-            list.add(LabDto.of(newLab, ""))
+            list.add(LabDto.of(newLab, listOf()))
         }
         return list
     }
@@ -368,16 +373,17 @@ class ResearchServiceImpl(
     }
 
     @Transactional
-    override fun migrateLabPdf(labId: Long, pdf: MultipartFile?): LabDto {
+    override fun migrateLabAttachments(labId: Long, attachments: List<MultipartFile>?): LabDto {
         val lab = labRepository.findByIdOrNull(labId)
             ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.")
 
-        var pdfURL = ""
-        if (pdf != null) {
-            val attachmentDto = attachmentService.uploadAttachmentInLabEntity(lab, pdf)
-            pdfURL = "${endpointProperties.backend}/v1/file/${attachmentDto.filename}"
+        if (attachments != null) {
+            attachmentService.uploadAllAttachments(lab, attachments)
         }
 
-        return LabDto.of(lab, pdfURL)
+        val attachmentResponse =
+            attachmentService.createAttachmentResponses(lab.attachments)
+
+        return LabDto.of(lab, attachmentResponse)
     }
 }

@@ -24,11 +24,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 interface AttachmentService {
-    fun uploadAttachmentInLabEntity(
-        labEntity: LabEntity,
-        requestAttachment: MultipartFile
-    ): AttachmentDto
-
+    // fun uploadAttachmentInLabEntity(labEntity: LabEntity, requestAttachment: MultipartFile): AttachmentDto
     fun uploadAllAttachments(
         contentEntityType: AttachmentContentEntityType,
         requestAttachments: List<MultipartFile>
@@ -47,6 +43,7 @@ class AttachmentServiceImpl(
     private val path: String,
     private val endpointProperties: EndpointProperties
 ) : AttachmentService {
+    /*
     override fun uploadAttachmentInLabEntity(labEntity: LabEntity, requestAttachment: MultipartFile): AttachmentDto {
         Files.createDirectories(Paths.get(path))
 
@@ -72,6 +69,8 @@ class AttachmentServiceImpl(
             size = requestAttachment.size
         )
     }
+
+     */
 
     @Transactional
     override fun uploadAllAttachments(
@@ -176,6 +175,11 @@ class AttachmentServiceImpl(
             is ResearchEntity -> {
                 contentEntity.attachments.add(attachment)
                 attachment.research = contentEntity
+            }
+
+            is LabEntity -> {
+                contentEntity.attachments.add(attachment)
+                attachment.lab = contentEntity
             }
         }
     }
