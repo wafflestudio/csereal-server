@@ -6,6 +6,7 @@ import com.wafflestudio.csereal.common.mockauth.CustomPrincipal
 import com.wafflestudio.csereal.common.utils.getUsername
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
+import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchDto
 import com.wafflestudio.csereal.core.news.service.NewsService
 import com.wafflestudio.csereal.core.user.database.Role
 import com.wafflestudio.csereal.core.user.database.UserRepository
@@ -54,10 +55,17 @@ class NewsController(
         @NotBlank
         keyword: String,
         @RequestParam(required = true) @Positive number: Int,
-        @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int
-    ) = ResponseEntity.ok(
-        newsService.searchTotalNews(keyword, number, stringLength)
-    )
+        @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int,
+        authentication: Authentication?
+    ): NewsTotalSearchDto {
+        val username = getUsername(authentication)
+        val isStaff = username?.let {
+            val user = userRepository.findByUsername(it)
+            user?.role == Role.ROLE_STAFF
+        } ?: false
+
+        return newsService.searchTotalNews(keyword, number, stringLength, isStaff)
+    }
 
     @GetMapping("/{newsId}")
     fun readNews(

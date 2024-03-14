@@ -56,15 +56,9 @@ class NoticeController(
         @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int,
         authentication: Authentication?
     ): NoticeTotalSearchResponse {
-        val principal = authentication?.principal
-
-        val isStaff = principal?.let {
-            val username = when (principal) {
-                is OidcUser -> principal.idToken.getClaim("username")
-                is CustomPrincipal -> principal.userEntity.username
-                else -> throw CserealException.Csereal401("Unsupported principal type")
-            }
-            val user = userRepository.findByUsername(username)
+        val username = getUsername(authentication)
+        val isStaff = username?.let {
+            val user = userRepository.findByUsername(it)
             user?.role == Role.ROLE_STAFF
         } ?: false
 

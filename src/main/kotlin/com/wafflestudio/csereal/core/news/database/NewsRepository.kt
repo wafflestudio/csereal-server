@@ -46,7 +46,8 @@ interface CustomNewsRepository {
         keyword: String,
         number: Int,
         amount: Int,
-        imageUrlCreator: (MainImageEntity?) -> String?
+        imageUrlCreator: (MainImageEntity?) -> String?,
+        isStaff: Boolean
     ): NewsTotalSearchDto
 
     fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse
@@ -135,13 +136,16 @@ class NewsRepositoryImpl(
         keyword: String,
         number: Int,
         amount: Int,
-        imageUrlCreator: (MainImageEntity?) -> String?
+        imageUrlCreator: (MainImageEntity?) -> String?,
+        isStaff: Boolean
     ): NewsTotalSearchDto {
         val doubleTemplate = commonRepository.searchFullDoubleTextTemplate(
             keyword,
             newsEntity.title,
             newsEntity.plainTextDescription
         )
+
+        val privateBoolean = newsEntity.isPrivate.eq(false).takeUnless { isStaff }
 
         val searchResult = queryFactory.select(
             newsEntity.id,
@@ -151,7 +155,7 @@ class NewsRepositoryImpl(
             mainImageEntity
         ).from(newsEntity)
             .leftJoin(mainImageEntity)
-            .where(doubleTemplate.gt(0.0))
+            .where(doubleTemplate.gt(0.0), privateBoolean)
             .orderBy(newsEntity.date.desc())
             .limit(number.toLong())
             .fetch()

@@ -34,7 +34,7 @@ interface NewsService {
 
     fun deleteNews(newsId: Long)
     fun enrollTag(tagName: String)
-    fun searchTotalNews(keyword: String, number: Int, amount: Int): NewsTotalSearchDto
+    fun searchTotalNews(keyword: String, number: Int, amount: Int, isStaff: Boolean): NewsTotalSearchDto
     fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse
     fun unSlideManyNews(request: List<Long>)
 }
@@ -62,12 +62,13 @@ class NewsServiceImpl(
     override fun searchTotalNews(
         keyword: String,
         number: Int,
-        amount: Int
+        amount: Int,
+        isStaff: Boolean
     ) = newsRepository.searchTotalNews(
         keyword,
         number,
         amount,
-        mainImageService::createImageURL
+        mainImageService::createImageURL, isStaff
     )
 
     @Transactional(readOnly = true)
