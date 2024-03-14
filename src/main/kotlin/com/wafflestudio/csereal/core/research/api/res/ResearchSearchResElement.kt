@@ -39,7 +39,6 @@ data class ResearchSearchResElement(
                         researchType = when (it.postType) {
                             ResearchPostType.GROUPS -> ResearchSearchType.RESEARCH_GROUP
                             ResearchPostType.CENTERS -> ResearchSearchType.RESEARCH_CENTER
-                            ResearchPostType.LABS -> ResearchSearchType.RESEARCH_LAB
                         },
                         partialDescription = partialDesc,
                         boldStartIdx = startIdx ?: 0,

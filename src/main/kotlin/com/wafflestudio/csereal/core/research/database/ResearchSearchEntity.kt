@@ -111,7 +111,6 @@ class ResearchSearchEntity(
 enum class ResearchSearchType {
     RESEARCH_GROUP,
     RESEARCH_CENTER,
-    RESEARCH_LAB, // TODO: Remove REMOVE_LAB if not used
     LAB,
     CONFERENCE;
 }
