@@ -58,16 +58,42 @@ class NoticeController(
         @NotBlank
         keyword: String,
         @RequestParam(required = true) @Positive number: Int,
-        @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int
-    ) = ResponseEntity.ok(
-        noticeService.searchTotalNotice(keyword, number, stringLength)
-    )
+        @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int,
+        authentication: Authentication?
+    ): NoticeTotalSearchResponse {
+        val principal = authentication?.principal
+
+        val isStaff = principal?.let {
+            val username = when (principal) {
+                is OidcUser -> principal.idToken.getClaim("username")
+                is CustomPrincipal -> principal.userEntity.username
+                else -> throw CserealException.Csereal401("Unsupported principal type")
+            }
+            val user = userRepository.findByUsername(username)
+            user?.role == Role.ROLE_STAFF
+        } ?: false
+
+        return noticeService.searchTotalNotice(keyword, number, stringLength, isStaff)
+    }
 
     @GetMapping("/{noticeId}")
     fun readNotice(
-        @PathVariable noticeId: Long
-    ): ResponseEntity<NoticeDto> {
-        return ResponseEntity.ok(noticeService.readNotice(noticeId))
+        @PathVariable noticeId: Long,
+        authentication: Authentication?
+    ): NoticeDto {
+        val principal = authentication?.principal
+
+        val isStaff = principal?.let {
+            val username = when (principal) {
+                is OidcUser -> principal.idToken.getClaim("username")
+                is CustomPrincipal -> principal.userEntity.username
+                else -> throw CserealException.Csereal401("Unsupported principal type")
+            }
+            val user = userRepository.findByUsername(username)
+            user?.role == Role.ROLE_STAFF
+        } ?: false
+
+        return noticeService.readNotice(noticeId, isStaff)
     }
 
     @AuthenticatedStaff
