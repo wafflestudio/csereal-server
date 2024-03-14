@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepository {
+    fun findByIdAndIsPrivateFalse(id: Long): NoticeEntity?
     fun findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse(): List<NoticeEntity>
     fun findAllByIsImportantTrueAndIsDeletedFalse(): List<NoticeEntity>
     fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
