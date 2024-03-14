@@ -23,7 +23,7 @@ interface NoticeService {
         isStaff: Boolean
     ): NoticeSearchResponse
 
-    fun searchTotalNotice(keyword: String, number: Int, stringLength: Int): NoticeTotalSearchResponse
+    fun searchTotalNotice(keyword: String, number: Int, stringLength: Int, isStaff: Boolean): NoticeTotalSearchResponse
 
     fun readNotice(noticeId: Long, isStaff: Boolean): NoticeDto
     fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
@@ -62,8 +62,9 @@ class NoticeServiceImpl(
     override fun searchTotalNotice(
         keyword: String,
         number: Int,
-        stringLength: Int
-    ) = noticeRepository.totalSearchNotice(keyword, number, stringLength)
+        stringLength: Int,
+        isStaff: Boolean
+    ) = noticeRepository.totalSearchNotice(keyword, number, stringLength, isStaff)
 
     @Transactional(readOnly = true)
     override fun readNotice(noticeId: Long, isStaff: Boolean): NoticeDto {
