@@ -23,7 +23,7 @@ interface NewsService {
         isStaff: Boolean
     ): NewsSearchResponse
 
-    fun readNews(newsId: Long): NewsDto
+    fun readNews(newsId: Long, isStaff: Boolean): NewsDto
     fun createNews(request: NewsDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): NewsDto
     fun updateNews(
         newsId: Long,
@@ -71,11 +71,13 @@ class NewsServiceImpl(
     )
 
     @Transactional(readOnly = true)
-    override fun readNews(newsId: Long): NewsDto {
+    override fun readNews(newsId: Long, isStaff: Boolean): NewsDto {
         val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
             ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다.(newsId: $newsId)")
 
         if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.(newsId: $newsId)")
+
+        if (news.isPrivate && !isStaff) throw CserealException.Csereal401("접근 권한이 없습니다.")
 
         val imageURL = mainImageService.createImageURL(news.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(news.attachments)

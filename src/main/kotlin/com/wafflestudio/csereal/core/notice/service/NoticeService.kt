@@ -25,7 +25,7 @@ interface NoticeService {
 
     fun searchTotalNotice(keyword: String, number: Int, stringLength: Int): NoticeTotalSearchResponse
 
-    fun readNotice(noticeId: Long): NoticeDto
+    fun readNotice(noticeId: Long, isStaff: Boolean): NoticeDto
     fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
     fun updateNotice(
         noticeId: Long,
@@ -66,11 +66,13 @@ class NoticeServiceImpl(
     ) = noticeRepository.totalSearchNotice(keyword, number, stringLength)
 
     @Transactional(readOnly = true)
-    override fun readNotice(noticeId: Long): NoticeDto {
+    override fun readNotice(noticeId: Long, isStaff: Boolean): NoticeDto {
         val notice = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
 
         if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
+
+        if (notice.isPrivate && !isStaff) throw CserealException.Csereal401("접근 권한이 없습니다.")
 
         val attachmentResponses = attachmentService.createAttachmentResponses(notice.attachments)
 

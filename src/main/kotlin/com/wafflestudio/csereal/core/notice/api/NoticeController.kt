@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.notice.api
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.mockauth.CustomPrincipal
+import com.wafflestudio.csereal.common.utils.getUsername
 import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.notice.service.NoticeService
 import com.wafflestudio.csereal.core.user.database.Role
@@ -33,15 +34,9 @@ class NoticeController(
         @RequestParam(required = false, defaultValue = "20") pageSize: Int,
         authentication: Authentication?
     ): ResponseEntity<NoticeSearchResponse> {
-        val principal = authentication?.principal
-
-        val isStaff = principal?.let {
-            val username = when (principal) {
-                is OidcUser -> principal.idToken.getClaim("username")
-                is CustomPrincipal -> principal.userEntity.username
-                else -> throw CserealException.Csereal401("Unsupported principal type")
-            }
-            val user = userRepository.findByUsername(username)
+        val username = getUsername(authentication)
+        val isStaff = username?.let {
+            val user = userRepository.findByUsername(it)
             user?.role == Role.ROLE_STAFF
         } ?: false
 
@@ -65,9 +60,15 @@ class NoticeController(
 
     @GetMapping("/{noticeId}")
     fun readNotice(
-        @PathVariable noticeId: Long
+        @PathVariable noticeId: Long,
+        authentication: Authentication?
     ): ResponseEntity<NoticeDto> {
-        return ResponseEntity.ok(noticeService.readNotice(noticeId))
+        val username = getUsername(authentication)
+        val isStaff = username?.let {
+            val user = userRepository.findByUsername(it)
+            user?.role == Role.ROLE_STAFF
+        } ?: false
+        return ResponseEntity.ok(noticeService.readNotice(noticeId, isStaff))
     }
 
     @AuthenticatedStaff

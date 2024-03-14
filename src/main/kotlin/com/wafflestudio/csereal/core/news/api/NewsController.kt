@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.news.api
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.mockauth.CustomPrincipal
+import com.wafflestudio.csereal.common.utils.getUsername
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
 import com.wafflestudio.csereal.core.news.service.NewsService
@@ -34,15 +35,9 @@ class NewsController(
         @RequestParam(required = false, defaultValue = "10") pageSize: Int,
         authentication: Authentication?
     ): ResponseEntity<NewsSearchResponse> {
-        val principal = authentication?.principal
-
-        val isStaff = principal?.let {
-            val username = when (principal) {
-                is OidcUser -> principal.idToken.getClaim("username")
-                is CustomPrincipal -> principal.userEntity.username
-                else -> throw CserealException.Csereal401("Unsupported principal type")
-            }
-            val user = userRepository.findByUsername(username)
+        val username = getUsername(authentication)
+        val isStaff = username?.let {
+            val user = userRepository.findByUsername(it)
             user?.role == Role.ROLE_STAFF
         } ?: false
 
@@ -66,9 +61,15 @@ class NewsController(
 
     @GetMapping("/{newsId}")
     fun readNews(
-        @PathVariable newsId: Long
+        @PathVariable newsId: Long,
+        authentication: Authentication?
     ): ResponseEntity<NewsDto> {
-        return ResponseEntity.ok(newsService.readNews(newsId))
+        val username = getUsername(authentication)
+        val isStaff = username?.let {
+            val user = userRepository.findByUsername(it)
+            user?.role == Role.ROLE_STAFF
+        } ?: false
+        return ResponseEntity.ok(newsService.readNews(newsId, isStaff))
     }
 
     @AuthenticatedStaff

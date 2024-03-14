@@ -22,7 +22,7 @@ interface SeminarService {
     ): SeminarSearchResponse
 
     fun createSeminar(request: SeminarDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): SeminarDto
-    fun readSeminar(seminarId: Long): SeminarDto
+    fun readSeminar(seminarId: Long, isStaff: Boolean): SeminarDto
     fun updateSeminar(
         seminarId: Long,
         request: SeminarDto,
@@ -73,11 +73,13 @@ class SeminarServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readSeminar(seminarId: Long): SeminarDto {
+    override fun readSeminar(seminarId: Long, isStaff: Boolean): SeminarDto {
         val seminar: SeminarEntity = seminarRepository.findByIdOrNull(seminarId)
             ?: throw CserealException.Csereal404("존재하지 않는 세미나입니다.(seminarId: $seminarId)")
 
         if (seminar.isDeleted) throw CserealException.Csereal400("삭제된 세미나입니다. (seminarId: $seminarId)")
+
+        if (seminar.isPrivate && !isStaff) throw CserealException.Csereal401("접근 권한이 없습니다.")
 
         val imageURL = mainImageService.createImageURL(seminar.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)

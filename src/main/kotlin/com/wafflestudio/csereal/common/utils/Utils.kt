@@ -1,8 +1,13 @@
 package com.wafflestudio.csereal.common.utils
 
+import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.mockauth.CustomPrincipal
+import com.wafflestudio.csereal.core.user.database.Role
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import org.jsoup.safety.Safelist
+import org.springframework.security.core.Authentication
+import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import kotlin.math.ceil
 
 fun cleanTextFromHtml(description: String): String {
@@ -38,5 +43,17 @@ fun exchangeValidPageNum(pageSize: Int, pageNum: Int, total: Long): Int {
         total == 0L -> 1
         (pageNum - 1) * pageSize < total -> pageNum
         else -> ceil(total.toDouble() / pageSize).toInt()
+    }
+}
+
+fun getUsername(authentication: Authentication?): String? {
+    val principal = authentication?.principal
+
+    return principal?.let {
+        when (principal) {
+            is OidcUser -> principal.idToken.getClaim("username")
+            is CustomPrincipal -> principal.userEntity.username
+            else -> throw CserealException.Csereal401("Unsupported principal type")
+        }
     }
 }
