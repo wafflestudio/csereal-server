@@ -95,17 +95,6 @@ class ResearchSearchEntity(
         }
     }
 
-    fun ofType(): ResearchSearchType {
-        return when {
-            research != null && lab == null && conferenceElement == null -> ResearchSearchType.RESEARCH
-            research == null && lab != null && conferenceElement == null -> ResearchSearchType.LAB
-            research == null && lab == null && conferenceElement != null -> ResearchSearchType.CONFERENCE
-            else -> throw RuntimeException(
-                "ResearchSearchEntity must have either research or lab or conference"
-            )
-        }
-    }
-
     fun update(research: ResearchEntity) {
         this.content = createContent(research)
     }
