@@ -2,7 +2,6 @@ package com.wafflestudio.csereal.common.utils
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.mockauth.CustomPrincipal
-import com.wafflestudio.csereal.core.user.database.Role
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import org.jsoup.safety.Safelist

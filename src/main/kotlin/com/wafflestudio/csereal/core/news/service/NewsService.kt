@@ -68,7 +68,8 @@ class NewsServiceImpl(
         keyword,
         number,
         amount,
-        mainImageService::createImageURL, isStaff
+        mainImageService::createImageURL,
+        isStaff
     )
 
     @Transactional(readOnly = true)
