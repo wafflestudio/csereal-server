@@ -38,7 +38,7 @@ interface CustomNoticeRepository {
         isStaff: Boolean
     ): NoticeSearchResponse
 
-    fun totalSearchNotice(keyword: String, number: Int, stringLength: Int): NoticeTotalSearchResponse
+    fun totalSearchNotice(keyword: String, number: Int, stringLength: Int, isStaff: Boolean): NoticeTotalSearchResponse
 }
 
 @Component
@@ -49,7 +49,8 @@ class NoticeRepositoryImpl(
     override fun totalSearchNotice(
         keyword: String,
         number: Int,
-        stringLength: Int
+        stringLength: Int,
+        isStaff: Boolean
     ): NoticeTotalSearchResponse {
         val doubleTemplate = commonRepository.searchFullDoubleTextTemplate(
             keyword,
@@ -57,13 +58,15 @@ class NoticeRepositoryImpl(
             noticeEntity.plainTextDescription
         )
 
+        val privateBoolean = noticeEntity.isPrivate.eq(false).takeUnless { isStaff }
+
         val query = queryFactory.select(
             noticeEntity.id,
             noticeEntity.title,
             noticeEntity.createdAt,
             noticeEntity.plainTextDescription
         ).from(noticeEntity)
-            .where(doubleTemplate.gt(0.0))
+            .where(doubleTemplate.gt(0.0), privateBoolean)
 
         val total = query.clone().select(noticeEntity.countDistinct()).fetchOne()!!
 
