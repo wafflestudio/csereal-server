@@ -5,5 +5,5 @@ enum class ResearchPostType(
 ) {
     GROUPS("연구 그룹"),
     CENTERS("연구 센터"),
-    LABS("연구실 목록");
+    LABS("연구실 목록"); // TODO: Remove LABS if not used
 }
