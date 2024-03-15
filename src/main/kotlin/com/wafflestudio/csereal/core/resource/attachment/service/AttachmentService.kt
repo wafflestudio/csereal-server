@@ -33,7 +33,7 @@ interface AttachmentService {
         contentEntityType: AttachmentContentEntityType,
         requestAttachments: List<MultipartFile>
     ): List<AttachmentDto>
-
+    fun createOneAttachmentResponse(attachment: AttachmentEntity?): AttachmentResponse?
     fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse>
 
     fun deleteAttachments(ids: List<Long>?)
@@ -109,6 +109,23 @@ class AttachmentServiceImpl(
             )
         }
         return attachmentsList
+    }
+
+    @Transactional
+    override fun createOneAttachmentResponse(attachment: AttachmentEntity?): AttachmentResponse? {
+        var attachmentDto: AttachmentResponse? = null
+        if (attachment != null) {
+            if (attachment.isDeleted == false) {
+                attachmentDto = AttachmentResponse(
+                    id = attachment.id,
+                    name = attachment.filename.substringAfter("_"),
+                    url = "${endpointProperties.backend}/v1/file/${attachment.filename}",
+                    bytes = attachment.size
+                )
+            }
+        }
+
+        return attachmentDto
     }
 
     @Transactional

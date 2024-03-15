@@ -22,7 +22,7 @@ data class AdmissionSearchResElem private constructor(
         ) = admissions.let {
             val (boldStartIdx, partialDescription) = substringAroundKeyword(
                 keyword = keyword,
-                content = it.description,
+                content = it.searchContent,
                 amount = amount
             )
 
