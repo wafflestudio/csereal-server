@@ -3,14 +3,18 @@ package com.wafflestudio.csereal.core.academics.api.res
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.common.utils.substringAroundKeyword
+import com.wafflestudio.csereal.core.academics.database.AcademicsPostType
 import com.wafflestudio.csereal.core.academics.database.AcademicsSearchEntity
 import com.wafflestudio.csereal.core.academics.database.AcademicsSearchType
+import com.wafflestudio.csereal.core.academics.database.AcademicsStudentType
 
 data class AcademicsSearchResElement(
     val id: Long,
     val language: String,
     val name: String,
-    val academicsType: AcademicsSearchType,
+    val postType: AcademicsSearchType,
+    val studentType: AcademicsStudentType? = null,
+    val academicType: AcademicsPostType? = null,
     val partialDescription: String,
     val boldStartIndex: Int,
     val boldEndIndex: Int
@@ -30,17 +34,21 @@ data class AcademicsSearchResElement(
                         academicsSearch.content,
                         amount
                     )
-                    AcademicsSearchResElement(
-                        id = academicsSearch.academics!!.id,
-                        name = academicsSearch.academics!!.name,
-                        language = academicsSearch.academics!!.language.let {
-                            LanguageType.makeLowercase(it)
-                        },
-                        academicsType = AcademicsSearchType.ACADEMICS,
-                        partialDescription = partialDescription.replace("\n", " "),
-                        boldStartIndex = startIdx ?: 0,
-                        boldEndIndex = startIdx?.plus(keyword.length) ?: 0
-                    )
+                    academicsSearch.academics!!.let {
+                        AcademicsSearchResElement(
+                            id = it.id,
+                            name = it.name,
+                            language = it.language.let { lan ->
+                                LanguageType.makeLowercase(lan)
+                            },
+                            postType = AcademicsSearchType.ACADEMICS,
+                            academicType = it.postType,
+                            studentType = it.studentType,
+                            partialDescription = partialDescription.replace("\n", " "),
+                            boldStartIndex = startIdx ?: 0,
+                            boldEndIndex = startIdx?.plus(keyword.length) ?: 0
+                        )
+                    }
                 }
 
                 academicsSearch.academics == null &&
@@ -57,7 +65,7 @@ data class AcademicsSearchResElement(
                         language = academicsSearch.course!!.language.let {
                             LanguageType.makeLowercase(it)
                         },
-                        academicsType = AcademicsSearchType.COURSE,
+                        postType = AcademicsSearchType.COURSE,
                         partialDescription = partialDescription.replace("\n", " "),
                         boldStartIndex = startIdx ?: 0,
                         boldEndIndex = startIdx?.plus(keyword.length) ?: 0
@@ -78,7 +86,7 @@ data class AcademicsSearchResElement(
                         language = academicsSearch.scholarship!!.language.let {
                             LanguageType.makeLowercase(it)
                         },
-                        academicsType = AcademicsSearchType.SCHOLARSHIP,
+                        postType = AcademicsSearchType.SCHOLARSHIP,
                         partialDescription = partialDescription.replace("\n", " "),
                         boldStartIndex = startIdx ?: 0,
                         boldEndIndex = startIdx?.plus(keyword.length) ?: 0
