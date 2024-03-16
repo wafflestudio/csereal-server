@@ -68,13 +68,12 @@ class NoticeServiceImpl(
 
     @Transactional(readOnly = true)
     override fun readNotice(noticeId: Long, isStaff: Boolean): NoticeDto {
-        val notice = if (isStaff) {
-            noticeRepository.findByIdOrNull(noticeId)
-        } else {
-            noticeRepository.findByIdAndIsPrivateFalse(noticeId)
-        } ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
+        val notice = noticeRepository.findByIdOrNull(noticeId)
+            ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
 
         if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
+
+        if (notice.isPrivate && !isStaff) throw CserealException.Csereal401("접근 권한이 없습니다.")
 
         val attachmentResponses = attachmentService.createAttachmentResponses(notice.attachments)
 
