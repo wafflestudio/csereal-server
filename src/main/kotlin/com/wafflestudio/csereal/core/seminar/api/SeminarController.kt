@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.seminar.api
 
+import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.utils.getUsername
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
