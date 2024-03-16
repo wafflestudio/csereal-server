@@ -48,7 +48,7 @@ class AboutController(
     @GetMapping("/student-clubs")
     fun readAllClubs(
         @RequestParam(required = false, defaultValue = "ko") language: String
-    ): ResponseEntity<List<AboutDto>> {
+    ): ResponseEntity<List<StudentClubDto>> {
         return ResponseEntity.ok(aboutService.readAllClubs(language))
     }
 
@@ -67,8 +67,10 @@ class AboutController(
     }
 
     @GetMapping("/future-careers")
-    fun readFutureCareers(): ResponseEntity<FutureCareersPage> {
-        return ResponseEntity.ok(aboutService.readFutureCareers())
+    fun readFutureCareers(
+        @RequestParam(required = false, defaultValue = "ko") language: String
+    ): ResponseEntity<FutureCareersPage> {
+        return ResponseEntity.ok(aboutService.readFutureCareers(language))
     }
 
     @GetMapping("/search/top")

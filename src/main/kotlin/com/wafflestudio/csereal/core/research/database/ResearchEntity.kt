@@ -22,6 +22,8 @@ class ResearchEntity(
     @Column(columnDefinition = "mediumText")
     var description: String?,
 
+    var websiteURL: String?,
+
     @OneToMany(mappedBy = "research", cascade = [CascadeType.ALL], orphanRemoval = true)
     var labs: MutableList<LabEntity> = mutableListOf(),
 
@@ -43,7 +45,8 @@ class ResearchEntity(
                 postType = researchDto.postType,
                 language = languageType,
                 name = researchDto.name,
-                description = researchDto.description
+                description = researchDto.description,
+                websiteURL = researchDto.websiteURL
             )
         }
     }

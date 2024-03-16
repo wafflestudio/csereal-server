@@ -26,6 +26,7 @@ interface AcademicsService {
         studentType: String,
         postType: String
     ): List<AcademicsYearResponse>
+    fun readGeneralStudiesRequirements(language: String): GeneralStudiesRequirementsPageResponse
     fun readDegreeRequirements(language: String): DegreeRequirementsPageResponse
     fun createCourse(
         studentType: String,
@@ -139,6 +140,31 @@ class AcademicsServiceImpl(
     }
 
     @Transactional(readOnly = true)
+    override fun readGeneralStudiesRequirements(language: String): GeneralStudiesRequirementsPageResponse {
+        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
+        val overview =
+            academicsRepository.findByLanguageAndStudentTypeAndPostTypeAndYear(
+                enumLanguageType,
+                AcademicsStudentType.UNDERGRADUATE,
+                AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS,
+                null
+            )
+        val subjectChanges =
+            academicsRepository.findByLanguageAndStudentTypeAndPostType(
+                enumLanguageType,
+                AcademicsStudentType.UNDERGRADUATE,
+                AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS_SUBJECT_CHANGES
+            )
+        val generalStudiesEntity =
+            academicsRepository.findAllByLanguageAndStudentTypeAndPostTypeOrderByYearDesc(
+                enumLanguageType,
+                AcademicsStudentType.UNDERGRADUATE,
+                AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS
+            ).filter { academicsEntity -> academicsEntity.year != null }
+        return GeneralStudiesRequirementsPageResponse.of(overview, subjectChanges, generalStudiesEntity)
+    }
+
+    @Transactional(readOnly = true)
     override fun readDegreeRequirements(language: String): DegreeRequirementsPageResponse {
         val enumLanguageType = LanguageType.makeStringToLanguageType(language)
         val academicsEntity =
@@ -153,7 +179,10 @@ class AcademicsServiceImpl(
                 enumLanguageType,
                 AcademicsStudentType.UNDERGRADUATE,
                 AcademicsPostType.DEGREE_REQUIREMENTS_YEAR_LIST
-            )
+            ).map {
+                val attachments = attachmentService.createAttachmentResponses(it.attachments)
+                DegreeRequirementsDto.of(it, attachments)
+            }
 
         return DegreeRequirementsPageResponse.of(academicsEntity, yearList)
     }

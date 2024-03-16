@@ -1,8 +1,7 @@
 package com.wafflestudio.csereal.core.notice.api
 
-import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
-import com.wafflestudio.csereal.common.mockauth.CustomPrincipal
+import com.wafflestudio.csereal.common.utils.getUsername
 import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.notice.service.NoticeService
 import com.wafflestudio.csereal.core.user.database.Role
@@ -15,7 +14,6 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
-import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
@@ -33,15 +31,9 @@ class NoticeController(
         @RequestParam(required = false, defaultValue = "20") pageSize: Int,
         authentication: Authentication?
     ): ResponseEntity<NoticeSearchResponse> {
-        val principal = authentication?.principal
-
-        val isStaff = principal?.let {
-            val username = when (principal) {
-                is OidcUser -> principal.idToken.getClaim("username")
-                is CustomPrincipal -> principal.userEntity.username
-                else -> throw CserealException.Csereal401("Unsupported principal type")
-            }
-            val user = userRepository.findByUsername(username)
+        val username = getUsername(authentication)
+        val isStaff = username?.let {
+            val user = userRepository.findByUsername(it)
             user?.role == Role.ROLE_STAFF
         } ?: false
 
@@ -58,16 +50,29 @@ class NoticeController(
         @NotBlank
         keyword: String,
         @RequestParam(required = true) @Positive number: Int,
-        @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int
-    ) = ResponseEntity.ok(
-        noticeService.searchTotalNotice(keyword, number, stringLength)
-    )
+        @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int,
+        authentication: Authentication?
+    ): NoticeTotalSearchResponse {
+        val username = getUsername(authentication)
+        val isStaff = username?.let {
+            val user = userRepository.findByUsername(it)
+            user?.role == Role.ROLE_STAFF
+        } ?: false
+
+        return noticeService.searchTotalNotice(keyword, number, stringLength, isStaff)
+    }
 
     @GetMapping("/{noticeId}")
     fun readNotice(
-        @PathVariable noticeId: Long
+        @PathVariable noticeId: Long,
+        authentication: Authentication?
     ): ResponseEntity<NoticeDto> {
-        return ResponseEntity.ok(noticeService.readNotice(noticeId))
+        val username = getUsername(authentication)
+        val isStaff = username?.let {
+            val user = userRepository.findByUsername(it)
+            user?.role == Role.ROLE_STAFF
+        } ?: false
+        return ResponseEntity.ok(noticeService.readNotice(noticeId, isStaff))
     }
 
     @AuthenticatedStaff

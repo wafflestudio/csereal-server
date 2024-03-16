@@ -4,7 +4,7 @@ import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.properties.LanguageType
 import com.wafflestudio.csereal.common.repository.CommonRepository
-import com.wafflestudio.csereal.common.utils.exchangePageNum
+import com.wafflestudio.csereal.common.utils.exchangeValidPageNum
 import com.wafflestudio.csereal.core.academics.database.QAcademicsEntity.academicsEntity
 import com.wafflestudio.csereal.core.academics.database.QAcademicsSearchEntity.academicsSearchEntity
 import com.wafflestudio.csereal.core.academics.database.QCourseEntity.courseEntity
@@ -37,8 +37,8 @@ class AcademicsSearchCustomRepositoryImpl(
         val query = searchQuery(keyword, language)
         val total = getSearchCount(keyword, language)
 
-        val validPageNum = exchangePageNum(pageSize, pageNum, total)
-        val validOffset = (if (validPageNum >= 1) validPageNum - 1 else 0) * pageSize.toLong()
+        val validPageNum = exchangeValidPageNum(pageSize, pageNum, total)
+        val validOffset = (validPageNum - 1) * pageSize.toLong()
 
         val queryResult = query.offset(validOffset)
             .limit(pageSize.toLong())
