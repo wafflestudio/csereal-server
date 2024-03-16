@@ -1,18 +1,18 @@
 package com.wafflestudio.csereal.common.config
 
+import org.hibernate.boot.model.FunctionContributions
 import org.hibernate.dialect.DatabaseVersion
 import org.hibernate.dialect.MySQLDialect
-import org.hibernate.query.spi.QueryEngine
 import org.hibernate.type.StandardBasicTypes
 
 class MySQLDialectCustom : MySQLDialect(
     DatabaseVersion.make(8)
 ) {
-    override fun initializeFunctionRegistry(queryEngine: QueryEngine?) {
-        super.initializeFunctionRegistry(queryEngine)
+    override fun initializeFunctionRegistry(functionContributions: FunctionContributions?) {
+        super.initializeFunctionRegistry(functionContributions)
 
-        val basicTypeRegistry = queryEngine?.typeConfiguration?.basicTypeRegistry
-        val functionRegistry = queryEngine?.sqmFunctionRegistry
+        val basicTypeRegistry = functionContributions?.typeConfiguration?.basicTypeRegistry
+        val functionRegistry = functionContributions?.functionRegistry
 
         if (basicTypeRegistry != null && functionRegistry != null) {
             functionRegistry.registerPattern(
