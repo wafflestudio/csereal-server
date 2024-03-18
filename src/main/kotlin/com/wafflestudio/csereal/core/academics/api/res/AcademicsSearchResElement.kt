@@ -13,7 +13,7 @@ data class AcademicsSearchResElement(
     val language: String,
     val name: String,
     val postType: AcademicsSearchType,
-    val studentType: AcademicsStudentType? = null,
+    val studentType: AcademicsStudentType,
     val academicType: AcademicsPostType? = null,
     val partialDescription: String,
     val boldStartIndex: Int,
@@ -66,6 +66,7 @@ data class AcademicsSearchResElement(
                             LanguageType.makeLowercase(it)
                         },
                         postType = AcademicsSearchType.COURSE,
+                        studentType = academicsSearch.course!!.studentType,
                         partialDescription = partialDescription.replace("\n", " "),
                         boldStartIndex = startIdx ?: 0,
                         boldEndIndex = startIdx?.plus(keyword.length) ?: 0
@@ -87,6 +88,7 @@ data class AcademicsSearchResElement(
                             LanguageType.makeLowercase(it)
                         },
                         postType = AcademicsSearchType.SCHOLARSHIP,
+                        studentType = academicsSearch.scholarship!!.studentType,
                         partialDescription = partialDescription.replace("\n", " "),
                         boldStartIndex = startIdx ?: 0,
                         boldEndIndex = startIdx?.plus(keyword.length) ?: 0
