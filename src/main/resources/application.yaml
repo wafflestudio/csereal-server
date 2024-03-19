@@ -1,7 +1,7 @@
 spring:
     threads:
         virtual:
-            enabled: true
+            enabled: false
     profiles:
         active: local
     datasource:
