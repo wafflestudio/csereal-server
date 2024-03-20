@@ -154,7 +154,7 @@ class NewsRepositoryImpl(
             newsEntity.plainTextDescription,
             mainImageEntity
         ).from(newsEntity)
-            .leftJoin(mainImageEntity)
+            .leftJoin(mainImageEntity).on(newsEntity.mainImage.eq(mainImageEntity))
             .where(doubleTemplate.gt(0.0), privateBoolean)
             .orderBy(newsEntity.date.desc())
             .limit(number.toLong())
@@ -164,8 +164,8 @@ class NewsRepositoryImpl(
             newsTagEntity.news.id,
             newsTagEntity.tag.name
         ).from(newsTagEntity)
-            .rightJoin(newsEntity)
-            .leftJoin(tagInNewsEntity)
+            .rightJoin(newsEntity).on(newsTagEntity.news.eq(newsEntity))
+            .leftJoin(tagInNewsEntity).on(newsTagEntity.tag.eq(tagInNewsEntity))
             .where(newsTagEntity.news.id.`in`(searchResult.map { it[newsEntity.id] }))
             .distinct()
             .fetch()
