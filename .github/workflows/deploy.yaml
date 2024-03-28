@@ -60,6 +60,8 @@ jobs:
                     echo "PROFILE=prod" >> .env
                     echo "OIDC_CLIENT_SECRET=${{secrets.OIDC_CLIENT_SECRET}}" >> .env
                     echo "URL=${{secrets.URL}}" >> .env
+                    echo "SLACK_TOKEN=${{secrets.SLACK_TOKEN}}" >> .env
+                    echo "SLACK_CHANNEL=${{secrets.SLACK_CHANNEL}}" >> .env
 
             -   name: SCP Command to Transfer Files
                 uses: appleboy/scp-action@v0.1.4
