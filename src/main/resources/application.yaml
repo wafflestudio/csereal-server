@@ -68,11 +68,12 @@ spring:
                         issuer-uri: https://id.snucse.org/o
                         jwk-set-uri: https://id.snucse.org/o/jwks
 
-logging.level:
-    default: INFO
-    org:
-        springframework:
-            security: DEBUG
+logging:
+    level:
+    #    default: INFO
+        org:
+            springframework:
+                security: DEBUG
 
 ---
 spring:
@@ -112,6 +113,10 @@ endpoint:
 
 login-page: https://${URL}
 
+slack:
+    token: ${SLACK_TOKEN}
+    channel: ${SLACK_CHANNEL}
+
 ---
 spring:
     config.activate.on-profile: test
@@ -134,8 +139,10 @@ spring:
         console:
             enabled: true
 
-logging.level:
-    default: INFO
-    org:
-        springframework:
-            security: DEBUG
+logging:
+    level:
+    #    default: INFO
+        org:
+            springframework:
+                security: DEBUG
+

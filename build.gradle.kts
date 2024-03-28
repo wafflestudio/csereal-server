@@ -54,6 +54,9 @@ dependencies {
     kapt("jakarta.annotation:jakarta.annotation-api")
     kapt("jakarta.persistence:jakarta.persistence-api")
 
+    // slack log appender
+    implementation("com.cyfrania:logback-slack-appender:1.2")
+
     // 태그 제거
     implementation("org.jsoup:jsoup:1.17.2")
 

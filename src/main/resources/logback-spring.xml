@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
+    <include resource="org/springframework/boot/logging/logback/file-appender.xml" />
+
+    <import class="ch.qos.logback.classic.AsyncAppender" />
+    <import class="ch.qos.logback.classic.filter.ThresholdFilter" />
+    <import class="ch.qos.logback.classic.PatternLayout" />
+    <import class="com.cyfrania.logback.SlackAppender" />
+    <import class="com.cyfrania.logback.SlackChatApi" />
+
+
+    <springProperty name="SLACK_TOKEN" source="slack.token" />
+    <springProperty name="SLACK_CHANNEL" source="slack.channel" />
+    <property name="SLACK_LOG_PATTERN" value="====== *Backend Server LOG* ======\n${FILE_LOG_PATTERN}" />
+<!--    <property name="SLACK_LOG_CHARSET" value="${CONSOLE_LOG_CHARSET}" />-->
+
+
+    <appender name="SLACK" class="SlackAppender">
+        <sender class="SlackChatApi">
+            <token>${SLACK_TOKEN}</token>
+            <channel>${SLACK_CHANNEL}</channel>
+        </sender>
+        <layout class="PatternLayout">
+            <pattern>${SLACK_LOG_PATTERN}</pattern>
+        </layout>
+    </appender>
+
+    <appender name="ASYNC_SLACK" class="AsyncAppender">
+        <maxFlushTime>5000</maxFlushTime>
+        <appender-ref ref="SLACK" />
+        <filter class="ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+    </appender>
+
+
+    <springProfile name="local">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+        </root>
+    </springProfile>
+
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="ASYNC_SLACK" />
+        </root>
+    </springProfile>
+</configuration>
