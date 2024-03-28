@@ -17,6 +17,8 @@ services:
             SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
             OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
             URL: ${URL}
+            SLACK_TOKEN: ${SLACK_TOKEN}
+            SLACK_CHANNEL: ${SLACK_CHANNEL}
         extra_hosts:
             - host.docker.internal:host-gateway
         restart: always
