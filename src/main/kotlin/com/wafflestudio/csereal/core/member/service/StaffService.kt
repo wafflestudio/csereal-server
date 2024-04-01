@@ -65,10 +65,17 @@ class StaffServiceImpl(
     override fun getAllStaff(language: String): List<SimpleStaffDto> {
         val enumLanguageType = LanguageType.makeStringToLanguageType(language)
 
-        return staffRepository.findAllByLanguage(enumLanguageType).map {
+        val sortedStaff = staffRepository.findAllByLanguage(enumLanguageType).map {
             val imageURL = mainImageService.createImageURL(it.mainImage)
             SimpleStaffDto.of(it, imageURL)
-        }.sortedBy { it.name }
+        }.sortedBy { it.name }.toMutableList()
+
+        sortedStaff.indexOfFirst { it.email == "misuk@snu.ac.kr" }.takeIf { it != -1 }?.let { index ->
+            val headStaff = sortedStaff.removeAt(index)
+            sortedStaff.add(0, headStaff)
+        }
+
+        return sortedStaff
     }
 
     override fun updateStaff(staffId: Long, updateStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto {
