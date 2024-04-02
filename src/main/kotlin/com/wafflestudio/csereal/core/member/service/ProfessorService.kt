@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.utils.startsWithEnglish
 import com.wafflestudio.csereal.core.member.database.*
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
@@ -119,10 +120,6 @@ class ProfessorServiceImpl(
                     }
                 }
         return ProfessorPageDto(description, professors)
-    }
-
-    private fun startsWithEnglish(name: String): Boolean {
-        return name.isNotEmpty() && name.first().let { it in 'A'..'Z' || it in 'a'..'z' }
     }
 
     @Transactional(readOnly = true)
