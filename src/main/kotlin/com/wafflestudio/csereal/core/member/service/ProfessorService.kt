@@ -27,6 +27,7 @@ interface ProfessorService {
         updateProfessorRequest: ProfessorDto,
         mainImage: MultipartFile?
     ): ProfessorDto
+
     fun deleteProfessor(professorId: Long)
     fun migrateProfessors(requestList: List<ProfessorDto>): List<ProfessorDto>
     fun migrateProfessorImage(professorId: Long, mainImage: MultipartFile): ProfessorDto
@@ -110,8 +111,18 @@ class ProfessorServiceImpl(
                 val imageURL = mainImageService.createImageURL(it.mainImage)
                 SimpleProfessorDto.of(it, imageURL)
             }
-                .sortedBy { it.name }
+                .sortedWith { a, b ->
+                    when {
+                        startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
+                        !startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> -1
+                        else -> a.name.compareTo(b.name)
+                    }
+                }
         return ProfessorPageDto(description, professors)
+    }
+
+    private fun startsWithEnglish(name: String): Boolean {
+        return name.isNotEmpty() && name.first().let { it in 'A'..'Z' || it in 'a'..'z' }
     }
 
     @Transactional(readOnly = true)
@@ -124,7 +135,13 @@ class ProfessorServiceImpl(
             val imageURL = mainImageService.createImageURL(it.mainImage)
             SimpleProfessorDto.of(it, imageURL)
         }
-            .sortedBy { it.name }
+            .sortedWith { a, b ->
+                when {
+                    startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
+                    !startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> -1
+                    else -> a.name.compareTo(b.name)
+                }
+            }
     }
 
     override fun updateProfessor(
