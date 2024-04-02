@@ -122,7 +122,7 @@ class ProfessorServiceImpl(
                         else -> a.name.compareTo(b.name)
                     }
                 }
-                
+
         return ProfessorPageDto(description, professors)
     }
 
