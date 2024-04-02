@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.utils.startsWithEnglish
 import com.wafflestudio.csereal.core.member.database.*
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
@@ -27,6 +28,7 @@ interface ProfessorService {
         updateProfessorRequest: ProfessorDto,
         mainImage: MultipartFile?
     ): ProfessorDto
+
     fun deleteProfessor(professorId: Long)
     fun migrateProfessors(requestList: List<ProfessorDto>): List<ProfessorDto>
     fun migrateProfessorImage(professorId: Long, mainImage: MultipartFile): ProfessorDto
@@ -110,7 +112,13 @@ class ProfessorServiceImpl(
                 val imageURL = mainImageService.createImageURL(it.mainImage)
                 SimpleProfessorDto.of(it, imageURL)
             }
-                .sortedBy { it.name }
+                .sortedWith { a, b ->
+                    when {
+                        startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
+                        !startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> -1
+                        else -> a.name.compareTo(b.name)
+                    }
+                }
         return ProfessorPageDto(description, professors)
     }
 
@@ -124,7 +132,13 @@ class ProfessorServiceImpl(
             val imageURL = mainImageService.createImageURL(it.mainImage)
             SimpleProfessorDto.of(it, imageURL)
         }
-            .sortedBy { it.name }
+            .sortedWith { a, b ->
+                when {
+                    startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
+                    !startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> -1
+                    else -> a.name.compareTo(b.name)
+                }
+            }
     }
 
     override fun updateProfessor(
