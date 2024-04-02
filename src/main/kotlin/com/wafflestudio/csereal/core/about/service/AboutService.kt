@@ -12,6 +12,7 @@ import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.context.event.EventListener
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
@@ -187,9 +188,9 @@ class AboutServiceImpl(
         return FutureCareersPage(description, statList, companyList)
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @EventListener
-    fun refreshSearchEventListener(event: RefreshSearchEvent) {
+    fun refreshSearchListener(event: RefreshSearchEvent) {
         aboutRepository.findAll().forEach {
             syncSearchOfAbout(it)
         }
