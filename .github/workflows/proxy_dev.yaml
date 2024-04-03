@@ -1,0 +1,47 @@
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - docker-compose-caddy.yml
+      - caddy/Caddyfile
+      - .github/workflows/proxy.yaml
+
+jobs:
+  proxy-initialize:
+    runs-on: ubuntu-latest
+
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+
+      -
+        name: Create .env file
+        run: |
+          echo "URL=${{secrets.URL_DEV}}" > .env
+          echo "LOCAL_IP=${{secrets.LOCAL_IP_DEV}}" >> .env
+
+      -
+        name: SCP Command to Transfer Files
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{secrets.SSH_HOST_DEV}}
+          username: ${{secrets.SSH_USER}}
+          key: ${{secrets.SSH_KEY}}
+          source: "docker-compose-caddy.yml, .env, caddy/Caddyfile"
+          target: "~/proxy"
+          overwrite: true
+
+      -
+        name: SSH Command to Run Docker Compose
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{secrets.SSH_HOST_DEV}}
+          username: ${{secrets.SSH_USER}}
+          key: ${{secrets.SSH_KEY}}
+          script: |
+            cd ~/proxy
+            source .env
+            docker-compose -f docker-compose-caddy.yml down
+            docker-compose -f docker-compose-caddy.yml up -d

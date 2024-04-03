@@ -1,0 +1,52 @@
+on:
+  push:
+    branches:
+      - develop
+    paths:
+        - docker-compose-db.yml
+        - db_config/*
+        - .github/workflows/database.yaml
+
+jobs:
+  database-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+
+      -
+        name: Create .env file
+        run: |
+          echo "MYSQL_ROOT_PASSWORD=${{secrets.MYSQL_ROOT_PASSWORD}}" > .env
+          echo "MYSQL_USER=${{secrets.MYSQL_USER}}" >> .env
+          echo "MYSQL_PASSWORD=${{secrets.MYSQL_PASSWORD}}" >> .env
+          echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
+
+      -
+        name: SCP Command to Transfer Files
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{secrets.SSH_HOST_DEV}}
+          username: ${{secrets.SSH_USER}}
+          key: ${{secrets.SSH_KEY}}
+          source: "docker-compose-db.yml, .env"
+          target: "~/app"
+          overwrite: true
+
+      -
+        name: SSH Remote Commands
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{secrets.SSH_HOST_DEV}}
+          username: ${{secrets.SSH_USER}}
+          key: ${{secrets.SSH_KEY}}
+          script: |
+            cd ~/app
+            source .env
+            docker-compose -f docker-compose-db.yml down
+            docker-compose -f docker-compose-db.yml up -d
