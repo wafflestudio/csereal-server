@@ -28,7 +28,7 @@ class AboutEntity(
     @Convert(converter = StringListConverter::class)
     var locations: MutableList<String> = mutableListOf(),
 
-    @OneToMany(mappedBy = "")
+    @OneToMany(mappedBy = "about", cascade = [CascadeType.ALL], orphanRemoval = true)
     var attachments: MutableList<AttachmentEntity> = mutableListOf(),
 
     @OneToOne
