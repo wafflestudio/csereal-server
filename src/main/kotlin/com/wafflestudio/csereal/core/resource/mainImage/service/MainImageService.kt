@@ -12,7 +12,6 @@ import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageReposi
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.resource.mainImage.dto.MainImageDto
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
-import net.coobird.thumbnailator.Thumbnailator
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -21,8 +20,6 @@ import org.apache.commons.io.FilenameUtils
 import java.lang.invoke.WrongMethodTypeException
 import java.nio.file.Files
 import java.nio.file.Paths
-import kotlin.io.path.fileSize
-import kotlin.io.path.name
 
 interface MainImageService {
     fun uploadMainImage(
@@ -61,25 +58,14 @@ class MainImageServiceImpl(
         val saveFile = Paths.get(totalFilename)
         requestImage.transferTo(saveFile)
 
-        val totalThumbnailFilename = "${path}thumbnail_$filename"
-        val thumbnailFile = Paths.get(totalThumbnailFilename)
-        Thumbnailator.createThumbnail(saveFile.toFile(), thumbnailFile.toFile(), 100, 100)
-
         val mainImage = MainImageEntity(
             filename = filename,
             imagesOrder = 1,
             size = requestImage.size
         )
 
-        val thumbnail = MainImageEntity(
-            filename = thumbnailFile.name,
-            imagesOrder = 1,
-            size = thumbnailFile.fileSize()
-        )
-
         connectMainImageToEntity(contentEntityType, mainImage)
         mainImageRepository.save(mainImage)
-        mainImageRepository.save(thumbnail)
 
         return MainImageDto(
             filename = filename,
