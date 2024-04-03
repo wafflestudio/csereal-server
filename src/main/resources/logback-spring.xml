@@ -13,7 +13,7 @@
 
     <springProperty name="SLACK_TOKEN" source="slack.token" />
     <springProperty name="SLACK_CHANNEL" source="slack.channel" />
-    <property name="SLACK_LOG_PATTERN" value="====== *Backend Server LOG* ======\n${FILE_LOG_PATTERN}" />
+    <property name="SLACK_LOG_PATTERN" value="\n*================================*\n*====== Backend Server LOG ======*\n*================================*\n\n${FILE_LOG_PATTERN}\n\n*--------------------------------*\n\n" />
 <!--    <property name="SLACK_LOG_CHARSET" value="${CONSOLE_LOG_CHARSET}" />-->
 
 
@@ -42,10 +42,17 @@
         </root>
     </springProfile>
 
+    <springProfile name="dev">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+        </root>
+    </springProfile>
+
     <springProfile name="prod">
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
             <appender-ref ref="ASYNC_SLACK" />
         </root>
     </springProfile>
+
 </configuration>

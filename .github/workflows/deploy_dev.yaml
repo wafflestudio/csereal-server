@@ -1,7 +1,7 @@
 on:
     push:
         branches:
-            - main
+            - develop
         paths:
             - docker-compose-backend.yml
             - Dockerfile
@@ -57,18 +57,17 @@ jobs:
                     echo "MYSQL_USER=${{secrets.MYSQL_USER}}" >> .env
                     echo "MYSQL_PASSWORD=${{secrets.MYSQL_PASSWORD}}" >> .env
                     echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
-                    echo "PROFILE=prod" >> .env
+                    echo "PROFILE=dev" >> .env
                     echo "OIDC_CLIENT_SECRET=${{secrets.OIDC_CLIENT_SECRET}}" >> .env
-                    echo "URL=${{secrets.URL}}" >> .env
-                    echo "SLACK_TOKEN=${{secrets.SLACK_TOKEN}}" >> .env
-                    echo "SLACK_CHANNEL=${{secrets.SLACK_CHANNEL}}" >> .env
+                    echo "URL=${{secrets.URL_DEV}}" >> .env
+                    # echo "SLACK_TOKEN=${{secrets.SLACK_TOKEN}}" >> .env
+                    # echo "SLACK_CHANNEL=${{secrets.SLACK_CHANNEL}}" >> .env
 
             -   name: SCP Command to Transfer Files
                 uses: appleboy/scp-action@v0.1.4
                 with:
-                    host: ${{secrets.SSH_HOST}}
+                    host: ${{secrets.SSH_HOST_DEV}}
                     username: ${{secrets.SSH_USER}}
-                    port: ${{secrets.SSH_PORT}}
                     key: ${{secrets.SSH_KEY}}
                     source: "docker-compose-backend.yml, .env"
                     target: "~/app"
@@ -76,11 +75,10 @@ jobs:
             -   name: SSH Remote Commands
                 uses: appleboy/ssh-action@v1.0.0
                 with:
-                    host: ${{secrets.SSH_HOST}}
+                    host: ${{secrets.SSH_HOST_DEV}}
                     username: ${{secrets.SSH_USER}}
-                    port: ${{secrets.SSH_PORT}}
                     key: ${{secrets.SSH_KEY}}
-                    script: |
+                    script: | 
                         cd ~/app
                         source .env
                         docker-compose -f docker-compose-backend.yml down
