@@ -42,10 +42,17 @@
         </root>
     </springProfile>
 
+    <springProfile name="dev">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+        </root>
+    </springProfile>
+
     <springProfile name="prod">
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
             <appender-ref ref="ASYNC_SLACK" />
         </root>
     </springProfile>
+
 </configuration>
