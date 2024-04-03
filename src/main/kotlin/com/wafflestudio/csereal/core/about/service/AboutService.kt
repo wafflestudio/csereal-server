@@ -6,10 +6,13 @@ import com.wafflestudio.csereal.core.about.api.res.AboutSearchElementDto
 import com.wafflestudio.csereal.core.about.api.res.AboutSearchResBody
 import com.wafflestudio.csereal.core.about.database.*
 import com.wafflestudio.csereal.core.about.dto.*
+import com.wafflestudio.csereal.core.main.event.RefreshSearchEvent
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
+import org.springframework.context.event.EventListener
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
@@ -183,6 +186,14 @@ class AboutServiceImpl(
             FutureCareersCompanyDto.of(it)
         }
         return FutureCareersPage(description, statList, companyList)
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @EventListener
+    fun refreshSearchListener(event: RefreshSearchEvent) {
+        aboutRepository.findAll().forEach {
+            syncSearchOfAbout(it)
+        }
     }
 
     @Transactional
