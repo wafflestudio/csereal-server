@@ -1,7 +1,7 @@
 on:
   push:
     branches:
-      - main
+      - develop
     paths:
         - docker-compose-db.yml
         - db_config/*
@@ -31,9 +31,8 @@ jobs:
         name: SCP Command to Transfer Files
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{secrets.SSH_HOST}}
+          host: ${{secrets.SSH_HOST_DEV}}
           username: ${{secrets.SSH_USER}}
-          port: ${{secrets.SSH_PORT}}
           key: ${{secrets.SSH_KEY}}
           source: "docker-compose-db.yml, .env"
           target: "~/app"
@@ -43,9 +42,8 @@ jobs:
         name: SSH Remote Commands
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{secrets.SSH_HOST}}
+          host: ${{secrets.SSH_HOST_DEV}}
           username: ${{secrets.SSH_USER}}
-          port: ${{secrets.SSH_PORT}}
           key: ${{secrets.SSH_KEY}}
           script: |
             cd ~/app

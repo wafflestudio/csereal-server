@@ -56,3 +56,7 @@ fun getUsername(authentication: Authentication?): String? {
         }
     }
 }
+
+fun startsWithEnglish(name: String): Boolean {
+    return name.isNotEmpty() && name.first().let { it in 'A'..'Z' || it in 'a'..'z' }
+}

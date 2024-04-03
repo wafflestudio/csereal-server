@@ -6,6 +6,10 @@ spring:
         active: local
     datasource:
         driver-class-name: com.mysql.cj.jdbc.Driver
+    jpa:
+        properties:
+            hibernate:
+                dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
     servlet:
         multipart:
             enabled: true
@@ -50,9 +54,6 @@ spring:
             ddl-auto: update
         show-sql: true
         open-in-view: false
-        properties:
-            hibernate:
-                dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
     security:
         oauth2:
             client:
@@ -80,11 +81,8 @@ spring:
     config.activate.on-profile: prod
     jpa:
         hibernate:
-            ddl-auto: update # TODO: change to validate (or none) when save actual data to server
+            ddl-auto: validate
         open-in-view: false
-        properties:
-            hibernate:
-                dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
     security:
         oauth2:
             client:
@@ -116,6 +114,42 @@ login-page: https://${URL}
 slack:
     token: ${SLACK_TOKEN}
     channel: ${SLACK_CHANNEL}
+
+---
+spring:
+    config.activate.on-profile: dev
+    jpa:
+        hibernate:
+            ddl-auto: update 
+        show-sql: true
+        open-in-view: false
+    security:
+        oauth2:
+            client:
+                registration:
+                    idsnucse:
+                        client-id: cse-waffle-dev
+                        client-secret: ${OIDC_CLIENT_SECRET}
+                        authorization-grant-type: authorization_code
+                        scope: openid, profile, email
+                        redirect-uri: https://${URL}/api/v1/login/oauth2/code/idsnucse
+                provider:
+                    idsnucse:
+                        issuer-uri: https://id.snucse.org/o
+                        jwk-set-uri: https://id.snucse.org/o/jwks
+
+csereal:
+    upload:
+        path: /app/files/
+
+oldFiles:
+    path: /app/cse-files/
+
+endpoint:
+    backend: https://${URL}/api
+    frontend: https://${URL}
+
+login-page: https://${URL}
 
 ---
 spring:

@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.utils.startsWithEnglish
 import com.wafflestudio.csereal.core.member.database.*
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
@@ -27,6 +28,7 @@ interface ProfessorService {
         updateProfessorRequest: ProfessorDto,
         mainImage: MultipartFile?
     ): ProfessorDto
+
     fun deleteProfessor(professorId: Long)
     fun migrateProfessors(requestList: List<ProfessorDto>): List<ProfessorDto>
     fun migrateProfessorImage(professorId: Long, mainImage: MultipartFile): ProfessorDto
@@ -94,6 +96,8 @@ class ProfessorServiceImpl(
     @Transactional(readOnly = true)
     override fun getActiveProfessors(language: String): ProfessorPageDto {
         val enumLanguageType = LanguageType.makeStringToLanguageType(language)
+
+        // TODO: Refactor to save in database
         val description = "컴퓨터공학부는 35명의 훌륭한 교수진과 최신 시설을 갖추고 400여 명의 학부생과 " +
             "350여 명의 대학원생에게 세계 최고 수준의 교육 연구 환경을 제공하고 있다. 2005년에는 서울대학교 " +
             "최초로 외국인 정교수인 Robert Ian McKay 교수를 임용한 것을 시작으로 교내에서 가장 국제화가 " +
@@ -102,6 +106,7 @@ class ProfessorServiceImpl(
             " 학기 전공 필수 과목을 비롯한 30% 이상의 과목이 영어로 개설되고 있어 외국인 학생의 학업을 돕는 " +
             "동시에 한국인 학생이 세계로 진출하는 초석이 되고 있다. 또한 CSE int’l Luncheon을 개최하여 " +
             "학부 내 외국인 구성원의 화합과 생활의 불편함을 최소화하는 등 학부 차원에서 최선을 다하고 있다."
+
         val professors =
             professorRepository.findByLanguageAndStatusNot(
                 enumLanguageType,
@@ -110,7 +115,14 @@ class ProfessorServiceImpl(
                 val imageURL = mainImageService.createImageURL(it.mainImage)
                 SimpleProfessorDto.of(it, imageURL)
             }
-                .sortedBy { it.name }
+                .sortedWith { a, b ->
+                    when {
+                        startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
+                        !startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> -1
+                        else -> a.name.compareTo(b.name)
+                    }
+                }
+
         return ProfessorPageDto(description, professors)
     }
 
@@ -124,7 +136,13 @@ class ProfessorServiceImpl(
             val imageURL = mainImageService.createImageURL(it.mainImage)
             SimpleProfessorDto.of(it, imageURL)
         }
-            .sortedBy { it.name }
+            .sortedWith { a, b ->
+                when {
+                    startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
+                    !startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> -1
+                    else -> a.name.compareTo(b.name)
+                }
+            }
     }
 
     override fun updateProfessor(

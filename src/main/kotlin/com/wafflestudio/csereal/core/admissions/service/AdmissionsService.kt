@@ -11,7 +11,10 @@ import com.wafflestudio.csereal.core.admissions.database.AdmissionsRepository
 import com.wafflestudio.csereal.core.admissions.dto.AdmissionsDto
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsMainType
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsPostType
+import com.wafflestudio.csereal.core.main.event.RefreshSearchEvent
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 
 interface AdmissionsService {
@@ -81,6 +84,27 @@ class AdmissionsServiceImpl(
                 AdmissionSearchResElem.of(it, keyword, amount)
             }
         )
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @EventListener
+    fun refreshSearch(event: RefreshSearchEvent) {
+        admissionsRepository.findAll().forEach {
+            syncSearchAdmission(it)
+        }
+    }
+
+    @Transactional
+    fun syncSearchAdmission(admissions: AdmissionsEntity) {
+        admissions.apply {
+            searchContent = AdmissionsEntity.createSearchContent(
+                name,
+                mainType,
+                postType,
+                language,
+                description
+            )
+        }
     }
 
     @Transactional(readOnly = true)

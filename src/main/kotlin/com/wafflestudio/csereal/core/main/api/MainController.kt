@@ -15,4 +15,9 @@ class MainController(
     fun readMain(): MainResponse {
         return mainService.readMain()
     }
+
+    @GetMapping("/search/refresh")
+    fun refreshSearches() {
+        mainService.refreshSearch()
+    }
 }
