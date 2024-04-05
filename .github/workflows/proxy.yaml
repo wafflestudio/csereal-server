@@ -45,5 +45,5 @@ jobs:
           script: |
             cd ~/proxy
             source .env
-            docker-compose -f docker-compose-caddy.yml down
-            docker-compose -f docker-compose-caddy.yml up -d
+            docker compose -f docker-compose-caddy.yml down
+            docker compose -f docker-compose-caddy.yml up -d
