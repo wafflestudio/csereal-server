@@ -53,15 +53,15 @@ jobs:
 
             -   name: Create .env file
                 run: |
-                    echo "PROFILE=prod" > .env_server
-                    echo "MYSQL_ROOT_PASSWORD=${{secrets.MYSQL_ROOT_PASSWORD}}" >> .env_server
-                    echo "MYSQL_USER=${{secrets.MYSQL_USER}}" >> .env_server
-                    echo "MYSQL_PASSWORD=${{secrets.MYSQL_PASSWORD}}" >> .env_server
-                    echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env_server
-                    echo "OIDC_CLIENT_SECRET=${{secrets.OIDC_CLIENT_SECRET}}" >> .env_server
-                    echo "URL=${{secrets.URL}}" >> .env_server
-                    echo "SLACK_TOKEN=${{secrets.SLACK_TOKEN}}" >> .env_server
-                    echo "SLACK_CHANNEL=${{secrets.SLACK_CHANNEL}}" >> .env_server
+                    echo "PROFILE=prod" > .env
+                    echo "MYSQL_ROOT_PASSWORD=${{secrets.MYSQL_ROOT_PASSWORD}}" >> .env
+                    echo "MYSQL_USER=${{secrets.MYSQL_USER}}" >> .env
+                    echo "MYSQL_PASSWORD=${{secrets.MYSQL_PASSWORD}}" >> .env
+                    echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
+                    echo "OIDC_CLIENT_SECRET=${{secrets.OIDC_CLIENT_SECRET}}" >> .env
+                    echo "URL=${{secrets.URL}}" >> .env
+                    echo "SLACK_TOKEN=${{secrets.SLACK_TOKEN}}" >> .env
+                    echo "SLACK_CHANNEL=${{secrets.SLACK_CHANNEL}}" >> .env
 
             -   name: SCP Command to Transfer Files
                 uses: appleboy/scp-action@v0.1.4
@@ -70,7 +70,7 @@ jobs:
                     username: ${{secrets.SSH_USER}}
                     port: ${{secrets.SSH_PORT}}
                     key: ${{secrets.SSH_KEY}}
-                    source: "docker-compose-backend.yml, .env_server"
+                    source: "docker-compose-backend.yml, .env"
                     target: "~/app"
                     overwrite: true
             -   name: SSH Remote Commands
@@ -82,7 +82,7 @@ jobs:
                     key: ${{secrets.SSH_KEY}}
                     script: |
                         cd ~/app
-                        source .env_server
+                        source .env
                         docker compose -f docker-compose-backend.yml down
                         docker compose -f docker-compose-backend.yml pull
                         docker compose -f docker-compose-backend.yml up -d
