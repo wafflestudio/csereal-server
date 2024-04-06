@@ -19,7 +19,7 @@ data class NoticeSearchDto(
         isPinned: Boolean,
         hasAttachment: Boolean,
         isPrivate: Boolean,
-        score: Double?
+        score: Double
     ) : this(id, title, createdAt, isPinned, hasAttachment, isPrivate)
 
     constructor(entity: NoticeEntity, hasAttachment: Boolean) : this(
