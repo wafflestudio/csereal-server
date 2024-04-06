@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.academics.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import jakarta.persistence.*
 

@@ -1,6 +1,6 @@
 package com.wafflestudio.csereal.core.member.api
 
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.service.MemberSearchService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive

@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.admissions.type
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 
 enum class AdmissionsMainType(
     val ko: String,

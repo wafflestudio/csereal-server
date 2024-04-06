@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.common.properties
+package com.wafflestudio.csereal.common.enums
 
 import com.wafflestudio.csereal.common.CserealException
 

@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.research.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.research.dto.LabDto
 import com.wafflestudio.csereal.core.research.dto.LabUpdateRequest
 import com.wafflestudio.csereal.core.research.dto.ResearchDto

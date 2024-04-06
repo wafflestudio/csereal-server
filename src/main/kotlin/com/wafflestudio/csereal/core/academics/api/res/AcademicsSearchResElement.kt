@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.academics.api.res
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.substringAroundKeyword
 import com.wafflestudio.csereal.core.academics.database.AcademicsPostType
 import com.wafflestudio.csereal.core.academics.database.AcademicsSearchEntity
