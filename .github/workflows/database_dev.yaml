@@ -35,7 +35,7 @@ jobs:
           username: ${{secrets.SSH_USER}}
           key: ${{secrets.SSH_KEY}}
           source: "docker-compose-db.yml, .env"
-          target: "~/app"
+          target: "~/database"
           overwrite: true
 
       -
@@ -46,7 +46,7 @@ jobs:
           username: ${{secrets.SSH_USER}}
           key: ${{secrets.SSH_KEY}}
           script: |
-            cd ~/app
+            cd ~/database
             source .env
             docker-compose -f docker-compose-db.yml down
             docker-compose -f docker-compose-db.yml up -d
