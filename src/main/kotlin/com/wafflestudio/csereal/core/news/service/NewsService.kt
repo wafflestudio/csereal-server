@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.news.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.core.admin.dto.AdminSlidesResponse
 import com.wafflestudio.csereal.core.news.database.*
 import com.wafflestudio.csereal.core.news.dto.NewsDto
@@ -20,6 +21,7 @@ interface NewsService {
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
+        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): NewsSearchResponse
 
@@ -53,9 +55,10 @@ class NewsServiceImpl(
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
+        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): NewsSearchResponse {
-        return newsRepository.searchNews(tag, keyword, pageable, usePageBtn, isStaff)
+        return newsRepository.searchNews(tag, keyword, pageable, usePageBtn, sortBy, isStaff)
     }
 
     @Transactional(readOnly = true)
