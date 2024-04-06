@@ -90,9 +90,11 @@ class SeminarRepositoryImpl(
             .offset(pageRequest.offset)
             .limit(pageRequest.pageSize.toLong())
 
-        val seminarEntityList = when (sortBy) {
-            ContentSearchSortType.DATE -> seminarEntityQuery.orderBy(seminarEntity.createdAt.desc())
-            ContentSearchSortType.RELEVANCE -> seminarEntityQuery
+        val seminarEntityList = when {
+            sortBy == ContentSearchSortType.DATE || keyword.isNullOrEmpty() -> seminarEntityQuery.orderBy(
+                seminarEntity.createdAt.desc()
+            )
+            else /* sortBy == RELEVANCE */ -> seminarEntityQuery
         }.fetch()
 
         val seminarSearchDtoList: MutableList<SeminarSearchDto> = mutableListOf()

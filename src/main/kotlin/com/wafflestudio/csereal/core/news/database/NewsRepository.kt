@@ -117,9 +117,11 @@ class NewsRepositoryImpl(
             .limit(pageRequest.pageSize.toLong())
             .distinct()
 
-        val newsEntityList = when (sortBy) {
-            ContentSearchSortType.DATE -> newsEntityQuery.orderBy(newsEntity.createdAt.desc())
-            ContentSearchSortType.RELEVANCE -> newsEntityQuery
+        val newsEntityList = when {
+            sortBy == ContentSearchSortType.DATE || keyword.isNullOrEmpty() -> newsEntityQuery.orderBy(
+                newsEntity.createdAt.desc()
+            )
+            else /* sortBy == RELEVANCE */ -> newsEntityQuery
         }.fetch()
 
         val newsSearchDtoList: List<NewsSearchDto> = newsEntityList.map {
