@@ -1,6 +1,6 @@
 package com.wafflestudio.csereal.core.member.service
 
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.main.event.RefreshSearchEvent
 import com.wafflestudio.csereal.core.member.api.res.MemberSearchResBody
 import com.wafflestudio.csereal.core.member.database.MemberSearchEntity

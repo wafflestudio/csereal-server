@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.startsWithEnglish
 import com.wafflestudio.csereal.core.member.database.*
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
@@ -118,7 +118,7 @@ class ProfessorServiceImpl(
                 .sortedWith { a, b ->
                     when {
                         startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
-                        !startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> -1
+                        !startsWithEnglish(a.name) && startsWithEnglish(b.name) -> -1
                         else -> a.name.compareTo(b.name)
                     }
                 }
@@ -139,7 +139,7 @@ class ProfessorServiceImpl(
             .sortedWith { a, b ->
                 when {
                     startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
-                    !startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> -1
+                    !startsWithEnglish(a.name) && startsWithEnglish(b.name) -> -1
                     else -> a.name.compareTo(b.name)
                 }
             }
