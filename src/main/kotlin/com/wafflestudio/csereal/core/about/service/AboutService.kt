@@ -168,7 +168,8 @@ class AboutServiceImpl(
             ).description
 
         val statList = mutableListOf<FutureCareersStatDto>()
-        for (i: Int in 2021 downTo 2011) {
+        val maxYear = statRepository.findMaxYear()
+        for (i: Int in maxYear downTo 2011) {
             val bachelor = statRepository.findAllByYearAndDegree(i, Degree.BACHELOR).map {
                 FutureCareersStatDegreeDto.of(it)
             }
