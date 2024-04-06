@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.notice.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
+import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.utils.getUsername
 import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.notice.service.NoticeService
@@ -29,6 +30,7 @@ class NoticeController(
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
         @RequestParam(required = false, defaultValue = "20") pageSize: Int,
+        @RequestParam(required = false, defaultValue = "DATE") sortBy: String,
         authentication: Authentication?
     ): ResponseEntity<NoticeSearchResponse> {
         val username = getUsername(authentication)
@@ -40,7 +42,10 @@ class NoticeController(
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
-        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, isStaff))
+
+        val sortType = ContentSearchSortType.fromJsonValue(sortBy)
+
+        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, sortType, isStaff))
     }
 
     @GetMapping("/totalSearch")

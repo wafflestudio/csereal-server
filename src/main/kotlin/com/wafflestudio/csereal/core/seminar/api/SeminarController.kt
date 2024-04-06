@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.seminar.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
+import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.utils.getUsername
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
@@ -25,6 +26,7 @@ class SeminarController(
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
         @RequestParam(required = false, defaultValue = "10") pageSize: Int,
+        @RequestParam(required = false, defaultValue = "DATE") sortBy: String,
         authentication: Authentication?
     ): ResponseEntity<SeminarSearchResponse> {
         val username = getUsername(authentication)
@@ -36,7 +38,10 @@ class SeminarController(
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
-        return ResponseEntity.ok(seminarService.searchSeminar(keyword, pageRequest, usePageBtn, isStaff))
+
+        val sortType = ContentSearchSortType.fromJsonValue(sortBy)
+
+        return ResponseEntity.ok(seminarService.searchSeminar(keyword, pageRequest, usePageBtn, sortType, isStaff))
     }
 
     @AuthenticatedStaff

@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.notice.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.notice.database.*
 import com.wafflestudio.csereal.core.notice.dto.*
@@ -21,6 +22,7 @@ interface NoticeService {
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
+        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): NoticeSearchResponse
 
@@ -55,9 +57,10 @@ class NoticeServiceImpl(
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
+        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): NoticeSearchResponse {
-        return noticeRepository.searchNotice(tag, keyword, pageable, usePageBtn, isStaff)
+        return noticeRepository.searchNotice(tag, keyword, pageable, usePageBtn, sortBy, isStaff)
     }
 
     @Transactional(readOnly = true)
