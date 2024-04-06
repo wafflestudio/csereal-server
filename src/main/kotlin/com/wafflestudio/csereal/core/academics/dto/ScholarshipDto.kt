@@ -1,6 +1,6 @@
 package com.wafflestudio.csereal.core.academics.dto
 
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.database.ScholarshipEntity
 
 data class ScholarshipDto(

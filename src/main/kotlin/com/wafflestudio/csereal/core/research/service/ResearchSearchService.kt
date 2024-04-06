@@ -1,6 +1,6 @@
 package com.wafflestudio.csereal.core.research.service
 
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.conference.database.ConferenceRepository
 import com.wafflestudio.csereal.core.main.event.RefreshSearchEvent
 import com.wafflestudio.csereal.core.member.event.ProfessorCreatedEvent

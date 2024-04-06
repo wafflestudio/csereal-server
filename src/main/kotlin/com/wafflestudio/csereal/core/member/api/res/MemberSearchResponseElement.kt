@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.member.api.res
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.database.MemberSearchEntity
 import com.wafflestudio.csereal.core.member.database.MemberSearchType
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity

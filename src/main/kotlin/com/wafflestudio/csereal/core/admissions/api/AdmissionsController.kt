@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.admissions.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.admissions.api.req.AdmissionReqBody
 import com.wafflestudio.csereal.core.admissions.dto.AdmissionsDto
 import com.wafflestudio.csereal.core.admissions.api.req.AdmissionMigrateElem

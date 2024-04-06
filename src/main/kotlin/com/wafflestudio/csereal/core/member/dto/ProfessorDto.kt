@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.member.dto
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
 import java.time.LocalDate
