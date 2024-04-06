@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.news.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
+import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.utils.getUsername
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
@@ -31,6 +32,7 @@ class NewsController(
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
         @RequestParam(required = false, defaultValue = "10") pageSize: Int,
+        @RequestParam(required = false, defaultValue = "DATE") sortBy: String,
         authentication: Authentication?
     ): ResponseEntity<NewsSearchResponse> {
         val username = getUsername(authentication)
@@ -42,7 +44,10 @@ class NewsController(
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
-        return ResponseEntity.ok(newsService.searchNews(tag, keyword, pageRequest, usePageBtn, isStaff))
+
+        val sortType = ContentSearchSortType.fromJsonValue(sortBy)
+
+        return ResponseEntity.ok(newsService.searchNews(tag, keyword, pageRequest, usePageBtn, sortType, isStaff))
     }
 
     @GetMapping("/totalSearch")

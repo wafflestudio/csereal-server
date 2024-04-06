@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.news.database
 
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
+import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
 import com.wafflestudio.csereal.core.admin.dto.AdminSlideElement
@@ -39,6 +40,7 @@ interface CustomNewsRepository {
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
+        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): NewsSearchResponse
 
@@ -64,6 +66,7 @@ class NewsRepositoryImpl(
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
+        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): NewsSearchResponse {
         val keywordBooleanBuilder = BooleanBuilder()
@@ -109,12 +112,17 @@ class NewsRepositoryImpl(
             total = (10 * pageable.pageSize).toLong() + 1 // 10개 페이지 고정
         }
 
-        val newsEntityList = jpaQuery
-            .orderBy(newsEntity.createdAt.desc())
+        val newsEntityQuery = jpaQuery
             .offset(pageRequest.offset)
             .limit(pageRequest.pageSize.toLong())
             .distinct()
-            .fetch()
+
+        val newsEntityList = when {
+            sortBy == ContentSearchSortType.DATE || keyword.isNullOrEmpty() -> newsEntityQuery.orderBy(
+                newsEntity.createdAt.desc()
+            )
+            else /* sortBy == RELEVANCE */ -> newsEntityQuery
+        }.fetch()
 
         val newsSearchDtoList: List<NewsSearchDto> = newsEntityList.map {
             val imageURL = mainImageService.createImageURL(it.mainImage)

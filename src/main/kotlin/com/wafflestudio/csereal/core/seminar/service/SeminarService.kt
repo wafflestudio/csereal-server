@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.seminar.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
@@ -18,6 +19,7 @@ interface SeminarService {
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
+        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): SeminarSearchResponse
 
@@ -44,9 +46,10 @@ class SeminarServiceImpl(
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
+        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): SeminarSearchResponse {
-        return seminarRepository.searchSeminar(keyword, pageable, usePageBtn, isStaff)
+        return seminarRepository.searchSeminar(keyword, pageable, usePageBtn, sortBy, isStaff)
     }
 
     @Transactional
