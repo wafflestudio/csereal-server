@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.seminar.database
 
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
+import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
@@ -29,6 +30,7 @@ interface CustomSeminarRepository {
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
+        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): SeminarSearchResponse
 }
@@ -43,6 +45,7 @@ class SeminarRepositoryImpl(
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
+        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): SeminarSearchResponse {
         val keywordBooleanBuilder = BooleanBuilder()
@@ -83,11 +86,14 @@ class SeminarRepositoryImpl(
             total = (10 * pageable.pageSize).toLong() + 1 // 10개 페이지 고정
         }
 
-        val seminarEntityList = jpaQuery
-            .orderBy(seminarEntity.createdAt.desc())
+        val seminarEntityQuery = jpaQuery
             .offset(pageRequest.offset)
             .limit(pageRequest.pageSize.toLong())
-            .fetch()
+
+        val seminarEntityList = when (sortBy) {
+            ContentSearchSortType.DATE -> seminarEntityQuery.orderBy(seminarEntity.createdAt.desc())
+            ContentSearchSortType.RELEVANCE -> seminarEntityQuery
+        }.fetch()
 
         val seminarSearchDtoList: MutableList<SeminarSearchDto> = mutableListOf()
 
