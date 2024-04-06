@@ -1,6 +1,6 @@
 package com.wafflestudio.csereal.core.academics.service
 
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.api.res.AcademicsSearchResBody
 import com.wafflestudio.csereal.core.academics.database.*
 import com.wafflestudio.csereal.core.main.event.RefreshSearchEvent

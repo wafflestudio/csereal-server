@@ -1,6 +1,6 @@
 package com.wafflestudio.csereal.core.research.dto
 
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.research.database.ResearchPostType
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse

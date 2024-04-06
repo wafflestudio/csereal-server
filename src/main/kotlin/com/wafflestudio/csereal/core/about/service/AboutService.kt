@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.about.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.about.api.res.AboutSearchElementDto
 import com.wafflestudio.csereal.core.about.api.res.AboutSearchResBody
 import com.wafflestudio.csereal.core.about.database.*
@@ -168,7 +168,8 @@ class AboutServiceImpl(
             ).description
 
         val statList = mutableListOf<FutureCareersStatDto>()
-        for (i: Int in 2021 downTo 2011) {
+        val maxYear = statRepository.findMaxYear()
+        for (i: Int in maxYear downTo 2011) {
             val bachelor = statRepository.findAllByYearAndDegree(i, Degree.BACHELOR).map {
                 FutureCareersStatDegreeDto.of(it)
             }

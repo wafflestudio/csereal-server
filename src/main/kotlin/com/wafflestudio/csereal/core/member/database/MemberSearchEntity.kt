@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import jakarta.persistence.*
 
 @Entity(name = "member_search")
