@@ -32,6 +32,10 @@ class ReservationServiceImpl(
 ) : ReservationService {
 
     override fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto> {
+        if (!reserveRequest.agreed) {
+            throw CserealException.Csereal400("Policy Not Agreed")
+        }
+
         val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
             "loggedInUser",
             RequestAttributes.SCOPE_REQUEST
