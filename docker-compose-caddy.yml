@@ -1,7 +1,5 @@
 services:
   caddy:
-    env_file:
-        -   .env_proxy
     container_name: csereal_caddy
     image: caddy:2.7.4-alpine
     ports:
