@@ -48,7 +48,6 @@ jobs:
                     build-args: |
                         PROFILE=dev
                     tags: |
-                        ghcr.io/wafflestudio/csereal-server/server_image:latest
                         ghcr.io/wafflestudio/csereal-server/server_image:dev
                         ghcr.io/wafflestudio/csereal-server/server_image:${{github.sha}}
 
