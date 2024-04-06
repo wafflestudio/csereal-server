@@ -40,7 +40,7 @@ class CourseEntity(
                 language = languageType,
                 classification = courseDto.classification,
                 code = courseDto.code,
-                name = courseDto.name.replace(" ", "-"),
+                name = courseDto.name,
                 credit = courseDto.credit,
                 grade = courseDto.grade,
                 description = courseDto.description

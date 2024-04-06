@@ -118,7 +118,7 @@ class ProfessorServiceImpl(
                 .sortedWith { a, b ->
                     when {
                         startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
-                        !startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> -1
+                        !startsWithEnglish(a.name) && startsWithEnglish(b.name) -> -1
                         else -> a.name.compareTo(b.name)
                     }
                 }
@@ -139,7 +139,7 @@ class ProfessorServiceImpl(
             .sortedWith { a, b ->
                 when {
                     startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
-                    !startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> -1
+                    !startsWithEnglish(a.name) && startsWithEnglish(b.name) -> -1
                     else -> a.name.compareTo(b.name)
                 }
             }
