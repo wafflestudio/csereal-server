@@ -11,5 +11,6 @@ data class ReserveRequest(
     val purpose: String,
     val startTime: LocalDateTime,
     val endTime: LocalDateTime,
+    val agreed: Boolean,
     val recurringWeeks: Int = 1
 )

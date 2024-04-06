@@ -33,7 +33,9 @@ class ReservationEntity(
     val professor: String,
     val recurringWeeks: Int = 1,
 
-    val recurrenceId: UUID
+    val recurrenceId: UUID,
+
+    val agreed: Boolean
 
 ) : BaseTimeEntity() {
 
@@ -65,7 +67,8 @@ class ReservationEntity(
                 endTime = end,
                 professor = reserveRequest.professor,
                 recurringWeeks = reserveRequest.recurringWeeks,
-                recurrenceId = recurrenceId
+                recurrenceId = recurrenceId,
+                agreed = reserveRequest.agreed
             )
         }
     }
