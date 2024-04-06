@@ -22,10 +22,10 @@ jobs:
       -
         name: Create .env file
         run: |
-          echo "MYSQL_ROOT_PASSWORD=${{secrets.MYSQL_ROOT_PASSWORD}}" > .env_db
-          echo "MYSQL_USER=${{secrets.MYSQL_USER}}" >> .env_db
-          echo "MYSQL_PASSWORD=${{secrets.MYSQL_PASSWORD}}" >> .env_db
-          echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env_db
+          echo "MYSQL_ROOT_PASSWORD=${{secrets.MYSQL_ROOT_PASSWORD}}" > .env
+          echo "MYSQL_USER=${{secrets.MYSQL_USER}}" >> .env
+          echo "MYSQL_PASSWORD=${{secrets.MYSQL_PASSWORD}}" >> .env
+          echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
 
       -
         name: SCP Command to Transfer Files
@@ -35,8 +35,8 @@ jobs:
           username: ${{secrets.SSH_USER}}
           port: ${{secrets.SSH_PORT}}
           key: ${{secrets.SSH_KEY}}
-          source: "docker-compose-db.yml, .env_db"
-          target: "~/app"
+          source: "docker-compose-db.yml, .env"
+          target: "~/database"
           overwrite: true
 
       -
@@ -48,7 +48,7 @@ jobs:
           port: ${{secrets.SSH_PORT}}
           key: ${{secrets.SSH_KEY}}
           script: |
-            cd ~/app
-            source .env_db
+            cd ~/database
+            source .env
             docker compose -f docker-compose-db.yml down
             docker compose -f docker-compose-db.yml up -d
