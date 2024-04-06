@@ -1,5 +1,7 @@
 services:
     green:
+        env_file:
+            - .env_server
         container_name: csereal_server_green
         ports:
             - 8080:8080
