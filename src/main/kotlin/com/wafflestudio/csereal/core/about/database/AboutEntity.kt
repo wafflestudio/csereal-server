@@ -3,7 +3,7 @@ package com.wafflestudio.csereal.core.about.database
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.StringListConverter
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.about.dto.AboutDto

@@ -1,6 +1,6 @@
 package com.wafflestudio.csereal.core.member.database
 
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface ProfessorRepository : JpaRepository<ProfessorEntity, Long> {

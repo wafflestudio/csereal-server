@@ -2,7 +2,7 @@ package com.wafflestudio.csereal.core.academics.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import jakarta.persistence.*

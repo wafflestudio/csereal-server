@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.academics.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.academics.service.AcademicsService
 import com.wafflestudio.csereal.core.academics.dto.ScholarshipDto

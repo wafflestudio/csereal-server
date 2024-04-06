@@ -2,7 +2,7 @@ package com.wafflestudio.csereal.core.academics.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
-import com.wafflestudio.csereal.common.properties.LanguageType
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.dto.CourseDto
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import jakarta.persistence.*
@@ -40,7 +40,7 @@ class CourseEntity(
                 language = languageType,
                 classification = courseDto.classification,
                 code = courseDto.code,
-                name = courseDto.name.replace(" ", "-"),
+                name = courseDto.name,
                 credit = courseDto.credit,
                 grade = courseDto.grade,
                 description = courseDto.description
