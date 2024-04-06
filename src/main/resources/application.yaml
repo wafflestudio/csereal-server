@@ -6,6 +6,8 @@ spring:
         active: local
     datasource:
         driver-class-name: com.mysql.cj.jdbc.Driver
+        hikari:
+            maximum-pool-size: 24
     jpa:
         properties:
             hibernate:
@@ -17,6 +19,9 @@ spring:
             max-file-size: 100MB
 
 server:
+    tomcat:
+        threads:
+            max: 16
     servlet:
         session:
             timeout: 7200 # 2시간
@@ -71,7 +76,7 @@ spring:
 
 logging:
     level:
-    #    default: INFO
+        #    default: INFO
         org:
             springframework:
                 security: DEBUG
@@ -120,7 +125,7 @@ spring:
     config.activate.on-profile: dev
     jpa:
         hibernate:
-            ddl-auto: update 
+            ddl-auto: update
         show-sql: true
         open-in-view: false
     security:
@@ -175,7 +180,7 @@ spring:
 
 logging:
     level:
-    #    default: INFO
+        #    default: INFO
         org:
             springframework:
                 security: DEBUG
