@@ -1,5 +1,7 @@
 services:
   db:
+    env_file:
+        - .env_db
     container_name: csereal_db_container
     image: mysql:8.0
     ports:
