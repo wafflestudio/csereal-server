@@ -1,10 +1,6 @@
 services:
     green:
         container_name: csereal_server_green
-        build:
-            context: ./
-            args:
-                PROFILE: ${PROFILE}
         ports:
             - 8080:8080
         volumes:
@@ -22,4 +18,4 @@ services:
         extra_hosts:
             - host.docker.internal:host-gateway
         restart: always
-        image: ghcr.io/wafflestudio/csereal-server/server_image:latest
+        image: "ghcr.io/wafflestudio/csereal-server/server_image:${PROFILE}"
