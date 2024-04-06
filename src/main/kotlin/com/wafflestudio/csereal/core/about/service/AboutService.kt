@@ -168,19 +168,21 @@ class AboutServiceImpl(
             ).description
 
         val statList = mutableListOf<FutureCareersStatDto>()
-        for (i: Int in 2021 downTo 2011) {
-            val bachelor = statRepository.findAllByYearAndDegree(i, Degree.BACHELOR).map {
-                FutureCareersStatDegreeDto.of(it)
+        for (i: Int in 2050 downTo 2011) {
+            if (statRepository.findAllByYear(i).isNotEmpty()) {
+                val bachelor = statRepository.findAllByYearAndDegree(i, Degree.BACHELOR).map {
+                    FutureCareersStatDegreeDto.of(it)
+                }
+                val master = statRepository.findAllByYearAndDegree(i, Degree.MASTER).map {
+                    FutureCareersStatDegreeDto.of(it)
+                }
+                val doctor = statRepository.findAllByYearAndDegree(i, Degree.DOCTOR).map {
+                    FutureCareersStatDegreeDto.of(it)
+                }
+                statList.add(
+                    FutureCareersStatDto(i, bachelor, master, doctor)
+                )
             }
-            val master = statRepository.findAllByYearAndDegree(i, Degree.MASTER).map {
-                FutureCareersStatDegreeDto.of(it)
-            }
-            val doctor = statRepository.findAllByYearAndDegree(i, Degree.DOCTOR).map {
-                FutureCareersStatDegreeDto.of(it)
-            }
-            statList.add(
-                FutureCareersStatDto(i, bachelor, master, doctor)
-            )
         }
         val companyList = companyRepository.findAllByOrderByYearDesc().map {
             FutureCareersCompanyDto.of(it)
