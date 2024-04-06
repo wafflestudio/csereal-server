@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.notice.database
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.Projections
 import com.querydsl.jpa.impl.JPAQueryFactory
+import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
 import com.wafflestudio.csereal.core.notice.database.QNoticeEntity.noticeEntity
@@ -35,6 +36,7 @@ interface CustomNoticeRepository {
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
+        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): NoticeSearchResponse
 
@@ -95,20 +97,12 @@ class NoticeRepositoryImpl(
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
+        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): NoticeSearchResponse {
         val keywordBooleanBuilder = BooleanBuilder()
         val tagsBooleanBuilder = BooleanBuilder()
         val isPrivateBooleanBuilder = BooleanBuilder()
-
-        if (!keyword.isNullOrEmpty()) {
-            val booleanTemplate = commonRepository.searchFullDoubleTextTemplate(
-                keyword,
-                noticeEntity.title,
-                noticeEntity.plainTextDescription
-            )
-            keywordBooleanBuilder.and(booleanTemplate.gt(0.0))
-        }
 
         if (!tag.isNullOrEmpty()) {
             tag.forEach {
@@ -125,6 +119,20 @@ class NoticeRepositoryImpl(
             )
         }
 
+        val scoreOrNull = if (!keyword.isNullOrEmpty()) {
+            commonRepository.searchFullDoubleTextTemplate(
+                keyword,
+                noticeEntity.title,
+                noticeEntity.plainTextDescription
+            )
+        } else {
+            null
+        }
+
+        if (scoreOrNull != null) {
+            keywordBooleanBuilder.and(scoreOrNull.gt(0.0))
+        }
+
         val jpaQuery = queryFactory.select(
             Projections.constructor(
                 NoticeSearchDto::class.java,
@@ -133,7 +141,8 @@ class NoticeRepositoryImpl(
                 noticeEntity.createdAt,
                 noticeEntity.isPinned,
                 noticeEntity.attachments.isNotEmpty,
-                noticeEntity.isPrivate
+                noticeEntity.isPrivate,
+                scoreOrNull
             )
         ).from(noticeEntity)
             .leftJoin(noticeTagEntity).on(noticeTagEntity.notice.eq(noticeEntity))
@@ -151,13 +160,24 @@ class NoticeRepositoryImpl(
             total = (10 * pageable.pageSize).toLong() + 1 // 10개 페이지 고정
         }
 
-        val noticeSearchDtoList = jpaQuery
-            .orderBy(noticeEntity.isPinned.desc())
-            .orderBy(noticeEntity.createdAt.desc())
+        val noticeSearchQuery = jpaQuery
             .offset(pageRequest.offset)
             .limit(pageRequest.pageSize.toLong())
             .distinct()
-            .fetch()
+
+        val noticeSearchDtoList = noticeSearchQuery
+            .orderBy(noticeEntity.isPinned.desc())
+            .let {
+                when {
+                    sortBy == ContentSearchSortType.DATE || scoreOrNull == null -> {
+                        it.orderBy(noticeEntity.createdAt.desc())
+                    }
+
+                    else -> {
+                        it.orderBy(scoreOrNull.desc())
+                    }
+                }
+            }.fetch()
 
         return NoticeSearchResponse(total, noticeSearchDtoList)
     }
