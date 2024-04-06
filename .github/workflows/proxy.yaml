@@ -19,8 +19,8 @@ jobs:
       -
         name: Create .env file
         run: |
-          echo "URL=${{secrets.URL}}" > .env_proxy
-          echo "LOCAL_IP=${{secrets.LOCAL_IP}}" >> .env_proxy
+          echo "URL=${{secrets.URL}}" > .env
+          echo "LOCAL_IP=${{secrets.LOCAL_IP}}" >> .env
 
       -
         name: SCP Command to Transfer Files
@@ -30,7 +30,7 @@ jobs:
           username: ${{secrets.SSH_USER}}
           port: ${{secrets.SSH_PORT}}
           key: ${{secrets.SSH_KEY}}
-          source: "docker-compose-caddy.yml, .env_proxy, caddy/Caddyfile"
+          source: "docker-compose-caddy.yml, .env, caddy/Caddyfile"
           target: "~/proxy"
           overwrite: true
 
@@ -44,6 +44,6 @@ jobs:
           key: ${{secrets.SSH_KEY}}
           script: |
             cd ~/proxy
-            source .env_proxy
+            source .env
             docker compose -f docker-compose-caddy.yml down
             docker compose -f docker-compose-caddy.yml up -d
