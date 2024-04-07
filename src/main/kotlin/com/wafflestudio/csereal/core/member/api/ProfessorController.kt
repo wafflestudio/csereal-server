@@ -5,6 +5,7 @@ import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
 import com.wafflestudio.csereal.core.member.dto.SimpleProfessorDto
 import com.wafflestudio.csereal.core.member.service.ProfessorService
+import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -62,6 +63,7 @@ class ProfessorController(
         return ResponseEntity.ok().build()
     }
 
+    @Profile("!prod")
     @PostMapping("/migrate")
     fun migrateProfessors(
         @RequestBody requestList: List<ProfessorDto>
@@ -69,6 +71,7 @@ class ProfessorController(
         return ResponseEntity.ok(professorService.migrateProfessors(requestList))
     }
 
+    @Profile("!prod")
     @PatchMapping("/migrateImage/{professorId}")
     fun migrateProfessorImage(
         @PathVariable professorId: Long,

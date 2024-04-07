@@ -5,6 +5,7 @@ import com.wafflestudio.csereal.core.conference.dto.ConferenceDto
 import com.wafflestudio.csereal.core.conference.dto.ConferenceModifyRequest
 import com.wafflestudio.csereal.core.conference.dto.ConferencePage
 import com.wafflestudio.csereal.core.conference.service.ConferenceService
+import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -27,6 +28,7 @@ class ConferenceController(
         return ResponseEntity.ok(conferenceService.modifyConferences(conferenceModifyRequest))
     }
 
+    @Profile("!prod")
     @PostMapping("/migrate")
     fun migrateConferences(
         @RequestBody requestList: List<ConferenceDto>
