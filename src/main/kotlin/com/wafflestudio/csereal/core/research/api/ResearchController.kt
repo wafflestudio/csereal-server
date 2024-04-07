@@ -10,6 +10,7 @@ import com.wafflestudio.csereal.core.research.service.ResearchSearchService
 import com.wafflestudio.csereal.core.research.service.ResearchService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
+import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -99,6 +100,7 @@ class ResearchController(
         return ResponseEntity.ok(researchService.updateLab(labId, request, pdf))
     }
 
+    @Profile("!prod")
     @PostMapping("/migrate")
     fun migrateResearchDetail(
         @RequestBody requestList: List<ResearchDto>
@@ -106,6 +108,7 @@ class ResearchController(
         return ResponseEntity.ok(researchService.migrateResearchDetail(requestList))
     }
 
+    @Profile("!prod")
     @PostMapping("/lab/migrate")
     fun migrateLabs(
         @RequestBody requestList: List<LabDto>
@@ -113,6 +116,7 @@ class ResearchController(
         return ResponseEntity.ok(researchService.migrateLabs(requestList))
     }
 
+    @Profile("!prod")
     @PatchMapping("/migrateImageAndAttachments/{researchId}")
     fun migrateResearchDetailImageAndAttachments(
         @PathVariable researchId: Long,
@@ -128,6 +132,7 @@ class ResearchController(
         )
     }
 
+    @Profile("!prod")
     @PatchMapping("/lab/migratePdf/{labId}")
     fun migrateLabPdf(
         @PathVariable labId: Long,

@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.member.dto.SimpleStaffDto
 import com.wafflestudio.csereal.core.member.dto.StaffDto
 import com.wafflestudio.csereal.core.member.service.StaffService
+import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -51,6 +52,7 @@ class StaffController(
         return ResponseEntity.ok().build()
     }
 
+    @Profile("!prod")
     @PostMapping("/migrate")
     fun migrateStaff(
         @RequestBody requestList: List<StaffDto>
@@ -58,6 +60,7 @@ class StaffController(
         return ResponseEntity.ok(staffService.migrateStaff(requestList))
     }
 
+    @Profile("!prod")
     @PatchMapping("/migrateImage/{staffId}")
     fun migrateStaffImage(
         @PathVariable staffId: Long,
