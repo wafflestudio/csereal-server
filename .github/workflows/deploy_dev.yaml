@@ -58,7 +58,7 @@ jobs:
                     echo "MYSQL_USER=${{secrets.MYSQL_USER}}" >> .env
                     echo "MYSQL_PASSWORD=${{secrets.MYSQL_PASSWORD}}" >> .env
                     echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
-                    echo "OIDC_CLIENT_SECRET=${{secrets.OIDC_CLIENT_SECRET}}" >> .env
+                    echo "OIDC_CLIENT_SECRET_DEV=${{secrets.OIDC_CLIENT_SECRET_DEV}}" >> .env
                     echo "URL=${{secrets.URL_DEV}}" >> .env
                     # echo "SLACK_TOKEN=${{secrets.SLACK_TOKEN}}" >> .env
                     # echo "SLACK_CHANNEL=${{secrets.SLACK_CHANNEL}}" >> .env
@@ -78,7 +78,7 @@ jobs:
                     host: ${{secrets.SSH_HOST_DEV}}
                     username: ${{secrets.SSH_USER}}
                     key: ${{secrets.SSH_KEY}}
-                    script: | 
+                    script: |
                         cd ~/app
                         source .env
                         docker-compose -f docker-compose-backend.yml down
