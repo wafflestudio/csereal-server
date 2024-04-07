@@ -9,6 +9,7 @@ import com.wafflestudio.csereal.core.about.dto.FutureCareersRequest
 import com.wafflestudio.csereal.core.about.service.AboutService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
+import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -101,6 +102,7 @@ class AboutController(
         amount
     )
 
+    @Profile("!prod")
     @PostMapping("/migrate")
     fun migrateAbout(
         @RequestBody requestList: List<AboutRequest>
@@ -108,6 +110,7 @@ class AboutController(
         return ResponseEntity.ok(aboutService.migrateAbout(requestList))
     }
 
+    @Profile("!prod")
     @PostMapping("/future-careers/migrate")
     fun migrateFutureCareers(
         @RequestBody request: FutureCareersRequest
@@ -115,6 +118,7 @@ class AboutController(
         return ResponseEntity.ok(aboutService.migrateFutureCareers(request))
     }
 
+    @Profile("!prod")
     @PostMapping("/student-clubs/migrate")
     fun migrateStudentClubs(
         @RequestBody requestList: List<StudentClubDto>
@@ -122,6 +126,7 @@ class AboutController(
         return ResponseEntity.ok(aboutService.migrateStudentClubs(requestList))
     }
 
+    @Profile("!prod")
     @PostMapping("/facilities/migrate")
     fun migrateFacilities(
         @RequestBody requestList: List<FacilityDto>
@@ -129,6 +134,7 @@ class AboutController(
         return ResponseEntity.ok(aboutService.migrateFacilities(requestList))
     }
 
+    @Profile("!prod")
     @PostMapping("/directions/migrate")
     fun migrateDirections(
         @RequestBody requestList: List<DirectionDto>
@@ -136,6 +142,7 @@ class AboutController(
         return ResponseEntity.ok(aboutService.migrateDirections(requestList))
     }
 
+    @Profile("!prod")
     @PatchMapping("/migrateImage/{aboutId}")
     fun migrateAboutImageAndAttachment(
         @PathVariable aboutId: Long,

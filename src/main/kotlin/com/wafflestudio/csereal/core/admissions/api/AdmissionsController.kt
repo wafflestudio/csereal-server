@@ -10,6 +10,7 @@ import com.wafflestudio.csereal.core.admissions.type.AdmissionsMainType
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsPostType
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
+import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/api/v1/admissions")
@@ -70,6 +71,7 @@ class AdmissionsController(
         amount
     )
 
+    @Profile("!prod")
     @PostMapping("/migrate")
     fun migrateAdmissions(
         @RequestBody reqList: List<@Valid AdmissionMigrateElem>
