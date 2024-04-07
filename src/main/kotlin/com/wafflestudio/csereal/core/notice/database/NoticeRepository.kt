@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.notice.database
 
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.Projections
+import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.repository.CommonRepository
@@ -142,7 +143,8 @@ class NoticeRepositoryImpl(
                 noticeEntity.isPinned,
                 noticeEntity.attachments.isNotEmpty,
                 noticeEntity.isPrivate,
-                scoreOrNull
+                // if scoreOrNull is null, put 0.0
+                scoreOrNull ?: Expressions.numberTemplate(Double::class.javaObjectType, "0.0")
             )
         ).from(noticeEntity)
             .leftJoin(noticeTagEntity).on(noticeTagEntity.notice.eq(noticeEntity))
