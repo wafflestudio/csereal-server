@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.research.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.common.utils.startsWithEnglish
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.research.database.*
 import com.wafflestudio.csereal.core.research.dto.*
@@ -41,6 +42,7 @@ interface ResearchService {
         mainImage: MultipartFile?,
         attachments: List<MultipartFile>?
     ): ResearchDto
+
     fun migrateLabPdf(labId: Long, pdf: MultipartFile?): LabDto
 }
 
@@ -230,6 +232,12 @@ class ResearchServiceImpl(
             val attachmentResponse =
                 attachmentService.createOneAttachmentResponse(it.pdf)
             LabDto.of(it, attachmentResponse)
+        }.sortedWith { a, b ->
+            when {
+                startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
+                !startsWithEnglish(a.name) && startsWithEnglish(b.name) -> -1
+                else -> a.name.compareTo(b.name)
+            }
         }
 
         return labs
