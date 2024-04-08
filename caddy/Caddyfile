@@ -16,8 +16,4 @@
 
     # Login
     reverse_proxy /oauth2/authorization/idsnucse host.docker.internal:8080 
-
-	# Swagger
-	reverse_proxy /swagger-ui/* host.docker.internal:8080 
-	reverse_proxy /api-docs/* host.docker.internal:8080 
 }
