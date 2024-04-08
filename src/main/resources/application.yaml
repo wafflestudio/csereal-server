@@ -10,6 +10,7 @@ spring:
             maximum-pool-size: 24
     jpa:
         properties:
+            show-sql: true
             hibernate:
                 dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
     servlet:
@@ -47,6 +48,15 @@ endpoint:
 
 login-page: http://localhost:8080
 
+
+logging:
+    level:
+        org:
+            springframework:
+                security: DEBUG
+                web:
+                    servlet: DEBUG
+
 ---
 spring:
     config.activate.on-profile: local
@@ -57,7 +67,6 @@ spring:
     jpa:
         hibernate:
             ddl-auto: update
-        show-sql: true
         open-in-view: false
     security:
         oauth2:
@@ -74,12 +83,6 @@ spring:
                         issuer-uri: https://id.snucse.org/o
                         jwk-set-uri: https://id.snucse.org/o/jwks
 
-logging:
-    level:
-        #    default: INFO
-        org:
-            springframework:
-                security: DEBUG
 
 ---
 spring:
@@ -120,13 +123,13 @@ slack:
     token: ${SLACK_TOKEN}
     channel: ${SLACK_CHANNEL}
 
+
 ---
 spring:
     config.activate.on-profile: dev
     jpa:
         hibernate:
             ddl-auto: update
-        show-sql: true
         open-in-view: false
     security:
         oauth2:
@@ -167,7 +170,6 @@ spring:
     jpa:
         database: h2
         database-platform: org.hibernate.dialect.H2Dialect
-        show-sql: true
         open-in-view: false
         hibernate:
             ddl-auto: create-drop
@@ -177,11 +179,3 @@ spring:
     h2:
         console:
             enabled: true
-
-logging:
-    level:
-        #    default: INFO
-        org:
-            springframework:
-                security: DEBUG
-
