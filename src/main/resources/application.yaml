@@ -9,8 +9,8 @@ spring:
         hikari:
             maximum-pool-size: 24
     jpa:
+        show-sql: true
         properties:
-            show-sql: true
             hibernate:
                 dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
     servlet:
