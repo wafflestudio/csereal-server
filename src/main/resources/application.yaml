@@ -57,6 +57,10 @@ logging:
                 web:
                     servlet: DEBUG
 
+customlog:
+    file:
+        name: "csereal-backend"
+
 ---
 spring:
     config.activate.on-profile: local
@@ -83,6 +87,9 @@ spring:
                         issuer-uri: https://id.snucse.org/o
                         jwk-set-uri: https://id.snucse.org/o/jwks
 
+customlog:
+    file:
+        base: "./logs"
 
 ---
 spring:
@@ -123,6 +130,9 @@ slack:
     token: ${SLACK_TOKEN}
     channel: ${SLACK_CHANNEL}
 
+customlog:
+    file:
+        base: "/app/logs"
 
 ---
 spring:
@@ -159,6 +169,9 @@ endpoint:
 
 login-page: https://${URL}
 
+customlog:
+    file:
+        base: "./logs"
 ---
 spring:
     config.activate.on-profile: test
@@ -179,3 +192,6 @@ spring:
     h2:
         console:
             enabled: true
+customlog:
+    file:
+        base: "./logs"

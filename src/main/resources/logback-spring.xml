@@ -36,8 +36,8 @@
 
 
     <!--  File appender  -->
-    <property name="LOG_FILE_BASE" value="/app/logs" />
-    <property name="LOG_FILE_NAME" value="csereal-backend" />
+    <springProperty name="LOG_FILE_NAME" source="customlog.file.name" />
+    <springProperty name="LOG_FILE_BASE" source="customlog.file.base" />
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_FILE_BASE}/${LOG_FILE_NAME}.log</file>
