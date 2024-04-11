@@ -20,6 +20,7 @@ interface SeminarRepository : JpaRepository<SeminarEntity, Long>, CustomSeminarR
     fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
         timestamp: LocalDateTime
     ): SeminarEntity?
+
     fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
         timestamp: LocalDateTime
     ): SeminarEntity?
@@ -92,8 +93,9 @@ class SeminarRepositoryImpl(
 
         val seminarEntityList = when {
             sortBy == ContentSearchSortType.DATE || keyword.isNullOrEmpty() -> seminarEntityQuery.orderBy(
-                seminarEntity.createdAt.desc()
+                seminarEntity.startDate.desc()
             )
+
             else /* sortBy == RELEVANCE */ -> seminarEntityQuery
         }.fetch()
 
