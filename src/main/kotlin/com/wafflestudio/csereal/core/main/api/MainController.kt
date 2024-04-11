@@ -2,7 +2,6 @@ package com.wafflestudio.csereal.core.main.api
 
 import com.wafflestudio.csereal.core.main.dto.MainResponse
 import com.wafflestudio.csereal.core.main.service.MainService
-import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -17,7 +16,6 @@ class MainController(
         return mainService.readMain()
     }
 
-    @Profile("!prod")
     @GetMapping("/search/refresh")
     fun refreshSearches() {
         mainService.refreshSearch()
