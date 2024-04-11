@@ -26,6 +26,7 @@ interface AcademicsService {
         studentType: String,
         postType: String
     ): List<AcademicsYearResponse>
+
     fun readGeneralStudiesRequirements(language: String): GeneralStudiesRequirementsPageResponse
     fun readDegreeRequirements(language: String): DegreeRequirementsPageResponse
     fun createCourse(
@@ -33,12 +34,14 @@ interface AcademicsService {
         request: CourseDto,
         attachments: List<MultipartFile>?
     ): CourseDto
+
     fun readAllCourses(language: String, studentType: String): List<CourseDto>
     fun readCourse(language: String, name: String): CourseDto
     fun createScholarshipDetail(
         studentType: String,
         request: ScholarshipDto
     ): ScholarshipDto
+
     fun readAllScholarship(language: String, studentType: String): ScholarshipPageResponse
     fun readScholarship(scholarshipId: Long): ScholarshipDto
     fun migrateAcademicsDetail(
@@ -46,11 +49,13 @@ interface AcademicsService {
         postType: String,
         requestList: List<AcademicsDto>
     ): List<AcademicsDto>
+
     fun migrateCourses(studentType: String, requestList: List<CourseDto>): List<CourseDto>
     fun migrateScholarshipDetail(
         studentType: String,
         requestList: List<ScholarshipDto>
     ): List<ScholarshipDto>
+
     fun migrateAcademicsDetailAttachments(
         academicsId: Long,
         attachments: List<MultipartFile>?
@@ -149,19 +154,13 @@ class AcademicsServiceImpl(
                 AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS,
                 null
             )
-        val subjectChanges =
-            academicsRepository.findByLanguageAndStudentTypeAndPostType(
-                enumLanguageType,
-                AcademicsStudentType.UNDERGRADUATE,
-                AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS_SUBJECT_CHANGES
-            )
         val generalStudiesEntity =
             academicsRepository.findAllByLanguageAndStudentTypeAndPostTypeOrderByYearDesc(
                 enumLanguageType,
                 AcademicsStudentType.UNDERGRADUATE,
                 AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS
             ).filter { academicsEntity -> academicsEntity.year != null }
-        return GeneralStudiesRequirementsPageResponse.of(overview, subjectChanges, generalStudiesEntity)
+        return GeneralStudiesRequirementsPageResponse.of(overview, generalStudiesEntity)
     }
 
     @Transactional(readOnly = true)
