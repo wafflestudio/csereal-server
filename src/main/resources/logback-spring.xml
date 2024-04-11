@@ -11,11 +11,10 @@
     <import class="com.cyfrania.logback.SlackChatApi" />
 
 
+    <!-- Slack Appender Config-->
     <springProperty name="SLACK_TOKEN" source="slack.token" />
     <springProperty name="SLACK_CHANNEL" source="slack.channel" />
     <property name="SLACK_LOG_PATTERN" value="\n*================================*\n*====== Backend Server LOG ======*\n*================================*\n\n${FILE_LOG_PATTERN}\n\n*--------------------------------*\n\n" />
-<!--    <property name="SLACK_LOG_CHARSET" value="${CONSOLE_LOG_CHARSET}" />-->
-
 
     <appender name="SLACK" class="SlackAppender">
         <sender class="SlackChatApi">
@@ -36,6 +35,30 @@
     </appender>
 
 
+    <!--  File appender  -->
+    <springProperty name="LOG_FILE_NAME" source="customlog.file.name" />
+    <springProperty name="LOG_FILE_BASE" source="customlog.file.base" />
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE_BASE}/${LOG_FILE_NAME}.log</file>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>${FILE_LOG_CHARSET}</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE_BASE}/${LOG_FILE_NAME}_%d{yyyy-MM-dd}.log</fileNamePattern>
+            <cleanHistoryOnStart>false</cleanHistoryOnStart>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE" />
+        <maxFlushTime>5000</maxFlushTime>
+    </appender>
+
+
+
     <springProfile name="local">
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
@@ -45,6 +68,7 @@
     <springProfile name="dev">
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
+            <appender-ref ref="ASYNC_FILE" />
         </root>
     </springProfile>
 
@@ -52,6 +76,7 @@
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
             <appender-ref ref="ASYNC_SLACK" />
+            <appender-ref ref="ASYNC_FILE" />
         </root>
     </springProfile>
 
