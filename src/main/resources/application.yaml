@@ -7,7 +7,7 @@ spring:
     datasource:
         driver-class-name: com.mysql.cj.jdbc.Driver
         hikari:
-            maximum-pool-size: 24
+            maximum-pool-size: 65
     jpa:
         show-sql: true
         properties:
@@ -22,7 +22,7 @@ spring:
 server:
     tomcat:
         threads:
-            max: 16
+            max: 32
     servlet:
         session:
             timeout: 7200 # 2시간
