@@ -6,12 +6,14 @@ services:
         volumes:
             - ./cse-files:/app/cse-files
             - ./files:/app/files
+            - ./logs:/app/logs
 
         environment:
             SPRING_DATASOURCE_URL: "jdbc:mysql://host.docker.internal:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"
             SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
             SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
             OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+            OIDC_CLIENT_SECRET_DEV: ${OIDC_CLIENT_SECRET_DEV}
             URL: ${URL}
             SLACK_TOKEN: ${SLACK_TOKEN}
             SLACK_CHANNEL: ${SLACK_CHANNEL}

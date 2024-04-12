@@ -48,7 +48,7 @@ class ReservationController(
         @RequestParam month: Int,
         @RequestParam day: Int
     ): ResponseEntity<List<SimpleReservationDto>> {
-        val start = LocalDateTime.of(year, month, day, 0, 0)
+        val start = LocalDateTime.of(year, month, day, 0, 0).minusHours(9)
         val end = start.plusDays(7)
         return ResponseEntity.ok(reservationService.getRoomReservationsBetween(roomId, start, end))
     }
