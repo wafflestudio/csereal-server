@@ -166,6 +166,7 @@ class AcademicsServiceImpl(
     @Transactional(readOnly = true)
     override fun readDegreeRequirements(language: String): DegreeRequirementsPageResponse {
         val enumLanguageType = LanguageType.makeStringToLanguageType(language)
+        /*
         val academicsEntity =
             academicsRepository.findByLanguageAndStudentTypeAndPostType(
                 enumLanguageType,
@@ -173,17 +174,27 @@ class AcademicsServiceImpl(
                 AcademicsPostType.DEGREE_REQUIREMENTS
             )
 
-        val yearList =
-            academicsRepository.findAllByLanguageAndStudentTypeAndPostTypeOrderByYearDesc(
+        val attachments =
+            academicsRepository.findByLanguageAndStudentTypeAndPostType(
                 enumLanguageType,
                 AcademicsStudentType.UNDERGRADUATE,
-                AcademicsPostType.DEGREE_REQUIREMENTS_YEAR_LIST
-            ).map {
-                val attachments = attachmentService.createAttachmentResponses(it.attachments)
-                DegreeRequirementsDto.of(it, attachments)
+                AcademicsPostType.DEGREE_REQUIREMENTS
+            ).attachments.map {
+                val attachmentResponse =
+                    attachmentService.createAttachmentResponses(it)
             }
 
-        return DegreeRequirementsPageResponse.of(academicsEntity, yearList)
+         */
+
+        val academicsEntity =
+            academicsRepository.findByLanguageAndStudentTypeAndPostType(
+                enumLanguageType,
+                AcademicsStudentType.UNDERGRADUATE,
+                AcademicsPostType.DEGREE_REQUIREMENTS
+            )
+
+        val attachments = attachmentService.createAttachmentResponses(academicsEntity.attachments)
+        return DegreeRequirementsPageResponse.of(academicsEntity, attachments)
     }
 
     @Transactional
