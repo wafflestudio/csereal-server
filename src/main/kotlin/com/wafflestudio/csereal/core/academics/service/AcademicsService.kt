@@ -166,25 +166,6 @@ class AcademicsServiceImpl(
     @Transactional(readOnly = true)
     override fun readDegreeRequirements(language: String): DegreeRequirementsPageResponse {
         val enumLanguageType = LanguageType.makeStringToLanguageType(language)
-        /*
-        val academicsEntity =
-            academicsRepository.findByLanguageAndStudentTypeAndPostType(
-                enumLanguageType,
-                AcademicsStudentType.UNDERGRADUATE,
-                AcademicsPostType.DEGREE_REQUIREMENTS
-            )
-
-        val attachments =
-            academicsRepository.findByLanguageAndStudentTypeAndPostType(
-                enumLanguageType,
-                AcademicsStudentType.UNDERGRADUATE,
-                AcademicsPostType.DEGREE_REQUIREMENTS
-            ).attachments.map {
-                val attachmentResponse =
-                    attachmentService.createAttachmentResponses(it)
-            }
-
-         */
 
         val academicsEntity =
             academicsRepository.findByLanguageAndStudentTypeAndPostType(
