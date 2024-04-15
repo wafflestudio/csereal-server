@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.user.api
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.mockauth.CustomPrincipal
+import com.wafflestudio.csereal.core.user.dto.ReservationAuthResponse
 import com.wafflestudio.csereal.core.user.dto.StaffAuthResponse
 import com.wafflestudio.csereal.core.user.service.UserService
 import org.springframework.http.ResponseEntity
@@ -31,6 +32,23 @@ class UserController(
             ResponseEntity.ok(StaffAuthResponse(true))
         } else {
             ResponseEntity.ok(StaffAuthResponse(false))
+        }
+    }
+
+    @GetMapping("/is-authorized")
+    fun isAuthorized(authentication: Authentication?): ResponseEntity<ReservationAuthResponse> {
+        val principal = authentication?.principal ?: throw CserealException.Csereal401("로그인이 필요합니다.")
+
+        val username = when (principal) {
+            is OidcUser -> principal.idToken.getClaim("username")
+            is CustomPrincipal -> principal.userEntity.username
+            else -> throw CserealException.Csereal401("Unsupported principal type")
+        }
+
+        return if (userService.checkReservationAuth(username)) {
+            ResponseEntity.ok(ReservationAuthResponse(true))
+        } else {
+            ResponseEntity.ok(ReservationAuthResponse(false))
         }
     }
 }
