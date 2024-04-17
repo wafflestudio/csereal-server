@@ -1,16 +1,17 @@
 package com.wafflestudio.csereal.core.academics.dto
 
 import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
+import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 
 class DegreeRequirementsPageResponse(
     val description: String,
-    val yearList: List<DegreeRequirementsDto>
+    val attachments: List<AttachmentResponse>
 ) {
     companion object {
-        fun of(entity: AcademicsEntity, yearList: List<DegreeRequirementsDto>) = entity.run {
+        fun of(entity: AcademicsEntity, attachments: List<AttachmentResponse>) = entity.run {
             DegreeRequirementsPageResponse(
                 description = this.description,
-                yearList = yearList
+                attachments = attachments
             )
         }
     }
