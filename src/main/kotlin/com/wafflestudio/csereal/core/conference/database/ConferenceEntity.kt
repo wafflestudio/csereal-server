@@ -15,6 +15,7 @@ class ConferenceEntity(
     var code: String,
     var abbreviation: String,
     var name: String,
+    var ackIf: Int?,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conference_page_id")
@@ -33,7 +34,8 @@ class ConferenceEntity(
             code = conferenceDto.code,
             abbreviation = conferenceDto.abbreviation,
             name = conferenceDto.name,
-            conferencePage = conferencePage
+            conferencePage = conferencePage,
+            ackIf = conferenceDto.ackIf
         )
     }
 

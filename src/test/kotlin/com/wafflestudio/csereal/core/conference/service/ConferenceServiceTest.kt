@@ -81,21 +81,24 @@ class ConferenceServiceTest(
                     code = "code1",
                     name = "name1",
                     abbreviation = "abbreviation1",
-                    conferencePage = conferencePage
+                    conferencePage = conferencePage,
+                    ackIf = 1
                 ),
                 ConferenceEntity(
                     language = LanguageType.KO,
                     code = "code2",
                     name = "name2",
                     abbreviation = "abbreviation2",
-                    conferencePage = conferencePage
+                    conferencePage = conferencePage,
+                    ackIf = 1
                 ),
                 ConferenceEntity(
                     language = LanguageType.KO,
                     code = "code3",
                     name = "name3",
                     abbreviation = "abbreviation3",
-                    conferencePage = conferencePage
+                    conferencePage = conferencePage,
+                    ackIf = 1
                 )
             )
         )
@@ -112,13 +115,15 @@ class ConferenceServiceTest(
                 language = "ko",
                 code = "code0",
                 name = "modifiedName",
-                abbreviation = "modifiedAbbreviation"
+                abbreviation = "modifiedAbbreviation",
+                ackIf = 1
             )
             val newConference = ConferenceDto(
                 language = "ko",
                 code = "code9",
                 name = "newName",
-                abbreviation = "newAbbreviation"
+                abbreviation = "newAbbreviation",
+                ackIf = 1
             )
             val conferenceModifyRequest = ConferenceModifyRequest(
                 deleteConferenceIdList = listOf(deleteConferenceId),
