@@ -10,7 +10,8 @@ data class ConferenceDto(
     val language: String,
     val code: String,
     val abbreviation: String,
-    val name: String
+    val name: String,
+    val ackIf: Int?
 ) {
     companion object {
         fun of(conferenceEntity: ConferenceEntity): ConferenceDto {
@@ -19,7 +20,8 @@ data class ConferenceDto(
                 language = LanguageType.makeLowercase(conferenceEntity.language),
                 code = conferenceEntity.code,
                 abbreviation = conferenceEntity.abbreviation,
-                name = conferenceEntity.name
+                name = conferenceEntity.name,
+                ackIf = conferenceEntity.ackIf
             )
         }
     }
