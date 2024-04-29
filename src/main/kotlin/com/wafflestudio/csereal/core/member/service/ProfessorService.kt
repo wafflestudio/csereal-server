@@ -116,7 +116,14 @@ class ProfessorServiceImpl(
                 SimpleProfessorDto.of(it, imageURL)
             }
                 .sortedWith { a, b ->
+
                     when {
+                        enumLanguageType == LanguageType.EN -> {
+                            val lastNameA = a.name.split(" ").last()
+                            val lastNameB = b.name.split(" ").last()
+                            lastNameA.compareTo(lastNameB)
+                        }
+
                         startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
                         !startsWithEnglish(a.name) && startsWithEnglish(b.name) -> -1
                         else -> a.name.compareTo(b.name)
@@ -138,6 +145,12 @@ class ProfessorServiceImpl(
         }
             .sortedWith { a, b ->
                 when {
+                    enumLanguageType == LanguageType.EN -> {
+                        val lastNameA = a.name.split(" ").last()
+                        val lastNameB = b.name.split(" ").last()
+                        lastNameA.compareTo(lastNameB)
+                    }
+
                     startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
                     !startsWithEnglish(a.name) && startsWithEnglish(b.name) -> -1
                     else -> a.name.compareTo(b.name)
