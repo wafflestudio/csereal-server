@@ -12,7 +12,7 @@ class ConferencePageEntity(
     var author: UserEntity,
 
     @OneToMany(mappedBy = "conferencePage", cascade = [CascadeType.ALL], orphanRemoval = true)
-    @OrderBy("code ASC")
+    @OrderBy("name ASC")
     val conferences: MutableSet<ConferenceEntity> = mutableSetOf()
 
 ) : BaseTimeEntity() {
