@@ -17,7 +17,7 @@ data class ConferencePage(
                 author = conferencePageEntity.author.name,
                 conferenceList = conferencePageEntity.conferences.map {
                     ConferenceDto.of(it)
-                }.sortedWith(compareBy<ConferenceDto> { it.code.isBlank() }.thenBy { it.code })
+                }.sortedBy { it.name }
             )
         }
     }

@@ -12,10 +12,8 @@ class ConferenceEntity(
     var language: LanguageType,
 
     var isDeleted: Boolean = false,
-    var code: String,
     var abbreviation: String,
     var name: String,
-    var ackIf: Int?,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conference_page_id")
@@ -31,16 +29,13 @@ class ConferenceEntity(
             conferencePage: ConferencePageEntity
         ) = ConferenceEntity(
             language = languageType,
-            code = conferenceDto.code,
             abbreviation = conferenceDto.abbreviation,
             name = conferenceDto.name,
-            conferencePage = conferencePage,
-            ackIf = conferenceDto.ackIf
+            conferencePage = conferencePage
         )
     }
 
     fun update(conferenceDto: ConferenceDto) {
-        this.code = conferenceDto.code
         this.abbreviation = conferenceDto.abbreviation
         this.name = conferenceDto.name
     }

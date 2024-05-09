@@ -77,7 +77,6 @@ class ResearchSearchEntity(
 
         fun createContent(conference: ConferenceEntity) = StringBuilder().apply {
             appendLine(conference.name)
-            appendLine(conference.code)
             appendLine(conference.abbreviation)
         }.toString()
     }
@@ -86,10 +85,10 @@ class ResearchSearchEntity(
     @PreUpdate
     fun checkType() {
         if (!(
-            (research != null && lab == null && conferenceElement == null) ||
-                (research == null && lab != null && conferenceElement == null) ||
-                (research == null && lab == null && conferenceElement != null)
-            )
+                (research != null && lab == null && conferenceElement == null) ||
+                    (research == null && lab != null && conferenceElement == null) ||
+                    (research == null && lab == null && conferenceElement != null)
+                )
         ) {
             throw RuntimeException("ResearchSearchEntity must have either research or lab or conference")
         }
