@@ -108,7 +108,7 @@ class ConferenceServiceTest(
                 id = conferences.first().id,
                 language = "ko",
                 name = "modifiedName",
-                abbreviation = "modifiedAbbreviation",
+                abbreviation = "modifiedAbbreviation"
             )
             val newConference = ConferenceDto(
                 language = "ko",
