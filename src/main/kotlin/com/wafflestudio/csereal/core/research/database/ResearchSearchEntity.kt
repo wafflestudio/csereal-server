@@ -77,7 +77,6 @@ class ResearchSearchEntity(
 
         fun createContent(conference: ConferenceEntity) = StringBuilder().apply {
             appendLine(conference.name)
-            appendLine(conference.code)
             appendLine(conference.abbreviation)
         }.toString()
     }
