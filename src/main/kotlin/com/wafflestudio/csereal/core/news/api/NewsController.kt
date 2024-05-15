@@ -123,4 +123,9 @@ class NewsController(
         newsService.enrollTag(tagName["name"]!!)
         return ResponseEntity<String>("등록되었습니다. (tagName: ${tagName["name"]})", HttpStatus.OK)
     }
+
+    @GetMapping("/ids")
+    fun getAllIds(): ResponseEntity<List<Long>> {
+        return ResponseEntity.ok(newsService.getAllIds())
+    }
 }
