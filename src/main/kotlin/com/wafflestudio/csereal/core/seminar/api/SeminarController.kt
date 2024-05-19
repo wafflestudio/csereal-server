@@ -96,4 +96,9 @@ class SeminarController(
     ) {
         seminarService.deleteSeminar(seminarId)
     }
+
+    @GetMapping("/ids")
+    fun getAllIds(): ResponseEntity<List<Long>> {
+        return ResponseEntity.ok(seminarService.getAllIds())
+    }
 }

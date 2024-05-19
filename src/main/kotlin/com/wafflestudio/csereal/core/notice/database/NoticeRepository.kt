@@ -15,6 +15,7 @@ import com.wafflestudio.csereal.core.notice.dto.NoticeTotalSearchElement
 import com.wafflestudio.csereal.core.notice.dto.NoticeTotalSearchResponse
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
@@ -29,6 +30,9 @@ interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepo
     fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
         timestamp: LocalDateTime
     ): NoticeEntity?
+
+    @Query("SELECT n.id FROM notice n")
+    fun findAllIds(): List<Long>
 }
 
 interface CustomNoticeRepository {

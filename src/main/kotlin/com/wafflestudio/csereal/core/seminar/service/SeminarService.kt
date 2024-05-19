@@ -33,6 +33,7 @@ interface SeminarService {
     ): SeminarDto
 
     fun deleteSeminar(seminarId: Long)
+    fun getAllIds(): List<Long>
 }
 
 @Service
@@ -135,5 +136,10 @@ class SeminarServiceImpl(
             ?: throw CserealException.Csereal404("존재하지 않는 세미나입니다.(seminarId=$seminarId")
 
         seminar.isDeleted = true
+    }
+
+    @Transactional(readOnly = true)
+    override fun getAllIds(): List<Long> {
+        return seminarRepository.findAllIds()
     }
 }
