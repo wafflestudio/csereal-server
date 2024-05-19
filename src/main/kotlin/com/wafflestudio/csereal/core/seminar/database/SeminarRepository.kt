@@ -11,6 +11,7 @@ import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
@@ -24,6 +25,9 @@ interface SeminarRepository : JpaRepository<SeminarEntity, Long>, CustomSeminarR
     fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
         timestamp: LocalDateTime
     ): SeminarEntity?
+
+    @Query("SELECT s.id FROM seminar s")
+    fun findAllIds(): List<Long>
 }
 
 interface CustomSeminarRepository {

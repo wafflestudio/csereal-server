@@ -19,6 +19,7 @@ import com.wafflestudio.csereal.core.resource.mainImage.database.QMainImageEntit
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
@@ -32,6 +33,9 @@ interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository
     fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
         timestamp: LocalDateTime
     ): NewsEntity?
+
+    @Query("SELECT n.id FROM news n")
+    fun findAllIds(): List<Long>
 }
 
 interface CustomNewsRepository {
@@ -121,6 +125,7 @@ class NewsRepositoryImpl(
             sortBy == ContentSearchSortType.DATE || keyword.isNullOrEmpty() -> newsEntityQuery.orderBy(
                 newsEntity.createdAt.desc()
             )
+
             else /* sortBy == RELEVANCE */ -> newsEntityQuery
         }.fetch()
 

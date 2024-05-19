@@ -8,20 +8,16 @@ data class ConferenceDto(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     val id: Long? = null,
     val language: String,
-    val code: String,
     val abbreviation: String,
-    val name: String,
-    val ackIf: Int?
+    val name: String
 ) {
     companion object {
         fun of(conferenceEntity: ConferenceEntity): ConferenceDto {
             return ConferenceDto(
                 id = conferenceEntity.id,
                 language = LanguageType.makeLowercase(conferenceEntity.language),
-                code = conferenceEntity.code,
                 abbreviation = conferenceEntity.abbreviation,
-                name = conferenceEntity.name,
-                ackIf = conferenceEntity.ackIf
+                name = conferenceEntity.name
             )
         }
     }
