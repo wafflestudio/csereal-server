@@ -25,7 +25,6 @@ import java.time.LocalDateTime
 
 interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository {
     fun findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse(): List<NewsEntity>
-    fun findAllByIsImportantTrueAndIsDeletedFalse(): List<NewsEntity>
     fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
         timestamp: LocalDateTime
     ): NewsEntity?
@@ -123,7 +122,7 @@ class NewsRepositoryImpl(
 
         val newsEntityList = when {
             sortBy == ContentSearchSortType.DATE || keyword.isNullOrEmpty() -> newsEntityQuery.orderBy(
-                newsEntity.createdAt.desc()
+                newsEntity.date.desc()
             )
 
             else /* sortBy == RELEVANCE */ -> newsEntityQuery
