@@ -2,8 +2,10 @@ package com.wafflestudio.csereal.core.main.api
 
 import com.wafflestudio.csereal.core.main.dto.MainResponse
 import com.wafflestudio.csereal.core.main.service.MainService
+import jakarta.validation.constraints.Positive
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RequestMapping("/api/v1")
@@ -12,8 +14,12 @@ class MainController(
     private val mainService: MainService
 ) {
     @GetMapping
-    fun readMain(): MainResponse {
-        return mainService.readMain()
+    fun readMain(
+        @RequestParam(required = false, defaultValue = "3")
+        @Positive
+        importantCnt: Int
+    ): MainResponse {
+        return mainService.readMain(importantCnt)
     }
 
     @GetMapping("/search/refresh")
