@@ -7,6 +7,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
+import com.wafflestudio.csereal.core.main.dto.MainImportantResponse
 import com.wafflestudio.csereal.core.notice.database.QNoticeEntity.noticeEntity
 import com.wafflestudio.csereal.core.notice.database.QNoticeTagEntity.noticeTagEntity
 import com.wafflestudio.csereal.core.notice.dto.NoticeSearchDto
@@ -20,9 +21,6 @@ import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepository {
-    fun findByIdAndIsPrivateFalse(id: Long): NoticeEntity?
-    fun findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse(): List<NoticeEntity>
-    fun findAllByIsImportantTrueAndIsDeletedFalse(): List<NoticeEntity>
     fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
         timestamp: LocalDateTime
     ): NoticeEntity?
@@ -46,6 +44,8 @@ interface CustomNoticeRepository {
     ): NoticeSearchResponse
 
     fun totalSearchNotice(keyword: String, number: Int, stringLength: Int, isStaff: Boolean): NoticeTotalSearchResponse
+
+    fun findImportantNotice(cnt: Int): List<MainImportantResponse>
 }
 
 @Component
@@ -187,4 +187,25 @@ class NoticeRepositoryImpl(
 
         return NoticeSearchResponse(total, noticeSearchDtoList)
     }
+
+    override fun findImportantNotice(cnt: Int): List<MainImportantResponse> =
+        queryFactory.select(
+            Projections.constructor(
+                MainImportantResponse::class.java,
+                noticeEntity.id,
+                noticeEntity.titleForMain,
+                noticeEntity.title,
+                noticeEntity.plainTextDescription,
+                noticeEntity.createdAt,
+                Expressions.constant("notice")
+            )
+        ).from(noticeEntity)
+            .where(
+                noticeEntity.isImportant.isTrue(),
+                noticeEntity.isPrivate.isFalse(),
+                noticeEntity.isDeleted.isFalse()
+            ).orderBy(
+                noticeEntity.createdAt.desc()
+            ).limit(cnt.toLong())
+            .fetch()
 }
