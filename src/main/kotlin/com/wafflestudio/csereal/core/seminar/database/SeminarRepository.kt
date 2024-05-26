@@ -1,10 +1,13 @@
 package com.wafflestudio.csereal.core.seminar.database
 
 import com.querydsl.core.BooleanBuilder
+import com.querydsl.core.types.Projections
+import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
+import com.wafflestudio.csereal.core.main.dto.MainImportantResponse
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.core.seminar.database.QSeminarEntity.seminarEntity
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchDto
@@ -16,8 +19,6 @@ import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 interface SeminarRepository : JpaRepository<SeminarEntity, Long>, CustomSeminarRepository {
-    fun findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse(): List<SeminarEntity>
-    fun findAllByIsImportantTrueAndIsDeletedFalse(): List<SeminarEntity>
     fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
         timestamp: LocalDateTime
     ): SeminarEntity?
@@ -38,6 +39,8 @@ interface CustomSeminarRepository {
         sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): SeminarSearchResponse
+
+    fun findImportantSeminar(cnt: Int): List<MainImportantResponse>
 }
 
 @Component
@@ -133,4 +136,25 @@ class SeminarRepositoryImpl(
 
         return SeminarSearchResponse(total, seminarSearchDtoList)
     }
+
+    override fun findImportantSeminar(cnt: Int): List<MainImportantResponse> =
+        queryFactory.select(
+            Projections.constructor(
+                MainImportantResponse::class.java,
+                seminarEntity.id,
+                seminarEntity.titleForMain,
+                seminarEntity.title,
+                seminarEntity.plainTextDescription,
+                seminarEntity.createdAt,
+                Expressions.constant("seminar")
+            )
+        ).from(seminarEntity)
+            .where(
+                seminarEntity.isImportant.isTrue(),
+                seminarEntity.isDeleted.isFalse(),
+                seminarEntity.isPrivate.isFalse()
+            ).orderBy(
+                seminarEntity.createdAt.desc()
+            ).limit(cnt.toLong())
+            .fetch()
 }

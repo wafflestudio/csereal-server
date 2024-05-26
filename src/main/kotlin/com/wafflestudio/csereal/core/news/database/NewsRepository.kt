@@ -1,12 +1,15 @@
 package com.wafflestudio.csereal.core.news.database
 
 import com.querydsl.core.BooleanBuilder
+import com.querydsl.core.types.Projections
+import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
 import com.wafflestudio.csereal.core.admin.dto.AdminSlideElement
 import com.wafflestudio.csereal.core.admin.dto.AdminSlidesResponse
+import com.wafflestudio.csereal.core.main.dto.MainImportantResponse
 import com.wafflestudio.csereal.core.news.database.QNewsEntity.newsEntity
 import com.wafflestudio.csereal.core.news.database.QNewsTagEntity.newsTagEntity
 import com.wafflestudio.csereal.core.news.database.QTagInNewsEntity.tagInNewsEntity
@@ -24,7 +27,6 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository {
-    fun findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse(): List<NewsEntity>
     fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
         timestamp: LocalDateTime
     ): NewsEntity?
@@ -56,6 +58,7 @@ interface CustomNewsRepository {
     ): NewsTotalSearchDto
 
     fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse
+    fun findImportantNews(cnt: Int): List<MainImportantResponse>
 }
 
 @Repository
@@ -236,4 +239,25 @@ class NewsRepositoryImpl(
             }
         )
     }
+
+    override fun findImportantNews(cnt: Int): List<MainImportantResponse> =
+        queryFactory.select(
+            Projections.constructor(
+                MainImportantResponse::class.java,
+                newsEntity.id,
+                newsEntity.titleForMain,
+                newsEntity.title,
+                newsEntity.plainTextDescription,
+                newsEntity.createdAt,
+                Expressions.constant("news")
+            )
+        ).from(newsEntity)
+            .where(
+                newsEntity.isImportant.isTrue(),
+                newsEntity.isPrivate.isFalse(),
+                newsEntity.isDeleted.isFalse()
+            ).orderBy(
+                newsEntity.createdAt.desc()
+            ).limit(cnt.toLong())
+            .fetch()
 }

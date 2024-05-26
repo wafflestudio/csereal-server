@@ -2,35 +2,28 @@ package com.wafflestudio.csereal.core.main.database
 
 import com.querydsl.core.types.Projections
 import com.querydsl.jpa.impl.JPAQueryFactory
-import com.wafflestudio.csereal.core.main.dto.MainImportantResponse
 import com.wafflestudio.csereal.core.main.dto.MainNoticeResponse
 import com.wafflestudio.csereal.core.main.dto.MainSlideResponse
-import com.wafflestudio.csereal.core.news.database.NewsRepository
 import com.wafflestudio.csereal.core.news.database.QNewsEntity.newsEntity
-import com.wafflestudio.csereal.core.notice.database.NoticeRepository
 import com.wafflestudio.csereal.core.notice.database.QNoticeEntity.noticeEntity
 import com.wafflestudio.csereal.core.notice.database.QNoticeTagEntity.noticeTagEntity
 import com.wafflestudio.csereal.core.notice.database.QTagInNoticeEntity.tagInNoticeEntity
 import com.wafflestudio.csereal.core.notice.database.TagInNoticeEnum
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
-import com.wafflestudio.csereal.core.seminar.database.SeminarRepository
 
 import org.springframework.stereotype.Component
 
+// TODO: Refactor to each repository (and service)
 interface MainRepository {
     fun readMainSlide(): List<MainSlideResponse>
     fun readMainNoticeTotal(): List<MainNoticeResponse>
     fun readMainNoticeTag(tagEnum: TagInNoticeEnum): List<MainNoticeResponse>
-    fun readMainImportant(): List<MainImportantResponse>
 }
 
 @Component
 class MainRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
-    private val mainImageService: MainImageService,
-    private val noticeRepository: NoticeRepository,
-    private val newsRepository: NewsRepository,
-    private val seminarRepository: SeminarRepository
+    private val mainImageService: MainImageService
 ) : MainRepository {
     override fun readMainSlide(): List<MainSlideResponse> {
         val newsEntityList = queryFactory.selectFrom(newsEntity)
@@ -84,47 +77,5 @@ class MainRepositoryImpl(
             .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPrivate.eq(false))
             .orderBy(noticeTagEntity.notice.createdAt.desc())
             .limit(6).distinct().fetch()
-    }
-
-    override fun readMainImportant(): List<MainImportantResponse> {
-        val mainImportantResponses: MutableList<MainImportantResponse> = mutableListOf()
-        noticeRepository.findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse().forEach {
-            mainImportantResponses.add(
-                MainImportantResponse(
-                    id = it.id,
-                    title = it.titleForMain ?: it.title,
-                    description = it.plainTextDescription,
-                    createdAt = it.createdAt,
-                    category = "notice"
-                )
-            )
-        }
-
-        newsRepository.findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse().forEach {
-            mainImportantResponses.add(
-                MainImportantResponse(
-                    id = it.id,
-                    title = it.titleForMain ?: it.title,
-                    description = it.plainTextDescription,
-                    createdAt = it.createdAt,
-                    category = "news"
-                )
-            )
-        }
-
-        seminarRepository.findAllByIsPrivateFalseAndIsImportantTrueAndIsDeletedFalse().forEach {
-            mainImportantResponses.add(
-                MainImportantResponse(
-                    id = it.id,
-                    title = it.titleForMain ?: it.title,
-                    description = it.plainTextDescription,
-                    createdAt = it.createdAt,
-                    category = "seminar"
-                )
-            )
-        }
-        mainImportantResponses.sortByDescending { it.createdAt }
-
-        return mainImportantResponses.take(2)
     }
 }
