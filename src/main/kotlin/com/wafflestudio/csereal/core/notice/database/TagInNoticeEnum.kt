@@ -9,7 +9,7 @@ enum class TagInNoticeEnum(val krName: String) {
     OUTER_EVENTS_PROGRAMS("외부행사/프로그램"), FOREIGN("foreign");
 
     companion object {
-        private val lookupMap: Map<String, TagInNoticeEnum> = values().associateBy(TagInNoticeEnum::krName)
+        private val lookupMap: Map<String, TagInNoticeEnum> = entries.associateBy(TagInNoticeEnum::krName)
 
         fun getTagEnum(t: String): TagInNoticeEnum {
             return lookupMap[t] ?: throw CserealException.Csereal404("태그를 찾을 수 없습니다: $t")
