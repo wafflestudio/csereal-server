@@ -28,8 +28,8 @@ class NoticeController(
     fun searchNotice(
         @RequestParam(required = false) tag: List<String>?,
         @RequestParam(required = false) keyword: String?,
-        @RequestParam(required = false) pageNum: Int?,
-        @RequestParam(required = false, defaultValue = "20") pageSize: Int,
+        @RequestParam(required = false) @Positive pageNum: Int?,
+        @RequestParam(required = false, defaultValue = "20") @Positive pageSize: Int,
         @RequestParam(required = false, defaultValue = "DATE") sortBy: String,
         authentication: Authentication?
     ): ResponseEntity<NoticeSearchResponse> {
