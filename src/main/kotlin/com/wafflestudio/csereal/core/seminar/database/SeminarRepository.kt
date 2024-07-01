@@ -40,7 +40,7 @@ interface CustomSeminarRepository {
         isStaff: Boolean
     ): SeminarSearchResponse
 
-    fun findImportantSeminar(cnt: Int): List<MainImportantResponse>
+    fun findImportantSeminar(cnt: Int? = null): List<MainImportantResponse>
 }
 
 @Component
@@ -137,7 +137,7 @@ class SeminarRepositoryImpl(
         return SeminarSearchResponse(total, seminarSearchDtoList)
     }
 
-    override fun findImportantSeminar(cnt: Int): List<MainImportantResponse> =
+    override fun findImportantSeminar(cnt: Int?): List<MainImportantResponse> =
         queryFactory.select(
             Projections.constructor(
                 MainImportantResponse::class.java,
@@ -155,6 +155,8 @@ class SeminarRepositoryImpl(
                 seminarEntity.isPrivate.isFalse()
             ).orderBy(
                 seminarEntity.createdAt.desc()
-            ).limit(cnt.toLong())
+            ).let {
+                if (cnt != null) it.limit(cnt.toLong()) else it
+            }
             .fetch()
 }
