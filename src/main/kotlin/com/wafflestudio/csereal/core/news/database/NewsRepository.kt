@@ -58,7 +58,7 @@ interface CustomNewsRepository {
     ): NewsTotalSearchDto
 
     fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse
-    fun findImportantNews(cnt: Int): List<MainImportantResponse>
+    fun findImportantNews(cnt: Int? = null): List<MainImportantResponse>
 }
 
 @Repository
@@ -240,7 +240,7 @@ class NewsRepositoryImpl(
         )
     }
 
-    override fun findImportantNews(cnt: Int): List<MainImportantResponse> =
+    override fun findImportantNews(cnt: Int?): List<MainImportantResponse> =
         queryFactory.select(
             Projections.constructor(
                 MainImportantResponse::class.java,
@@ -258,6 +258,8 @@ class NewsRepositoryImpl(
                 newsEntity.isDeleted.isFalse()
             ).orderBy(
                 newsEntity.createdAt.desc()
-            ).limit(cnt.toLong())
+            ).let {
+                if (cnt != null) it.limit(cnt.toLong()) else it
+            }
             .fetch()
 }

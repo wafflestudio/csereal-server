@@ -14,9 +14,9 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface MainService {
-    fun readMain(importantCnt: Int): MainResponse
+    fun readMain(importantCnt: Int?): MainResponse
     fun refreshSearch()
-    fun readMainImportant(cnt: Int): List<MainImportantResponse>
+    fun readMainImportant(cnt: Int? = null): List<MainImportantResponse>
 }
 
 @Service
@@ -28,7 +28,7 @@ class MainServiceImpl(
     private val newsRepository: NewsRepository
 ) : MainService {
     @Transactional(readOnly = true)
-    override fun readMain(importantCnt: Int): MainResponse {
+    override fun readMain(importantCnt: Int?): MainResponse {
         val slides = mainRepository.readMainSlide()
 
         val noticeTotal = mainRepository.readMainNoticeTotal()
@@ -43,13 +43,15 @@ class MainServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readMainImportant(cnt: Int): List<MainImportantResponse> =
+    override fun readMainImportant(cnt: Int?): List<MainImportantResponse> =
         mutableListOf<MainImportantResponse>().apply {
             addAll(noticeRepository.findImportantNotice(cnt))
             addAll(seminarRepository.findImportantSeminar(cnt))
             addAll(newsRepository.findImportantNews(cnt))
             sortByDescending { it.createdAt }
-        }.take(cnt)
+        }.let {
+            if (cnt != null) it.take(cnt) else it
+        }
 
     override fun refreshSearch() {
         eventPublisher.publishEvent(RefreshSearchEvent())
