@@ -15,12 +15,11 @@ class MainController(
 ) {
     @GetMapping
     fun readMain(
-        @RequestParam(required = false, defaultValue = "3")
+        @RequestParam(required = false)
         @Positive
-        importantCnt: Int
-    ): MainResponse {
-        return mainService.readMain(importantCnt)
-    }
+        importantCnt: Int?
+    ): MainResponse =
+        mainService.readMain(importantCnt)
 
     @GetMapping("/search/refresh")
     fun refreshSearches() {
