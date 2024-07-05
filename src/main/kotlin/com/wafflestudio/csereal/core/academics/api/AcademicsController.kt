@@ -8,7 +8,6 @@ import com.wafflestudio.csereal.core.academics.dto.ScholarshipDto
 import com.wafflestudio.csereal.core.academics.service.AcademicsSearchService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
-import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
