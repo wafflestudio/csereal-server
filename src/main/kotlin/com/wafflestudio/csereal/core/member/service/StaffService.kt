@@ -2,6 +2,8 @@ package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.member.api.req.CreateStaffReqBody
+import com.wafflestudio.csereal.core.member.api.req.ModifyStaffReqBody
 import com.wafflestudio.csereal.core.member.database.MemberSearchEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.member.database.StaffRepository
@@ -15,13 +17,11 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface StaffService {
-    fun createStaff(createStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto
     fun getStaff(staffId: Long): StaffDto
     fun getAllStaff(language: String): List<SimpleStaffDto>
-    fun updateStaff(staffId: Long, updateStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto
     fun deleteStaff(staffId: Long)
-    fun migrateStaff(requestList: List<StaffDto>): List<StaffDto>
-    fun migrateStaffImage(staffId: Long, mainImage: MultipartFile): StaffDto
+    fun createStaff(createStaffRequest: CreateStaffReqBody, mainImage: MultipartFile?): StaffDto
+    fun updateStaff(staffId: Long, req: ModifyStaffReqBody, newImage: MultipartFile?): StaffDto
 }
 
 @Service
@@ -30,12 +30,20 @@ class StaffServiceImpl(
     private val staffRepository: StaffRepository,
     private val mainImageService: MainImageService
 ) : StaffService {
-    override fun createStaff(createStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(createStaffRequest.language)
-        val staff = StaffEntity.of(enumLanguageType, createStaffRequest)
+    override fun createStaff(createStaffRequest: CreateStaffReqBody, mainImage: MultipartFile?): StaffDto {
+        val staff = createStaffRequest.run {
+            StaffEntity(
+                language = LanguageType.makeStringToLanguageType(language),
+                name,
+                role,
+                office,
+                phone,
+                email
+            )
+        }
 
-        for (task in createStaffRequest.tasks) {
-            TaskEntity.create(task, staff)
+        createStaffRequest.tasks.forEach {
+            TaskEntity.create(it, staff)
         }
 
         if (mainImage != null) {
@@ -78,23 +86,35 @@ class StaffServiceImpl(
         return sortedStaff
     }
 
-    override fun updateStaff(staffId: Long, updateStaffRequest: StaffDto, mainImage: MultipartFile?): StaffDto {
+    override fun updateStaff(staffId: Long, req: ModifyStaffReqBody, newImage: MultipartFile?): StaffDto {
         val staff = staffRepository.findByIdOrNull(staffId)
             ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. staffId: $staffId")
 
-        staff.update(updateStaffRequest)
+        staff.run {
+            language = LanguageType.makeStringToLanguageType(req.language)
+            name = req.name
+            role = req.role
+            office = req.office
+            phone = req.phone
+            email = req.email
+        }
 
-        if (mainImage != null) {
-            mainImageService.uploadMainImage(staff, mainImage)
-        } else {
-            staff.mainImage = null
+        if (req.removeImage && newImage == null) {
+            if (staff.mainImage != null) {
+                mainImageService.removeImage(staff.mainImage!!)
+                staff.mainImage = null
+            }
+        } else if (newImage != null) {
+            staff.mainImage ?. let {
+                mainImageService.removeImage(it)
+            }
+            mainImageService.uploadMainImage(staff, newImage)
         }
 
         // 주요 업무 업데이트
         val oldTasks = staff.tasks.map { it.name }
-
-        val tasksToRemove = oldTasks - updateStaffRequest.tasks
-        val tasksToAdd = updateStaffRequest.tasks - oldTasks
+        val tasksToRemove = oldTasks - req.tasks
+        val tasksToAdd = req.tasks - oldTasks
 
         staff.tasks.removeIf { it.name in tasksToRemove }
 
@@ -103,7 +123,9 @@ class StaffServiceImpl(
         }
 
         // 검색 엔티티 업데이트
-        staff.memberSearch?.update(staff)
+        staff.memberSearch?.update(staff) ?: let {
+            staff.memberSearch = MemberSearchEntity.create(staff)
+        }
 
         val imageURL = mainImageService.createImageURL(staff.mainImage)
 
@@ -111,40 +133,11 @@ class StaffServiceImpl(
     }
 
     override fun deleteStaff(staffId: Long) {
-        staffRepository.deleteById(staffId)
-    }
-
-    @Transactional
-    override fun migrateStaff(requestList: List<StaffDto>): List<StaffDto> {
-        val list = mutableListOf<StaffDto>()
-
-        for (request in requestList) {
-            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-            val staff = StaffEntity.of(enumLanguageType, request)
-
-            for (task in request.tasks) {
-                TaskEntity.create(task, staff)
+        staffRepository.findByIdOrNull(staffId) ?. let { staff ->
+            staff.mainImage?.let {
+                mainImageService.removeImage(it)
             }
-
-            staff.memberSearch = MemberSearchEntity.create(staff)
-
-            staffRepository.save(staff)
-
-            list.add(StaffDto.of(staff, null))
+            staffRepository.delete(staff)
         }
-
-        return list
-    }
-
-    @Transactional
-    override fun migrateStaffImage(staffId: Long, mainImage: MultipartFile): StaffDto {
-        val staff = staffRepository.findByIdOrNull(staffId)
-            ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. staffId: $staffId")
-
-        mainImageService.uploadMainImage(staff, mainImage)
-
-        val imageURL = mainImageService.createImageURL(staff.mainImage)
-
-        return StaffDto.of(staff, imageURL)
     }
 }
