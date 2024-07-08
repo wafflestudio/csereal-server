@@ -1,9 +1,10 @@
 package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.member.api.req.CreateStaffReqBody
+import com.wafflestudio.csereal.core.member.api.req.ModifyStaffReqBody
 import com.wafflestudio.csereal.core.member.database.MemberSearchRepository
 import com.wafflestudio.csereal.core.member.database.StaffRepository
-import com.wafflestudio.csereal.core.member.dto.StaffDto
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
@@ -29,7 +30,7 @@ class StaffServiceTest(
     }
 
     Given("이미지 없는 행정직원을 생성하려고 할 떄") {
-        val staffDto = StaffDto(
+        val createStaffReq = CreateStaffReqBody(
             language = "ko",
             name = "name",
             role = "role",
@@ -40,7 +41,7 @@ class StaffServiceTest(
         )
 
         When("행정직원을 생성하면") {
-            val createdStaffDto = staffService.createStaff(staffDto, null)
+            val createdStaffDto = staffService.createStaff(createStaffReq, null)
 
             Then("행정직원이 생성된다") {
                 staffRepository.count() shouldBe 1
@@ -48,13 +49,13 @@ class StaffServiceTest(
             }
 
             Then("행정직원의 정보가 일치한다") {
-                val staffEntity = staffRepository.findByIdOrNull(createdStaffDto.id!!)!!
-                staffEntity.name shouldBe staffDto.name
-                staffEntity.role shouldBe staffDto.role
-                staffEntity.office shouldBe staffDto.office
-                staffEntity.phone shouldBe staffDto.phone
-                staffEntity.email shouldBe staffDto.email
-                staffEntity.tasks.map { it.name } shouldBe staffDto.tasks
+                val staffEntity = staffRepository.findByIdOrNull(createdStaffDto.id)!!
+                staffEntity.name shouldBe createStaffReq.name
+                staffEntity.role shouldBe createStaffReq.role
+                staffEntity.office shouldBe createStaffReq.office
+                staffEntity.phone shouldBe createStaffReq.phone
+                staffEntity.email shouldBe createStaffReq.email
+                staffEntity.tasks.map { it.name } shouldBe createStaffReq.tasks
             }
 
             Then("검색 정보가 생성된다") {
@@ -79,7 +80,7 @@ class StaffServiceTest(
     }
 
     Given("이미지 없는 행정직원을 수정할 때") {
-        val staffDto = StaffDto(
+        val createStaffReq = CreateStaffReqBody(
             language = "ko",
             name = "name",
             role = "role",
@@ -88,37 +89,37 @@ class StaffServiceTest(
             email = "email",
             tasks = listOf("task1", "task2")
         )
-
-        val createdStaffDto = staffService.createStaff(staffDto, null)
+        val createdStaffDto = staffService.createStaff(createStaffReq, null)
 
         When("행정직원을 수정하면") {
-            val updateStaffDto = StaffDto(
+            val modifyStaffReq = ModifyStaffReqBody(
                 language = "ko",
                 name = "name2",
                 role = "role2",
                 office = "office2",
                 phone = "phone2",
                 email = "email2",
-                tasks = listOf("task1", "task3", "task4")
+                tasks = listOf("task1", "task3", "task4"),
+                removeImage = false
             )
 
-            val updatedStaffDto = staffService.updateStaff(createdStaffDto.id!!, updateStaffDto, null)
+            val updatedStaffDto = staffService.updateStaff(createdStaffDto.id, modifyStaffReq, null)
 
             Then("행정직원의 정보가 일치한다") {
                 staffRepository.count() shouldBe 1
-                val staffEntity = staffRepository.findByIdOrNull(updatedStaffDto.id!!)!!
-                staffEntity.name shouldBe updateStaffDto.name
-                staffEntity.role shouldBe updateStaffDto.role
-                staffEntity.office shouldBe updateStaffDto.office
-                staffEntity.phone shouldBe updateStaffDto.phone
-                staffEntity.email shouldBe updateStaffDto.email
-                staffEntity.tasks.map { it.name } shouldBe updateStaffDto.tasks
+                val staffEntity = staffRepository.findByIdOrNull(updatedStaffDto.id)!!
+                staffEntity.name shouldBe modifyStaffReq.name
+                staffEntity.role shouldBe modifyStaffReq.role
+                staffEntity.office shouldBe modifyStaffReq.office
+                staffEntity.phone shouldBe modifyStaffReq.phone
+                staffEntity.email shouldBe modifyStaffReq.email
+                staffEntity.tasks.map { it.name } shouldBe modifyStaffReq.tasks
             }
 
             Then("검색 정보가 수정된다") {
                 memberSearchRepository.count() shouldBe 1
 
-                val staffEntity = staffRepository.findByIdOrNull(updatedStaffDto.id!!)!!
+                val staffEntity = staffRepository.findByIdOrNull(updatedStaffDto.id)!!
                 val memberSearch = staffEntity.memberSearch!!
 
                 memberSearch.content shouldBe """
