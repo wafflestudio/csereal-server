@@ -8,7 +8,6 @@ import com.wafflestudio.csereal.core.academics.dto.ScholarshipDto
 import com.wafflestudio.csereal.core.academics.service.AcademicsSearchService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
-import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -119,52 +118,6 @@ class AcademicsController(
         @PathVariable scholarshipId: Long
     ): ResponseEntity<ScholarshipDto> {
         return ResponseEntity.ok(academicsService.readScholarship(scholarshipId))
-    }
-
-    @Profile("!prod")
-    @PostMapping("/{studentType}/{postType}/migrate")
-    fun migrateAcademicsDetail(
-        @PathVariable studentType: String,
-        @PathVariable postType: String,
-        @RequestBody requestList: List<AcademicsDto>
-    ): ResponseEntity<List<AcademicsDto>> {
-        return ResponseEntity.ok(
-            academicsService.migrateAcademicsDetail(studentType, postType, requestList)
-        )
-    }
-
-    @Profile("!prod")
-    @PostMapping("/course/migrate/{studentType}")
-    fun migrateCourses(
-        @PathVariable studentType: String,
-        @RequestBody requestList: List<CourseDto>
-    ): ResponseEntity<List<CourseDto>> {
-        return ResponseEntity.ok(academicsService.migrateCourses(studentType, requestList))
-    }
-
-    @Profile("!prod")
-    @PostMapping("/{studentType}/scholarshipDetail/migrate")
-    fun migrateScholarshipDetail(
-        @PathVariable studentType: String,
-        @RequestBody requestList: List<ScholarshipDto>
-    ): ResponseEntity<List<ScholarshipDto>> {
-        return ResponseEntity.ok(
-            academicsService.migrateScholarshipDetail(studentType, requestList)
-        )
-    }
-
-    @Profile("!prod")
-    @PatchMapping("/migrateAttachment/{academicsId}")
-    fun migrateAcademicsDetailAttachments(
-        @PathVariable academicsId: Long,
-        @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<AcademicsDto> {
-        return ResponseEntity.ok(
-            academicsService.migrateAcademicsDetailAttachments(
-                academicsId,
-                attachments
-            )
-        )
     }
 
     @GetMapping("/search/top")

@@ -1,4 +1,6 @@
 {$URL} {
+	tls {$CERTIFICATE} {$PRIVATE_KEY}
+
 	# Frontend
 	reverse_proxy host.docker.internal:3000
 
