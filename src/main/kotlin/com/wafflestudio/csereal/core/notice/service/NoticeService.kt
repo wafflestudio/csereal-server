@@ -142,7 +142,7 @@ class NoticeServiceImpl(
 
         notice.update(request)
 
-        attachmentService.deleteAttachments(request.deleteIds)
+        attachmentService.deleteAttachmentsDeprecated(request.deleteIds)
 
         if (newAttachments != null) {
             attachmentService.uploadAllAttachments(notice, newAttachments)
