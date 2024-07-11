@@ -9,7 +9,7 @@ class MemberSearchEntity(
     @Column(columnDefinition = "TEXT")
     var content: String,
 
-    val language: LanguageType,
+    var language: LanguageType,
 
     @OneToOne
     @JoinColumn(name = "professor_id")
@@ -91,10 +91,12 @@ class MemberSearchEntity(
     }
 
     fun update(professor: ProfessorEntity) {
+        this.language = professor.language
         this.content = createContent(professor)
     }
 
     fun update(staff: StaffEntity) {
+        this.language = staff.language
         this.content = createContent(staff)
     }
 }

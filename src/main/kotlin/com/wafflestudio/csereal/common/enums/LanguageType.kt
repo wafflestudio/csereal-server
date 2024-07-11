@@ -5,6 +5,7 @@ import com.wafflestudio.csereal.common.CserealException
 enum class LanguageType {
     KO, EN;
 
+    // TODO: Define custom deserializer, serializer
     companion object {
         fun makeStringToLanguageType(language: String): LanguageType {
             try {

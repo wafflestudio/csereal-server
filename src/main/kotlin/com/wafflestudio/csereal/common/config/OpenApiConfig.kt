@@ -13,6 +13,7 @@ class OpenApiConfig {
         val info = Info()
             .title("컴퓨터공학부 홈페이지 백엔드 API")
             .description("컴퓨터공학부 홈페이지 백엔드 API 명세서입니다.")
+            .version("1")
 
         return OpenAPI()
             .components(Components())
