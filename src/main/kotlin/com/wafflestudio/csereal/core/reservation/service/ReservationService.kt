@@ -5,6 +5,7 @@ import com.wafflestudio.csereal.core.reservation.database.*
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
+import com.wafflestudio.csereal.core.user.database.Role
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.data.repository.findByIdOrNull
@@ -40,6 +41,10 @@ class ReservationServiceImpl(
             "loggedInUser",
             RequestAttributes.SCOPE_REQUEST
         ) as UserEntity? ?: userRepository.findByUsername("devUser")!!
+
+        if (reserveRequest.roomId == 8.toLong() && user.role != Role.ROLE_STAFF) {
+            throw CserealException.Csereal403("교수회의실 예약 행정실 문의 바람")
+        }
 
         val room =
             roomRepository.findByIdOrNull(reserveRequest.roomId) ?: throw CserealException.Csereal404("Room Not Found")
