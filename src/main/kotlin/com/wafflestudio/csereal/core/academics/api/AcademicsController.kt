@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.academics.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.academics.api.req.UpdateGuideReq
 import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.academics.service.AcademicsService
 import com.wafflestudio.csereal.core.academics.dto.ScholarshipDto
@@ -40,6 +41,15 @@ class AcademicsController(
     ): ResponseEntity<GuidePageResponse> {
         return ResponseEntity.ok(academicsService.readGuide(language, studentType))
     }
+
+    @AuthenticatedStaff
+    @PutMapping("/{studentType}/guide")
+    fun updateGuide(
+        @RequestParam(required = false, defaultValue = "ko") language: String,
+        @PathVariable studentType: String,
+        @RequestPart request: UpdateGuideReq,
+        @RequestPart newAttachments: List<MultipartFile>?
+    ) = academicsService.updateGuide(language, studentType, request, newAttachments)
 
     @GetMapping("/undergraduate/general-studies-requirements")
     fun readGeneralStudiesRequirements(
