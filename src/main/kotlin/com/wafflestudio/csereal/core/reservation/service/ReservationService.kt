@@ -42,7 +42,7 @@ class ReservationServiceImpl(
             RequestAttributes.SCOPE_REQUEST
         ) as UserEntity? ?: userRepository.findByUsername("devUser")!!
 
-        if (reserveRequest.roomId == 8.toLong() && user.role != Role.ROLE_STAFF) {
+        if (reserveRequest.roomId == 8L && user.role != Role.ROLE_STAFF) {
             throw CserealException.Csereal403("교수회의실 예약 행정실 문의 바람")
         }
 
