@@ -289,3 +289,4 @@ db/
 # caddy server
 caddy/*
 !caddy/Caddyfile
+!caddy/Caddyfile.dev
