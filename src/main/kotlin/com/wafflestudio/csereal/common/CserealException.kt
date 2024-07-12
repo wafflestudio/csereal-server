@@ -7,4 +7,5 @@ open class CserealException(msg: String, val status: HttpStatus) : RuntimeExcept
     class Csereal404(msg: String) : CserealException(msg, HttpStatus.NOT_FOUND)
     class Csereal401(msg: String) : CserealException(msg, HttpStatus.UNAUTHORIZED)
     class Csereal409(msg: String) : CserealException(msg, HttpStatus.CONFLICT)
+    class Csereal403(msg: String) : CserealException(msg, HttpStatus.FORBIDDEN)
 }
