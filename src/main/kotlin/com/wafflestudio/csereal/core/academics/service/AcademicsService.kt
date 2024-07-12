@@ -126,8 +126,13 @@ class AcademicsServiceImpl(
                 enumStudentType,
                 AcademicsPostType.GUIDE
             )
+
         academicsEntity.description = request.description
-        attachmentService.deleteAttachmentsDeprecated(request.deleteIds)
+        academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
+            academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
+        }
+
+        attachmentService.deleteAttachments(request.deleteIds)
         if (newAttachments != null) {
             attachmentService.uploadAllAttachments(academicsEntity, newAttachments)
         }
