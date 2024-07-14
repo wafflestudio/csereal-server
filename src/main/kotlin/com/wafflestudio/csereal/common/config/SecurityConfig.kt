@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
@@ -34,6 +35,9 @@ class SecurityConfig(
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         return http
             .cors { }
+            .csrf { csrf ->
+                csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            }
             .oauth2Login { oauth2 ->
                 oauth2
                     .loginPage("$loginPage/oauth2/authorization/idsnucse")
@@ -43,7 +47,7 @@ class SecurityConfig(
                     .userInfoEndpoint { userInfo ->
                         userInfo.oidcUserService(customOidcUserService)
                     }
-                    .successHandler(CustomAuthenticationSuccessHandler(endpointProperties.frontend))
+                    .successHandler(CustomAuthenticationSuccessHandler(endpointProperties.backend))
             }
             .logout { logout ->
                 logout
