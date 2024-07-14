@@ -31,8 +31,6 @@ interface ProfessorService {
         mainImage: MultipartFile?
     ): ProfessorDto
     fun deleteProfessor(professorId: Long)
-    fun migrateProfessors(requestList: List<ProfessorDto>): List<ProfessorDto>
-    fun migrateProfessorImage(professorId: Long, mainImage: MultipartFile): ProfessorDto
 }
 
 @Service
@@ -274,53 +272,5 @@ class ProfessorServiceImpl(
         applicationEventPublisher.publishEvent(
             ProfessorDeletedEvent.of(professorEntity)
         )
-    }
-
-    @Transactional
-    override fun migrateProfessors(requestList: List<ProfessorDto>): List<ProfessorDto> {
-        val list = mutableListOf<ProfessorDto>()
-
-        for (request in requestList) {
-            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-            val professor = ProfessorEntity.of(enumLanguageType, request)
-            if (request.labName != null) {
-                val lab = labRepository.findByName(request.labName)
-                    ?: throw CserealException.Csereal404(
-                        "해당 연구실을 찾을 수 없습니다. LabName: ${request.labName}"
-                    )
-                professor.addLab(lab)
-            }
-
-            for (education in request.educations) {
-                EducationEntity.create(education, professor)
-            }
-
-            for (researchArea in request.researchAreas) {
-                ResearchAreaEntity.create(researchArea, professor)
-            }
-
-            for (career in request.careers) {
-                CareerEntity.create(career, professor)
-            }
-
-            professor.memberSearch = MemberSearchEntity.create(professor)
-
-            professorRepository.save(professor)
-
-            list.add(ProfessorDto.of(professor, null))
-        }
-        return list
-    }
-
-    @Transactional
-    override fun migrateProfessorImage(professorId: Long, mainImage: MultipartFile): ProfessorDto {
-        val professor = professorRepository.findByIdOrNull(professorId)
-            ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다. professorId: $professorId")
-
-        mainImageService.uploadMainImage(professor, mainImage)
-
-        val imageURL = mainImageService.createImageURL(professor.mainImage)
-
-        return ProfessorDto.of(professor, imageURL)
     }
 }
