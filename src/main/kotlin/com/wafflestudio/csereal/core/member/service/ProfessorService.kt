@@ -3,6 +3,8 @@ package com.wafflestudio.csereal.core.member.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.startsWithEnglish
+import com.wafflestudio.csereal.core.member.api.req.CreateProfessorReqBody
+import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorReqBody
 import com.wafflestudio.csereal.core.member.database.*
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
@@ -19,16 +21,15 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface ProfessorService {
-    fun createProfessor(createProfessorRequest: ProfessorDto, mainImage: MultipartFile?): ProfessorDto
+    fun createProfessor(createProfessorRequest: CreateProfessorReqBody, mainImage: MultipartFile?): ProfessorDto
     fun getProfessor(professorId: Long): ProfessorDto
     fun getActiveProfessors(language: String): ProfessorPageDto
     fun getInactiveProfessors(language: String): List<SimpleProfessorDto>
     fun updateProfessor(
         professorId: Long,
-        updateProfessorRequest: ProfessorDto,
+        updateProfessorRequest: ModifyProfessorReqBody,
         mainImage: MultipartFile?
     ): ProfessorDto
-
     fun deleteProfessor(professorId: Long)
     fun migrateProfessors(requestList: List<ProfessorDto>): List<ProfessorDto>
     fun migrateProfessorImage(professorId: Long, mainImage: MultipartFile): ProfessorDto
@@ -43,11 +44,26 @@ class ProfessorServiceImpl(
     private val applicationEventPublisher: ApplicationEventPublisher
 ) : ProfessorService {
     override fun createProfessor(
-        createProfessorRequest: ProfessorDto,
+        createProfessorRequest: CreateProfessorReqBody,
         mainImage: MultipartFile?
     ): ProfessorDto {
         val enumLanguageType = LanguageType.makeStringToLanguageType(createProfessorRequest.language)
-        val professor = ProfessorEntity.of(enumLanguageType, createProfessorRequest)
+        val professor = createProfessorRequest.run {
+            ProfessorEntity(
+                language = enumLanguageType,
+                name = name,
+                status = status,
+                academicRank = academicRank,
+                startDate = startDate,
+                endDate = endDate,
+                office = office,
+                phone = phone,
+                fax = fax,
+                email = email,
+                website = website
+            )
+        }
+
         if (createProfessorRequest.labId != null) {
             val lab = labRepository.findByIdOrNull(createProfessorRequest.labId)
                 ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다. LabId: ${createProfessorRequest.labId}")
@@ -160,62 +176,76 @@ class ProfessorServiceImpl(
 
     override fun updateProfessor(
         professorId: Long,
-        updateProfessorRequest: ProfessorDto,
-        mainImage: MultipartFile?
+        updateReq: ModifyProfessorReqBody,
+        newImage: MultipartFile?
     ): ProfessorDto {
         val professor = professorRepository.findByIdOrNull(professorId)
             ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다. professorId: $professorId")
 
+        // Lab 업데이트
         val outdatedLabId = professor.lab?.id
-
-        if (updateProfessorRequest.labId != null && updateProfessorRequest.labId != professor.lab?.id) {
-            val lab = labRepository.findByIdOrNull(updateProfessorRequest.labId)
+        if (updateReq.labId != null && updateReq.labId != professor.lab?.id) {
+            val lab = labRepository.findByIdOrNull(updateReq.labId)
                 ?: throw CserealException.Csereal404(
-                    "해당 연구실을 찾을 수 없습니다. LabId: ${updateProfessorRequest.labId}"
+                    "해당 연구실을 찾을 수 없습니다. LabId: ${updateReq.labId}"
                 )
             professor.addLab(lab)
         }
 
-        professor.update(updateProfessorRequest)
+        // 교수 정보 업데이트
+        updateReq.let {
+            professor.run {
+                language = LanguageType.makeStringToLanguageType(it.language)
+                name = it.name
+                status = it.status
+                academicRank = it.academicRank
+                startDate = it.startDate
+                endDate = it.endDate
+                office = it.office
+                phone = it.phone
+                fax = it.fax
+                email = it.email
+                website = it.website
+            }
+        }
 
-        if (mainImage != null) {
-            mainImageService.uploadMainImage(professor, mainImage)
-        } else {
-            professor.mainImage = null
+        // Main Image 업데이트
+        if (updateReq.removeImage && newImage == null) {
+            if (professor.mainImage != null) {
+                mainImageService.removeImage(professor.mainImage!!)
+                professor.mainImage = null
+            }
+        } else if (newImage != null) {
+            professor.mainImage?.let {
+                mainImageService.removeImage(it)
+            }
+            mainImageService.uploadMainImage(professor, newImage)
         }
 
         // 학력 업데이트
         val oldEducations = professor.educations.map { it.name }
 
-        val educationsToRemove = oldEducations - updateProfessorRequest.educations
-        val educationsToAdd = updateProfessorRequest.educations - oldEducations
-
+        val educationsToRemove = oldEducations - updateReq.educations
+        val educationsToAdd = updateReq.educations - oldEducations
         professor.educations.removeIf { it.name in educationsToRemove }
-
         for (education in educationsToAdd) {
             EducationEntity.create(education, professor)
         }
 
         // 연구 분야 업데이트
         val oldResearchAreas = professor.researchAreas.map { it.name }
-
-        val researchAreasToRemove = oldResearchAreas - updateProfessorRequest.researchAreas
-        val researchAreasToAdd = updateProfessorRequest.researchAreas - oldResearchAreas
-
+        val researchAreasToRemove = oldResearchAreas - updateReq.researchAreas
+        val researchAreasToAdd = updateReq.researchAreas - oldResearchAreas
         professor.researchAreas.removeIf { it.name in researchAreasToRemove }
-
         for (researchArea in researchAreasToAdd) {
             ResearchAreaEntity.create(researchArea, professor)
         }
 
         // 경력 업데이트
         val oldCareers = professor.careers.map { it.name }
-
-        val careersToRemove = oldCareers - updateProfessorRequest.careers
-        val careersToAdd = updateProfessorRequest.careers - oldCareers
-
+        val careersToRemove = oldCareers - updateReq.careers
+        val careersToAdd = updateReq.careers - oldCareers
         professor.careers.removeIf { it.name in careersToRemove }
-
         for (career in careersToAdd) {
             CareerEntity.create(career, professor)
         }
@@ -229,14 +259,17 @@ class ProfessorServiceImpl(
         )
 
         val imageURL = mainImageService.createImageURL(professor.mainImage)
-
         return ProfessorDto.of(professor, imageURL)
     }
 
     override fun deleteProfessor(professorId: Long) {
         val professorEntity = professorRepository.findByIdOrNull(professorId) ?: return
 
-        professorRepository.deleteById(professorId)
+        professorEntity.mainImage?.let {
+            mainImageService.removeImage(it)
+        }
+
+        professorRepository.delete(professorEntity)
 
         applicationEventPublisher.publishEvent(
             ProfessorDeletedEvent.of(professorEntity)
