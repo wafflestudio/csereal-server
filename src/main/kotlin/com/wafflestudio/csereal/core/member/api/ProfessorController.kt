@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.member.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
+import com.wafflestudio.csereal.core.member.api.req.CreateProfessorReqBody
+import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorReqBody
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
 import com.wafflestudio.csereal.core.member.dto.SimpleProfessorDto
@@ -19,10 +21,10 @@ class ProfessorController(
     @AuthenticatedStaff
     @PostMapping
     fun createProfessor(
-        @RequestPart("request") createProfessorRequest: ProfessorDto,
+        @RequestPart("request") createProfessorRequest: CreateProfessorReqBody,
         @RequestPart("mainImage") mainImage: MultipartFile?
-    ): ResponseEntity<ProfessorDto> {
-        return ResponseEntity.ok(professorService.createProfessor(createProfessorRequest, mainImage))
+    ): ProfessorDto {
+        return professorService.createProfessor(createProfessorRequest, mainImage)
     }
 
     @GetMapping("/{professorId}")
@@ -45,14 +47,14 @@ class ProfessorController(
     }
 
     @AuthenticatedStaff
-    @PatchMapping("/{professorId}")
+    @PostMapping("/{professorId}")
     fun updateProfessor(
         @PathVariable professorId: Long,
-        @RequestPart("request") updateProfessorRequest: ProfessorDto,
-        @RequestPart("mainImage") mainImage: MultipartFile?
+        @RequestPart("request") updateProfessorRequest: ModifyProfessorReqBody,
+        @RequestPart("newImage") newImage: MultipartFile?
     ): ResponseEntity<ProfessorDto> {
         return ResponseEntity.ok(
-            professorService.updateProfessor(professorId, updateProfessorRequest, mainImage)
+            professorService.updateProfessor(professorId, updateProfessorRequest, newImage)
         )
     }
 
