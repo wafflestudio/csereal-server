@@ -35,10 +35,12 @@ interface AttachmentService {
         contentEntityType: AttachmentContentEntityType,
         requestAttachments: List<MultipartFile>
     ): List<AttachmentDto>
+
     fun createOneAttachmentResponse(attachment: AttachmentEntity?): AttachmentResponse?
     fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse>
 
     fun deleteAttachment(attachment: AttachmentEntity)
+    fun deleteAttachments(ids: List<Long>?)
     fun deleteAttachmentsDeprecated(ids: List<Long>?)
     fun deleteAttachmentDeprecated(attachment: AttachmentEntity)
 }
@@ -172,6 +174,17 @@ class AttachmentServiceImpl(
         val fileDirectory = path + attachment.filename
         attachmentRepository.delete(attachment)
         eventPublisher.publishEvent(FileDeleteEvent(fileDirectory))
+    }
+
+    @Transactional
+    override fun deleteAttachments(ids: List<Long>?) {
+        if (ids != null) {
+            for (id in ids) {
+                val attachment = attachmentRepository.findByIdOrNull(id)
+                    ?: throw CserealException.Csereal404("id:${id}인 첨부파일을 찾을 수 없습니다.")
+                deleteAttachment(attachment)
+            }
+        }
     }
 
     private fun connectAttachmentToEntity(contentEntity: AttachmentContentEntityType, attachment: AttachmentEntity) {
