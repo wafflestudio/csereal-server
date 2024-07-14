@@ -33,23 +33,31 @@ class SecurityConfig(
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         return http
-            .cors().and()
-            .csrf().disable()
-            .oauth2Login()
-            .loginPage("$loginPage/oauth2/authorization/idsnucse")
-            .redirectionEndpoint()
-            .baseUri("/api/v1/login/oauth2/code/idsnucse").and()
-            .userInfoEndpoint().oidcUserService(customOidcUserService).and()
-            .successHandler(CustomAuthenticationSuccessHandler(endpointProperties.frontend)).and()
-            .logout()
-            .logoutUrl("/api/v1/logout")
-            .logoutSuccessHandler(oidcLogoutSuccessHandler())
-            .invalidateHttpSession(true)
-            .clearAuthentication(true)
-            .deleteCookies("JSESSIONID").and()
-            .authorizeHttpRequests()
-            .requestMatchers("/api/v1/login").authenticated()
-            .anyRequest().permitAll().and()
+            .cors { }
+            .oauth2Login { oauth2 ->
+                oauth2
+                    .loginPage("$loginPage/oauth2/authorization/idsnucse")
+                    .redirectionEndpoint { redirect ->
+                        redirect.baseUri("/api/v1/login/oauth2/code/idsnucse")
+                    }
+                    .userInfoEndpoint { userInfo ->
+                        userInfo.oidcUserService(customOidcUserService)
+                    }
+                    .successHandler(CustomAuthenticationSuccessHandler(endpointProperties.frontend))
+            }
+            .logout { logout ->
+                logout
+                    .logoutUrl("/api/v1/logout")
+                    .logoutSuccessHandler(oidcLogoutSuccessHandler())
+                    .invalidateHttpSession(true)
+                    .clearAuthentication(true)
+                    .deleteCookies("JSESSIONID")
+            }
+            .authorizeHttpRequests { auth ->
+                auth
+                    .requestMatchers("/api/v1/login").authenticated()
+                    .anyRequest().permitAll()
+            }
             .build()
     }
 
