@@ -7,6 +7,7 @@ import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
 import com.wafflestudio.csereal.core.member.dto.SimpleProfessorDto
 import com.wafflestudio.csereal.core.member.service.ProfessorService
+import io.swagger.v3.oas.annotations.Parameter
 import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -51,7 +52,10 @@ class ProfessorController(
     fun updateProfessor(
         @PathVariable professorId: Long,
         @RequestPart("request") updateProfessorRequest: ModifyProfessorReqBody,
-        @RequestPart("newImage") newImage: MultipartFile?
+
+        @Parameter(description = "image 교체할 경우 업로드. Request Body의 removeImage 관계없이 변경됨.")
+        @RequestPart("newImage")
+        newImage: MultipartFile?
     ): ResponseEntity<ProfessorDto> {
         return ResponseEntity.ok(
             professorService.updateProfessor(professorId, updateProfessorRequest, newImage)
