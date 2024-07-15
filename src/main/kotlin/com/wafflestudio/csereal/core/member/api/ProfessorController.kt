@@ -47,7 +47,7 @@ class ProfessorController(
     }
 
     @AuthenticatedStaff
-    @PostMapping("/{professorId}")
+    @PutMapping("/{professorId}")
     fun updateProfessor(
         @PathVariable professorId: Long,
         @RequestPart("request") updateProfessorRequest: ModifyProfessorReqBody,
