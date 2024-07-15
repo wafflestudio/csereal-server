@@ -25,7 +25,9 @@ server:
             max: 32
     servlet:
         session:
-            timeout: 7200 # 2시간
+            timeout: 32400 # 9시간
+            cookie:
+                same-site: lax
 
 springdoc:
     paths-to-match:
