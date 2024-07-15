@@ -1,14 +1,12 @@
 package com.wafflestudio.csereal.core.member.dto
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
 import java.time.LocalDate
 
 data class ProfessorDto(
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    var id: Long? = null,
+    var id: Long,
     val language: String,
     val name: String,
     val status: ProfessorStatus,
@@ -25,9 +23,7 @@ data class ProfessorDto(
     val educations: List<String>,
     val researchAreas: List<String>,
     val careers: List<String>,
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     var imageURL: String? = null
-
 ) {
     companion object {
         fun of(professorEntity: ProfessorEntity, imageURL: String?): ProfessorDto {

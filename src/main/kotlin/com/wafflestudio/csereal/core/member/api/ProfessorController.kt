@@ -1,11 +1,13 @@
 package com.wafflestudio.csereal.core.member.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
+import com.wafflestudio.csereal.core.member.api.req.CreateProfessorReqBody
+import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorReqBody
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
 import com.wafflestudio.csereal.core.member.dto.SimpleProfessorDto
 import com.wafflestudio.csereal.core.member.service.ProfessorService
-import org.springframework.context.annotation.Profile
+import io.swagger.v3.oas.annotations.Parameter
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -19,10 +21,10 @@ class ProfessorController(
     @AuthenticatedStaff
     @PostMapping
     fun createProfessor(
-        @RequestPart("request") createProfessorRequest: ProfessorDto,
+        @RequestPart("request") createProfessorRequest: CreateProfessorReqBody,
         @RequestPart("mainImage") mainImage: MultipartFile?
-    ): ResponseEntity<ProfessorDto> {
-        return ResponseEntity.ok(professorService.createProfessor(createProfessorRequest, mainImage))
+    ): ProfessorDto {
+        return professorService.createProfessor(createProfessorRequest, mainImage)
     }
 
     @GetMapping("/{professorId}")
@@ -45,14 +47,17 @@ class ProfessorController(
     }
 
     @AuthenticatedStaff
-    @PatchMapping("/{professorId}")
+    @PutMapping("/{professorId}")
     fun updateProfessor(
         @PathVariable professorId: Long,
-        @RequestPart("request") updateProfessorRequest: ProfessorDto,
-        @RequestPart("mainImage") mainImage: MultipartFile?
+        @RequestPart("request") updateProfessorRequest: ModifyProfessorReqBody,
+
+        @Parameter(description = "image 교체할 경우 업로드. Request Body의 removeImage 관계없이 변경됨.")
+        @RequestPart("newImage")
+        newImage: MultipartFile?
     ): ResponseEntity<ProfessorDto> {
         return ResponseEntity.ok(
-            professorService.updateProfessor(professorId, updateProfessorRequest, mainImage)
+            professorService.updateProfessor(professorId, updateProfessorRequest, newImage)
         )
     }
 
@@ -61,22 +66,5 @@ class ProfessorController(
     fun deleteProfessor(@PathVariable professorId: Long): ResponseEntity<Any> {
         professorService.deleteProfessor(professorId)
         return ResponseEntity.ok().build()
-    }
-
-    @Profile("!prod")
-    @PostMapping("/migrate")
-    fun migrateProfessors(
-        @RequestBody requestList: List<ProfessorDto>
-    ): ResponseEntity<List<ProfessorDto>> {
-        return ResponseEntity.ok(professorService.migrateProfessors(requestList))
-    }
-
-    @Profile("!prod")
-    @PatchMapping("/migrateImage/{professorId}")
-    fun migrateProfessorImage(
-        @PathVariable professorId: Long,
-        @RequestPart("mainImage") mainImage: MultipartFile
-    ): ResponseEntity<ProfessorDto> {
-        return ResponseEntity.ok(professorService.migrateProfessorImage(professorId, mainImage))
     }
 }

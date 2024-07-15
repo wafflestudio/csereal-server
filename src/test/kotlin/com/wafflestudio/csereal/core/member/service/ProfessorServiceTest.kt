@@ -1,10 +1,11 @@
 package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.member.api.req.CreateProfessorReqBody
+import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorReqBody
 import com.wafflestudio.csereal.core.member.database.MemberSearchRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
-import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.research.database.*
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
@@ -59,14 +60,13 @@ class ProfessorServiceTest(
         researchRepository.save(researchEntity)
         labEntity = labRepository.save(labEntity)
 
-        val professorDto = ProfessorDto(
+        val professorCreateReq = CreateProfessorReqBody(
             language = "ko",
             name = "name",
             email = "email",
             status = ProfessorStatus.ACTIVE,
             academicRank = "academicRank",
             labId = labEntity.id,
-            labName = null,
             startDate = date,
             endDate = date,
             office = "office",
@@ -79,7 +79,7 @@ class ProfessorServiceTest(
         )
 
         When("교수를 생성한다면") {
-            val createdProfessorDto = professorService.createProfessor(professorDto, null)
+            val createdProfessorDto = professorService.createProfessor(professorCreateReq, null)
 
             Then("교수가 생성되어야 한다") {
                 professorRepository.count() shouldBe 1
@@ -89,20 +89,20 @@ class ProfessorServiceTest(
             Then("교수의 정보가 일치해야 한다") {
                 val professorEntity = professorRepository.findByIdOrNull(createdProfessorDto.id)!!
 
-                professorEntity.name shouldBe professorDto.name
-                professorEntity.email shouldBe professorDto.email
-                professorEntity.status shouldBe professorDto.status
-                professorEntity.academicRank shouldBe professorDto.academicRank
+                professorEntity.name shouldBe professorCreateReq.name
+                professorEntity.email shouldBe professorCreateReq.email
+                professorEntity.status shouldBe professorCreateReq.status
+                professorEntity.academicRank shouldBe professorCreateReq.academicRank
                 professorEntity.lab shouldBe labEntity
-                professorEntity.startDate shouldBe professorDto.startDate
-                professorEntity.endDate shouldBe professorDto.endDate
-                professorEntity.office shouldBe professorDto.office
-                professorEntity.phone shouldBe professorDto.phone
-                professorEntity.fax shouldBe professorDto.fax
-                professorEntity.website shouldBe professorDto.website
-                professorEntity.educations.map { it.name } shouldBe professorDto.educations
-                professorEntity.researchAreas.map { it.name } shouldBe professorDto.researchAreas
-                professorEntity.careers.map { it.name } shouldBe professorDto.careers
+                professorEntity.startDate shouldBe professorCreateReq.startDate
+                professorEntity.endDate shouldBe professorCreateReq.endDate
+                professorEntity.office shouldBe professorCreateReq.office
+                professorEntity.phone shouldBe professorCreateReq.phone
+                professorEntity.fax shouldBe professorCreateReq.fax
+                professorEntity.website shouldBe professorCreateReq.website
+                professorEntity.educations.map { it.name } shouldBe professorCreateReq.educations
+                professorEntity.researchAreas.map { it.name } shouldBe professorCreateReq.researchAreas
+                professorEntity.careers.map { it.name } shouldBe professorCreateReq.careers
             }
 
             Then("교수의 검색 정보가 생성되어야 한다") {
@@ -173,14 +173,13 @@ class ProfessorServiceTest(
         researchRepository.save(researchEntity)
 
         val createdProfessorDto = professorService.createProfessor(
-            ProfessorDto(
+            CreateProfessorReqBody(
                 language = "ko",
                 name = "name",
                 email = "email",
                 status = ProfessorStatus.ACTIVE,
                 academicRank = "academicRank",
                 labId = labEntity1.id,
-                labName = null,
                 startDate = date,
                 endDate = date,
                 office = "office",
@@ -195,7 +194,8 @@ class ProfessorServiceTest(
         )
 
         When("교수 정보를 수정하면") {
-            val toModifyProfessorDto = createdProfessorDto.copy(
+            val modifyProfessorReq = ModifyProfessorReqBody(
+                language = "ko",
                 name = "modifiedName",
                 email = "modifiedEmail",
                 status = ProfessorStatus.INACTIVE,
@@ -209,12 +209,13 @@ class ProfessorServiceTest(
                 website = "modifiedWebsite",
                 educations = listOf("education1", "modifiedEducation2", "modifiedEducation3"),
                 researchAreas = listOf("researchArea1", "modifiedResearchArea2", "modifiedResearchArea3"),
-                careers = listOf("career1", "modifiedCareer2", "modifiedCareer3")
+                careers = listOf("career1", "modifiedCareer2", "modifiedCareer3"),
+                removeImage = false
             )
 
             val modifiedProfessorDto = professorService.updateProfessor(
-                toModifyProfessorDto.id!!,
-                toModifyProfessorDto,
+                createdProfessorDto.id,
+                modifyProfessorReq,
                 null
             )
 
@@ -223,20 +224,20 @@ class ProfessorServiceTest(
                 val professorEntity = professorRepository.findByIdOrNull(modifiedProfessorDto.id)
                 professorEntity shouldNotBe null
 
-                professorEntity!!.name shouldBe toModifyProfessorDto.name
-                professorEntity.email shouldBe toModifyProfessorDto.email
-                professorEntity.status shouldBe toModifyProfessorDto.status
-                professorEntity.academicRank shouldBe toModifyProfessorDto.academicRank
+                professorEntity!!.name shouldBe modifyProfessorReq.name
+                professorEntity.email shouldBe modifyProfessorReq.email
+                professorEntity.status shouldBe modifyProfessorReq.status
+                professorEntity.academicRank shouldBe modifyProfessorReq.academicRank
                 professorEntity.lab shouldBe labEntity2
-                professorEntity.startDate shouldBe toModifyProfessorDto.startDate
-                professorEntity.endDate shouldBe toModifyProfessorDto.endDate
-                professorEntity.office shouldBe toModifyProfessorDto.office
-                professorEntity.phone shouldBe toModifyProfessorDto.phone
-                professorEntity.fax shouldBe toModifyProfessorDto.fax
-                professorEntity.website shouldBe toModifyProfessorDto.website
-                professorEntity.educations.map { it.name } shouldBe toModifyProfessorDto.educations
-                professorEntity.researchAreas.map { it.name } shouldBe toModifyProfessorDto.researchAreas
-                professorEntity.careers.map { it.name } shouldBe toModifyProfessorDto.careers
+                professorEntity.startDate shouldBe modifyProfessorReq.startDate
+                professorEntity.endDate shouldBe modifyProfessorReq.endDate
+                professorEntity.office shouldBe modifyProfessorReq.office
+                professorEntity.phone shouldBe modifyProfessorReq.phone
+                professorEntity.fax shouldBe modifyProfessorReq.fax
+                professorEntity.website shouldBe modifyProfessorReq.website
+                professorEntity.educations.map { it.name } shouldBe modifyProfessorReq.educations
+                professorEntity.researchAreas.map { it.name } shouldBe modifyProfessorReq.researchAreas
+                professorEntity.careers.map { it.name } shouldBe modifyProfessorReq.careers
             }
 
             Then("검색 정보가 수정되어야 한다.") {
