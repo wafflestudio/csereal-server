@@ -289,7 +289,7 @@ class ResearchServiceImpl(
 
         // update pdf
         if (request.pdfModified) {
-            labEntity.pdf?.let { attachmentService.deleteAttachment(it) }
+            labEntity.pdf?.let { attachmentService.deleteAttachmentDeprecated(it) }
 
             pdf?.let {
                 val attachmentDto = attachmentService.uploadAttachmentInLabEntity(labEntity, it)

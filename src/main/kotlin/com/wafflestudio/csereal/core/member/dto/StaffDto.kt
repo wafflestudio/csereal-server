@@ -1,12 +1,10 @@
 package com.wafflestudio.csereal.core.member.dto
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 
 data class StaffDto(
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    var id: Long? = null,
+    var id: Long,
     val language: String,
     val name: String,
     val role: String,
@@ -14,8 +12,7 @@ data class StaffDto(
     val phone: String,
     val email: String,
     val tasks: List<String>,
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    val imageURL: String? = null
+    val imageURL: String?
 ) {
     companion object {
         fun of(staffEntity: StaffEntity, imageURL: String?): StaffDto {

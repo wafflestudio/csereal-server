@@ -45,7 +45,7 @@ interface CustomNoticeRepository {
 
     fun totalSearchNotice(keyword: String, number: Int, stringLength: Int, isStaff: Boolean): NoticeTotalSearchResponse
 
-    fun findImportantNotice(cnt: Int): List<MainImportantResponse>
+    fun findImportantNotice(cnt: Int? = null): List<MainImportantResponse>
 }
 
 @Component
@@ -188,7 +188,7 @@ class NoticeRepositoryImpl(
         return NoticeSearchResponse(total, noticeSearchDtoList)
     }
 
-    override fun findImportantNotice(cnt: Int): List<MainImportantResponse> =
+    override fun findImportantNotice(cnt: Int?): List<MainImportantResponse> =
         queryFactory.select(
             Projections.constructor(
                 MainImportantResponse::class.java,
@@ -206,6 +206,8 @@ class NoticeRepositoryImpl(
                 noticeEntity.isDeleted.isFalse()
             ).orderBy(
                 noticeEntity.createdAt.desc()
-            ).limit(cnt.toLong())
+            ).let {
+                if (cnt != null) { it.limit(cnt.toLong()) } else it
+            }
             .fetch()
 }

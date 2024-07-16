@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.academics.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.academics.api.req.UpdateSingleReq
 import com.wafflestudio.csereal.core.academics.database.*
 import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
@@ -29,6 +30,7 @@ interface AcademicsService {
 
     fun readGeneralStudiesRequirements(language: String): GeneralStudiesRequirementsPageResponse
     fun readDegreeRequirements(language: String): DegreeRequirementsPageResponse
+    fun updateDegreeRequirements(language: String, request: UpdateSingleReq, newAttachments: List<MultipartFile>?)
     fun createCourse(
         studentType: String,
         request: CourseDto,
@@ -44,22 +46,12 @@ interface AcademicsService {
 
     fun readAllScholarship(language: String, studentType: String): ScholarshipPageResponse
     fun readScholarship(scholarshipId: Long): ScholarshipDto
-    fun migrateAcademicsDetail(
+    fun updateGuide(
+        language: String,
         studentType: String,
-        postType: String,
-        requestList: List<AcademicsDto>
-    ): List<AcademicsDto>
-
-    fun migrateCourses(studentType: String, requestList: List<CourseDto>): List<CourseDto>
-    fun migrateScholarshipDetail(
-        studentType: String,
-        requestList: List<ScholarshipDto>
-    ): List<ScholarshipDto>
-
-    fun migrateAcademicsDetailAttachments(
-        academicsId: Long,
-        attachments: List<MultipartFile>?
-    ): AcademicsDto
+        request: UpdateSingleReq,
+        newAttachments: List<MultipartFile>?
+    )
 }
 
 // TODO: add Update, Delete method
@@ -119,6 +111,34 @@ class AcademicsServiceImpl(
         return GuidePageResponse.of(academicsEntity, attachmentResponses)
     }
 
+    @Transactional
+    override fun updateGuide(
+        language: String,
+        studentType: String,
+        request: UpdateSingleReq,
+        newAttachments: List<MultipartFile>?
+    ) {
+        val languageType = LanguageType.makeStringToLanguageType(language)
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+
+        val academicsEntity =
+            academicsRepository.findByLanguageAndStudentTypeAndPostType(
+                languageType,
+                enumStudentType,
+                AcademicsPostType.GUIDE
+            )
+
+        academicsEntity.description = request.description
+        academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
+            academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
+        }
+
+        attachmentService.deleteAttachments(request.deleteIds)
+        if (newAttachments != null) {
+            attachmentService.uploadAllAttachments(academicsEntity, newAttachments)
+        }
+    }
+
     @Transactional(readOnly = true)
     override fun readAcademicsYearResponses(
         language: String,
@@ -176,6 +196,32 @@ class AcademicsServiceImpl(
 
         val attachments = attachmentService.createAttachmentResponses(academicsEntity.attachments)
         return DegreeRequirementsPageResponse.of(academicsEntity, attachments)
+    }
+
+    @Transactional
+    override fun updateDegreeRequirements(
+        language: String,
+        request: UpdateSingleReq,
+        newAttachments: List<MultipartFile>?
+    ) {
+        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
+
+        val academicsEntity =
+            academicsRepository.findByLanguageAndStudentTypeAndPostType(
+                enumLanguageType,
+                AcademicsStudentType.UNDERGRADUATE,
+                AcademicsPostType.DEGREE_REQUIREMENTS
+            )
+
+        academicsEntity.description = request.description
+        academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
+            academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
+        }
+
+        attachmentService.deleteAttachments(request.deleteIds)
+        if (newAttachments != null) {
+            attachmentService.uploadAllAttachments(academicsEntity, newAttachments)
+        }
     }
 
     @Transactional
@@ -268,104 +314,6 @@ class AcademicsServiceImpl(
         val scholarship = scholarshipRepository.findByIdOrNull(scholarshipId)
             ?: throw CserealException.Csereal404("해당하는 장학제도를 찾을 수 없습니다")
         return ScholarshipDto.of(scholarship)
-    }
-
-    @Transactional
-    override fun migrateAcademicsDetail(
-        studentType: String,
-        postType: String,
-        requestList: List<AcademicsDto>
-    ): List<AcademicsDto> {
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val enumPostType = makeStringToAcademicsPostType(postType)
-        val list = mutableListOf<AcademicsDto>()
-        for (request in requestList) {
-            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-            val newAcademics = AcademicsEntity.of(
-                enumStudentType,
-                enumPostType,
-                enumLanguageType,
-                request
-            )
-
-            newAcademics.apply {
-                academicsSearch = AcademicsSearchEntity.create(this)
-            }
-
-            academicsRepository.save(newAcademics)
-
-            list.add(AcademicsDto.of(newAcademics, listOf()))
-        }
-
-        return list
-    }
-
-    @Transactional
-    override fun migrateCourses(
-        studentType: String,
-        requestList: List<CourseDto>
-    ): List<CourseDto> {
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val list = mutableListOf<CourseDto>()
-        for (request in requestList) {
-            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-            val newCourse = CourseEntity.of(enumStudentType, enumLanguageType, request)
-
-            newCourse.apply {
-                academicsSearch = AcademicsSearchEntity.create(this)
-            }
-            courseRepository.save(newCourse)
-
-            list.add(CourseDto.of(newCourse, listOf()))
-        }
-
-        return list
-    }
-
-    @Transactional
-    override fun migrateScholarshipDetail(
-        studentType: String,
-        requestList: List<ScholarshipDto>
-    ): List<ScholarshipDto> {
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val list = mutableListOf<ScholarshipDto>()
-        for (request in requestList) {
-            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-            val newScholarship = ScholarshipEntity.of(
-                enumLanguageType,
-                enumStudentType,
-                request
-            )
-
-            newScholarship.apply {
-                academicsSearch = AcademicsSearchEntity.create(this)
-            }
-
-            scholarshipRepository.save(newScholarship)
-
-            list.add(ScholarshipDto.of(newScholarship))
-        }
-
-        return list
-    }
-
-    @Transactional
-    override fun migrateAcademicsDetailAttachments(
-        academicsId: Long,
-        attachments: List<MultipartFile>?
-    ): AcademicsDto {
-        val academics = academicsRepository.findByIdOrNull(academicsId)
-            ?: throw CserealException.Csereal404("해당 내용을 찾을 수 없습니다.")
-
-        if (attachments != null) {
-            attachmentService.uploadAllAttachments(academics, attachments)
-        }
-
-        val attachmentResponses = attachmentService.createAttachmentResponses(
-            academics.attachments
-        )
-
-        return AcademicsDto.of(academics, attachmentResponses)
     }
 
     private fun makeStringToAcademicsStudentType(postType: String): AcademicsStudentType {

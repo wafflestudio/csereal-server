@@ -74,19 +74,6 @@ class ProfessorEntity(
         this.lab = lab
         lab.professors.add(this)
     }
-
-    fun update(updateProfessorRequest: ProfessorDto) {
-        this.name = updateProfessorRequest.name
-        this.status = updateProfessorRequest.status
-        this.academicRank = updateProfessorRequest.academicRank
-        this.startDate = updateProfessorRequest.startDate
-        this.endDate = updateProfessorRequest.endDate
-        this.office = updateProfessorRequest.office
-        this.phone = updateProfessorRequest.phone
-        this.fax = updateProfessorRequest.fax
-        this.email = updateProfessorRequest.email
-        this.website = updateProfessorRequest.website
-    }
 }
 
 enum class ProfessorStatus(

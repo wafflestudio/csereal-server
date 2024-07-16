@@ -14,8 +14,10 @@ import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEnti
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentRepository
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentDto
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
+import com.wafflestudio.csereal.core.resource.common.event.FileDeleteEvent
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -33,11 +35,14 @@ interface AttachmentService {
         contentEntityType: AttachmentContentEntityType,
         requestAttachments: List<MultipartFile>
     ): List<AttachmentDto>
+
     fun createOneAttachmentResponse(attachment: AttachmentEntity?): AttachmentResponse?
     fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse>
 
-    fun deleteAttachments(ids: List<Long>?)
     fun deleteAttachment(attachment: AttachmentEntity)
+    fun deleteAttachments(ids: List<Long>?)
+    fun deleteAttachmentsDeprecated(ids: List<Long>?)
+    fun deleteAttachmentDeprecated(attachment: AttachmentEntity)
 }
 
 @Service
@@ -45,7 +50,8 @@ class AttachmentServiceImpl(
     private val attachmentRepository: AttachmentRepository,
     @Value("\${csereal.upload.path}")
     private val path: String,
-    private val endpointProperties: EndpointProperties
+    private val endpointProperties: EndpointProperties,
+    private val eventPublisher: ApplicationEventPublisher
 ) : AttachmentService {
     override fun uploadAttachmentInLabEntity(labEntity: LabEntity, requestAttachment: MultipartFile): AttachmentDto {
         Files.createDirectories(Paths.get(path))
@@ -148,12 +154,35 @@ class AttachmentServiceImpl(
     }
 
     @Transactional
-    override fun deleteAttachments(ids: List<Long>?) {
+    override fun deleteAttachmentsDeprecated(ids: List<Long>?) {
         if (ids != null) {
             for (id in ids) {
                 val attachment = attachmentRepository.findByIdOrNull(id)
                     ?: throw CserealException.Csereal404("id:${id}인 첨부파일을 찾을 수 없습니다.")
                 attachment.isDeleted = true
+            }
+        }
+    }
+
+    @Transactional
+    override fun deleteAttachmentDeprecated(attachment: AttachmentEntity) {
+        attachment.isDeleted = true
+    }
+
+    @Transactional
+    override fun deleteAttachment(attachment: AttachmentEntity) {
+        val fileDirectory = path + attachment.filename
+        attachmentRepository.delete(attachment)
+        eventPublisher.publishEvent(FileDeleteEvent(fileDirectory))
+    }
+
+    @Transactional
+    override fun deleteAttachments(ids: List<Long>?) {
+        if (ids != null) {
+            for (id in ids) {
+                val attachment = attachmentRepository.findByIdOrNull(id)
+                    ?: throw CserealException.Csereal404("id:${id}인 첨부파일을 찾을 수 없습니다.")
+                deleteAttachment(attachment)
             }
         }
     }
@@ -195,10 +224,5 @@ class AttachmentServiceImpl(
                 attachment.research = contentEntity
             }
         }
-    }
-
-    @Transactional
-    override fun deleteAttachment(attachment: AttachmentEntity) {
-        attachment.isDeleted = true
     }
 }

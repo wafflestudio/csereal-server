@@ -143,7 +143,7 @@ class NewsServiceImpl(
             mainImageService.uploadMainImage(news, newMainImage)
         }
 
-        attachmentService.deleteAttachments(request.deleteIds)
+        attachmentService.deleteAttachmentsDeprecated(request.deleteIds)
 
         if (newAttachments != null) {
             attachmentService.uploadAllAttachments(news, newAttachments)

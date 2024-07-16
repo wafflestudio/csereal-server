@@ -1,9 +1,10 @@
 package com.wafflestudio.csereal.core.reseach.service
 
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.member.api.req.CreateProfessorReqBody
+import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorReqBody
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
-import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.member.service.ProfessorService
 import com.wafflestudio.csereal.core.research.database.*
 import com.wafflestudio.csereal.core.research.dto.LabDto
@@ -47,14 +48,13 @@ class ResearchSearchServiceTest(
         Given("기존 lab이 존재할 때") {
             // Save professors
             val professor1Dto = professorService.createProfessor(
-                createProfessorRequest = ProfessorDto(
+                CreateProfessorReqBody(
                     language = "ko",
                     name = "professor1",
                     email = null,
                     status = ProfessorStatus.ACTIVE,
                     academicRank = "professor",
                     labId = null,
-                    labName = null,
                     startDate = null,
                     endDate = null,
                     office = null,
@@ -68,14 +68,13 @@ class ResearchSearchServiceTest(
                 mainImage = null
             )
             val professor2Dto = professorService.createProfessor(
-                createProfessorRequest = ProfessorDto(
+                CreateProfessorReqBody(
                     language = "ko",
                     name = "professor2",
                     email = null,
                     status = ProfessorStatus.ACTIVE,
                     academicRank = "professor",
                     labId = null,
-                    labName = null,
                     startDate = null,
                     endDate = null,
                     office = null,
@@ -166,14 +165,13 @@ class ResearchSearchServiceTest(
 
             When("professor가 추가된다면") {
                 val process3CreatedDto = professorService.createProfessor(
-                    createProfessorRequest = ProfessorDto(
+                    CreateProfessorReqBody(
                         language = "ko",
                         name = "newProfessor",
                         email = "email",
                         status = ProfessorStatus.ACTIVE,
                         academicRank = "academicRank",
                         labId = createdLabDto.id,
-                        labName = null,
                         startDate = LocalDate.now(),
                         endDate = LocalDate.now(),
                         office = "office",
@@ -212,8 +210,26 @@ class ResearchSearchServiceTest(
             When("professor가 수정된다면") {
                 professorService.updateProfessor(
                     professor2.id,
-                    ProfessorDto.of(professor2, null)
-                        .copy(name = "updateProfessor", labId = createdEmptyLabDto.id),
+                    professor2.run {
+                        ModifyProfessorReqBody(
+                            language = "ko",
+                            name = "updateProfessor",
+                            status = status,
+                            academicRank = academicRank,
+                            labId = createdEmptyLabDto.id,
+                            startDate = startDate,
+                            endDate = endDate,
+                            office = office,
+                            phone = phone,
+                            fax = fax,
+                            email = email,
+                            website = website,
+                            educations = educations.map { it.name },
+                            researchAreas = researchAreas.map { it.name },
+                            careers = careers.map { it.name },
+                            removeImage = false
+                        )
+                    },
                     mainImage = null
                 )
 

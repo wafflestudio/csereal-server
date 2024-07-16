@@ -8,6 +8,7 @@ import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.research.database.ResearchEntity
+import com.wafflestudio.csereal.core.resource.common.event.FileDeleteEvent
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageRepository
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.resource.mainImage.dto.MainImageDto
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import org.apache.commons.io.FilenameUtils
+import org.springframework.context.ApplicationEventPublisher
 import java.lang.invoke.WrongMethodTypeException
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -28,6 +30,8 @@ interface MainImageService {
     ): MainImageDto
 
     fun createImageURL(image: MainImageEntity?): String?
+
+    fun removeImage(image: MainImageEntity)
 }
 
 @Service
@@ -35,7 +39,8 @@ class MainImageServiceImpl(
     private val mainImageRepository: MainImageRepository,
     @Value("\${csereal.upload.path}")
     private val path: String,
-    private val endpointProperties: EndpointProperties
+    private val endpointProperties: EndpointProperties,
+    private val eventPublisher: ApplicationEventPublisher
 ) : MainImageService {
 
     @Transactional
@@ -74,6 +79,7 @@ class MainImageServiceImpl(
         )
     }
 
+    // TODO: `MainImageEntity`의 메서드로 refactoring하기.
     @Transactional
     override fun createImageURL(mainImage: MainImageEntity?): String? {
         return if (mainImage != null) {
@@ -83,6 +89,14 @@ class MainImageServiceImpl(
         }
     }
 
+    @Transactional
+    override fun removeImage(image: MainImageEntity) {
+        val fileDirectory = path + image.filename
+        mainImageRepository.delete(image)
+        eventPublisher.publishEvent(FileDeleteEvent(fileDirectory))
+    }
+
+    // TODO: 각 entity의 interface로 refactoring하기.
     private fun connectMainImageToEntity(contentEntity: MainImageContentEntityType, mainImage: MainImageEntity) {
         when (contentEntity) {
             is NewsEntity -> {

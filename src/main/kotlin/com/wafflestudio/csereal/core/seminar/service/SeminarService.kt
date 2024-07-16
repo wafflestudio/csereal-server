@@ -118,7 +118,7 @@ class SeminarServiceImpl(
             mainImageService.uploadMainImage(seminar, newMainImage)
         }
 
-        attachmentService.deleteAttachments(request.deleteIds)
+        attachmentService.deleteAttachmentsDeprecated(request.deleteIds)
 
         if (newAttachments != null) {
             attachmentService.uploadAllAttachments(seminar, newAttachments)

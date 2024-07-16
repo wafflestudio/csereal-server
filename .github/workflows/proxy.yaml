@@ -21,6 +21,8 @@ jobs:
         run: |
           echo "URL=${{secrets.URL}}" > .env
           echo "LOCAL_IP=${{secrets.LOCAL_IP}}" >> .env
+          echo "CERTIFICATE=${{secrets.CERTIFICATE}}" >> .env
+          echo "PRIVATE_KEY=${{secrets.PRIVATE_KEY}}" >> .env
 
       -
         name: SCP Command to Transfer Files
