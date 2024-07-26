@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.academics.api
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.academics.api.req.CreateYearReq
 import com.wafflestudio.csereal.core.academics.api.req.UpdateSingleReq
 import com.wafflestudio.csereal.core.academics.api.req.UpdateYearReq
 import com.wafflestudio.csereal.core.academics.dto.*
@@ -71,13 +72,32 @@ class AcademicsController(
     }
 
     @AuthenticatedStaff
-    @PutMapping("/{studentType}/{postType}")
+    @PostMapping("/{studentType}/{postType}")
+    fun createAcademicsYearResponse(
+        @RequestParam(required = false, defaultValue = "ko") language: String,
+        @PathVariable studentType: String,
+        @PathVariable postType: String,
+        @RequestBody request: CreateYearReq
+    ) = academicsService.createAcademicsYearResponse(language, studentType, postType, request)
+
+    @AuthenticatedStaff
+    @PutMapping("/{studentType}/{postType}/{year}")
     fun updateAcademicsYearResponse(
         @RequestParam(required = false, defaultValue = "ko") language: String,
         @PathVariable studentType: String,
         @PathVariable postType: String,
+        @PathVariable year: Int,
         @RequestBody request: UpdateYearReq
-    ) = academicsService.updateAcademicsYearResponse(language, studentType, postType, request)
+    ) = academicsService.updateAcademicsYearResponse(language, studentType, postType, year, request)
+
+    @AuthenticatedStaff
+    @DeleteMapping("/{studentType}/{postType}/{year}")
+    fun deleteAcademicsYearResponse(
+        @RequestParam(required = false, defaultValue = "ko") language: String,
+        @PathVariable studentType: String,
+        @PathVariable postType: String,
+        @PathVariable year: Int
+    ) = academicsService.deleteAcademicsYearResponse(language, studentType, postType, year)
 
     //교과목 정보
     @AuthenticatedStaff

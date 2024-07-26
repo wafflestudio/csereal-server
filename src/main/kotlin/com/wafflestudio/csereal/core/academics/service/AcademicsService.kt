@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.academics.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.academics.api.req.CreateYearReq
 import com.wafflestudio.csereal.core.academics.api.req.UpdateSingleReq
 import com.wafflestudio.csereal.core.academics.api.req.UpdateYearReq
 import com.wafflestudio.csereal.core.academics.database.*
@@ -54,7 +55,16 @@ interface AcademicsService {
         newAttachments: List<MultipartFile>?
     )
 
-    fun updateAcademicsYearResponse(language: String, studentType: String, postType: String, request: UpdateYearReq)
+    fun updateAcademicsYearResponse(
+        language: String,
+        studentType: String,
+        postType: String,
+        year: Int,
+        request: UpdateYearReq
+    )
+
+    fun deleteAcademicsYearResponse(language: String, studentType: String, postType: String, year: Int)
+    fun createAcademicsYearResponse(language: String, studentType: String, postType: String, request: CreateYearReq)
 }
 
 // TODO: add Update, Delete method
@@ -147,6 +157,7 @@ class AcademicsServiceImpl(
         language: String,
         studentType: String,
         postType: String,
+        year: Int,
         request: UpdateYearReq
     ) {
         val languageType = LanguageType.makeStringToLanguageType(language)
@@ -157,13 +168,59 @@ class AcademicsServiceImpl(
             languageType,
             enumStudentType,
             enumPostType,
-            request.year
+            year
         ) ?: throw CserealException.Csereal404("AcademicsEntity Not Found")
 
         academicsEntity.description = request.description
         academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
             academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
         }
+    }
+
+    @Transactional
+    override fun deleteAcademicsYearResponse(language: String, studentType: String, postType: String, year: Int) {
+        val languageType = LanguageType.makeStringToLanguageType(language)
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val enumPostType = makeStringToAcademicsPostType(postType)
+
+        val academicsEntity = academicsRepository.findByLanguageAndStudentTypeAndPostTypeAndYear(
+            languageType,
+            enumStudentType,
+            enumPostType,
+            year
+        ) ?: throw CserealException.Csereal404("AcademicsEntity Not Found")
+
+        academicsRepository.delete(academicsEntity)
+    }
+
+    @Transactional
+    override fun createAcademicsYearResponse(
+        language: String,
+        studentType: String,
+        postType: String,
+        request: CreateYearReq
+    ) {
+        val languageType = LanguageType.makeStringToLanguageType(language)
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val enumPostType = makeStringToAcademicsPostType(postType)
+
+        academicsRepository.findByLanguageAndStudentTypeAndPostTypeAndYear(
+            languageType,
+            enumStudentType,
+            enumPostType,
+            request.year
+        )?.let {
+            throw CserealException.Csereal409("Year Response Already Exist")
+        }
+
+        val newAcademics =
+            AcademicsEntity.createYearResponse(enumStudentType, enumPostType, languageType, request)
+
+        newAcademics.apply {
+            academicsSearch = AcademicsSearchEntity.create(this)
+        }
+
+        academicsRepository.save(newAcademics)
     }
 
     @Transactional(readOnly = true)

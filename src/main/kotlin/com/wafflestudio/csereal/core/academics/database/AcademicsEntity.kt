@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.academics.database
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.academics.api.req.CreateYearReq
 import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import jakarta.persistence.*
@@ -46,6 +47,22 @@ class AcademicsEntity(
                 name = academicsDto.name,
                 description = academicsDto.description,
                 year = academicsDto.year
+            )
+        }
+
+        fun createYearResponse(
+            studentType: AcademicsStudentType,
+            postType: AcademicsPostType,
+            languageType: LanguageType,
+            request: CreateYearReq
+        ): AcademicsEntity {
+            return AcademicsEntity(
+                studentType = studentType,
+                postType = postType,
+                language = languageType,
+                name = request.name,
+                description = request.description,
+                year = request.year
             )
         }
     }
