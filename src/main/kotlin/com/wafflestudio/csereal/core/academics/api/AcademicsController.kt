@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.academics.api
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.api.req.UpdateSingleReq
+import com.wafflestudio.csereal.core.academics.api.req.UpdateYearReq
 import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.academics.service.AcademicsService
 import com.wafflestudio.csereal.core.academics.dto.ScholarshipDto
@@ -68,6 +69,15 @@ class AcademicsController(
             academicsService.readAcademicsYearResponses(language, studentType, postType)
         )
     }
+
+    @AuthenticatedStaff
+    @PutMapping("/{studentType}/{postType}")
+    fun updateAcademicsYearResponse(
+        @RequestParam(required = false, defaultValue = "ko") language: String,
+        @PathVariable studentType: String,
+        @PathVariable postType: String,
+        @RequestBody request: UpdateYearReq
+    ) = academicsService.updateAcademicsYearResponse(language, studentType, postType, request)
 
     //교과목 정보
     @AuthenticatedStaff

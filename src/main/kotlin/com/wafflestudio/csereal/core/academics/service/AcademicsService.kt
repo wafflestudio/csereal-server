@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.academics.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.api.req.UpdateSingleReq
+import com.wafflestudio.csereal.core.academics.api.req.UpdateYearReq
 import com.wafflestudio.csereal.core.academics.database.*
 import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
@@ -52,6 +53,8 @@ interface AcademicsService {
         request: UpdateSingleReq,
         newAttachments: List<MultipartFile>?
     )
+
+    fun updateAcademicsYearResponse(language: String, studentType: String, postType: String, request: UpdateYearReq)
 }
 
 // TODO: add Update, Delete method
@@ -105,7 +108,7 @@ class AcademicsServiceImpl(
                 languageType,
                 enumStudentType,
                 AcademicsPostType.GUIDE
-            )
+            ) ?: throw CserealException.Csereal404("Guide Not Found")
         val attachmentResponses =
             attachmentService.createAttachmentResponses(academicsEntity.attachments)
         return GuidePageResponse.of(academicsEntity, attachmentResponses)
@@ -126,7 +129,7 @@ class AcademicsServiceImpl(
                 languageType,
                 enumStudentType,
                 AcademicsPostType.GUIDE
-            )
+            ) ?: throw CserealException.Csereal404("Guide Not Found")
 
         academicsEntity.description = request.description
         academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
@@ -136,6 +139,30 @@ class AcademicsServiceImpl(
         attachmentService.deleteAttachments(request.deleteIds)
         if (newAttachments != null) {
             attachmentService.uploadAllAttachments(academicsEntity, newAttachments)
+        }
+    }
+
+    @Transactional
+    override fun updateAcademicsYearResponse(
+        language: String,
+        studentType: String,
+        postType: String,
+        request: UpdateYearReq
+    ) {
+        val languageType = LanguageType.makeStringToLanguageType(language)
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val enumPostType = makeStringToAcademicsPostType(postType)
+
+        val academicsEntity = academicsRepository.findByLanguageAndStudentTypeAndPostTypeAndYear(
+            languageType,
+            enumStudentType,
+            enumPostType,
+            request.year
+        ) ?: throw CserealException.Csereal404("AcademicsEntity Not Found")
+
+        academicsEntity.description = request.description
+        academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
+            academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
         }
     }
 
@@ -173,7 +200,7 @@ class AcademicsServiceImpl(
                 AcademicsStudentType.UNDERGRADUATE,
                 AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS,
                 null
-            )
+            ) ?: throw CserealException.Csereal404("General Studies Requirements Not Found")
         val generalStudiesEntity =
             academicsRepository.findAllByLanguageAndStudentTypeAndPostTypeOrderByYearDesc(
                 enumLanguageType,
@@ -192,7 +219,7 @@ class AcademicsServiceImpl(
                 enumLanguageType,
                 AcademicsStudentType.UNDERGRADUATE,
                 AcademicsPostType.DEGREE_REQUIREMENTS
-            )
+            ) ?: throw CserealException.Csereal404("Degree Requirements Not Found")
 
         val attachments = attachmentService.createAttachmentResponses(academicsEntity.attachments)
         return DegreeRequirementsPageResponse.of(academicsEntity, attachments)
@@ -211,7 +238,7 @@ class AcademicsServiceImpl(
                 enumLanguageType,
                 AcademicsStudentType.UNDERGRADUATE,
                 AcademicsPostType.DEGREE_REQUIREMENTS
-            )
+            ) ?: throw CserealException.Csereal404("Degree Requirements Not Found")
 
         academicsEntity.description = request.description
         academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
@@ -303,7 +330,7 @@ class AcademicsServiceImpl(
                 enumLanguageType,
                 enumStudentType,
                 AcademicsPostType.SCHOLARSHIP
-            )
+            ) ?: throw CserealException.Csereal404("Scholarship Entity Not Found")
         val scholarshipEntityList = scholarshipRepository.findAllByStudentType(enumStudentType)
 
         return ScholarshipPageResponse.of(academicsEntity, scholarshipEntityList)
