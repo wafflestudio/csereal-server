@@ -21,20 +21,6 @@ class AcademicsController(
     private val academicsService: AcademicsService,
     private val academicsSearchService: AcademicsSearchService
 ) {
-    @AuthenticatedStaff
-    @PostMapping("/{studentType}/{postType}")
-    fun createAcademics(
-        @PathVariable studentType: String,
-        @PathVariable postType: String,
-        @Valid
-        @RequestPart("request")
-        request: AcademicsDto,
-        @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<AcademicsDto> {
-        return ResponseEntity.ok(
-            academicsService.createAcademics(studentType, postType, request, attachments)
-        )
-    }
 
     @GetMapping("/{studentType}/guide")
     fun readGuide(

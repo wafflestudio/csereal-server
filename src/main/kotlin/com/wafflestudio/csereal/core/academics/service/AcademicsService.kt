@@ -16,13 +16,6 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface AcademicsService {
-    fun createAcademics(
-        studentType: String,
-        postType: String,
-        request: AcademicsDto,
-        attachments: List<MultipartFile>?
-    ): AcademicsDto
-
     fun readGuide(language: String, studentType: String): GuidePageResponse
     fun readAcademicsYearResponses(
         language: String,
@@ -78,35 +71,6 @@ class AcademicsServiceImpl(
     private val attachmentService: AttachmentService,
     private val scholarshipRepository: ScholarshipRepository
 ) : AcademicsService {
-    @Transactional
-    override fun createAcademics(
-        studentType: String,
-        postType: String,
-        request: AcademicsDto,
-        attachments: List<MultipartFile>?
-    ): AcademicsDto {
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val enumPostType = makeStringToAcademicsPostType(postType)
-        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-        val newAcademics =
-            AcademicsEntity.of(enumStudentType, enumPostType, enumLanguageType, request)
-
-        if (attachments != null) {
-            attachmentService.uploadAllAttachments(newAcademics, attachments)
-        }
-
-        // create search data
-        newAcademics.apply {
-            academicsSearch = AcademicsSearchEntity.create(this)
-        }
-
-        academicsRepository.save(newAcademics)
-
-        val attachmentResponses =
-            attachmentService.createAttachmentResponses(newAcademics.attachments)
-
-        return AcademicsDto.of(newAcademics, attachmentResponses)
-    }
 
     @Transactional(readOnly = true)
     override fun readGuide(language: String, studentType: String): GuidePageResponse {
