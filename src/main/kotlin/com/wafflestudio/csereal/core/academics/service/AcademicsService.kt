@@ -28,12 +28,11 @@ interface AcademicsService {
     fun updateDegreeRequirements(language: String, request: UpdateSingleReq, newAttachments: List<MultipartFile>?)
     fun createCourse(
         studentType: String,
-        request: CourseDto,
-        attachments: List<MultipartFile>?
-    ): CourseDto
+        request: GroupedCourseDto
+    )
 
     fun readAllCourses(language: String, studentType: String): List<CourseDto>
-    fun readCourse(language: String, name: String): CourseDto
+    fun readAllGroupedCourses(studentType: String): List<GroupedCourseDto>
     fun createScholarshipDetail(
         studentType: String,
         request: ScholarshipDto
@@ -275,28 +274,44 @@ class AcademicsServiceImpl(
     @Transactional
     override fun createCourse(
         studentType: String,
-        request: CourseDto,
-        attachments: List<MultipartFile>?
-    ): CourseDto {
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-
-        val newCourse = CourseEntity.of(enumStudentType, enumLanguageType, request)
-
-        if (attachments != null) {
-            attachmentService.uploadAllAttachments(newCourse, attachments)
+        request: GroupedCourseDto
+    ) {
+        if (courseRepository.existsByCode(request.code)) {
+            throw CserealException.Csereal409("해당 교과목 번호를 가지고 있는 엔티티가 이미 있습니다")
         }
+        
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+
+        val koCourse = CourseEntity.of(
+            enumStudentType,
+            LanguageType.KO,
+            request.ko.classification,
+            request.code,
+            request.ko.name,
+            request.credit,
+            request.grade,
+            request.ko.description
+        )
+        val enCourse = CourseEntity.of(
+            enumStudentType,
+            LanguageType.EN,
+            request.en.classification,
+            request.code,
+            request.en.name,
+            request.credit,
+            request.grade,
+            request.ko.description
+        )
 
         // create search data
-        newCourse.apply {
+        koCourse.apply {
             academicsSearch = AcademicsSearchEntity.create(this)
         }
-        courseRepository.save(newCourse)
-
-        val attachmentResponses =
-            attachmentService.createAttachmentResponses(newCourse.attachments)
-
-        return CourseDto.of(newCourse, attachmentResponses)
+        enCourse.apply {
+            academicsSearch = AcademicsSearchEntity.create(this)
+        }
+        courseRepository.save(koCourse)
+        courseRepository.save(enCourse)
     }
 
     @Transactional(readOnly = true)
@@ -308,21 +323,15 @@ class AcademicsServiceImpl(
                 enumLanguageType,
                 enumStudentType
             ).map {
-                val attachmentResponses =
-                    attachmentService.createAttachmentResponses(it.attachments)
-
-                CourseDto.of(it, attachmentResponses)
+                CourseDto.of(it)
             }
         return courseDtoList
     }
 
     @Transactional(readOnly = true)
-    override fun readCourse(language: String, name: String): CourseDto {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
-        val course = courseRepository.findByLanguageAndName(enumLanguageType, name)
-        val attachmentResponses = attachmentService.createAttachmentResponses(course.attachments)
-
-        return CourseDto.of(course, attachmentResponses)
+    override fun readAllGroupedCourses(studentType: String): List<GroupedCourseDto> {
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        return courseRepository.findGroupedCourses(enumStudentType).map(CourseMapper::toGroupedCourseDTO)
     }
 
     @Transactional

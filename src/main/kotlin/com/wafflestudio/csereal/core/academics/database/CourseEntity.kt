@@ -9,8 +9,7 @@ import jakarta.persistence.*
 
 @Entity(name = "course")
 class CourseEntity(
-    var isDeleted: Boolean = false,
-
+    @Enumerated(EnumType.STRING)
     var studentType: AcademicsStudentType,
 
     @Enumerated(EnumType.STRING)
@@ -20,30 +19,36 @@ class CourseEntity(
     var code: String,
     var name: String,
     var credit: Int,
-    var grade: String,
+    var grade: Int,
 
     @Column(columnDefinition = "mediumText")
     var description: String?,
 
-    @OneToMany(mappedBy = "course", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
-
     @OneToOne(mappedBy = "course", cascade = [CascadeType.ALL], orphanRemoval = true)
     var academicsSearch: AcademicsSearchEntity? = null
 
-) : BaseTimeEntity(), AttachmentContentEntityType {
-    override fun bringAttachments() = attachments
+) : BaseTimeEntity() {
+
     companion object {
-        fun of(studentType: AcademicsStudentType, languageType: LanguageType, courseDto: CourseDto): CourseEntity {
+        fun of(
+            studentType: AcademicsStudentType,
+            languageType: LanguageType,
+            classification: String,
+            code: String,
+            name: String,
+            credit: Int,
+            grade: Int,
+            description: String?
+        ): CourseEntity {
             return CourseEntity(
                 studentType = studentType,
                 language = languageType,
-                classification = courseDto.classification,
-                code = courseDto.code,
-                name = courseDto.name,
-                credit = courseDto.credit,
-                grade = courseDto.grade,
-                description = courseDto.description
+                classification = classification,
+                code = code,
+                name = name,
+                credit = credit,
+                grade = grade,
+                description = description
             )
         }
     }
