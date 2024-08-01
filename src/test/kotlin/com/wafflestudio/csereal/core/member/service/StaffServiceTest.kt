@@ -29,9 +29,10 @@ class StaffServiceTest(
         staffRepository.deleteAll()
     }
 
+    // TODO: staff 쌍으로 묶은 테스트 생성
+
     Given("이미지 없는 행정직원을 생성하려고 할 떄") {
         val createStaffReq = CreateStaffReqBody(
-            language = "ko",
             name = "name",
             role = "role",
             office = "office",
@@ -41,11 +42,11 @@ class StaffServiceTest(
         )
 
         When("행정직원을 생성하면") {
-            val createdStaffDto = staffService.createStaff(createStaffReq, null)
+            val createdStaffDto = staffService.createStaff(LanguageType.KO, createStaffReq, null)
 
             Then("행정직원이 생성된다") {
                 staffRepository.count() shouldBe 1
-                staffRepository.findByIdOrNull(createdStaffDto.id!!) shouldNotBe null
+                staffRepository.findByIdOrNull(createdStaffDto.id) shouldNotBe null
             }
 
             Then("행정직원의 정보가 일치한다") {
@@ -61,7 +62,7 @@ class StaffServiceTest(
             Then("검색 정보가 생성된다") {
                 memberSearchRepository.count() shouldBe 1
 
-                val staffEntity = staffRepository.findByIdOrNull(createdStaffDto.id!!)!!
+                val staffEntity = staffRepository.findByIdOrNull(createdStaffDto.id)!!
                 val memberSearch = staffEntity.memberSearch!!
 
                 memberSearch.language shouldBe LanguageType.KO
@@ -81,7 +82,6 @@ class StaffServiceTest(
 
     Given("이미지 없는 행정직원을 수정할 때") {
         val createStaffReq = CreateStaffReqBody(
-            language = "ko",
             name = "name",
             role = "role",
             office = "office",
@@ -89,11 +89,10 @@ class StaffServiceTest(
             email = "email",
             tasks = listOf("task1", "task2")
         )
-        val createdStaffDto = staffService.createStaff(createStaffReq, null)
+        val createdStaffDto = staffService.createStaff(LanguageType.KO, createStaffReq, null)
 
         When("행정직원을 수정하면") {
             val modifyStaffReq = ModifyStaffReqBody(
-                language = "ko",
                 name = "name2",
                 role = "role2",
                 office = "office2",
