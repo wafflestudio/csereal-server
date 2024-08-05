@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.academics.api
+package com.wafflestudio.csereal.core.academics.api.v1
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.LanguageType
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
 @RequestMapping("/api/v1/academics")
-@RestController
+@RestController("AcademicsControllerV1")
 class AcademicsController(
     private val academicsService: AcademicsService,
     private val academicsSearchService: AcademicsSearchService
@@ -86,17 +86,6 @@ class AcademicsController(
     ) = academicsService.deleteAcademicsYearResponse(language, studentType, postType, year)
 
     //교과목 정보
-    @AuthenticatedStaff
-    @PostMapping("/{studentType}/course")
-    fun createCourse(
-        @PathVariable studentType: String,
-        @Valid
-        @RequestPart("request")
-        request: CourseDto,
-        @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<CourseDto> {
-        return ResponseEntity.ok(academicsService.createCourse(studentType, request, attachments))
-    }
 
     @GetMapping("/{studentType}/courses")
     fun readAllCourses(
@@ -104,14 +93,6 @@ class AcademicsController(
         @PathVariable studentType: String
     ): ResponseEntity<List<CourseDto>> {
         return ResponseEntity.ok(academicsService.readAllCourses(language, studentType))
-    }
-
-    @GetMapping("/course")
-    fun readCourse(
-        @RequestParam(required = false, defaultValue = "ko") language: String,
-        @RequestParam name: String
-    ): ResponseEntity<CourseDto> {
-        return ResponseEntity.ok(academicsService.readCourse(language, name))
     }
 
     @GetMapping("/undergraduate/degree-requirements")
