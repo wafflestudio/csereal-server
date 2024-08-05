@@ -86,13 +86,6 @@ class AcademicsController(
     ) = academicsService.deleteAcademicsYearResponse(language, studentType, postType, year)
 
     //교과목 정보
-    @AuthenticatedStaff
-    @PostMapping("/{studentType}/course")
-    fun createCourse(
-        @PathVariable studentType: String,
-        @Valid
-        @RequestBody request: GroupedCourseDto,
-    ) = academicsService.createCourse(studentType, request)
 
     @GetMapping("/{studentType}/courses")
     fun readAllCourses(

@@ -1,7 +1,6 @@
 package com.wafflestudio.csereal.core.academics.database
 
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.core.academics.dto.GroupedCourseDto
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param

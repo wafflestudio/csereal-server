@@ -279,7 +279,7 @@ class AcademicsServiceImpl(
         if (courseRepository.existsByCode(request.code)) {
             throw CserealException.Csereal409("해당 교과목 번호를 가지고 있는 엔티티가 이미 있습니다")
         }
-        
+
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
 
         val koCourse = CourseEntity.of(
@@ -300,7 +300,7 @@ class AcademicsServiceImpl(
             request.en.name,
             request.credit,
             request.grade,
-            request.ko.description
+            request.en.description
         )
 
         // create search data
