@@ -26,13 +26,12 @@ interface AcademicsService {
     fun readGeneralStudiesRequirements(language: String): GeneralStudiesRequirementsPageResponse
     fun readDegreeRequirements(language: String): DegreeRequirementsPageResponse
     fun updateDegreeRequirements(language: String, request: UpdateSingleReq, newAttachments: List<MultipartFile>?)
-    fun createCourse(
-        studentType: String,
-        request: GroupedCourseDto
-    )
+    fun createCourse(request: GroupedCourseDto)
 
     fun readAllCourses(language: String, studentType: String): List<CourseDto>
     fun readAllGroupedCourses(studentType: String): List<GroupedCourseDto>
+    fun updateCourse(updateRequest: GroupedCourseDto)
+    fun deleteCourse(code: String)
     fun createScholarshipDetail(
         studentType: String,
         request: ScholarshipDto
@@ -272,46 +271,32 @@ class AcademicsServiceImpl(
     }
 
     @Transactional
-    override fun createCourse(
-        studentType: String,
-        request: GroupedCourseDto
-    ) {
+    override fun createCourse(request: GroupedCourseDto) {
         if (courseRepository.existsByCode(request.code)) {
             throw CserealException.Csereal409("해당 교과목 번호를 가지고 있는 엔티티가 이미 있습니다")
         }
 
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val enumStudentType = makeStringToAcademicsStudentType(request.studentType)
 
-        val koCourse = CourseEntity.of(
-            enumStudentType,
-            LanguageType.KO,
-            request.ko.classification,
-            request.code,
-            request.ko.name,
-            request.credit,
-            request.grade,
-            request.ko.description
-        )
-        val enCourse = CourseEntity.of(
-            enumStudentType,
-            LanguageType.EN,
-            request.en.classification,
-            request.code,
-            request.en.name,
-            request.credit,
-            request.grade,
-            request.en.description
-        )
+        val courses = listOf(
+            LanguageType.KO to request.ko,
+            LanguageType.EN to request.en
+        ).map { (language, langSpecificData) ->
+            CourseEntity.of(
+                enumStudentType,
+                language,
+                langSpecificData.classification,
+                request.code,
+                langSpecificData.name,
+                request.credit,
+                request.grade,
+                langSpecificData.description
+            ).apply {
+                academicsSearch = AcademicsSearchEntity.create(this)
+            }
+        }
 
-        // create search data
-        koCourse.apply {
-            academicsSearch = AcademicsSearchEntity.create(this)
-        }
-        enCourse.apply {
-            academicsSearch = AcademicsSearchEntity.create(this)
-        }
-        courseRepository.save(koCourse)
-        courseRepository.save(enCourse)
+        courseRepository.saveAll(courses)
     }
 
     @Transactional(readOnly = true)
@@ -332,6 +317,37 @@ class AcademicsServiceImpl(
     override fun readAllGroupedCourses(studentType: String): List<GroupedCourseDto> {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
         return courseRepository.findGroupedCourses(enumStudentType).map(CourseMapper::toGroupedCourseDTO)
+    }
+
+    @Transactional
+    override fun updateCourse(updateRequest: GroupedCourseDto) {
+        val ko = courseRepository.findByCodeAndLanguage(updateRequest.code, LanguageType.KO)
+            ?: throw CserealException.Csereal404("korean course not found")
+        val en = courseRepository.findByCodeAndLanguage(updateRequest.code, LanguageType.EN)
+            ?: throw CserealException.Csereal404("english course not found")
+
+        listOf(ko, en).forEach { course ->
+            course.apply {
+                credit = updateRequest.credit
+                grade = updateRequest.grade
+                studentType = makeStringToAcademicsStudentType(updateRequest.studentType)
+                val langSpecificData = if (language == LanguageType.KO) updateRequest.ko else updateRequest.en
+                name = langSpecificData.name
+                description = langSpecificData.description
+                classification = langSpecificData.classification
+            }
+            course.academicsSearch?.update(course) ?: let {
+                course.academicsSearch = AcademicsSearchEntity.create(course)
+            }
+        }
+    }
+
+    @Transactional
+    override fun deleteCourse(code: String) {
+        if (!courseRepository.existsByCode(code)) {
+            throw CserealException.Csereal404("entity not found")
+        }
+        courseRepository.deleteAllByCode(code)
     }
 
     @Transactional

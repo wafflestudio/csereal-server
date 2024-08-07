@@ -10,6 +10,7 @@ interface CourseRepository : JpaRepository<CourseEntity, Long> {
         val code: String
         val credit: Int
         val grade: Int
+        val studentType: String
         val koName: String
         val koDescription: String
         val koClassification: String
@@ -29,6 +30,7 @@ interface CourseRepository : JpaRepository<CourseEntity, Long> {
             c.code as code,
             MAX(c.credit) as credit,
             MAX(c.grade) as grade,
+            MAX(c.studentType) as studentType,
             MAX(CASE WHEN c.language = 'KO' THEN c.name ELSE '' END) as koName,
             MAX(CASE WHEN c.language = 'KO' THEN c.description ELSE '' END) as koDescription,
             MAX(CASE WHEN c.language = 'KO' THEN c.classification ELSE '' END) as koClassification,
@@ -43,4 +45,6 @@ interface CourseRepository : JpaRepository<CourseEntity, Long> {
     fun findGroupedCourses(@Param("studentType") studentType: AcademicsStudentType): List<CourseProjection>
 
     fun existsByCode(code: String): Boolean
+    fun findByCodeAndLanguage(code: String, language: LanguageType): CourseEntity?
+    fun deleteAllByCode(code: String)
 }
