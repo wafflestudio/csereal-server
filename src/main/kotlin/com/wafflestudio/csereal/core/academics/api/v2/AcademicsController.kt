@@ -12,15 +12,22 @@ class AcademicsController(
     private val academicsService: AcademicsService
 ) {
     @AuthenticatedStaff
-    @PostMapping("/{studentType}/course")
+    @PostMapping("/courses")
     fun createCourse(
-        @PathVariable studentType: String,
         @Valid
         @RequestBody
         request: GroupedCourseDto
-    ) = academicsService.createCourse(studentType, request)
+    ) = academicsService.createCourse(request)
 
-    @GetMapping("/{studentType}/courses")
-    fun readAllGroupedCourses(@PathVariable studentType: String): List<GroupedCourseDto> =
+    @GetMapping("/courses")
+    fun readAllGroupedCourses(@RequestParam studentType: String): List<GroupedCourseDto> =
         academicsService.readAllGroupedCourses(studentType)
+
+    @AuthenticatedStaff
+    @PutMapping("/courses")
+    fun updateCourse(@RequestBody updateRequest: GroupedCourseDto) = academicsService.updateCourse(updateRequest)
+
+    @AuthenticatedStaff
+    @DeleteMapping("/courses/{code}")
+    fun deleteCourse(@PathVariable code: String) = academicsService.deleteCourse(code)
 }
