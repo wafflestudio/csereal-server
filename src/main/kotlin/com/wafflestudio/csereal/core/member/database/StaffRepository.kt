@@ -6,6 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.database.QMemberLanguageEntity.memberLanguageEntity
 import com.wafflestudio.csereal.core.member.database.QStaffEntity.staffEntity
+import com.wafflestudio.csereal.core.member.database.QTaskEntity.taskEntity
 import com.wafflestudio.csereal.core.member.type.MemberType
 import com.wafflestudio.csereal.core.resource.mainImage.database.QMainImageEntity.mainImageEntity
 import org.springframework.data.jpa.repository.JpaRepository
@@ -37,7 +38,8 @@ class StaffRepositoryCustomImpl(
                         .where(memberLanguageEntity.koreanId.eq(id), memberLanguageEntity.type.eq(MemberType.STAFF)),
                     Expressions.constant(id)
                 )
-            ).leftJoin(mainImageEntity).on(mainImageEntity.id.eq(staffEntity.id))
+            ).leftJoin(mainImageEntity).fetchJoin()
+            .leftJoin(taskEntity).on(taskEntity.staff.eq(staffEntity))
             .fetch()
 
         return staffs.groupBy {
