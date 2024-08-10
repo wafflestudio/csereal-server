@@ -3,7 +3,6 @@ package com.wafflestudio.csereal.core.member.api.v2
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.member.api.req.CreateProfessorLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorLanguagesReqBody
-import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorLanguagesDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
 import com.wafflestudio.csereal.core.member.dto.SimpleProfessorDto
@@ -20,7 +19,10 @@ class ProfessorController(
     private val professorService: ProfessorService
 ) {
     @GetMapping("/{professorId}")
-    fun getProfessor(@PathVariable @Positive professorId: Long): ProfessorLanguagesDto =
+    fun getProfessor(
+        @PathVariable @Positive
+        professorId: Long
+    ): ProfessorLanguagesDto =
         professorService.getProfessorLanguages(professorId)
 
     @GetMapping("/active")
@@ -48,8 +50,10 @@ class ProfessorController(
     @AuthenticatedStaff
     @PutMapping("/{koProfessorId}/{enProfessorId}", consumes = ["multipart/form-data"])
     fun updateProfessor(
-        @PathVariable @Positive koProfessorId: Long,
-        @PathVariable @Positive enProfessorId: Long,
+        @PathVariable @Positive
+        koProfessorId: Long,
+        @PathVariable @Positive
+        enProfessorId: Long,
         @RequestPart("request") requestBody: ModifyProfessorLanguagesReqBody,
 
         @Parameter(description = "image 교체할 경우 업로드. Request Body의 removeImage 관계없이 변경됨.")
@@ -61,7 +65,9 @@ class ProfessorController(
     @AuthenticatedStaff
     @DeleteMapping("/{koProfessorId}/{enProfessorId}", consumes = ["multipart/form-data"])
     fun deleteProfessor(
-        @PathVariable @Positive koProfessorId: Long,
-        @PathVariable @Positive enProfessorId: Long,
+        @PathVariable @Positive
+        koProfessorId: Long,
+        @PathVariable @Positive
+        enProfessorId: Long
     ) = professorService.deleteProfessorLanguages(koProfessorId, enProfessorId)
 }

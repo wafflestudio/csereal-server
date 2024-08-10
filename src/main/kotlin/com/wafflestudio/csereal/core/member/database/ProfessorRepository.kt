@@ -17,11 +17,13 @@ import org.springframework.stereotype.Repository
 
 interface ProfessorRepository : JpaRepository<ProfessorEntity, Long>, ProfessorRepositoryCustom {
     fun findByLanguageAndStatus(
-        languageType: LanguageType, status: ProfessorStatus
+        languageType: LanguageType,
+        status: ProfessorStatus
     ): List<ProfessorEntity>
 
     fun findByLanguageAndStatusNot(
-        languageType: LanguageType, status: ProfessorStatus
+        languageType: LanguageType,
+        status: ProfessorStatus
     ): List<ProfessorEntity>
 }
 
@@ -31,7 +33,7 @@ interface ProfessorRepositoryCustom {
 
 @Repository
 class ProfessorRepositoryCustomImpl(
-    private val queryFactory: JPAQueryFactory,
+    private val queryFactory: JPAQueryFactory
 ) : ProfessorRepositoryCustom {
     override fun findProfessorAllLanguages(id: Long): Map<LanguageType, List<ProfessorEntity>> {
         val professors = queryFactory.selectFrom(professorEntity)
@@ -65,4 +67,3 @@ class ProfessorRepositoryCustomImpl(
         }
     }
 }
-

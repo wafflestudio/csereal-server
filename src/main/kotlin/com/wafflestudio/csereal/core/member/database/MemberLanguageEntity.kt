@@ -9,7 +9,7 @@ import jakarta.persistence.*
     indexes = [
         Index(columnList = "member_type"),
         Index(columnList = "korean_id"),
-        Index(columnList = "english_id"),
+        Index(columnList = "english_id")
     ]
 )
 class MemberLanguageEntity(
