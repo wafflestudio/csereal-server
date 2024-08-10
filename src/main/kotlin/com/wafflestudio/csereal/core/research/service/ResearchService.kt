@@ -258,6 +258,7 @@ class ResearchServiceImpl(
         return "${endpointProperties.backend}/v1/file/${pdf.filename}"
     }
 
+    // TODO: professor search update
     @Transactional
     override fun updateLab(labId: Long, request: LabUpdateRequest, pdf: MultipartFile?): LabDto {
         val labEntity = labRepository.findByIdOrNull(labId)

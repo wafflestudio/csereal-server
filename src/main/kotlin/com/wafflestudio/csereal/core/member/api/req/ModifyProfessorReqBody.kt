@@ -4,7 +4,6 @@ import com.wafflestudio.csereal.core.member.database.ProfessorStatus
 import java.time.LocalDate
 
 data class ModifyProfessorReqBody(
-    val language: String,
     val name: String,
     val status: ProfessorStatus,
     val academicRank: String,

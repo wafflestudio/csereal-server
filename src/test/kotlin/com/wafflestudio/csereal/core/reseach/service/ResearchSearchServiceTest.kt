@@ -48,8 +48,8 @@ class ResearchSearchServiceTest(
         Given("기존 lab이 존재할 때") {
             // Save professors
             val professor1Dto = professorService.createProfessor(
+                LanguageType.KO,
                 CreateProfessorReqBody(
-                    language = "ko",
                     name = "professor1",
                     email = null,
                     status = ProfessorStatus.ACTIVE,
@@ -68,8 +68,8 @@ class ResearchSearchServiceTest(
                 mainImage = null
             )
             val professor2Dto = professorService.createProfessor(
+                LanguageType.KO,
                 CreateProfessorReqBody(
-                    language = "ko",
                     name = "professor2",
                     email = null,
                     status = ProfessorStatus.ACTIVE,
@@ -165,8 +165,8 @@ class ResearchSearchServiceTest(
 
             When("professor가 추가된다면") {
                 val process3CreatedDto = professorService.createProfessor(
+                    LanguageType.KO,
                     CreateProfessorReqBody(
-                        language = "ko",
                         name = "newProfessor",
                         email = "email",
                         status = ProfessorStatus.ACTIVE,
@@ -212,7 +212,6 @@ class ResearchSearchServiceTest(
                     professor2.id,
                     professor2.run {
                         ModifyProfessorReqBody(
-                            language = "ko",
                             name = "updateProfessor",
                             status = status,
                             academicRank = academicRank,

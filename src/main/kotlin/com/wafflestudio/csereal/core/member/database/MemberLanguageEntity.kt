@@ -5,6 +5,13 @@ import com.wafflestudio.csereal.core.member.type.MemberType
 import jakarta.persistence.*
 
 @Entity(name = "member_language")
+@Table(
+    indexes = [
+        Index(columnList = "member_type"),
+        Index(columnList = "korean_id"),
+        Index(columnList = "english_id"),
+    ]
+)
 class MemberLanguageEntity(
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
