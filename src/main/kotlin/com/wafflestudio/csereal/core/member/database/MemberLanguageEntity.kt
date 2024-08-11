@@ -7,7 +7,7 @@ import jakarta.persistence.*
 @Entity(name = "member_language")
 @Table(
     indexes = [
-        Index(columnList = "member_type"),
+        Index(columnList = "type"),
         Index(columnList = "korean_id"),
         Index(columnList = "english_id")
     ]
