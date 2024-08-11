@@ -3,7 +3,7 @@ package com.wafflestudio.csereal.core.academics.database
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.core.academics.dto.AcademicsDto
+import com.wafflestudio.csereal.core.academics.api.req.CreateYearReq
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import jakarta.persistence.*
 
@@ -33,19 +33,19 @@ class AcademicsEntity(
     override fun bringAttachments() = attachments
 
     companion object {
-        fun of(
+        fun createYearResponse(
             studentType: AcademicsStudentType,
             postType: AcademicsPostType,
             languageType: LanguageType,
-            academicsDto: AcademicsDto
+            request: CreateYearReq
         ): AcademicsEntity {
             return AcademicsEntity(
                 studentType = studentType,
                 postType = postType,
                 language = languageType,
-                name = academicsDto.name,
-                description = academicsDto.description,
-                year = academicsDto.year
+                name = request.name,
+                description = request.description,
+                year = request.year
             )
         }
     }

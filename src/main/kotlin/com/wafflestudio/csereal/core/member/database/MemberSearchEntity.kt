@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.member.type.MemberType
 import jakarta.persistence.*
 
 @Entity(name = "member_search")
@@ -80,11 +81,11 @@ class MemberSearchEntity(
         }
     }
 
-    fun ofType(): MemberSearchType {
+    fun ofType(): MemberType {
         return if (professor != null) {
-            MemberSearchType.PROFESSOR
+            MemberType.PROFESSOR
         } else if (staff != null) {
-            MemberSearchType.STAFF
+            MemberType.STAFF
         } else {
             throw RuntimeException("MemberSearchEntity must have either professor or staff")
         }
@@ -99,9 +100,4 @@ class MemberSearchEntity(
         this.language = staff.language
         this.content = createContent(staff)
     }
-}
-
-enum class MemberSearchType {
-    PROFESSOR,
-    STAFF
 }

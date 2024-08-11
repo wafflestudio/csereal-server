@@ -61,7 +61,6 @@ class ProfessorServiceTest(
         labEntity = labRepository.save(labEntity)
 
         val professorCreateReq = CreateProfessorReqBody(
-            language = "ko",
             name = "name",
             email = "email",
             status = ProfessorStatus.ACTIVE,
@@ -79,7 +78,7 @@ class ProfessorServiceTest(
         )
 
         When("교수를 생성한다면") {
-            val createdProfessorDto = professorService.createProfessor(professorCreateReq, null)
+            val createdProfessorDto = professorService.createProfessor(LanguageType.KO, professorCreateReq, null)
 
             Then("교수가 생성되어야 한다") {
                 professorRepository.count() shouldBe 1
@@ -173,8 +172,8 @@ class ProfessorServiceTest(
         researchRepository.save(researchEntity)
 
         val createdProfessorDto = professorService.createProfessor(
+            LanguageType.KO,
             CreateProfessorReqBody(
-                language = "ko",
                 name = "name",
                 email = "email",
                 status = ProfessorStatus.ACTIVE,
@@ -195,7 +194,6 @@ class ProfessorServiceTest(
 
         When("교수 정보를 수정하면") {
             val modifyProfessorReq = ModifyProfessorReqBody(
-                language = "ko",
                 name = "modifiedName",
                 email = "modifiedEmail",
                 status = ProfessorStatus.INACTIVE,

@@ -2,7 +2,9 @@ package com.wafflestudio.csereal.core.academics.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.academics.api.req.CreateYearReq
 import com.wafflestudio.csereal.core.academics.api.req.UpdateSingleReq
+import com.wafflestudio.csereal.core.academics.api.req.UpdateYearReq
 import com.wafflestudio.csereal.core.academics.database.*
 import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
@@ -14,13 +16,6 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface AcademicsService {
-    fun createAcademics(
-        studentType: String,
-        postType: String,
-        request: AcademicsDto,
-        attachments: List<MultipartFile>?
-    ): AcademicsDto
-
     fun readGuide(language: String, studentType: String): GuidePageResponse
     fun readAcademicsYearResponses(
         language: String,
@@ -31,14 +26,12 @@ interface AcademicsService {
     fun readGeneralStudiesRequirements(language: String): GeneralStudiesRequirementsPageResponse
     fun readDegreeRequirements(language: String): DegreeRequirementsPageResponse
     fun updateDegreeRequirements(language: String, request: UpdateSingleReq, newAttachments: List<MultipartFile>?)
-    fun createCourse(
-        studentType: String,
-        request: CourseDto,
-        attachments: List<MultipartFile>?
-    ): CourseDto
+    fun createCourse(request: GroupedCourseDto)
 
     fun readAllCourses(language: String, studentType: String): List<CourseDto>
-    fun readCourse(language: String, name: String): CourseDto
+    fun readAllGroupedCourses(studentType: String): List<GroupedCourseDto>
+    fun updateCourse(updateRequest: GroupedCourseDto)
+    fun deleteCourse(code: String)
     fun createScholarshipDetail(
         studentType: String,
         request: ScholarshipDto
@@ -52,6 +45,17 @@ interface AcademicsService {
         request: UpdateSingleReq,
         newAttachments: List<MultipartFile>?
     )
+
+    fun updateAcademicsYearResponse(
+        language: String,
+        studentType: String,
+        postType: String,
+        year: Int,
+        request: UpdateYearReq
+    )
+
+    fun deleteAcademicsYearResponse(language: String, studentType: String, postType: String, year: Int)
+    fun createAcademicsYearResponse(language: String, studentType: String, postType: String, request: CreateYearReq)
 }
 
 // TODO: add Update, Delete method
@@ -65,35 +69,6 @@ class AcademicsServiceImpl(
     private val attachmentService: AttachmentService,
     private val scholarshipRepository: ScholarshipRepository
 ) : AcademicsService {
-    @Transactional
-    override fun createAcademics(
-        studentType: String,
-        postType: String,
-        request: AcademicsDto,
-        attachments: List<MultipartFile>?
-    ): AcademicsDto {
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val enumPostType = makeStringToAcademicsPostType(postType)
-        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-        val newAcademics =
-            AcademicsEntity.of(enumStudentType, enumPostType, enumLanguageType, request)
-
-        if (attachments != null) {
-            attachmentService.uploadAllAttachments(newAcademics, attachments)
-        }
-
-        // create search data
-        newAcademics.apply {
-            academicsSearch = AcademicsSearchEntity.create(this)
-        }
-
-        academicsRepository.save(newAcademics)
-
-        val attachmentResponses =
-            attachmentService.createAttachmentResponses(newAcademics.attachments)
-
-        return AcademicsDto.of(newAcademics, attachmentResponses)
-    }
 
     @Transactional(readOnly = true)
     override fun readGuide(language: String, studentType: String): GuidePageResponse {
@@ -105,7 +80,7 @@ class AcademicsServiceImpl(
                 languageType,
                 enumStudentType,
                 AcademicsPostType.GUIDE
-            )
+            ) ?: throw CserealException.Csereal404("Guide Not Found")
         val attachmentResponses =
             attachmentService.createAttachmentResponses(academicsEntity.attachments)
         return GuidePageResponse.of(academicsEntity, attachmentResponses)
@@ -126,7 +101,7 @@ class AcademicsServiceImpl(
                 languageType,
                 enumStudentType,
                 AcademicsPostType.GUIDE
-            )
+            ) ?: throw CserealException.Csereal404("Guide Not Found")
 
         academicsEntity.description = request.description
         academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
@@ -137,6 +112,77 @@ class AcademicsServiceImpl(
         if (newAttachments != null) {
             attachmentService.uploadAllAttachments(academicsEntity, newAttachments)
         }
+    }
+
+    @Transactional
+    override fun updateAcademicsYearResponse(
+        language: String,
+        studentType: String,
+        postType: String,
+        year: Int,
+        request: UpdateYearReq
+    ) {
+        val languageType = LanguageType.makeStringToLanguageType(language)
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val enumPostType = makeStringToAcademicsPostType(postType)
+
+        val academicsEntity = academicsRepository.findByLanguageAndStudentTypeAndPostTypeAndYear(
+            languageType,
+            enumStudentType,
+            enumPostType,
+            year
+        ) ?: throw CserealException.Csereal404("AcademicsEntity Not Found")
+
+        academicsEntity.description = request.description
+        academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
+            academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
+        }
+    }
+
+    @Transactional
+    override fun deleteAcademicsYearResponse(language: String, studentType: String, postType: String, year: Int) {
+        val languageType = LanguageType.makeStringToLanguageType(language)
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val enumPostType = makeStringToAcademicsPostType(postType)
+
+        val academicsEntity = academicsRepository.findByLanguageAndStudentTypeAndPostTypeAndYear(
+            languageType,
+            enumStudentType,
+            enumPostType,
+            year
+        ) ?: throw CserealException.Csereal404("AcademicsEntity Not Found")
+
+        academicsRepository.delete(academicsEntity)
+    }
+
+    @Transactional
+    override fun createAcademicsYearResponse(
+        language: String,
+        studentType: String,
+        postType: String,
+        request: CreateYearReq
+    ) {
+        val languageType = LanguageType.makeStringToLanguageType(language)
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val enumPostType = makeStringToAcademicsPostType(postType)
+
+        academicsRepository.findByLanguageAndStudentTypeAndPostTypeAndYear(
+            languageType,
+            enumStudentType,
+            enumPostType,
+            request.year
+        )?.let {
+            throw CserealException.Csereal409("Year Response Already Exist")
+        }
+
+        val newAcademics =
+            AcademicsEntity.createYearResponse(enumStudentType, enumPostType, languageType, request)
+
+        newAcademics.apply {
+            academicsSearch = AcademicsSearchEntity.create(this)
+        }
+
+        academicsRepository.save(newAcademics)
     }
 
     @Transactional(readOnly = true)
@@ -173,7 +219,7 @@ class AcademicsServiceImpl(
                 AcademicsStudentType.UNDERGRADUATE,
                 AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS,
                 null
-            )
+            ) ?: throw CserealException.Csereal404("General Studies Requirements Not Found")
         val generalStudiesEntity =
             academicsRepository.findAllByLanguageAndStudentTypeAndPostTypeOrderByYearDesc(
                 enumLanguageType,
@@ -192,7 +238,7 @@ class AcademicsServiceImpl(
                 enumLanguageType,
                 AcademicsStudentType.UNDERGRADUATE,
                 AcademicsPostType.DEGREE_REQUIREMENTS
-            )
+            ) ?: throw CserealException.Csereal404("Degree Requirements Not Found")
 
         val attachments = attachmentService.createAttachmentResponses(academicsEntity.attachments)
         return DegreeRequirementsPageResponse.of(academicsEntity, attachments)
@@ -211,7 +257,7 @@ class AcademicsServiceImpl(
                 enumLanguageType,
                 AcademicsStudentType.UNDERGRADUATE,
                 AcademicsPostType.DEGREE_REQUIREMENTS
-            )
+            ) ?: throw CserealException.Csereal404("Degree Requirements Not Found")
 
         academicsEntity.description = request.description
         academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
@@ -225,30 +271,32 @@ class AcademicsServiceImpl(
     }
 
     @Transactional
-    override fun createCourse(
-        studentType: String,
-        request: CourseDto,
-        attachments: List<MultipartFile>?
-    ): CourseDto {
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-
-        val newCourse = CourseEntity.of(enumStudentType, enumLanguageType, request)
-
-        if (attachments != null) {
-            attachmentService.uploadAllAttachments(newCourse, attachments)
+    override fun createCourse(request: GroupedCourseDto) {
+        if (courseRepository.existsByCode(request.code)) {
+            throw CserealException.Csereal409("해당 교과목 번호를 가지고 있는 엔티티가 이미 있습니다")
         }
 
-        // create search data
-        newCourse.apply {
-            academicsSearch = AcademicsSearchEntity.create(this)
+        val enumStudentType = makeStringToAcademicsStudentType(request.studentType)
+
+        val courses = listOf(
+            LanguageType.KO to request.ko,
+            LanguageType.EN to request.en
+        ).map { (language, langSpecificData) ->
+            CourseEntity.of(
+                enumStudentType,
+                language,
+                langSpecificData.classification,
+                request.code,
+                langSpecificData.name,
+                request.credit,
+                request.grade,
+                langSpecificData.description
+            ).apply {
+                academicsSearch = AcademicsSearchEntity.create(this)
+            }
         }
-        courseRepository.save(newCourse)
 
-        val attachmentResponses =
-            attachmentService.createAttachmentResponses(newCourse.attachments)
-
-        return CourseDto.of(newCourse, attachmentResponses)
+        courseRepository.saveAll(courses)
     }
 
     @Transactional(readOnly = true)
@@ -260,21 +308,46 @@ class AcademicsServiceImpl(
                 enumLanguageType,
                 enumStudentType
             ).map {
-                val attachmentResponses =
-                    attachmentService.createAttachmentResponses(it.attachments)
-
-                CourseDto.of(it, attachmentResponses)
+                CourseDto.of(it)
             }
         return courseDtoList
     }
 
     @Transactional(readOnly = true)
-    override fun readCourse(language: String, name: String): CourseDto {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
-        val course = courseRepository.findByLanguageAndName(enumLanguageType, name)
-        val attachmentResponses = attachmentService.createAttachmentResponses(course.attachments)
+    override fun readAllGroupedCourses(studentType: String): List<GroupedCourseDto> {
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        return courseRepository.findGroupedCourses(enumStudentType).map(CourseMapper::toGroupedCourseDTO)
+    }
 
-        return CourseDto.of(course, attachmentResponses)
+    @Transactional
+    override fun updateCourse(updateRequest: GroupedCourseDto) {
+        val ko = courseRepository.findByCodeAndLanguage(updateRequest.code, LanguageType.KO)
+            ?: throw CserealException.Csereal404("korean course not found")
+        val en = courseRepository.findByCodeAndLanguage(updateRequest.code, LanguageType.EN)
+            ?: throw CserealException.Csereal404("english course not found")
+
+        listOf(ko, en).forEach { course ->
+            course.apply {
+                credit = updateRequest.credit
+                grade = updateRequest.grade
+                studentType = makeStringToAcademicsStudentType(updateRequest.studentType)
+                val langSpecificData = if (language == LanguageType.KO) updateRequest.ko else updateRequest.en
+                name = langSpecificData.name
+                description = langSpecificData.description
+                classification = langSpecificData.classification
+            }
+            course.academicsSearch?.update(course) ?: let {
+                course.academicsSearch = AcademicsSearchEntity.create(course)
+            }
+        }
+    }
+
+    @Transactional
+    override fun deleteCourse(code: String) {
+        if (!courseRepository.existsByCode(code)) {
+            throw CserealException.Csereal404("entity not found")
+        }
+        courseRepository.deleteAllByCode(code)
     }
 
     @Transactional
@@ -303,7 +376,7 @@ class AcademicsServiceImpl(
                 enumLanguageType,
                 enumStudentType,
                 AcademicsPostType.SCHOLARSHIP
-            )
+            ) ?: throw CserealException.Csereal404("Scholarship Entity Not Found")
         val scholarshipEntityList = scholarshipRepository.findAllByStudentType(enumStudentType)
 
         return ScholarshipPageResponse.of(academicsEntity, scholarshipEntityList)
