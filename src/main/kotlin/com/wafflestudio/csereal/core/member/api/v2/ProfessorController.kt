@@ -63,7 +63,7 @@ class ProfessorController(
         professorService.updateProfessorLanguages(koProfessorId, enProfessorId, requestBody, newImage)
 
     @AuthenticatedStaff
-    @DeleteMapping("/{koProfessorId}/{enProfessorId}", consumes = ["multipart/form-data"])
+    @DeleteMapping("/{koProfessorId}/{enProfessorId}")
     fun deleteProfessor(
         @PathVariable @Positive
         koProfessorId: Long,
