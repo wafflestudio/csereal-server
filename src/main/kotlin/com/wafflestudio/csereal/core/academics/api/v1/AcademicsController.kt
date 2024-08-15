@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.academics.api.v1
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.api.req.CreateYearReq
+import com.wafflestudio.csereal.core.academics.api.req.UpdateScholarshipPageReq
 import com.wafflestudio.csereal.core.academics.api.req.UpdateSingleReq
 import com.wafflestudio.csereal.core.academics.api.req.UpdateYearReq
 import com.wafflestudio.csereal.core.academics.dto.*
@@ -111,14 +112,12 @@ class AcademicsController(
     ) = academicsService.updateDegreeRequirements(language, request, newAttachments)
 
     @AuthenticatedStaff
-    @PostMapping("/{studentType}/scholarshipDetail")
-    fun createScholarshipDetail(
+    @PutMapping("/{studentType}/scholarship")
+    fun updateScholarshipPage(
+        @RequestParam(required = false, defaultValue = "ko") language: String,
         @PathVariable studentType: String,
-        @Valid @RequestBody
-        request: ScholarshipDto
-    ): ResponseEntity<ScholarshipDto> {
-        return ResponseEntity.ok(academicsService.createScholarshipDetail(studentType, request))
-    }
+        @RequestBody request: UpdateScholarshipPageReq
+    ) = academicsService.updateScholarshipPage(language, studentType, request)
 
     @GetMapping("/{studentType}/scholarship")
     fun readAllScholarship(

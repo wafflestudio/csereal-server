@@ -1,7 +1,10 @@
 package com.wafflestudio.csereal.core.academics.api.v2
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
+import com.wafflestudio.csereal.core.academics.api.req.CreateScholarshipReq
+import com.wafflestudio.csereal.core.academics.api.req.UpdateScholarshipReq
 import com.wafflestudio.csereal.core.academics.dto.GroupedCourseDto
+import com.wafflestudio.csereal.core.academics.dto.ScholarshipDto
 import com.wafflestudio.csereal.core.academics.service.AcademicsService
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
@@ -30,4 +33,25 @@ class AcademicsController(
     @AuthenticatedStaff
     @DeleteMapping("/courses/{code}")
     fun deleteCourse(@PathVariable code: String) = academicsService.deleteCourse(code)
+
+    @AuthenticatedStaff
+    @PostMapping("/{studentType}/scholarship")
+    fun createScholarship(
+        @PathVariable studentType: String,
+        @Valid @RequestBody
+        request: CreateScholarshipReq
+    ) = academicsService.createScholarship(studentType, request)
+
+    @GetMapping("/scholarship/{scholarshipId}")
+    fun getScholarship(
+        @PathVariable scholarshipId: Long
+    ): Pair<ScholarshipDto, ScholarshipDto> = academicsService.readScholarshipV2(scholarshipId)
+
+    @AuthenticatedStaff
+    @PutMapping("/scholarship")
+    fun updateScholarship(@RequestBody request: UpdateScholarshipReq) = academicsService.updateScholarship(request)
+
+    @AuthenticatedStaff
+    @DeleteMapping("/scholarship/{scholarshipId}")
+    fun deleteScholarship(@PathVariable scholarshipId: Long) = academicsService.deleteScholarship(scholarshipId)
 }
