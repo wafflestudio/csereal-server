@@ -62,7 +62,7 @@ class SecurityConfig(
             }
             .headers { header ->
                 header.referrerPolicy {
-                    it.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN)
+                    it.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
                 }
             }
             .build()
