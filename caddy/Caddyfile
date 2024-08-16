@@ -1,6 +1,11 @@
 {$URL} {
 	tls {$CERTIFICATE} {$PRIVATE_KEY}
 
+    header {
+	    # enable HSTS
+	    Strict-Transport-Security max-age=31536000;
+    }
+
 	# Frontend
 	reverse_proxy host.docker.internal:3000
 
