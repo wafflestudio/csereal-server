@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.academics.api.v2
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.academics.api.req.CreateScholarshipReq
+import com.wafflestudio.csereal.core.academics.api.req.UpdateScholarshipPageReq
 import com.wafflestudio.csereal.core.academics.api.req.UpdateScholarshipReq
 import com.wafflestudio.csereal.core.academics.dto.GroupedCourseDto
 import com.wafflestudio.csereal.core.academics.dto.ScholarshipDto
@@ -57,4 +58,12 @@ class AcademicsController(
     @AuthenticatedStaff
     @DeleteMapping("/scholarship/{scholarshipId}")
     fun deleteScholarship(@PathVariable scholarshipId: Long) = academicsService.deleteScholarship(scholarshipId)
+
+    @AuthenticatedStaff
+    @PutMapping("/{studentType}/scholarship")
+    fun updateScholarshipPage(
+        @RequestParam(required = false, defaultValue = "ko") language: String,
+        @PathVariable studentType: String,
+        @RequestBody request: UpdateScholarshipPageReq
+    ) = academicsService.updateScholarshipPage(language, studentType, request)
 }
