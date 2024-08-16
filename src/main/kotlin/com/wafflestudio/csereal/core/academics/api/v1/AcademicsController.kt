@@ -86,7 +86,7 @@ class AcademicsController(
     ) = academicsService.deleteAcademicsYearResponse(language, studentType, postType, year)
 
     //교과목 정보
-
+    @Deprecated(message = "Use V2 API")
     @GetMapping("/{studentType}/courses")
     fun readAllCourses(
         @RequestParam(required = false, defaultValue = "ko") language: String,
@@ -110,16 +110,6 @@ class AcademicsController(
         @RequestPart newAttachments: List<MultipartFile>?
     ) = academicsService.updateDegreeRequirements(language, request, newAttachments)
 
-    @AuthenticatedStaff
-    @PostMapping("/{studentType}/scholarshipDetail")
-    fun createScholarshipDetail(
-        @PathVariable studentType: String,
-        @Valid @RequestBody
-        request: ScholarshipDto
-    ): ResponseEntity<ScholarshipDto> {
-        return ResponseEntity.ok(academicsService.createScholarshipDetail(studentType, request))
-    }
-
     @GetMapping("/{studentType}/scholarship")
     fun readAllScholarship(
         @RequestParam(required = false, defaultValue = "ko") language: String,
@@ -128,6 +118,7 @@ class AcademicsController(
         return ResponseEntity.ok(academicsService.readAllScholarship(language, studentType))
     }
 
+    @Deprecated(message = "Use V2 API")
     @GetMapping("/scholarship/{scholarshipId}")
     fun getScholarship(
         @PathVariable scholarshipId: Long
