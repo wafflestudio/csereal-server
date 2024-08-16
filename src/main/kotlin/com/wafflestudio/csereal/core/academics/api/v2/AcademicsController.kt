@@ -23,8 +23,11 @@ class AcademicsController(
     ) = academicsService.createCourse(request)
 
     @GetMapping("/courses")
-    fun readAllGroupedCourses(@RequestParam studentType: String): List<GroupedCourseDto> =
-        academicsService.readAllGroupedCourses(studentType)
+    fun readAllGroupedCourses(
+        @RequestParam studentType: String,
+        @RequestParam(required = false, defaultValue = "ko") sort: String
+    ): List<GroupedCourseDto> =
+        academicsService.readAllGroupedCourses(studentType, sort)
 
     @AuthenticatedStaff
     @PutMapping("/courses")

@@ -27,7 +27,7 @@ interface AcademicsService {
     fun createCourse(request: GroupedCourseDto)
 
     fun readAllCourses(language: String, studentType: String): List<CourseDto>
-    fun readAllGroupedCourses(studentType: String): List<GroupedCourseDto>
+    fun readAllGroupedCourses(studentType: String, sortType: String): List<GroupedCourseDto>
     fun updateCourse(updateRequest: GroupedCourseDto)
     fun deleteCourse(code: String)
     fun updateScholarshipPage(language: String, studentType: String, request: UpdateScholarshipPageReq)
@@ -318,9 +318,17 @@ class AcademicsServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllGroupedCourses(studentType: String): List<GroupedCourseDto> {
+    override fun readAllGroupedCourses(studentType: String, sortType: String): List<GroupedCourseDto> {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        return courseRepository.findGroupedCourses(enumStudentType).map(CourseMapper::toGroupedCourseDTO)
+        val sort = LanguageType.makeStringToLanguageType(sortType)
+        return courseRepository.findGroupedCourses(enumStudentType)
+            .map(CourseMapper::toGroupedCourseDTO)
+            .sortedBy { course ->
+                when (sort) {
+                    LanguageType.KO -> course.ko.name
+                    LanguageType.EN -> course.en.name
+                }
+            }
     }
 
     @Transactional

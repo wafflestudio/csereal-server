@@ -28,6 +28,7 @@ server:
             timeout: 32400 # 9시간
             cookie:
                 same-site: lax
+                secure: true
 
 springdoc:
     paths-to-match:
