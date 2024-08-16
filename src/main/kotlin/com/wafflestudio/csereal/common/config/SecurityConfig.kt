@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
@@ -58,6 +59,11 @@ class SecurityConfig(
                 auth
                     .requestMatchers("/api/v1/login").authenticated()
                     .anyRequest().permitAll()
+            }
+            .headers { header ->
+                header.referrerPolicy {
+                    it.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN)
+                }
             }
             .build()
     }
