@@ -2,9 +2,7 @@ package com.wafflestudio.csereal.core.academics.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.core.academics.api.req.CreateYearReq
-import com.wafflestudio.csereal.core.academics.api.req.UpdateSingleReq
-import com.wafflestudio.csereal.core.academics.api.req.UpdateYearReq
+import com.wafflestudio.csereal.core.academics.api.req.*
 import com.wafflestudio.csereal.core.academics.database.*
 import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
@@ -29,16 +27,21 @@ interface AcademicsService {
     fun createCourse(request: GroupedCourseDto)
 
     fun readAllCourses(language: String, studentType: String): List<CourseDto>
-    fun readAllGroupedCourses(studentType: String): List<GroupedCourseDto>
+    fun readAllGroupedCourses(studentType: String, sortType: String): List<GroupedCourseDto>
     fun updateCourse(updateRequest: GroupedCourseDto)
     fun deleteCourse(code: String)
-    fun createScholarshipDetail(
-        studentType: String,
-        request: ScholarshipDto
-    ): ScholarshipDto
+    fun updateScholarshipPage(language: String, studentType: String, request: UpdateScholarshipPageReq)
 
     fun readAllScholarship(language: String, studentType: String): ScholarshipPageResponse
+    fun createScholarship(
+        studentType: String,
+        request: CreateScholarshipReq
+    )
+
     fun readScholarship(scholarshipId: Long): ScholarshipDto
+    fun readScholarshipV2(scholarshipId: Long): Pair<ScholarshipDto, ScholarshipDto>
+    fun updateScholarship(request: UpdateScholarshipReq)
+    fun deleteScholarship(scholarshipId: Long)
     fun updateGuide(
         language: String,
         studentType: String,
@@ -67,7 +70,8 @@ class AcademicsServiceImpl(
     private val academicsRepository: AcademicsRepository,
     private val courseRepository: CourseRepository,
     private val attachmentService: AttachmentService,
-    private val scholarshipRepository: ScholarshipRepository
+    private val scholarshipRepository: ScholarshipRepository,
+    private val scholarshipLanguageRepository: ScholarshipLanguageRepository
 ) : AcademicsService {
 
     @Transactional(readOnly = true)
@@ -314,9 +318,17 @@ class AcademicsServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllGroupedCourses(studentType: String): List<GroupedCourseDto> {
+    override fun readAllGroupedCourses(studentType: String, sortType: String): List<GroupedCourseDto> {
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        return courseRepository.findGroupedCourses(enumStudentType).map(CourseMapper::toGroupedCourseDTO)
+        val sort = LanguageType.makeStringToLanguageType(sortType)
+        return courseRepository.findGroupedCourses(enumStudentType)
+            .map(CourseMapper::toGroupedCourseDTO)
+            .sortedBy { course ->
+                when (sort) {
+                    LanguageType.KO -> course.ko.name
+                    LanguageType.EN -> course.en.name
+                }
+            }
     }
 
     @Transactional
@@ -351,19 +363,19 @@ class AcademicsServiceImpl(
     }
 
     @Transactional
-    override fun createScholarshipDetail(studentType: String, request: ScholarshipDto): ScholarshipDto {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
+    override fun updateScholarshipPage(language: String, studentType: String, request: UpdateScholarshipPageReq) {
+        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        var newScholarship = ScholarshipEntity.of(enumLanguageType, enumStudentType, request)
+        val scholarshipPage = academicsRepository.findByLanguageAndStudentTypeAndPostType(
+            enumLanguageType,
+            enumStudentType,
+            AcademicsPostType.SCHOLARSHIP
+        ) ?: throw CserealException.Csereal404("scholarship page not found")
 
-        // create search data
-        newScholarship.apply {
-            academicsSearch = AcademicsSearchEntity.create(this)
+        scholarshipPage.description = request.description
+        scholarshipPage.academicsSearch?.update(scholarshipPage) ?: let {
+            scholarshipPage.academicsSearch = AcademicsSearchEntity.create(scholarshipPage)
         }
-
-        newScholarship = scholarshipRepository.save(newScholarship)
-
-        return ScholarshipDto.of(newScholarship)
     }
 
     @Transactional(readOnly = true)
@@ -377,9 +389,29 @@ class AcademicsServiceImpl(
                 enumStudentType,
                 AcademicsPostType.SCHOLARSHIP
             ) ?: throw CserealException.Csereal404("Scholarship Entity Not Found")
-        val scholarshipEntityList = scholarshipRepository.findAllByStudentType(enumStudentType)
+        val scholarshipEntityList =
+            scholarshipRepository.findAllByStudentTypeAndLanguage(enumStudentType, enumLanguageType)
 
         return ScholarshipPageResponse.of(academicsEntity, scholarshipEntityList)
+    }
+
+    @Transactional
+    override fun createScholarship(studentType: String, request: CreateScholarshipReq) {
+        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+        val koScholarship =
+            ScholarshipEntity.of(LanguageType.KO, enumStudentType, request.koName, request.koDescription)
+        val enScholarship =
+            ScholarshipEntity.of(LanguageType.EN, enumStudentType, request.enName, request.enDescription)
+
+        // create search data
+        koScholarship.apply {
+            academicsSearch = AcademicsSearchEntity.create(this)
+        }
+        enScholarship.apply {
+            academicsSearch = AcademicsSearchEntity.create(this)
+        }
+
+        scholarshipLanguageRepository.save(ScholarshipLanguageEntity(koScholarship, enScholarship))
     }
 
     @Transactional(readOnly = true)
@@ -387,6 +419,52 @@ class AcademicsServiceImpl(
         val scholarship = scholarshipRepository.findByIdOrNull(scholarshipId)
             ?: throw CserealException.Csereal404("해당하는 장학제도를 찾을 수 없습니다")
         return ScholarshipDto.of(scholarship)
+    }
+
+    @Transactional(readOnly = true)
+    override fun readScholarshipV2(scholarshipId: Long): Pair<ScholarshipDto, ScholarshipDto> {
+        val scholarship = scholarshipRepository.findByIdOrNull(scholarshipId)
+            ?: throw CserealException.Csereal404("해당하는 장학제도를 찾을 수 없습니다")
+
+        val correspondingScholarship = when (scholarship.language) {
+            LanguageType.KO -> scholarshipLanguageRepository.findByKoScholarship(scholarship)!!.enScholarship
+            LanguageType.EN -> scholarshipLanguageRepository.findByEnScholarship(scholarship)!!.koScholarship
+        }
+
+        return Pair(ScholarshipDto.of(scholarship), ScholarshipDto.of(correspondingScholarship))
+    }
+
+    @Transactional
+    override fun updateScholarship(request: UpdateScholarshipReq) {
+        val koScholarship = scholarshipRepository.findByIdOrNull(request.ko.id)
+            ?: throw CserealException.Csereal404("해당하는 장학제도를 찾을 수 없습니다")
+        val enScholarship = scholarshipRepository.findByIdOrNull(request.en.id)
+            ?: throw CserealException.Csereal404("해당하는 장학제도를 찾을 수 없습니다")
+
+        koScholarship.name = request.ko.name
+        koScholarship.description = request.ko.description
+        enScholarship.name = request.en.name
+        enScholarship.description = request.en.description
+
+        koScholarship.academicsSearch?.update(koScholarship) ?: let {
+            koScholarship.academicsSearch = AcademicsSearchEntity.create(koScholarship)
+        }
+        enScholarship.academicsSearch?.update(enScholarship) ?: let {
+            enScholarship.academicsSearch = AcademicsSearchEntity.create(enScholarship)
+        }
+    }
+
+    @Transactional
+    override fun deleteScholarship(scholarshipId: Long) {
+        val scholarship = scholarshipRepository.findByIdOrNull(scholarshipId)
+            ?: throw CserealException.Csereal404("해당하는 장학제도를 찾을 수 없습니다")
+
+        val scholarshipLanguage = when (scholarship.language) {
+            LanguageType.KO -> scholarshipLanguageRepository.findByKoScholarship(scholarship)
+            LanguageType.EN -> scholarshipLanguageRepository.findByEnScholarship(scholarship)
+        }
+
+        scholarshipLanguageRepository.delete(scholarshipLanguage!!)
     }
 
     private fun makeStringToAcademicsStudentType(postType: String): AcademicsStudentType {

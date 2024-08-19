@@ -2,7 +2,6 @@ package com.wafflestudio.csereal.core.academics.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.core.academics.dto.ScholarshipDto
 import jakarta.persistence.*
 
 @Entity(name = "scholarship")
@@ -13,10 +12,10 @@ class ScholarshipEntity(
     @Enumerated(EnumType.STRING)
     var language: LanguageType,
 
-    val name: String,
+    var name: String,
 
     @Column(columnDefinition = "text")
-    val description: String,
+    var description: String,
 
     @OneToOne(mappedBy = "scholarship", cascade = [CascadeType.ALL], orphanRemoval = true)
     var academicsSearch: AcademicsSearchEntity? = null
@@ -27,13 +26,14 @@ class ScholarshipEntity(
         fun of(
             languageType: LanguageType,
             studentType: AcademicsStudentType,
-            scholarshipDto: ScholarshipDto
+            name: String,
+            description: String
         ): ScholarshipEntity {
             return ScholarshipEntity(
                 language = languageType,
                 studentType = studentType,
-                name = scholarshipDto.name,
-                description = scholarshipDto.description
+                name = name,
+                description = description
             )
         }
     }

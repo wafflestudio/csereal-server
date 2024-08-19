@@ -49,6 +49,10 @@ class ReservationServiceImpl(
         val room =
             roomRepository.findByIdOrNull(reserveRequest.roomId) ?: throw CserealException.Csereal404("Room Not Found")
 
+        if (room.type == RoomType.LECTURE && user.role != Role.ROLE_STAFF) {
+            throw CserealException.Csereal403("교수회의실 예약 행정실 문의 바람")
+        }
+
         val reservations = mutableListOf<ReservationEntity>()
 
         val recurrenceId = UUID.randomUUID()
