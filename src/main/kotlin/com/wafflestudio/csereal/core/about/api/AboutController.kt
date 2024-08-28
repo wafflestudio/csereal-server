@@ -91,6 +91,7 @@ class AboutController(
         return ResponseEntity.ok(aboutService.readAllFacilities(language))
     }
 
+    @AuthenticatedStaff
     @PutMapping("/directions/{id}")
     fun updateDirection(@PathVariable id: Long, @RequestBody request: UpdateDescriptionReq) =
         aboutService.updateDirection(id, request)
