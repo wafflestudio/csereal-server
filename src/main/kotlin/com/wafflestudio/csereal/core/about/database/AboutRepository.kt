@@ -14,9 +14,16 @@ interface AboutRepository : JpaRepository<AboutEntity, Long>, AboutCustomReposit
         languageType: LanguageType,
         postType: AboutPostType
     ): List<AboutEntity>
+
     fun findByLanguageAndPostType(
         languageType: LanguageType,
         postType: AboutPostType
+    ): AboutEntity
+
+    fun findByLanguageAndPostTypeAndNameContaining(
+        languageType: LanguageType,
+        postType: AboutPostType,
+        keyword: String
     ): AboutEntity
 }
 

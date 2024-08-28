@@ -22,8 +22,6 @@ class AboutEntity(
     @Column(columnDefinition = "mediumText")
     var description: String,
 
-    var year: Int?,
-
     @Column(columnDefinition = "TEXT")
     @Convert(converter = StringListConverter::class)
     var locations: MutableList<String> = mutableListOf(),
@@ -31,7 +29,7 @@ class AboutEntity(
     @OneToMany(mappedBy = "about", cascade = [CascadeType.ALL], orphanRemoval = true)
     var attachments: MutableList<AttachmentEntity> = mutableListOf(),
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
     var mainImage: MainImageEntity? = null,
 
     @Column(columnDefinition = "TEXT")
@@ -52,7 +50,6 @@ class AboutEntity(
                 language = languageType,
                 name = aboutDto.name,
                 description = aboutDto.description,
-                year = aboutDto.year,
                 locations = aboutDto.locations?.toMutableList() ?: mutableListOf(),
                 searchContent = ""
             )
