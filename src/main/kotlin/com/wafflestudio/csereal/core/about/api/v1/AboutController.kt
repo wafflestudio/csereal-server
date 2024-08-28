@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.about.api
+package com.wafflestudio.csereal.core.about.api.v1
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.LanguageType
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
 @RequestMapping("/api/v1/about")
-@RestController
+@RestController("AboutControllerV1")
 class AboutController(
     private val aboutService: AboutService
 ) {
@@ -41,25 +41,7 @@ class AboutController(
         @RequestPart newAttachments: List<MultipartFile>?
     ) = aboutService.updateAbout(postType, request, newMainImage, newAttachments)
 
-    @AuthenticatedStaff
-    @PostMapping("/student-clubs")
-    fun createClub(
-        @RequestPart request: CreateClubReq,
-        @RequestPart mainImage: MultipartFile?
-    ) = aboutService.createClub(request, mainImage)
-
-    @AuthenticatedStaff
-    @PutMapping("/student-clubs/{engName}")
-    fun updateClub(
-        @PathVariable("engName") name: String,
-        @RequestPart request: UpdateDescriptionReq,
-        @RequestPart newMainImage: MultipartFile?
-    ) = aboutService.updateClub(name, request, newMainImage)
-
-    @AuthenticatedStaff
-    @DeleteMapping("/student-clubs/{engName}")
-    fun deleteClub(@PathVariable("engName") name: String) = aboutService.deleteClub(name)
-
+    @Deprecated("Use V2 API")
     @GetMapping("/student-clubs")
     fun readAllClubs(
         @RequestParam(required = false, defaultValue = "ko") language: String

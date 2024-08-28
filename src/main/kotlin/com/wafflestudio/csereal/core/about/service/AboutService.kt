@@ -27,10 +27,11 @@ interface AboutService {
     )
 
     fun createClub(request: CreateClubReq, mainImage: MultipartFile?)
-    fun updateClub(name: String, request: UpdateDescriptionReq, newMainImage: MultipartFile?)
-    fun deleteClub(name: String)
+    fun updateClub(request: GroupedClubDto, newMainImage: MultipartFile?)
+    fun deleteClub(id: Long)
 
     fun readAllClubs(language: String): List<StudentClubDto>
+    fun readAllGroupedClubs(): List<GroupedClubDto>
     fun createFacilities(request: CreateFacReq, mainImage: MultipartFile?)
     fun updateFacility(id: Long, request: CreateFacReq, newMainImage: MultipartFile?)
     fun deleteFacility(id: Long)
@@ -122,7 +123,7 @@ class AboutServiceImpl(
             AboutEntity(
                 AboutPostType.STUDENT_CLUBS,
                 lang,
-                req.name + "(${request.en.name})",
+                req.name,
                 req.description,
                 searchContent = ""
             ).apply { syncSearchContent() }
@@ -132,43 +133,50 @@ class AboutServiceImpl(
             clubs.forEach { mainImageService.uploadMainImage(it, mainImage) }
         }
 
-        clubs.forEach { aboutRepository.save(it) }
+        aboutLanguageRepository.save(AboutLanguageEntity(clubs[0], clubs[1]))
     }
 
     @Transactional
-    override fun updateClub(name: String, request: UpdateDescriptionReq, newMainImage: MultipartFile?) {
-        val lang = listOf(LanguageType.KO to request.koDescription, LanguageType.EN to request.enDescription)
-        val clubs = lang.map {
-            aboutRepository.findByLanguageAndPostTypeAndNameContaining(it.first, AboutPostType.STUDENT_CLUBS, name)
-                .apply {
-                    description = it.second
-                    syncSearchContent()
-                }
+    override fun updateClub(request: GroupedClubDto, newMainImage: MultipartFile?) {
+        val (ko, en) = listOf(request.ko.id, request.en.id).map { id ->
+            aboutRepository.findByIdOrNull(id) ?: throw CserealException.Csereal404("club not found")
+        }
+
+        if (ko.language != LanguageType.KO || en.language != LanguageType.EN) {
+            throw CserealException.Csereal400("language doesn't match")
+        }
+
+        listOf(ko to request.ko, en to request.en).forEach { (club, clubDto) ->
+            updateClubDetails(club, clubDto)
         }
 
         if (newMainImage != null) {
-            clubs.forEach {
-                it.mainImage?.let { image -> mainImageService.removeImage(image) }
-                mainImageService.uploadMainImage(it, newMainImage)
+            listOf(ko, en).forEach { club ->
+                club.mainImage?.let { image -> mainImageService.removeImage(image) }
+                mainImageService.uploadMainImage(club, newMainImage)
             }
         }
     }
 
+    private fun updateClubDetails(club: AboutEntity, clubDto: ClubDtoWithId) {
+        club.name = clubDto.name
+        club.description = clubDto.description
+        club.syncSearchContent()
+    }
+
     @Transactional
-    override fun deleteClub(name: String) {
-        val lang = listOf(LanguageType.KO, LanguageType.EN)
-        val clubs = lang.map {
-            aboutRepository.findByLanguageAndPostTypeAndNameContaining(
-                it,
-                AboutPostType.STUDENT_CLUBS,
-                name
-            )
+    override fun deleteClub(id: Long) {
+        val club = aboutRepository.findByIdOrNull(id) ?: throw CserealException.Csereal404("club not found")
+        val aboutLanguage = when (club.language) {
+            LanguageType.KO -> aboutLanguageRepository.findByKoAbout(club)
+            LanguageType.EN -> aboutLanguageRepository.findByEnAbout(club)
         }
 
-        clubs.forEach {
+        listOf(aboutLanguage!!.koAbout, aboutLanguage.enAbout).forEach {
             it.mainImage?.let { image -> mainImageService.removeImage(image) }
-            aboutRepository.delete(it)
         }
+
+        aboutLanguageRepository.delete(aboutLanguage)
     }
 
     @Transactional(readOnly = true)
@@ -188,6 +196,16 @@ class AboutServiceImpl(
             }
 
         return clubs
+    }
+
+    @Transactional(readOnly = true)
+    override fun readAllGroupedClubs(): List<GroupedClubDto> {
+        val clubs = aboutLanguageRepository.findAll().filter { it.koAbout.postType == AboutPostType.STUDENT_CLUBS }
+            .sortedBy { it.koAbout.name }
+        return clubs.map {
+            val imageURL = mainImageService.createImageURL(it.koAbout.mainImage)
+            GroupedClubDto(ko = ClubDtoWithId.of(it.koAbout, imageURL), en = ClubDtoWithId.of(it.enAbout, imageURL))
+        }
     }
 
     @Transactional
