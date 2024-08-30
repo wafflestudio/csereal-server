@@ -106,10 +106,3 @@ class ResearchSearchEntity(
         this.content = createContent(conference)
     }
 }
-
-enum class ResearchSearchType {
-    RESEARCH_GROUP,
-    RESEARCH_CENTER,
-    LAB,
-    CONFERENCE;
-}

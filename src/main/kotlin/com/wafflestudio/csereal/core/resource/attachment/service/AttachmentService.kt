@@ -212,11 +212,6 @@ class AttachmentServiceImpl(
                 contentEntity.attachments.add(attachment)
                 attachment.academics = contentEntity
             }
-
-            is ResearchEntity -> {
-                contentEntity.attachments.add(attachment)
-                attachment.research = contentEntity
-            }
         }
     }
 }

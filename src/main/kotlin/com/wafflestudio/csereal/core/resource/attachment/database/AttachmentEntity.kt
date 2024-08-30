@@ -51,10 +51,6 @@ class AttachmentEntity(
     var lab: LabEntity? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "research_id")
-    var research: ResearchEntity? = null,
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scholarship_id")
     var scholarship: ScholarshipEntity? = null
 ) : BaseTimeEntity()
