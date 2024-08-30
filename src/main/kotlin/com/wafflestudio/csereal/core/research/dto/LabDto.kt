@@ -30,7 +30,7 @@ data class LabDto(
                 acronym = this.acronym,
                 pdf = pdf,
                 youtube = this.youtube,
-                group = this.research.name,
+                group = this.research?.name ?: "",
                 description = this.description,
                 websiteURL = this.websiteURL
             )

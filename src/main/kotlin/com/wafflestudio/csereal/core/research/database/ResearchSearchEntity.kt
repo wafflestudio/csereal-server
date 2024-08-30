@@ -68,7 +68,7 @@ class ResearchSearchEntity(
             lab.tel?.let { appendLine(it) }
             lab.acronym?.let { appendLine(it) }
             lab.youtube?.let { appendLine(it) }
-            appendLine(lab.research.name)
+            lab.research?.let { appendLine(it.name) }
             lab.description?.let {
                 appendLine(cleanTextFromHtml(it))
             }
