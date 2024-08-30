@@ -1,12 +1,15 @@
 package com.wafflestudio.csereal.core.research.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.common.utils.startsWithEnglish
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
+import com.wafflestudio.csereal.core.research.api.req.*
 import com.wafflestudio.csereal.core.research.database.*
 import com.wafflestudio.csereal.core.research.dto.*
+import com.wafflestudio.csereal.core.research.type.ResearchRelatedType
+import com.wafflestudio.csereal.core.research.type.ResearchType
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
@@ -16,39 +19,45 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface ResearchService {
-    fun createResearchDetail(
-        request: ResearchDto,
-        mainImage: MultipartFile?,
-        attachments: List<MultipartFile>?
-    ): ResearchDto
+    fun createResearchLanguage(req: CreateResearchLanguageReqBody, mainImage: MultipartFile?): ResearchLanguageDto
+    fun createResearch(
+        language: LanguageType,
+        request: CreateResearchSealedReqBody,
+        mainImage: MultipartFile?
+    ): ResearchSealedDto
 
-    fun readAllResearchGroups(language: String): ResearchGroupResponse
-    fun readAllResearchCenters(language: String): List<ResearchDto>
-    fun updateResearchDetail(
+    fun updateResearchLanguage(
+        koreanId: Long,
+        englishId: Long,
+        req: ModifyResearchLanguageReqBody,
+        updateImage: MultipartFile?
+    ): ResearchLanguageDto
+
+    fun updateResearch(
         researchId: Long,
-        request: ResearchDto,
-        mainImage: MultipartFile?,
-        attachments: List<MultipartFile>?
-    ): ResearchDto
+        request: ModifyResearchSealedReqBody,
+        updateImage: MultipartFile?
+    ): ResearchSealedDto
+
+    fun deleteResearchLanguage(koreanId: Long, englishId: Long)
+    fun deleteResearch(researchId: Long)
+
+    fun readResearchLanguage(id: Long): ResearchLanguageDto
+    fun readAllResearch(language: LanguageType, type: ResearchType): List<ResearchSealedDto>
+
+    fun readAllResearchGroupsDeprecated(language: String): ResearchGroupResponse
+    fun readAllResearchCentersDeprecated(language: String): List<ResearchDto>
 
     fun createLab(request: LabDto, pdf: MultipartFile?): LabDto
     fun readAllLabs(language: String): List<LabDto>
     fun readLab(labId: Long): LabDto
     fun updateLab(labId: Long, request: LabUpdateRequest, pdf: MultipartFile?): LabDto
-    fun migrateResearchDetail(requestList: List<ResearchDto>): List<ResearchDto>
-    fun migrateLabs(requestList: List<LabDto>): List<LabDto>
-    fun migrateResearchDetailImageAndAttachments(
-        researchId: Long,
-        mainImage: MultipartFile?,
-        attachments: List<MultipartFile>?
-    ): ResearchDto
-
-    fun migrateLabPdf(labId: Long, pdf: MultipartFile?): LabDto
 }
 
 @Service
 class ResearchServiceImpl(
     private val researchRepository: ResearchRepository,
+    private val researchLanguageRepository: ResearchLanguageRepository,
     private val labRepository: LabRepository,
     private val professorRepository: ProfessorRepository,
     private val mainImageService: MainImageService,
@@ -56,44 +65,197 @@ class ResearchServiceImpl(
     private val endpointProperties: EndpointProperties
 ) : ResearchService {
     @Transactional
-    override fun createResearchDetail(
-        request: ResearchDto,
+    override fun createResearchLanguage(
+        req: CreateResearchLanguageReqBody,
         mainImage: MultipartFile?,
-        attachments: List<MultipartFile>?
-    ): ResearchDto {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-        val newResearch = ResearchEntity.of(enumLanguageType, request)
-
-        if (request.labs != null) {
-            for (lab in request.labs) {
-                val labEntity = labRepository.findByIdOrNull(lab.id)
-                    ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=${lab.id})")
-                newResearch.labs.add(labEntity)
-                labEntity.research = newResearch
-            }
+    ): ResearchLanguageDto {
+        if (!req.valid()) {
+            throw CserealException.Csereal400("두 언어의 research type이 일치하지 않습니다.")
         }
 
+        val ko = createResearch(LanguageType.KO, req.ko, mainImage)
+        val en = createResearch(LanguageType.EN, req.en, mainImage)
+        researchLanguageRepository.save(
+            ResearchLanguageEntity(
+                koreanId = ko.id,
+                englishId = en.id,
+                type = req.ko.type.ofResearchRelatedType(),
+            )
+        )
+
+        return ResearchLanguageDto(ko, en)
+    }
+
+    @Transactional
+    override fun createResearch(
+        language: LanguageType,
+        request: CreateResearchSealedReqBody,
+        mainImage: MultipartFile?,
+    ): ResearchSealedDto {
+        // Common fields
+        val newResearch = ResearchEntity(
+            postType = request.type,
+            language = language,
+            name = request.name,
+            description = request.description,
+        )
+
+        // Type specific fields
+        when (request) {
+            is CreateResearchGroupReqBody -> {}
+            is CreateResearchCenterReqBody -> newResearch.websiteURL = request.websiteURL
+        }
+
+        // Create Research Search Index
+        upsertResearchSearchIndex(newResearch)
+
+        // Main Image
         if (mainImage != null) {
             mainImageService.uploadMainImage(newResearch, mainImage)
         }
+        val imageURL = mainImageService.createImageURL(newResearch.mainImage)
 
-        if (attachments != null) {
-            attachmentService.uploadAllAttachments(newResearch, attachments)
+        return ResearchSealedDto.of(
+            researchRepository.save(newResearch),
+            imageURL,
+        )
+    }
+
+    @Transactional
+    override fun updateResearchLanguage(
+        koreanId: Long,
+        englishId: Long,
+        req: ModifyResearchLanguageReqBody,
+        updateImage: MultipartFile?,
+    ): ResearchLanguageDto {
+        if (!req.valid()) {
+            throw CserealException.Csereal404("두 언어의 research type이 일치하지 않습니다.")
         }
 
-        newResearch.researchSearch = ResearchSearchEntity.create(newResearch)
+        val type = req.ko.type
+        if (!researchLanguageRepository.existsByKoreanIdAndEnglishIdAndType(
+                koreanId,
+                englishId,
+                type.ofResearchRelatedType()
+            )
+        ) {
+            throw CserealException.Csereal404("해당 Research 언어 쌍을 찾을 수 없습니다.")
+        }
 
-        researchRepository.save(newResearch)
+        val koreanUpdatedDto = updateResearch(koreanId, req.ko, updateImage)
+        val englishUpdatedDto = updateResearch(englishId, req.en, updateImage)
 
-        val imageURL = mainImageService.createImageURL(newResearch.mainImage)
-        val attachmentResponses =
-            attachmentService.createAttachmentResponses(newResearch.attachments)
+        return ResearchLanguageDto(koreanUpdatedDto, englishUpdatedDto)
+    }
 
-        return ResearchDto.of(newResearch, imageURL, attachmentResponses)
+    @Transactional
+    override fun updateResearch(
+        researchId: Long,
+        request: ModifyResearchSealedReqBody,
+        updateImage: MultipartFile?,
+    ): ResearchSealedDto {
+        val research = researchRepository.findByIdOrNull(researchId)
+            ?: throw CserealException.Csereal404("해당 게시글을 찾을 수 없습니다.(researchId=$researchId)")
+        val originalName = research.name
+
+        // Update common fields
+        research.apply {
+            name = request.name
+            description = request.description
+        }
+
+        // Update type specific fields
+        when (request) {
+            is ModifyResearchGroupReqBody -> {}
+            is ModifyResearchCenterReqBody -> {
+                research.websiteURL = request.websiteURL
+            }
+        }
+
+        // Update image
+        // remove old image
+        if (research.mainImage != null && (request.removeImage || updateImage != null)) {
+            mainImageService.removeImage(research.mainImage!!)
+            research.mainImage = null
+        }
+        // upload new image
+        updateImage?.let {
+            mainImageService.uploadMainImage(research, it)
+        }
+        val imageURL = mainImageService.createImageURL(research.mainImage)
+
+        // update search index
+        upsertResearchSearchIndex(research)
+
+        // upsert labs in research group if name changed
+        if (originalName != research.name) {
+            research.labs.forEach {
+                upsertLabSearchIndex(it)
+            }
+        }
+
+        return ResearchSealedDto.of(research, imageURL)
+    }
+
+    @Transactional
+    override fun deleteResearchLanguage(koreanId: Long, englishId: Long) {
+        val researchLanguage = researchLanguageRepository.findByKoreanIdAndEnglishIdAndType(
+            koreanId,
+            englishId,
+            ResearchRelatedType.RESEARCH_GROUP
+        ) ?: researchLanguageRepository.findByKoreanIdAndEnglishIdAndType(
+            koreanId,
+            englishId,
+            ResearchRelatedType.RESEARCH_CENTER
+        ) ?: throw CserealException.Csereal404("해당 Research 언어 쌍을 찾을 수 없습니다.")
+
+        deleteResearch(koreanId)
+        deleteResearch(englishId)
+        researchLanguageRepository.delete(researchLanguage)
+    }
+
+    @Transactional
+    override fun deleteResearch(researchId: Long) {
+        val research = researchRepository.findByIdOrNull(researchId)
+            ?: throw CserealException.Csereal404("해당 게시글을 찾을 수 없습니다.(researchId=$researchId)")
+
+        research.mainImage?.let {
+            mainImageService.removeImage(it)
+        }
+
+        research.labs.forEach {
+            it.research = null
+        }
+
+        // update search index to remove research
+        research.labs.forEach {
+            upsertLabSearchIndex(it)
+        }
+
+        researchRepository.delete(research)
     }
 
     @Transactional(readOnly = true)
-    override fun readAllResearchGroups(language: String): ResearchGroupResponse {
+    override fun readResearchLanguage(id: Long): ResearchLanguageDto {
+        val researchMap = researchLanguageRepository.findResearchPairById(id)
+            ?: throw CserealException.Csereal404("해당 Research 언어 쌍을 찾을 수 없습니다.(id=$id)")
+
+        val ko = researchMap[LanguageType.KO]!!
+        val en = researchMap[LanguageType.EN]!!
+        return ResearchLanguageDto(
+            ResearchSealedDto.of(ko, mainImageService.createImageURL(ko.mainImage)),
+            ResearchSealedDto.of(en, mainImageService.createImageURL(en.mainImage))
+        )
+    }
+
+    @Transactional(readOnly = true)
+    override fun readAllResearch(language: LanguageType, type: ResearchType): List<ResearchSealedDto> =
+        researchRepository.findAllByPostTypeAndLanguageOrderByName(type, language)
+            .map { ResearchSealedDto.of(it, mainImageService.createImageURL(it.mainImage)) }
+
+
+    @Transactional(readOnly = true)
+    override fun readAllResearchGroupsDeprecated(language: String): ResearchGroupResponse {
         // Todo: description 수정 필요
         val description = "세계가 주목하는 컴퓨터공학부의 많은 교수들은 ACM, IEEE 등 " +
             "세계적인 컴퓨터관련 주요 학회에서 국제학술지 편집위원, 국제학술회의 위원장, " +
@@ -104,97 +266,38 @@ class ResearchServiceImpl(
         val enumLanguageType = LanguageType.makeStringToLanguageType(language)
         val researchGroups =
             researchRepository.findAllByPostTypeAndLanguageOrderByName(
-                ResearchPostType.GROUPS,
+                ResearchType.GROUPS,
                 enumLanguageType
             ).map {
                 val imageURL = mainImageService.createImageURL(it.mainImage)
-                val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
-
-                ResearchDto.of(it, imageURL, attachmentResponses)
+                ResearchDto.of(it, imageURL, emptyList())
             }
 
         return ResearchGroupResponse(description, researchGroups)
     }
 
     @Transactional(readOnly = true)
-    override fun readAllResearchCenters(language: String): List<ResearchDto> {
+    override fun readAllResearchCentersDeprecated(language: String): List<ResearchDto> {
         val enumLanguageType = LanguageType.makeStringToLanguageType(language)
         val researchCenters =
             researchRepository.findAllByPostTypeAndLanguageOrderByName(
-                ResearchPostType.CENTERS,
+                ResearchType.CENTERS,
                 enumLanguageType
             ).map {
                 val imageURL = mainImageService.createImageURL(it.mainImage)
-                val attachmentResponses = attachmentService.createAttachmentResponses(it.attachments)
-
-                ResearchDto.of(it, imageURL, attachmentResponses)
+                ResearchDto.of(it, imageURL, emptyList())
             }
 
         return researchCenters
     }
 
-    @Transactional
-    override fun updateResearchDetail(
-        researchId: Long,
-        request: ResearchDto,
-        mainImage: MultipartFile?,
-        attachments: List<MultipartFile>?
-    ): ResearchDto {
-        val research = researchRepository.findByIdOrNull(researchId)
-            ?: throw CserealException.Csereal404("해당 게시글을 찾을 수 없습니다.(researchId=$researchId)")
-
-        if (request.labs != null) {
-            for (lab in request.labs) {
-                val labEntity = labRepository.findByIdOrNull(lab.id)
-                    ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=${lab.id})")
-            }
-
-            val oldLabs = research.labs.map { it.id }
-
-            val labsToRemove = oldLabs - request.labs.map { it.id }
-            val labsToAdd = request.labs.map { it.id } - oldLabs
-
-            research.labs.removeIf { it.id in labsToRemove }
-
-            for (labsToAddId in labsToAdd) {
-                val lab = labRepository.findByIdOrNull(labsToAddId)!!
-                research.labs.add(lab)
-                lab.research = research
-            }
-        }
-
-        if (mainImage != null) {
-            mainImageService.uploadMainImage(research, mainImage)
-        } else {
-            research.mainImage = null
-        }
-
-        if (attachments != null) {
-            research.attachments.clear()
-            attachmentService.uploadAllAttachments(research, attachments)
-        } else {
-            research.attachments.clear()
-        }
-
-        val imageURL = mainImageService.createImageURL(research.mainImage)
-        val attachmentResponses = attachmentService.createAttachmentResponses(research.attachments)
-
-        research.updateWithoutLabImageAttachment(request)
-
-        research.researchSearch?.update(research)
-            ?: let {
-                research.researchSearch = ResearchSearchEntity.create(research)
-            }
-
-        return ResearchDto.of(research, imageURL, attachmentResponses)
-    }
 
     @Transactional
     override fun createLab(request: LabDto, pdf: MultipartFile?): LabDto {
         val researchGroup = researchRepository.findByName(request.group!!)
             ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = ${request.group})")
 
-        if (researchGroup.postType != ResearchPostType.GROUPS) {
+        if (researchGroup.postType != ResearchType.GROUPS) {
             throw CserealException.Csereal404("해당 게시글은 연구그룹이어야 합니다.")
         }
 
