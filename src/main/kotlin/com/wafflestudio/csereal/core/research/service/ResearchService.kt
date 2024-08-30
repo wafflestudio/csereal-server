@@ -310,80 +310,16 @@ class ResearchServiceImpl(
     }
 
     @Transactional
-    override fun migrateResearchDetail(requestList: List<ResearchDto>): List<ResearchDto> {
-        val list = mutableListOf<ResearchDto>()
-        for (request in requestList) {
-            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-            val newResearch = ResearchEntity.of(enumLanguageType, request)
-
-            newResearch.researchSearch = ResearchSearchEntity.create(newResearch)
-
-            researchRepository.save(newResearch)
-
-            list.add(ResearchDto.of(newResearch, null, listOf()))
+    fun upsertResearchSearchIndex(research: ResearchEntity) {
+        research.researchSearch?.update(research) ?: let {
+            research.researchSearch = ResearchSearchEntity.create(research)
         }
-
-        return list
     }
 
     @Transactional
-    override fun migrateLabs(requestList: List<LabDto>): List<LabDto> {
-        val list = mutableListOf<LabDto>()
-        for (request in requestList) {
-            val researchGroup = researchRepository.findByName(request.group)
-                ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupName = ${request.group})")
-
-            if (researchGroup.postType != ResearchPostType.GROUPS) {
-                throw CserealException.Csereal404("해당 게시글은 연구그룹이어야 합니다.")
-            }
-
-            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-            val newLab = LabEntity.of(enumLanguageType, request, researchGroup)
-
-            newLab.researchSearch = ResearchSearchEntity.create(newLab)
-
-            labRepository.save(newLab)
-
-            list.add(LabDto.of(newLab, null))
+    fun upsertLabSearchIndex(lab: LabEntity) {
+        lab.researchSearch?.update(lab) ?: let {
+            lab.researchSearch = ResearchSearchEntity.create(lab)
         }
-        return list
-    }
-
-    @Transactional
-    override fun migrateResearchDetailImageAndAttachments(
-        researchId: Long,
-        mainImage: MultipartFile?,
-        attachments: List<MultipartFile>?
-    ): ResearchDto {
-        val researchDetail = researchRepository.findByIdOrNull(researchId)
-            ?: throw CserealException.Csereal404("해당 연구내용을 찾을 수 없습니다.")
-
-        if (mainImage != null) {
-            mainImageService.uploadMainImage(researchDetail, mainImage)
-        }
-
-        if (attachments != null) {
-            attachmentService.uploadAllAttachments(researchDetail, attachments)
-        }
-
-        val imageURL = mainImageService.createImageURL(researchDetail.mainImage)
-        val attachmentResponses = attachmentService.createAttachmentResponses(researchDetail.attachments)
-
-        return ResearchDto.of(researchDetail, imageURL, attachmentResponses)
-    }
-
-    @Transactional
-    override fun migrateLabPdf(labId: Long, pdf: MultipartFile?): LabDto {
-        val lab = labRepository.findByIdOrNull(labId)
-            ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.")
-
-        if (pdf != null) {
-            val attachmentDto = attachmentService.uploadAttachmentInLabEntity(lab, pdf)
-        }
-
-        val attachmentResponse =
-            attachmentService.createOneAttachmentResponse(lab.pdf)
-
-        return LabDto.of(lab, attachmentResponse)
     }
 }
