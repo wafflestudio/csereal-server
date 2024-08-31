@@ -7,6 +7,7 @@ import com.wafflestudio.csereal.core.member.database.MemberSearchRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
 import com.wafflestudio.csereal.core.research.database.*
+import com.wafflestudio.csereal.core.research.type.ResearchType
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
@@ -32,6 +33,7 @@ class ProfessorServiceTest(
 
     afterContainer {
         professorRepository.deleteAll()
+        labRepository.deleteAll()
         researchRepository.deleteAll()
     }
 
@@ -43,7 +45,7 @@ class ProfessorServiceTest(
             name = "researchName",
             description = null,
             websiteURL = null,
-            postType = ResearchPostType.GROUPS
+            postType = ResearchType.GROUPS
         )
         var labEntity = LabEntity(
             language = LanguageType.KO,
@@ -144,7 +146,7 @@ class ProfessorServiceTest(
             name = "researchName",
             description = null,
             websiteURL = null,
-            postType = ResearchPostType.GROUPS
+            postType = ResearchType.GROUPS
         )
         val labEntity1 = LabEntity(
             language = LanguageType.KO,

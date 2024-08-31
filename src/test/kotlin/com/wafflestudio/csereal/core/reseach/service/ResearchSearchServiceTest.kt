@@ -11,6 +11,7 @@ import com.wafflestudio.csereal.core.research.dto.LabDto
 import com.wafflestudio.csereal.core.research.dto.LabProfessorResponse
 import com.wafflestudio.csereal.core.research.service.ResearchSearchService
 import com.wafflestudio.csereal.core.research.service.ResearchService
+import com.wafflestudio.csereal.core.research.type.ResearchType
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
@@ -96,7 +97,7 @@ class ResearchSearchServiceTest(
                 ResearchEntity(
                     language = LanguageType.KO,
                     name = "research",
-                    postType = ResearchPostType.GROUPS,
+                    postType = ResearchType.GROUPS,
                     description = null,
                     websiteURL = null
                 )
