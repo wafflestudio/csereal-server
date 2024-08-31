@@ -6,7 +6,7 @@ import com.wafflestudio.csereal.core.research.type.ResearchType
 
 data class CreateResearchLanguageReqBody(
     val ko: CreateResearchSealedReqBody,
-    val en: CreateResearchSealedReqBody,
+    val en: CreateResearchSealedReqBody
 ) {
     fun valid() = ko.type == en.type
     fun valid(type: ResearchType) = ko.valid(type) && en.valid(type)
@@ -15,17 +15,17 @@ data class CreateResearchLanguageReqBody(
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.EXISTING_PROPERTY,
-    property = "type",
+    property = "type"
 )
 @JsonSubTypes(
     JsonSubTypes.Type(value = CreateResearchGroupReqBody::class, names = ["GROUPS", "groups"]),
-    JsonSubTypes.Type(value = CreateResearchCenterReqBody::class, names = ["CENTERS", "centers"]),
+    JsonSubTypes.Type(value = CreateResearchCenterReqBody::class, names = ["CENTERS", "centers"])
 )
 sealed class CreateResearchSealedReqBody(
     val type: ResearchType,
     open val name: String,
     open val description: String,
-    open val mainImageUrl: String?,
+    open val mainImageUrl: String?
 ) {
     fun valid(type: ResearchType) = this.type == type
 }
@@ -33,14 +33,12 @@ sealed class CreateResearchSealedReqBody(
 data class CreateResearchGroupReqBody(
     override val name: String,
     override val description: String,
-    override val mainImageUrl: String?,
-) : CreateResearchSealedReqBody(ResearchType.GROUPS, name, description, mainImageUrl) {
-}
+    override val mainImageUrl: String?
+) : CreateResearchSealedReqBody(ResearchType.GROUPS, name, description, mainImageUrl)
 
 data class CreateResearchCenterReqBody(
     override val name: String,
     override val description: String,
     override val mainImageUrl: String?,
-    val websiteURL: String?,
-) : CreateResearchSealedReqBody(ResearchType.CENTERS, name, description, mainImageUrl) {
-}
+    val websiteURL: String?
+) : CreateResearchSealedReqBody(ResearchType.CENTERS, name, description, mainImageUrl)

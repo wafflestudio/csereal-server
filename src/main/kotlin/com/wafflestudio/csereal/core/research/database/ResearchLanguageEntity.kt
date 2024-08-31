@@ -17,6 +17,5 @@ class ResearchLanguageEntity(
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    val type: ResearchRelatedType,
-) : BaseTimeEntity() {
-}
+    val type: ResearchRelatedType
+) : BaseTimeEntity()

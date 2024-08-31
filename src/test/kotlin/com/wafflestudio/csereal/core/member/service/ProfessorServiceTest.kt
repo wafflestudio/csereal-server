@@ -26,7 +26,7 @@ class ProfessorServiceTest(
     private val professorService: ProfessorService,
     private val professorRepository: ProfessorRepository,
     private val labRepository: LabRepository,
-    private val memberSearchRepository: MemberSearchRepository,
+    private val memberSearchRepository: MemberSearchRepository
 ) : BehaviorSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
 
@@ -46,7 +46,7 @@ class ProfessorServiceTest(
             acronym = null,
             youtube = null,
             description = null,
-            websiteURL = null,
+            websiteURL = null
         )
         labEntity = labRepository.save(labEntity)
 
@@ -138,7 +138,7 @@ class ProfessorServiceTest(
                 acronym = null,
                 youtube = null,
                 description = null,
-                websiteURL = null,
+                websiteURL = null
             )
         )
         val labEntity2 = labRepository.save(
@@ -150,7 +150,8 @@ class ProfessorServiceTest(
                 acronym = null,
                 youtube = null,
                 description = null,
-                websiteURL = null,)
+                websiteURL = null
+            )
         )
 
         val createdProfessorDto = professorService.createProfessor(

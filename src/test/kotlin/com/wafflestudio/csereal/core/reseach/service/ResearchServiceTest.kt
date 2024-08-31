@@ -50,14 +50,14 @@ class ResearchServiceTest(
             name = "한국어 연구소",
             description = "한국어 연구소입니다.",
             mainImageUrl = null,
-            websiteURL = "https://www.koreanlab.com",
+            websiteURL = "https://www.koreanlab.com"
         )
 
         val enCreateResearchCenterReqBody = CreateResearchCenterReqBody(
             name = "English Research Center",
             description = "This is English Research Center.",
             mainImageUrl = null,
-            websiteURL = "https://www.englishlab.com",
+            websiteURL = "https://www.englishlab.com"
         )
 
         val createResearchCenterReqBody = CreateResearchLanguageReqBody(
@@ -78,7 +78,7 @@ class ResearchServiceTest(
                 val enResearchCenter = researchRepository.findByIdOrNull(enId)!!
                 ResearchLanguageDto(
                     ko = ResearchSealedDto.of(koResearchCenter, null),
-                    en = ResearchSealedDto.of(enResearchCenter, null),
+                    en = ResearchSealedDto.of(enResearchCenter, null)
                 ) shouldBe researchCenter
             }
         }
@@ -88,13 +88,13 @@ class ResearchServiceTest(
         val koCreateResearchGroupReqBody = CreateResearchGroupReqBody(
             name = "한국어 연구 그룹",
             description = "한국어 연구 그룹입니다.",
-            mainImageUrl = null,
+            mainImageUrl = null
         )
 
         val enCreateResearchGroupReqBody = CreateResearchGroupReqBody(
             name = "English Research Group",
             description = "This is English Research Group.",
-            mainImageUrl = null,
+            mainImageUrl = null
         )
 
         val createResearchGroupReqBody = CreateResearchLanguageReqBody(
@@ -115,7 +115,7 @@ class ResearchServiceTest(
                 val enResearchGroup = researchRepository.findByIdOrNull(enId)!!
                 ResearchLanguageDto(
                     ko = ResearchSealedDto.of(koResearchGroup, null),
-                    en = ResearchSealedDto.of(enResearchGroup, null),
+                    en = ResearchSealedDto.of(enResearchGroup, null)
                 ) shouldBe researchGroup
             }
         }
@@ -126,14 +126,14 @@ class ResearchServiceTest(
             name = "한국어 연구소",
             description = "한국어 연구소입니다.",
             mainImageUrl = null,
-            websiteURL = "https://www.koreanlab.com",
+            websiteURL = "https://www.koreanlab.com"
         )
 
         val enCreateResearchCenterReqBody = CreateResearchCenterReqBody(
             name = "English Research Center",
             description = "This is English Research Center.",
             mainImageUrl = null,
-            websiteURL = "https://www.englishlab.com",
+            websiteURL = "https://www.englishlab.com"
         )
 
         val createResearchCenterReqBody = CreateResearchLanguageReqBody(
@@ -148,14 +148,14 @@ class ResearchServiceTest(
                 name = "한국어 연구소 수정",
                 description = "한국어 연구소입니다. 수정",
                 websiteURL = "https://www.koreanlabbbb.com",
-                removeImage = false,
+                removeImage = false
             )
 
             val enUpdateResearchCenterReqBody = ModifyResearchCenterReqBody(
                 name = "English Research Center Update",
                 description = "This is English Research Center. Update",
                 websiteURL = "https://www.englishlabbbb.com",
-                removeImage = false,
+                removeImage = false
             )
 
             val updateResearchCenterReqBody = ModifyResearchLanguageReqBody(
@@ -182,7 +182,7 @@ class ResearchServiceTest(
                 val enResearchCenter = researchRepository.findByIdOrNull(enId)!!
                 ResearchLanguageDto(
                     ko = ResearchSealedDto.of(koResearchCenter, null),
-                    en = ResearchSealedDto.of(enResearchCenter, null),
+                    en = ResearchSealedDto.of(enResearchCenter, null)
                 ) shouldBe modifiedResearchCenter
             }
         }
@@ -201,13 +201,13 @@ class ResearchServiceTest(
         val koCreateResearchGroupReqBody = CreateResearchGroupReqBody(
             name = "한국어 연구 그룹",
             description = "한국어 연구 그룹입니다.",
-            mainImageUrl = null,
+            mainImageUrl = null
         )
 
         val enCreateResearchGroupReqBody = CreateResearchGroupReqBody(
             name = "English Research Group",
             description = "This is English Research Group.",
-            mainImageUrl = null,
+            mainImageUrl = null
         )
 
         val createResearchGroupReqBody = CreateResearchLanguageReqBody(
@@ -221,13 +221,13 @@ class ResearchServiceTest(
             val koUpdateResearchGroupReqBody = ModifyResearchGroupReqBody(
                 name = "한국어 연구 그룹 수정",
                 description = "한국어 연구 그룹입니다. 수정",
-                removeImage = false,
+                removeImage = false
             )
 
             val enUpdateResearchGroupReqBody = ModifyResearchGroupReqBody(
                 name = "English Research Group Update",
                 description = "This is English Research Group. Update",
-                removeImage = false,
+                removeImage = false
             )
 
             val updateResearchGroupReqBody = ModifyResearchLanguageReqBody(
@@ -254,7 +254,7 @@ class ResearchServiceTest(
                 val enResearchGroup = researchRepository.findByIdOrNull(enId)!!
                 ResearchLanguageDto(
                     ko = ResearchSealedDto.of(koResearchGroup, null),
-                    en = ResearchSealedDto.of(enResearchGroup, null),
+                    en = ResearchSealedDto.of(enResearchGroup, null)
                 ) shouldBe modifiedResearchGroup
             }
         }

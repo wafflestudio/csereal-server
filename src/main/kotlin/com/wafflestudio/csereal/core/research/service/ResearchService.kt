@@ -67,7 +67,7 @@ class ResearchServiceImpl(
     @Transactional
     override fun createResearchLanguage(
         req: CreateResearchLanguageReqBody,
-        mainImage: MultipartFile?,
+        mainImage: MultipartFile?
     ): ResearchLanguageDto {
         if (!req.valid()) {
             throw CserealException.Csereal400("두 언어의 research type이 일치하지 않습니다.")
@@ -79,7 +79,7 @@ class ResearchServiceImpl(
             ResearchLanguageEntity(
                 koreanId = ko.id,
                 englishId = en.id,
-                type = req.ko.type.ofResearchRelatedType(),
+                type = req.ko.type.ofResearchRelatedType()
             )
         )
 
@@ -90,14 +90,14 @@ class ResearchServiceImpl(
     override fun createResearch(
         language: LanguageType,
         request: CreateResearchSealedReqBody,
-        mainImage: MultipartFile?,
+        mainImage: MultipartFile?
     ): ResearchSealedDto {
         // Common fields
         val newResearch = ResearchEntity(
             postType = request.type,
             language = language,
             name = request.name,
-            description = request.description,
+            description = request.description
         )
 
         // Type specific fields
@@ -117,7 +117,7 @@ class ResearchServiceImpl(
 
         return ResearchSealedDto.of(
             researchRepository.save(newResearch),
-            imageURL,
+            imageURL
         )
     }
 
@@ -126,7 +126,7 @@ class ResearchServiceImpl(
         koreanId: Long,
         englishId: Long,
         req: ModifyResearchLanguageReqBody,
-        updateImage: MultipartFile?,
+        updateImage: MultipartFile?
     ): ResearchLanguageDto {
         if (!req.valid()) {
             throw CserealException.Csereal404("두 언어의 research type이 일치하지 않습니다.")
@@ -152,7 +152,7 @@ class ResearchServiceImpl(
     override fun updateResearch(
         researchId: Long,
         request: ModifyResearchSealedReqBody,
-        updateImage: MultipartFile?,
+        updateImage: MultipartFile?
     ): ResearchSealedDto {
         val research = researchRepository.findByIdOrNull(researchId)
             ?: throw CserealException.Csereal404("해당 게시글을 찾을 수 없습니다.(researchId=$researchId)")
@@ -253,7 +253,6 @@ class ResearchServiceImpl(
         researchRepository.findAllByPostTypeAndLanguageOrderByName(type, language)
             .map { ResearchSealedDto.of(it, mainImageService.createImageURL(it.mainImage)) }
 
-
     @Transactional(readOnly = true)
     override fun readAllResearchGroupsDeprecated(language: String): ResearchGroupResponse {
         // Todo: description 수정 필요
@@ -291,10 +290,9 @@ class ResearchServiceImpl(
         return researchCenters
     }
 
-
     @Transactional
     override fun createLab(request: LabDto, pdf: MultipartFile?): LabDto {
-        val researchGroup = researchRepository.findByName(request.group!!)
+        val researchGroup = researchRepository.findByName(request.group)
             ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = ${request.group})")
 
         if (researchGroup.postType != ResearchType.GROUPS) {

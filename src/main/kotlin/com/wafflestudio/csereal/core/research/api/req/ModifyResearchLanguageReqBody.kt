@@ -6,7 +6,7 @@ import com.wafflestudio.csereal.core.research.type.ResearchType
 
 data class ModifyResearchLanguageReqBody(
     val ko: ModifyResearchSealedReqBody,
-    val en: ModifyResearchSealedReqBody,
+    val en: ModifyResearchSealedReqBody
 ) {
     fun valid() = ko.type == en.type
 }
@@ -14,30 +14,28 @@ data class ModifyResearchLanguageReqBody(
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.EXISTING_PROPERTY,
-    property = "type",
+    property = "type"
 )
 @JsonSubTypes(
     JsonSubTypes.Type(value = ModifyResearchGroupReqBody::class, names = ["GROUPS", "groups"]),
-    JsonSubTypes.Type(value = ModifyResearchCenterReqBody::class, names = ["CENTERS", "centers"]),
+    JsonSubTypes.Type(value = ModifyResearchCenterReqBody::class, names = ["CENTERS", "centers"])
 )
 sealed class ModifyResearchSealedReqBody(
     val type: ResearchType,
     open val name: String,
     open val description: String,
-    open val removeImage: Boolean,
+    open val removeImage: Boolean
 )
 
 data class ModifyResearchGroupReqBody(
     override val name: String,
     override val description: String,
-    override val removeImage: Boolean,
-) : ModifyResearchSealedReqBody(ResearchType.GROUPS, name, description, removeImage) {
-}
+    override val removeImage: Boolean
+) : ModifyResearchSealedReqBody(ResearchType.GROUPS, name, description, removeImage)
 
 data class ModifyResearchCenterReqBody(
     override val name: String,
     override val description: String,
     override val removeImage: Boolean,
-    val websiteURL: String?,
-) : ModifyResearchSealedReqBody(ResearchType.CENTERS, name, description, removeImage) {
-}
+    val websiteURL: String?
+) : ModifyResearchSealedReqBody(ResearchType.CENTERS, name, description, removeImage)

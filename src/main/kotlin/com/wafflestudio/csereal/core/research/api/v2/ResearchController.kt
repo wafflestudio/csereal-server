@@ -25,7 +25,9 @@ class ResearchController(
 ) {
     @GetMapping("/{researchId:[0-9]+}")
     fun readResearch(
-        @Positive @PathVariable(required = true) researchId: Long
+        @Positive
+        @PathVariable(required = true)
+        researchId: Long
     ): ResearchLanguageDto {
         return researchService.readResearchLanguage(researchId)
     }
@@ -44,18 +46,21 @@ class ResearchController(
     @PostMapping(consumes = ["multipart/form-data"])
     fun createResearchGroup(
         @RequestPart("request") request: CreateResearchLanguageReqBody,
-        @RequestPart("mainImage") mainImage: MultipartFile?,
+        @RequestPart("mainImage") mainImage: MultipartFile?
     ): ResearchLanguageDto = researchService.createResearchLanguage(request, mainImage)
 
     @AuthenticatedStaff
     @PutMapping("/{koreanId}/{englishId}", consumes = ["multipart/form-data"])
     fun updateResearch(
-        @PathVariable @Positive koreanId: Long,
-        @PathVariable @Positive englishId: Long,
+        @PathVariable @Positive
+        koreanId: Long,
+        @PathVariable @Positive
+        englishId: Long,
         @RequestPart("request") request: ModifyResearchLanguageReqBody,
 
         @Parameter(description = "image 교체할 경우 업로드. Request Body의 removeImage 관계없이 변경됨.")
-        @RequestPart("newImage") newImage: MultipartFile?,
+        @RequestPart("newImage")
+        newImage: MultipartFile?
     ): ResearchLanguageDto {
         return researchService.updateResearchLanguage(koreanId, englishId, request, newImage)
     }
@@ -63,8 +68,10 @@ class ResearchController(
     @AuthenticatedStaff
     @DeleteMapping("/{koreanId}/{englishId}")
     fun deleteResearch(
-        @PathVariable @Positive koreanId: Long,
-        @PathVariable @Positive englishId: Long,
+        @PathVariable @Positive
+        koreanId: Long,
+        @PathVariable @Positive
+        englishId: Long
     ) {
         researchService.deleteResearchLanguage(koreanId, englishId)
     }
@@ -137,5 +144,4 @@ class ResearchController(
         pageNum,
         amount
     )
-
 }

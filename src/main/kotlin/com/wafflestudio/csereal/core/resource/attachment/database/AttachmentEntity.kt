@@ -8,7 +8,6 @@ import com.wafflestudio.csereal.core.academics.database.ScholarshipEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
 import com.wafflestudio.csereal.core.research.database.LabEntity
-import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import jakarta.persistence.*
 

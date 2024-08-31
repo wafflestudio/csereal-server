@@ -6,7 +6,7 @@ import com.wafflestudio.csereal.core.research.type.ResearchType
 
 data class ResearchLanguageDto(
     val ko: ResearchSealedDto,
-    val en: ResearchSealedDto,
+    val en: ResearchSealedDto
 ) {
     fun valid() = ko.type == en.type
     fun valid(researchType: ResearchType) = ko.valid(researchType) && en.valid(researchType)
@@ -18,7 +18,7 @@ sealed class ResearchSealedDto(
     open val language: LanguageType,
     open val name: String,
     open val description: String,
-    open val mainImageUrl: String?,
+    open val mainImageUrl: String?
 ) {
     fun valid(researchType: ResearchType) = this.type == researchType
 
@@ -36,7 +36,7 @@ data class ResearchGroupDto(
     override val name: String,
     override val description: String,
     override val mainImageUrl: String?,
-    val labs: List<ResearchLabResponse>,
+    val labs: List<ResearchLabResponse>
 ) : ResearchSealedDto(ResearchType.GROUPS, id, language, name, description, mainImageUrl) {
     companion object {
         fun of(entity: ResearchEntity, imageUrl: String?) = ResearchGroupDto(
@@ -56,7 +56,7 @@ data class ResearchCenterDto(
     override val name: String,
     override val description: String,
     override val mainImageUrl: String?,
-    val websiteURL: String?,
+    val websiteURL: String?
 ) : ResearchSealedDto(ResearchType.CENTERS, id, language, name, description, mainImageUrl) {
     companion object {
         fun of(entity: ResearchEntity, imageUrl: String?) = ResearchCenterDto(
@@ -65,7 +65,7 @@ data class ResearchCenterDto(
             name = entity.name,
             description = entity.description!!,
             mainImageUrl = imageUrl,
-            websiteURL = entity.websiteURL,
+            websiteURL = entity.websiteURL
         )
     }
 }
