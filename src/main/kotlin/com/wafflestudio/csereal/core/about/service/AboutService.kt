@@ -27,13 +27,13 @@ interface AboutService {
     )
 
     fun createClub(request: CreateClubReq, mainImage: MultipartFile?)
-    fun updateClub(request: GroupedClubDto, newMainImage: MultipartFile?)
+    fun updateClub(request: UpdateClubReq, newMainImage: MultipartFile?)
     fun deleteClub(id: Long)
 
     fun readAllClubs(language: String): List<StudentClubDto>
     fun readAllGroupedClubs(): List<GroupedClubDto>
     fun createFacilities(request: CreateFacReq, mainImage: MultipartFile?)
-    fun updateFacility(id: Long, request: CreateFacReq, newMainImage: MultipartFile?)
+    fun updateFacility(id: Long, request: UpdateFacReq, newMainImage: MultipartFile?)
     fun deleteFacility(id: Long)
     fun readAllFacilities(language: String): List<AboutDto>
     fun readAllDirections(language: String): List<AboutDto>
@@ -103,6 +103,11 @@ class AboutServiceImpl(
                 it.mainImage?.let { image -> mainImageService.removeImage(image) }
                 mainImageService.uploadMainImage(it, newMainImage)
             }
+        } else if (request.removeImage) {
+            abouts.forEach {
+                it.mainImage?.let { image -> mainImageService.removeImage(image) }
+                it.mainImage = null
+            }
         }
 
         attachmentService.deleteAttachments(request.ko.deleteIds + request.en.deleteIds)
@@ -137,7 +142,7 @@ class AboutServiceImpl(
     }
 
     @Transactional
-    override fun updateClub(request: GroupedClubDto, newMainImage: MultipartFile?) {
+    override fun updateClub(request: UpdateClubReq, newMainImage: MultipartFile?) {
         val (ko, en) = listOf(request.ko.id, request.en.id).map { id ->
             aboutRepository.findByIdOrNull(id) ?: throw CserealException.Csereal404("club not found")
         }
@@ -154,6 +159,11 @@ class AboutServiceImpl(
             listOf(ko, en).forEach { club ->
                 club.mainImage?.let { image -> mainImageService.removeImage(image) }
                 mainImageService.uploadMainImage(club, newMainImage)
+            }
+        } else if (request.removeImage) {
+            listOf(ko, en).forEach {
+                it.mainImage?.let { image -> mainImageService.removeImage(image) }
+                it.mainImage = null
             }
         }
     }
@@ -234,7 +244,7 @@ class AboutServiceImpl(
     }
 
     @Transactional
-    override fun updateFacility(id: Long, request: CreateFacReq, newMainImage: MultipartFile?) {
+    override fun updateFacility(id: Long, request: UpdateFacReq, newMainImage: MultipartFile?) {
         val facility = aboutRepository.findByIdOrNull(id) ?: throw CserealException.Csereal404("id not found")
 
         val corresponding = when (facility.language) {
@@ -262,6 +272,11 @@ class AboutServiceImpl(
                 it.mainImage?.let { image -> mainImageService.removeImage(image) }
                 mainImageService.uploadMainImage(it, newMainImage)
             }
+        } else if (request.removeImage) {
+            listOf(facility, corresponding).forEach {
+                it.mainImage?.let { image -> mainImageService.removeImage(image) }
+                it.mainImage = null
+            }
         }
     }
 
@@ -271,6 +286,7 @@ class AboutServiceImpl(
         facility.locations = facDto.locations
     }
 
+    @Transactional
     override fun deleteFacility(id: Long) {
         val facility = aboutRepository.findByIdOrNull(id) ?: throw CserealException.Csereal404("id not found")
 

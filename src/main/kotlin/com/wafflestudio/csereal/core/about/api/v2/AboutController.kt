@@ -25,7 +25,7 @@ class AboutController(
     @AuthenticatedStaff
     @PutMapping("/student-clubs")
     fun updateClub(
-        @RequestPart request: GroupedClubDto,
+        @RequestPart request: UpdateClubReq,
         @RequestPart newMainImage: MultipartFile?
     ) = aboutService.updateClub(request, newMainImage)
 
@@ -51,7 +51,7 @@ class AboutController(
     @PutMapping("/facilities/{id}")
     fun updateFacility(
         @PathVariable id: Long,
-        @RequestPart request: CreateFacReq,
+        @RequestPart request: UpdateFacReq,
         @RequestPart newMainImage: MultipartFile?
     ) = aboutService.updateFacility(id, request, newMainImage)
 
