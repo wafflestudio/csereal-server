@@ -158,7 +158,7 @@ class AboutServiceImpl(
         }
     }
 
-    private fun updateClubDetails(club: AboutEntity, clubDto: ClubDtoWithId) {
+    private fun updateClubDetails(club: AboutEntity, clubDto: ClubDto) {
         club.name = clubDto.name
         club.description = clubDto.description
         club.syncSearchContent()
@@ -204,7 +204,7 @@ class AboutServiceImpl(
             .sortedBy { it.koAbout.name }
         return clubs.map {
             val imageURL = mainImageService.createImageURL(it.koAbout.mainImage)
-            GroupedClubDto(ko = ClubDtoWithId.of(it.koAbout, imageURL), en = ClubDtoWithId.of(it.enAbout, imageURL))
+            GroupedClubDto(ko = ClubDto.of(it.koAbout, imageURL), en = ClubDto.of(it.enAbout, imageURL))
         }
     }
 
