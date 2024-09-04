@@ -1,21 +1,17 @@
-package com.wafflestudio.csereal.core.about.api
+package com.wafflestudio.csereal.core.about.api.v1
 
-import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.about.api.req.*
 import com.wafflestudio.csereal.core.about.api.res.AboutSearchResBody
 import com.wafflestudio.csereal.core.about.dto.*
-import com.wafflestudio.csereal.core.about.dto.AboutRequest
-import com.wafflestudio.csereal.core.about.dto.FutureCareersRequest
 import com.wafflestudio.csereal.core.about.service.AboutService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
-import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.multipart.MultipartFile
 
 @RequestMapping("/api/v1/about")
-@RestController
+@RestController("AboutControllerV1")
 class AboutController(
     private val aboutService: AboutService
 ) {
@@ -24,18 +20,6 @@ class AboutController(
     // postType: directions / name -> by-public-transit, by-car, from-far-away
 
     // Todo: 학부장 인사말(greetings) signature
-    @AuthenticatedStaff
-    @PostMapping("/{postType}")
-    fun createAbout(
-        @PathVariable postType: String,
-        @Valid
-        @RequestPart("request")
-        request: AboutDto,
-        @RequestPart("mainImage") mainImage: MultipartFile?,
-        @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<AboutDto> {
-        return ResponseEntity.ok(aboutService.createAbout(postType, request, mainImage, attachments))
-    }
 
     // read 목록이 하나
     @GetMapping("/{postType}")
@@ -46,6 +30,7 @@ class AboutController(
         return ResponseEntity.ok(aboutService.readAbout(language, postType))
     }
 
+    @Deprecated("Use V2 API")
     @GetMapping("/student-clubs")
     fun readAllClubs(
         @RequestParam(required = false, defaultValue = "ko") language: String
@@ -101,56 +86,4 @@ class AboutController(
         pageNum,
         amount
     )
-
-    @Profile("!prod")
-    @PostMapping("/migrate")
-    fun migrateAbout(
-        @RequestBody requestList: List<AboutRequest>
-    ): ResponseEntity<List<AboutDto>> {
-        return ResponseEntity.ok(aboutService.migrateAbout(requestList))
-    }
-
-    @Profile("!prod")
-    @PostMapping("/future-careers/migrate")
-    fun migrateFutureCareers(
-        @RequestBody request: FutureCareersRequest
-    ): ResponseEntity<FutureCareersPage> {
-        return ResponseEntity.ok(aboutService.migrateFutureCareers(request))
-    }
-
-    @Profile("!prod")
-    @PostMapping("/student-clubs/migrate")
-    fun migrateStudentClubs(
-        @RequestBody requestList: List<StudentClubDto>
-    ): ResponseEntity<List<StudentClubDto>> {
-        return ResponseEntity.ok(aboutService.migrateStudentClubs(requestList))
-    }
-
-    @Profile("!prod")
-    @PostMapping("/facilities/migrate")
-    fun migrateFacilities(
-        @RequestBody requestList: List<FacilityDto>
-    ): ResponseEntity<List<FacilityDto>> {
-        return ResponseEntity.ok(aboutService.migrateFacilities(requestList))
-    }
-
-    @Profile("!prod")
-    @PostMapping("/directions/migrate")
-    fun migrateDirections(
-        @RequestBody requestList: List<DirectionDto>
-    ): ResponseEntity<List<DirectionDto>> {
-        return ResponseEntity.ok(aboutService.migrateDirections(requestList))
-    }
-
-    @Profile("!prod")
-    @PatchMapping("/migrateImage/{aboutId}")
-    fun migrateAboutImageAndAttachment(
-        @PathVariable aboutId: Long,
-        @RequestPart("mainImage") mainImage: MultipartFile?,
-        @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<AboutDto> {
-        return ResponseEntity.ok(
-            aboutService.migrateAboutImageAndAttachments(aboutId, mainImage, attachments)
-        )
-    }
 }

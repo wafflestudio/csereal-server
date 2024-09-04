@@ -27,7 +27,7 @@ server:
         session:
             timeout: 32400 # 9시간
             cookie:
-                same-site: lax
+                same-site: strict
                 secure: true
 
 springdoc:
