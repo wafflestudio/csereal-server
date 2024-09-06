@@ -25,7 +25,7 @@ class LabEntity(
 
     var youtube: String?,
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "research_id")
     var research: ResearchEntity? = null,
 
