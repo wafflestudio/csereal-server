@@ -43,9 +43,9 @@ class ProfessorController(
     @PostMapping(consumes = ["multipart/form-data"])
     fun createProfessor(
         @RequestPart("request") requestBody: CreateProfessorLanguagesReqBody,
-        @RequestPart("image") image: MultipartFile?
+        @RequestPart("mainImage") mainImage: MultipartFile?
     ): ProfessorLanguagesDto =
-        professorService.createProfessorLanguages(requestBody, image)
+        professorService.createProfessorLanguages(requestBody, mainImage)
 
     @AuthenticatedStaff
     @PutMapping("/{koProfessorId}/{enProfessorId}", consumes = ["multipart/form-data"])

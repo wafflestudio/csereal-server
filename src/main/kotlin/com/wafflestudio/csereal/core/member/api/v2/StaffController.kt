@@ -42,8 +42,8 @@ class StaffController(
     @PostMapping(consumes = ["multipart/form-data"])
     fun createStaff(
         @RequestPart("request") createStaffLanguagesReqBody: CreateStaffLanguagesReqBody,
-        @RequestPart("image") image: MultipartFile?
-    ): StaffLanguagesDto = staffService.createStaffLanguages(createStaffLanguagesReqBody, image)
+        @RequestPart("mainImage") mainImage: MultipartFile?
+    ): StaffLanguagesDto = staffService.createStaffLanguages(createStaffLanguagesReqBody, mainImage)
 
     @AuthenticatedStaff
     @PutMapping("/{koStaffId}/{enStaffId}", consumes = ["multipart/form-data"])
