@@ -6,7 +6,8 @@ import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorReqBody
 import com.wafflestudio.csereal.core.member.database.MemberSearchRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
-import com.wafflestudio.csereal.core.research.database.*
+import com.wafflestudio.csereal.core.research.database.LabEntity
+import com.wafflestudio.csereal.core.research.database.LabRepository
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
@@ -25,26 +26,18 @@ class ProfessorServiceTest(
     private val professorService: ProfessorService,
     private val professorRepository: ProfessorRepository,
     private val labRepository: LabRepository,
-    private val memberSearchRepository: MemberSearchRepository,
-    private val researchRepository: ResearchRepository
+    private val memberSearchRepository: MemberSearchRepository
 ) : BehaviorSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
 
     afterContainer {
         professorRepository.deleteAll()
-        researchRepository.deleteAll()
+        labRepository.deleteAll()
     }
 
     Given("이미지 없는 교수를 생성하려고 할 때") {
         val date = LocalDate.now()
 
-        val researchEntity = ResearchEntity(
-            language = LanguageType.KO,
-            name = "researchName",
-            description = null,
-            websiteURL = null,
-            postType = ResearchPostType.GROUPS
-        )
         var labEntity = LabEntity(
             language = LanguageType.KO,
             name = "labName",
@@ -53,11 +46,8 @@ class ProfessorServiceTest(
             acronym = null,
             youtube = null,
             description = null,
-            websiteURL = null,
-            research = researchEntity
+            websiteURL = null
         )
-        researchEntity.labs.add(labEntity)
-        researchRepository.save(researchEntity)
         labEntity = labRepository.save(labEntity)
 
         val professorCreateReq = CreateProfessorReqBody(
@@ -139,37 +129,30 @@ class ProfessorServiceTest(
 
     Given("생성되어 있는 간단한 교수에 대하여") {
         val date = LocalDate.now()
-        val researchEntity = ResearchEntity(
-            language = LanguageType.KO,
-            name = "researchName",
-            description = null,
-            websiteURL = null,
-            postType = ResearchPostType.GROUPS
+        val labEntity1 = labRepository.save(
+            LabEntity(
+                language = LanguageType.KO,
+                name = "labName1",
+                location = null,
+                tel = null,
+                acronym = null,
+                youtube = null,
+                description = null,
+                websiteURL = null
+            )
         )
-        val labEntity1 = LabEntity(
-            language = LanguageType.KO,
-            name = "labName1",
-            location = null,
-            tel = null,
-            acronym = null,
-            youtube = null,
-            description = null,
-            websiteURL = null,
-            research = researchEntity
+        val labEntity2 = labRepository.save(
+            LabEntity(
+                language = LanguageType.KO,
+                name = "labName2",
+                location = null,
+                tel = null,
+                acronym = null,
+                youtube = null,
+                description = null,
+                websiteURL = null
+            )
         )
-        val labEntity2 = LabEntity(
-            language = LanguageType.KO,
-            name = "labName2",
-            location = null,
-            tel = null,
-            acronym = null,
-            youtube = null,
-            description = null,
-            websiteURL = null,
-            research = researchEntity
-        )
-        researchEntity.labs.addAll(listOf(labEntity1, labEntity2))
-        researchRepository.save(researchEntity)
 
         val createdProfessorDto = professorService.createProfessor(
             LanguageType.KO,

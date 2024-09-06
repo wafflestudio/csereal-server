@@ -2,13 +2,13 @@ package com.wafflestudio.csereal.core.research.dto
 
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.research.database.ResearchEntity
-import com.wafflestudio.csereal.core.research.database.ResearchPostType
+import com.wafflestudio.csereal.core.research.type.ResearchType
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
 
 data class ResearchDto(
     val id: Long,
-    val postType: ResearchPostType,
+    val postType: ResearchType,
     val language: String,
     val name: String,
     val description: String?,

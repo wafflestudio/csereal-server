@@ -8,7 +8,6 @@ import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
 import com.wafflestudio.csereal.core.research.database.LabEntity
-import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentRepository
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentDto
@@ -80,7 +79,7 @@ class AttachmentServiceImpl(
 
     @Transactional
     override fun uploadAllAttachments(
-        contentEntity: AttachmentContentEntityType,
+        contentEntityType: AttachmentContentEntityType,
         requestAttachments: List<MultipartFile>
     ): List<AttachmentDto> {
         Files.createDirectories(Paths.get(path))
@@ -101,7 +100,7 @@ class AttachmentServiceImpl(
                 size = requestAttachment.size
             )
 
-            connectAttachmentToEntity(contentEntity, attachment)
+            connectAttachmentToEntity(contentEntityType, attachment)
             //Todo: update에서도 uploadAllAttachments 사용, 이에 따른 attachmentsOrder에 대한 조정 필요
             attachmentRepository.save(attachment)
 
@@ -211,11 +210,6 @@ class AttachmentServiceImpl(
             is AcademicsEntity -> {
                 contentEntity.attachments.add(attachment)
                 attachment.academics = contentEntity
-            }
-
-            is ResearchEntity -> {
-                contentEntity.attachments.add(attachment)
-                attachment.research = contentEntity
             }
         }
     }

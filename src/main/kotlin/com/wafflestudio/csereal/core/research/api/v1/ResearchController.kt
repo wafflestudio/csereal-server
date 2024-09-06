@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.research.api
+package com.wafflestudio.csereal.core.research.api.v1
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.LanguageType
@@ -10,54 +10,29 @@ import com.wafflestudio.csereal.core.research.service.ResearchSearchService
 import com.wafflestudio.csereal.core.research.service.ResearchService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
-import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
 @RequestMapping("/api/v1/research")
-@RestController
+@RestController("ResearchControllerV1")
+@Deprecated(message = "Use V2 API")
 class ResearchController(
     private val researchService: ResearchService,
     private val researchSearchService: ResearchSearchService
 ) {
-    @AuthenticatedStaff
-    @PostMapping
-    fun createResearchDetail(
-        @Valid
-        @RequestPart("request")
-        request: ResearchDto,
-        @RequestPart("mainImage") mainImage: MultipartFile?,
-        @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<ResearchDto> {
-        return ResponseEntity.ok(researchService.createResearchDetail(request, mainImage, attachments))
-    }
-
     @GetMapping("/groups")
     fun readAllResearchGroups(
         @RequestParam(required = false, defaultValue = "ko") language: String
     ): ResponseEntity<ResearchGroupResponse> {
-        return ResponseEntity.ok(researchService.readAllResearchGroups(language))
+        return ResponseEntity.ok(researchService.readAllResearchGroupsDeprecated(language))
     }
 
     @GetMapping("/centers")
     fun readAllResearchCenters(
         @RequestParam(required = false, defaultValue = "ko") language: String
     ): ResponseEntity<List<ResearchDto>> {
-        return ResponseEntity.ok(researchService.readAllResearchCenters(language))
-    }
-
-    @AuthenticatedStaff
-    @PatchMapping("/{researchId}")
-    fun updateResearchDetail(
-        @PathVariable researchId: Long,
-        @Valid
-        @RequestPart("request")
-        request: ResearchDto,
-        @RequestPart("mainImage") mainImage: MultipartFile?,
-        @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<ResearchDto> {
-        return ResponseEntity.ok(researchService.updateResearchDetail(researchId, request, mainImage, attachments))
+        return ResponseEntity.ok(researchService.readAllResearchCentersDeprecated(language))
     }
 
     @AuthenticatedStaff
@@ -98,49 +73,6 @@ class ResearchController(
         @RequestPart("pdf") pdf: MultipartFile?
     ): ResponseEntity<LabDto> {
         return ResponseEntity.ok(researchService.updateLab(labId, request, pdf))
-    }
-
-    @Profile("!prod")
-    @PostMapping("/migrate")
-    fun migrateResearchDetail(
-        @RequestBody requestList: List<ResearchDto>
-    ): ResponseEntity<List<ResearchDto>> {
-        return ResponseEntity.ok(researchService.migrateResearchDetail(requestList))
-    }
-
-    @Profile("!prod")
-    @PostMapping("/lab/migrate")
-    fun migrateLabs(
-        @RequestBody requestList: List<LabDto>
-    ): ResponseEntity<List<LabDto>> {
-        return ResponseEntity.ok(researchService.migrateLabs(requestList))
-    }
-
-    @Profile("!prod")
-    @PatchMapping("/migrateImageAndAttachments/{researchId}")
-    fun migrateResearchDetailImageAndAttachments(
-        @PathVariable researchId: Long,
-        @RequestPart("mainImage") mainImage: MultipartFile?,
-        @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<ResearchDto> {
-        return ResponseEntity.ok(
-            researchService.migrateResearchDetailImageAndAttachments(
-                researchId,
-                mainImage,
-                attachments
-            )
-        )
-    }
-
-    @Profile("!prod")
-    @PatchMapping("/lab/migratePdf/{labId}")
-    fun migrateLabPdf(
-        @PathVariable labId: Long,
-        @RequestPart("pdf") pdf: MultipartFile?
-    ): ResponseEntity<LabDto> {
-        return ResponseEntity.ok(
-            researchService.migrateLabPdf(labId, pdf)
-        )
     }
 
     @GetMapping("/search/top")

@@ -27,7 +27,7 @@ class LabEntity(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "research_id")
-    var research: ResearchEntity,
+    var research: ResearchEntity? = null,
 
     @Column(columnDefinition = "mediumText")
     var description: String?,
