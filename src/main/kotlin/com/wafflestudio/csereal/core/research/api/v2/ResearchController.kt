@@ -59,10 +59,10 @@ class ResearchController(
         @RequestPart("request") request: ModifyResearchLanguageReqBody,
 
         @Parameter(description = "image 교체할 경우 업로드. Request Body의 removeImage 관계없이 변경됨.")
-        @RequestPart("newImage")
-        newImage: MultipartFile?
+        @RequestPart("newMainImage")
+        newMainImage: MultipartFile?
     ): ResearchLanguageDto {
-        return researchService.updateResearchLanguage(koreanId, englishId, request, newImage)
+        return researchService.updateResearchLanguage(koreanId, englishId, request, newMainImage)
     }
 
     @AuthenticatedStaff
