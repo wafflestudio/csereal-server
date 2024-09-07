@@ -57,10 +57,10 @@ class ProfessorController(
         @RequestPart("request") requestBody: ModifyProfessorLanguagesReqBody,
 
         @Parameter(description = "image 교체할 경우 업로드. Request Body의 removeImage 관계없이 변경됨.")
-        @RequestPart("newImage")
-        newImage: MultipartFile?
+        @RequestPart("newMainImage")
+        newMainImage: MultipartFile?
     ): ProfessorLanguagesDto =
-        professorService.updateProfessorLanguages(koProfessorId, enProfessorId, requestBody, newImage)
+        professorService.updateProfessorLanguages(koProfessorId, enProfessorId, requestBody, newMainImage)
 
     @AuthenticatedStaff
     @DeleteMapping("/{koProfessorId}/{enProfessorId}")
