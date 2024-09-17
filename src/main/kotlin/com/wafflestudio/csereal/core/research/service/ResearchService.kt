@@ -2,16 +2,11 @@ package com.wafflestudio.csereal.core.research.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.common.properties.EndpointProperties
-import com.wafflestudio.csereal.common.utils.startsWithEnglish
-import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.research.api.req.*
 import com.wafflestudio.csereal.core.research.database.*
 import com.wafflestudio.csereal.core.research.dto.*
 import com.wafflestudio.csereal.core.research.type.ResearchRelatedType
 import com.wafflestudio.csereal.core.research.type.ResearchType
-import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
-import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -47,22 +42,13 @@ interface ResearchService {
 
     fun readAllResearchGroupsDeprecated(language: String): ResearchGroupResponse
     fun readAllResearchCentersDeprecated(language: String): List<ResearchDto>
-
-    fun createLab(request: LabDto, pdf: MultipartFile?): LabDto
-    fun readAllLabs(language: String): List<LabDto>
-    fun readLab(labId: Long): LabDto
-    fun updateLab(labId: Long, request: LabUpdateRequest, pdf: MultipartFile?): LabDto
 }
 
 @Service
 class ResearchServiceImpl(
     private val researchRepository: ResearchRepository,
     private val researchLanguageRepository: ResearchLanguageRepository,
-    private val labRepository: LabRepository,
-    private val professorRepository: ProfessorRepository,
     private val mainImageService: MainImageService,
-    private val attachmentService: AttachmentService,
-    private val endpointProperties: EndpointProperties
 ) : ResearchService {
     @Transactional
     override fun createResearchLanguage(
@@ -187,6 +173,7 @@ class ResearchServiceImpl(
         // update search index
         upsertResearchSearchIndex(research)
 
+        // TODO: Extract this to handle in event handler
         // upsert labs in research group if name changed
         if (originalName != research.name) {
             research.labs.forEach {
@@ -227,6 +214,7 @@ class ResearchServiceImpl(
             it.research = null
         }
 
+        // TODO: Extract this to event handler
         // update search index to remove research
         research.labs.forEach {
             upsertLabSearchIndex(it)
@@ -290,125 +278,6 @@ class ResearchServiceImpl(
         return researchCenters
     }
 
-    @Transactional
-    override fun createLab(request: LabDto, pdf: MultipartFile?): LabDto {
-        val researchGroup = researchRepository.findByName(request.group)
-            ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = ${request.group})")
-
-        if (researchGroup.postType != ResearchType.GROUPS) {
-            throw CserealException.Csereal404("해당 게시글은 연구그룹이어야 합니다.")
-        }
-
-        val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-        val newLab = LabEntity.of(enumLanguageType, request, researchGroup)
-
-        if (request.professors != null) {
-            for (professor in request.professors) {
-                val professorEntity = professorRepository.findByIdOrNull(professor.id)
-                    ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다.(professorId = ${professor.id}")
-
-                newLab.professors.add(professorEntity)
-                professorEntity.lab = newLab
-            }
-        }
-
-        if (pdf != null) {
-            attachmentService.uploadAttachmentInLabEntity(newLab, pdf)
-        }
-
-        newLab.researchSearch = ResearchSearchEntity.create(newLab)
-
-        labRepository.save(newLab)
-
-        val attachmentResponse =
-            attachmentService.createOneAttachmentResponse(newLab.pdf)
-
-        return LabDto.of(newLab, attachmentResponse)
-    }
-
-    @Transactional(readOnly = true)
-    override fun readAllLabs(language: String): List<LabDto> {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
-        val labs = labRepository.findAllByLanguageOrderByName(enumLanguageType).map {
-            val attachmentResponse =
-                attachmentService.createOneAttachmentResponse(it.pdf)
-            LabDto.of(it, attachmentResponse)
-        }.sortedWith { a, b ->
-            when {
-                startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
-                !startsWithEnglish(a.name) && startsWithEnglish(b.name) -> -1
-                else -> a.name.compareTo(b.name)
-            }
-        }
-
-        return labs
-    }
-
-    @Transactional
-    override fun readLab(labId: Long): LabDto {
-        val lab = labRepository.findByIdOrNull(labId)
-            ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$labId)")
-
-        val attachmentResponse =
-            attachmentService.createOneAttachmentResponse(lab.pdf)
-
-        return LabDto.of(lab, attachmentResponse)
-    }
-
-    private fun createPdfURL(pdf: AttachmentEntity): String {
-        return "${endpointProperties.backend}/v1/file/${pdf.filename}"
-    }
-
-    // TODO: professor search update
-    @Transactional
-    override fun updateLab(labId: Long, request: LabUpdateRequest, pdf: MultipartFile?): LabDto {
-        val labEntity = labRepository.findByIdOrNull(labId)
-            ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$labId)")
-
-        labEntity.updateWithoutProfessor(request)
-
-        // update professor
-        val removedProfessorIds = labEntity.professors.map { it.id } - request.professorIds
-        val addedProfessorIds = request.professorIds - labEntity.professors.map { it.id }
-
-        removedProfessorIds.forEach {
-            val professor = professorRepository.findByIdOrNull(it)
-                ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다.(professorId=$it)")
-            labEntity.professors.remove(
-                professor
-            )
-            professor.lab = null
-        }
-
-        addedProfessorIds.forEach {
-            val professor = professorRepository.findByIdOrNull(it)
-                ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다.(professorId=$it)")
-            labEntity.professors.add(
-                professor
-            )
-            professor.lab = labEntity
-        }
-
-        // update pdf
-        if (request.pdfModified) {
-            labEntity.pdf?.let { attachmentService.deleteAttachmentDeprecated(it) }
-
-            pdf?.let {
-                val attachmentDto = attachmentService.uploadAttachmentInLabEntity(labEntity, it)
-            }
-        }
-
-        // update researchSearch
-        labEntity.researchSearch?.update(labEntity)
-            ?: let {
-                labEntity.researchSearch = ResearchSearchEntity.create(labEntity)
-            }
-
-        val attachmentResponse =
-            attachmentService.createOneAttachmentResponse(labEntity.pdf)
-
-        return LabDto.of(labEntity, attachmentResponse)
-    }
 
     @Transactional
     fun upsertResearchSearchIndex(research: ResearchEntity) {
