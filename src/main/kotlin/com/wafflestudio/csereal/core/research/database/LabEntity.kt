@@ -11,17 +11,19 @@ import jakarta.persistence.*
 @Entity(name = "lab")
 class LabEntity(
     var language: LanguageType,
+
     var name: String,
 
-    @OneToMany(mappedBy = "lab")
-    val professors: MutableSet<ProfessorEntity> = mutableSetOf(),
+    @Column(columnDefinition = "mediumText")
+    var description: String?,
 
-    var location: String?,
-    var tel: String?,
     var acronym: String?,
 
-    @OneToOne
-    var pdf: AttachmentEntity? = null,
+    var location: String?,
+
+    var websiteURL: String?,
+
+    var tel: String?,
 
     var youtube: String?,
 
@@ -29,30 +31,16 @@ class LabEntity(
     @JoinColumn(name = "research_id")
     var research: ResearchEntity? = null,
 
-    @Column(columnDefinition = "mediumText")
-    var description: String?,
-    var websiteURL: String?,
+    @OneToOne
+    var pdf: AttachmentEntity? = null,
+
+    @OneToMany(mappedBy = "lab")
+    val professors: MutableSet<ProfessorEntity> = mutableSetOf(),
 
     @OneToOne(mappedBy = "lab", cascade = [CascadeType.ALL], orphanRemoval = true)
     var researchSearch: ResearchSearchEntity? = null
 
 ) : BaseTimeEntity() {
-    companion object {
-        fun of(languageType: LanguageType, labDto: LabDto, researchGroup: ResearchEntity): LabEntity {
-            return LabEntity(
-                language = languageType,
-                name = labDto.name,
-                location = labDto.location,
-                tel = labDto.tel,
-                acronym = labDto.acronym,
-                youtube = labDto.youtube,
-                research = researchGroup,
-                description = labDto.description,
-                websiteURL = labDto.websiteURL
-            )
-        }
-    }
-
     fun updateWithoutProfessor(labUpdateRequest: LabUpdateRequest) {
         this.name = labUpdateRequest.name
         this.location = labUpdateRequest.location

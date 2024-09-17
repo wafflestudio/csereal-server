@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.research.database
 
+import com.querydsl.core.Tuple
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.research.database.QResearchLanguageEntity.researchLanguageEntity
@@ -18,6 +19,7 @@ interface ResearchLanguageRepository : JpaRepository<ResearchLanguageEntity, Lon
 
 interface ResearchLanguageCustomRepository {
     fun findResearchPairById(id: Long): Map<LanguageType, ResearchEntity>?
+    fun findLabPairById(id: Long): Map<LanguageType, LabEntity>?
 }
 
 @Repository
@@ -45,7 +47,32 @@ class ResearchLanguageCustomRepositoryImpl(
             ).fetchOne()
 
         return tuple?.let {
-            mapOf<LanguageType, ResearchEntity>(
+            mapOf(
+                LanguageType.KO to it[ko]!!,
+                LanguageType.EN to it[en]!!
+            )
+        }
+    }
+
+    override fun findLabPairById(id: Long): Map<LanguageType, LabEntity>? {
+        val ko = QLabEntity("ko")
+        val en = QLabEntity("en")
+
+        val tuple: Tuple? = queryFactory.select(ko, en)
+            .from(researchLanguageEntity)
+            .join(ko).on(researchLanguageEntity.koreanId.eq(ko.id))
+            .join(en).on(researchLanguageEntity.englishId.eq(en.id))
+            .where(
+                researchLanguageEntity.type.eq(
+                    ResearchRelatedType.LAB,
+                ),
+                researchLanguageEntity.koreanId.eq(id).or(
+                    researchLanguageEntity.englishId.eq(id)
+                )
+            ).fetchOne()
+
+        return tuple?.let {
+            mapOf(
                 LanguageType.KO to it[ko]!!,
                 LanguageType.EN to it[en]!!
             )
