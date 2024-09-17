@@ -2,17 +2,19 @@ package com.wafflestudio.csereal.core.research.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.core.research.type.ResearchRelatedType
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
+import jakarta.persistence.*
 
 @Entity(name = "research_language")
+@Table(
+    uniqueConstraints = [
+        UniqueConstraint(columnNames = ["korean_id", "english_id", "type"]),
+    ]
+)
 class ResearchLanguageEntity(
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     val koreanId: Long,
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     val englishId: Long,
 
     @Enumerated(EnumType.STRING)
