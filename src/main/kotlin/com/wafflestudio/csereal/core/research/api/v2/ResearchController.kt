@@ -81,7 +81,7 @@ class ResearchController(
 
     // Lab APIs
 
-    @GetMapping("/labs")
+    @GetMapping("/lab")
     fun readAllLabs(
         @RequestParam(required = false, defaultValue = "ko") language: String
     ): List<LabDto> = labService.readAllLabs(language)
@@ -95,7 +95,7 @@ class ResearchController(
 
 
     @AuthenticatedStaff
-    @PostMapping("/lab", produces = ["multipart/form-data"])
+    @PostMapping("/lab", consumes = ["multipart/form-data"])
     fun createLab(
         @Valid
         @RequestPart("request")
@@ -105,7 +105,7 @@ class ResearchController(
     ): LabLanguageDto = labService.createLabLanguage(request, pdf)
 
     @AuthenticatedStaff
-    @PutMapping("/lab/{koreanLabId}/{englishLabId}", produces = ["multipart/form-data"])
+    @PutMapping("/lab/{koreanLabId}/{englishLabId}", consumes = ["multipart/form-data"])
     fun updateLab(
         @PathVariable @Positive koreanLabId: Long,
         @PathVariable @Positive englishLabId: Long,
