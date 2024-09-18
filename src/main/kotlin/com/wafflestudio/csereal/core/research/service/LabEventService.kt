@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.research.service
 import com.wafflestudio.csereal.core.member.event.ProfessorCreatedEvent
 import com.wafflestudio.csereal.core.member.event.ProfessorDeletedEvent
 import com.wafflestudio.csereal.core.member.event.ProfessorModifiedEvent
+import com.wafflestudio.csereal.core.research.database.LabEntity
 import com.wafflestudio.csereal.core.research.database.LabRepository
 import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
 import org.springframework.context.event.EventListener
@@ -27,9 +28,7 @@ class LabEventServiceImpl(
             labRepository.findByIdOrNull(it)
         } ?: return
 
-        lab.researchSearch?.update(lab) ?: let {
-            lab.researchSearch = ResearchSearchEntity.create(lab)
-        }
+        upsertLabSearchIndex(lab)
     }
 
     @EventListener
@@ -43,7 +42,7 @@ class LabEventServiceImpl(
         lab.professors.removeIf { it.id == professorDeletedEvent.id }
 
         // update search data
-        lab.researchSearch?.update(lab)
+        upsertLabSearchIndex(lab)
     }
 
     @EventListener
@@ -61,16 +60,22 @@ class LabEventServiceImpl(
             beforeLab.researchSearch?.update(beforeLab)
         }
 
-        beforeLab?.run {
+        beforeLab?.apply {
             // if lab still has professor, remove it
             professors.removeIf { it.id == professorModifiedEvent.id }
-            researchSearch?.update(this)
+        }?.let {
+            upsertLabSearchIndex(it)
         }
 
-        afterLab?.run {
-            researchSearch?.update(this)
+        afterLab?.let {
+            upsertLabSearchIndex(it)
         }
     }
 
-
+    @Transactional
+    fun upsertLabSearchIndex(lab: LabEntity) {
+        lab.researchSearch?.update(lab) ?: let {
+            lab.researchSearch = ResearchSearchEntity.create(lab)
+        }
+    }
 }

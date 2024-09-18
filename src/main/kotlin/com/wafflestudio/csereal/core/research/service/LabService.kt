@@ -19,7 +19,6 @@ import com.wafflestudio.csereal.core.research.type.ResearchRelatedType
 import com.wafflestudio.csereal.core.research.type.ResearchType
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
-import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentServiceImpl
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -50,6 +49,7 @@ interface LabService {
 @Service
 class LabServiceImpl(
     private val attachmentService: AttachmentService,
+    private val researchSearchService: ResearchSearchService,
     private val labRepository: LabRepository,
     private val researchLanguageRepository: ResearchLanguageRepository,
     private val researchRepository: ResearchRepository,
@@ -57,6 +57,7 @@ class LabServiceImpl(
     private val endpointProperties: EndpointProperties,
     private val applicationEventPublisher: ApplicationEventPublisher,
 ) : LabService {
+    // TODO: Solve N+1 Problem
     @Transactional(readOnly = true)
     override fun readAllLabs(language: String): List<LabDto> {
         val enumLanguageType = LanguageType.makeStringToLanguageType(language)
@@ -136,8 +137,14 @@ class LabServiceImpl(
         }
 
         val professors = professorRepository.findAllById(request.professorIds)
-            .takeIf { it.size == request.professorIds.size }
-            ?: throw CserealException.Csereal404("해당 교수님들을 찾을 수 없습니다.(professorIds = ${request.professorIds})")
+            .also {
+                if (it.size < request.professorIds.size) {
+                    throw CserealException.Csereal404("해당 교수님들을 찾을 수 없습니다.(professorIds = ${request.professorIds})")
+                }
+                if (it.any { p -> p.lab != null }) {
+                    throw CserealException.Csereal400("이미 다른 연구실에 속한 교수님이 존재합니다.")
+                }
+            }
 
         val newLab = LabEntity(
             language = language,
@@ -160,8 +167,6 @@ class LabServiceImpl(
 
         val newSavedLab = labRepository.save(newLab)
 
-        // TODO: Implement professor search update
-        // TODO: research group search update
         applicationEventPublisher.publishEvent(
             LabCreatedEvent(
                 newSavedLab.id,
@@ -204,8 +209,15 @@ class LabServiceImpl(
 
         val oldProfessors = labEntity.professors
         val newProfessors = professorRepository.findAllById(request.professorIds)
-            .takeIf { it.size == request.professorIds.size }
-            ?: throw CserealException.Csereal404("해당 교수님들을 찾을 수 없습니다.(professorIds = ${request.professorIds})")
+            .also {
+                if (it.size < request.professorIds.size) {
+                    throw CserealException.Csereal404("해당 교수님들을 찾을 수 없습니다.(professorIds = ${request.professorIds})")
+                }
+
+                if (!(it.all { p -> p.lab == null || p.lab!!.id == labId })) {
+                    throw CserealException.Csereal400("이미 다른 연구실에 속한 교수님이 존재합니다.")
+                }
+            }
 
         labEntity.apply {
             name = request.name
@@ -215,9 +227,11 @@ class LabServiceImpl(
             acronym = request.acronym
             youtube = request.youtube
             websiteURL = request.websiteURL
+            research = newGroup
+            professors = newProfessors.toMutableSet()
         }
 
-        // TODO: update pdf
+        // update pdf
         if ((pdf != null || request.removePdf) && (labEntity.pdf != null)) {
             attachmentService.deleteAttachment(labEntity.pdf!!)
         }
@@ -228,8 +242,6 @@ class LabServiceImpl(
         // update researchSearch
         upsertLabSearchIndex(labEntity)
 
-        // TODO: professor search update
-        // TODO: research group search update
         applicationEventPublisher.publishEvent(
             LabModifiedEvent(
                 labId,
@@ -254,15 +266,11 @@ class LabServiceImpl(
         researchLanguageRepository.delete(labLanguage)
     }
 
-    // TODO: professor search update
-    // TODO: research group search update
     @Transactional
     override fun deleteLab(id: Long) {
         val lab = labRepository.findByIdOrNull(id)
             ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$id)")
 
-        // TODO: publish lab deleted event (professor)
-        // TODO: publish lab deleted event(research group)
         applicationEventPublisher.publishEvent(
             LabDeletedEvent(
                 lab.id,
@@ -272,6 +280,8 @@ class LabServiceImpl(
         )
 
         lab.pdf?.let { attachmentService.deleteAttachment(it) }
+
+        labRepository.delete(lab)
     }
 
     @Transactional

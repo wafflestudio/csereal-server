@@ -278,7 +278,6 @@ class ResearchServiceImpl(
         return researchCenters
     }
 
-
     @Transactional
     fun upsertResearchSearchIndex(research: ResearchEntity) {
         research.researchSearch?.update(research) ?: let {
