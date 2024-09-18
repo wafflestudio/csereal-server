@@ -64,7 +64,7 @@ class ResearchLanguageCustomRepositoryImpl(
             .join(en).on(researchLanguageEntity.englishId.eq(en.id))
             .where(
                 researchLanguageEntity.type.eq(
-                    ResearchRelatedType.LAB,
+                    ResearchRelatedType.LAB
                 ),
                 researchLanguageEntity.koreanId.eq(id).or(
                     researchLanguageEntity.englishId.eq(id)

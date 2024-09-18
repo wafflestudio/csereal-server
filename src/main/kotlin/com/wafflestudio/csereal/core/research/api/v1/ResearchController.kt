@@ -5,7 +5,6 @@ import com.wafflestudio.csereal.core.research.dto.LabDto
 import com.wafflestudio.csereal.core.research.dto.ResearchDto
 import com.wafflestudio.csereal.core.research.dto.ResearchGroupResponse
 import com.wafflestudio.csereal.core.research.service.LabService
-import com.wafflestudio.csereal.core.research.service.LabServiceImpl
 import com.wafflestudio.csereal.core.research.service.ResearchSearchService
 import com.wafflestudio.csereal.core.research.service.ResearchService
 import jakarta.validation.Valid
@@ -19,7 +18,7 @@ import org.springframework.web.bind.annotation.*
 class ResearchController(
     private val researchService: ResearchService,
     private val researchSearchService: ResearchSearchService,
-    private val labService: LabService,
+    private val labService: LabService
 ) {
     @GetMapping("/groups")
     fun readAllResearchGroups(
@@ -48,7 +47,6 @@ class ResearchController(
     ): ResponseEntity<LabDto> {
         return ResponseEntity.ok(labService.readLab(labId))
     }
-
 
     @GetMapping("/search/top")
     fun searchTop(

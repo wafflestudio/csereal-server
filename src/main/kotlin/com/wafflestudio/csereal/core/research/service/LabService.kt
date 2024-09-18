@@ -55,7 +55,7 @@ class LabServiceImpl(
     private val researchRepository: ResearchRepository,
     private val professorRepository: ProfessorRepository,
     private val endpointProperties: EndpointProperties,
-    private val applicationEventPublisher: ApplicationEventPublisher,
+    private val applicationEventPublisher: ApplicationEventPublisher
 ) : LabService {
     // TODO: Solve N+1 Problem
     @Transactional(readOnly = true)
@@ -129,7 +129,7 @@ class LabServiceImpl(
     override fun createLab(language: LanguageType, request: CreateLabReqBody, pdf: MultipartFile?): LabDto {
         val researchGroup = request.groupId?.let {
             researchRepository.findByIdOrNull(request.groupId)
-                ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = ${it})")
+                ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = $it)")
         }?.apply {
             if (this.postType != ResearchType.GROUPS) {
                 throw CserealException.Csereal404("해당 id 연구그룹이 아닙니다.(researchGroupId = ${this.id})")
@@ -156,7 +156,7 @@ class LabServiceImpl(
             tel = request.tel,
             youtube = request.youtube,
             research = researchGroup,
-            professors = professors.toMutableSet(),
+            professors = professors.toMutableSet()
         ).apply {
             pdf?.let {
                 attachmentService.uploadAttachmentInLabEntity(this, it)
@@ -171,7 +171,7 @@ class LabServiceImpl(
             LabCreatedEvent(
                 newSavedLab.id,
                 request.groupId,
-                request.professorIds,
+                request.professorIds
             )
         )
 
@@ -183,7 +183,7 @@ class LabServiceImpl(
         koreanId: Long,
         englishId: Long,
         request: ModifyLabLanguageReqBody,
-        pdf: MultipartFile?,
+        pdf: MultipartFile?
     ): LabLanguageDto {
         val koLabDto = updateLab(LanguageType.KO, koreanId, request.ko, pdf)
         val enLabDto = updateLab(LanguageType.EN, englishId, request.en, pdf)
@@ -204,7 +204,7 @@ class LabServiceImpl(
         val oldGroup = labEntity.research
         val newGroup = request.groupId?.let {
             researchRepository.findByIdAndPostType(it, ResearchType.GROUPS)
-                ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = ${it})")
+                ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = $it)")
         }
 
         val oldProfessors = labEntity.professors
@@ -246,7 +246,7 @@ class LabServiceImpl(
             LabModifiedEvent(
                 labId,
                 oldGroup?.id to newGroup?.id,
-                oldProfessors.map { it.id }.toSet() to request.professorIds,
+                oldProfessors.map { it.id }.toSet() to request.professorIds
             )
         )
 

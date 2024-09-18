@@ -21,7 +21,7 @@ interface ProfessorEventService {
 @Service
 class ProfessorEventServiceImpl(
     private val professorRepository: ProfessorRepository,
-    private val labRepository: LabRepository,
+    private val labRepository: LabRepository
 ) : ProfessorEventService {
     @EventListener
     @Transactional

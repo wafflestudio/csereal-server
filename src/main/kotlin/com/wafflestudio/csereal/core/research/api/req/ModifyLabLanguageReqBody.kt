@@ -2,7 +2,7 @@ package com.wafflestudio.csereal.core.research.api.req
 
 data class ModifyLabLanguageReqBody(
     val ko: ModifyLabReqBody,
-    val en: ModifyLabReqBody,
+    val en: ModifyLabReqBody
 )
 
 data class ModifyLabReqBody(
@@ -15,5 +15,5 @@ data class ModifyLabReqBody(
     val websiteURL: String?,
     val groupId: Long?,
     val professorIds: Set<Long>,
-    val removePdf: Boolean,
+    val removePdf: Boolean
 )

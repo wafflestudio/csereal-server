@@ -19,7 +19,7 @@ interface LabEventService {
 
 @Service
 class LabEventServiceImpl(
-    private val labRepository: LabRepository,
+    private val labRepository: LabRepository
 ) : LabEventService {
     @EventListener
     @Transactional

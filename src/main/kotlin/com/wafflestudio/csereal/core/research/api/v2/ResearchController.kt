@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile
 class ResearchController(
     private val researchService: ResearchService,
     private val labService: LabService,
-    private val researchSearchService: ResearchSearchService,
+    private val researchSearchService: ResearchSearchService
 ) {
     // Research APIs
 
@@ -86,13 +86,11 @@ class ResearchController(
         @RequestParam(required = false, defaultValue = "ko") language: String
     ): List<LabDto> = labService.readAllLabs(language)
 
-
     // TODO: Change to Language Unified API
     @GetMapping("/lab/{labId}")
     fun readLab(
         @PathVariable labId: Long
     ): LabLanguageDto = labService.readLabLanguage(labId)
-
 
     @AuthenticatedStaff
     @PostMapping("/lab", consumes = ["multipart/form-data"])
@@ -107,17 +105,23 @@ class ResearchController(
     @AuthenticatedStaff
     @PutMapping("/lab/{koreanLabId}/{englishLabId}", consumes = ["multipart/form-data"])
     fun updateLab(
-        @PathVariable @Positive koreanLabId: Long,
-        @PathVariable @Positive englishLabId: Long,
-        @Valid @RequestPart("request") request: ModifyLabLanguageReqBody,
+        @PathVariable @Positive
+        koreanLabId: Long,
+        @PathVariable @Positive
+        englishLabId: Long,
+        @Valid
+        @RequestPart("request")
+        request: ModifyLabLanguageReqBody,
         @RequestPart("pdf") pdf: MultipartFile?
     ): LabLanguageDto = labService.updateLabLanguage(koreanLabId, englishLabId, request, pdf)
 
     @AuthenticatedStaff
     @DeleteMapping("/lab/{koreanLabId}/{englishLabId}")
     fun deleteLab(
-        @PathVariable @Positive koreanLabId: Long,
-        @PathVariable @Positive englishLabId: Long,
+        @PathVariable @Positive
+        koreanLabId: Long,
+        @PathVariable @Positive
+        englishLabId: Long
     ) {
         labService.deleteLabLanguage(koreanLabId, englishLabId)
     }

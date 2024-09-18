@@ -48,7 +48,7 @@ interface ResearchService {
 class ResearchServiceImpl(
     private val researchRepository: ResearchRepository,
     private val researchLanguageRepository: ResearchLanguageRepository,
-    private val mainImageService: MainImageService,
+    private val mainImageService: MainImageService
 ) : ResearchService {
     @Transactional
     override fun createResearchLanguage(

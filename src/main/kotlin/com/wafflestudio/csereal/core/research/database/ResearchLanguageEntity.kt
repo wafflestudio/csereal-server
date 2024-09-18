@@ -7,7 +7,7 @@ import jakarta.persistence.*
 @Entity(name = "research_language")
 @Table(
     uniqueConstraints = [
-        UniqueConstraint(columnNames = ["korean_id", "english_id", "type"]),
+        UniqueConstraint(columnNames = ["korean_id", "english_id", "type"])
     ]
 )
 class ResearchLanguageEntity(
