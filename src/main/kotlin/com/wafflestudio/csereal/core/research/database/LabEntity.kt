@@ -35,7 +35,7 @@ class LabEntity(
     var pdf: AttachmentEntity? = null,
 
     @OneToMany(mappedBy = "lab")
-    val professors: MutableSet<ProfessorEntity> = mutableSetOf(),
+    var professors: MutableSet<ProfessorEntity> = mutableSetOf(),
 
     @OneToOne(mappedBy = "lab", cascade = [CascadeType.ALL], orphanRemoval = true)
     var researchSearch: ResearchSearchEntity? = null
