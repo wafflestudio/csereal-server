@@ -252,6 +252,7 @@ class ProfessorServiceImpl(
             ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다. professorId: $professorId")
 
         // Lab 업데이트
+        // 기존 연구실이 제거되지 않는 이상 수동으로 교수의 Lab을 제거할 수 없음
         val outdatedLabId = professor.lab?.id
         if (updateReq.labId != null && updateReq.labId != professor.lab?.id) {
             val lab = labRepository.findByIdOrNull(updateReq.labId) ?: throw CserealException.Csereal404(
