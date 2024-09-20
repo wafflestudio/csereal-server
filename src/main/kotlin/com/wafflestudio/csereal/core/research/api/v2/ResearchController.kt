@@ -2,18 +2,18 @@ package com.wafflestudio.csereal.core.research.api.v2
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.research.api.req.CreateLabLanguageReqBody
 import com.wafflestudio.csereal.core.research.api.req.CreateResearchLanguageReqBody
+import com.wafflestudio.csereal.core.research.api.req.ModifyLabLanguageReqBody
 import com.wafflestudio.csereal.core.research.api.req.ModifyResearchLanguageReqBody
-import com.wafflestudio.csereal.core.research.dto.LabDto
-import com.wafflestudio.csereal.core.research.dto.ResearchLanguageDto
-import com.wafflestudio.csereal.core.research.dto.ResearchSealedDto
+import com.wafflestudio.csereal.core.research.dto.*
+import com.wafflestudio.csereal.core.research.service.LabService
 import com.wafflestudio.csereal.core.research.service.ResearchSearchService
 import com.wafflestudio.csereal.core.research.service.ResearchService
 import com.wafflestudio.csereal.core.research.type.ResearchType
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
@@ -21,8 +21,11 @@ import org.springframework.web.multipart.MultipartFile
 @RestController
 class ResearchController(
     private val researchService: ResearchService,
+    private val labService: LabService,
     private val researchSearchService: ResearchSearchService
 ) {
+    // Research APIs
+
     @GetMapping("/{researchId:[0-9]+}")
     fun readResearch(
         @Positive
@@ -76,46 +79,54 @@ class ResearchController(
         researchService.deleteResearchLanguage(koreanId, englishId)
     }
 
-    // TODO: Change to Language Unified API
-    @GetMapping("/labs")
+    // Lab APIs
+
+    @GetMapping("/lab")
     fun readAllLabs(
         @RequestParam(required = false, defaultValue = "ko") language: String
-    ): ResponseEntity<List<LabDto>> {
-        return ResponseEntity.ok(researchService.readAllLabs(language))
-    }
+    ): List<LabDto> = labService.readAllLabs(language)
 
     // TODO: Change to Language Unified API
     @GetMapping("/lab/{labId}")
     fun readLab(
         @PathVariable labId: Long
-    ): ResponseEntity<LabDto> {
-        return ResponseEntity.ok(researchService.readLab(labId))
+    ): LabLanguageDto = labService.readLabLanguage(labId)
+
+    @AuthenticatedStaff
+    @PostMapping("/lab", consumes = ["multipart/form-data"])
+    fun createLab(
+        @Valid
+        @RequestPart("request")
+        request: CreateLabLanguageReqBody,
+
+        @RequestPart("pdf") pdf: MultipartFile?
+    ): LabLanguageDto = labService.createLabLanguage(request, pdf)
+
+    @AuthenticatedStaff
+    @PutMapping("/lab/{koreanLabId}/{englishLabId}", consumes = ["multipart/form-data"])
+    fun updateLab(
+        @PathVariable @Positive
+        koreanLabId: Long,
+        @PathVariable @Positive
+        englishLabId: Long,
+        @Valid
+        @RequestPart("request")
+        request: ModifyLabLanguageReqBody,
+        @RequestPart("pdf") pdf: MultipartFile?
+    ): LabLanguageDto = labService.updateLabLanguage(koreanLabId, englishLabId, request, pdf)
+
+    @AuthenticatedStaff
+    @DeleteMapping("/lab/{koreanLabId}/{englishLabId}")
+    fun deleteLab(
+        @PathVariable @Positive
+        koreanLabId: Long,
+        @PathVariable @Positive
+        englishLabId: Long
+    ) {
+        labService.deleteLabLanguage(koreanLabId, englishLabId)
     }
 
-//    @AuthenticatedStaff
-//    @PostMapping("/lab")
-//    fun createLab(
-//        @Valid
-//        @RequestPart("request")
-//        request: LabDto,
-//        @RequestPart("pdf") pdf: MultipartFile?
-//    ): ResponseEntity<LabDto> {
-//        return ResponseEntity.ok(researchService.createLab(request, pdf))
-//    }
-//
-//
-//    // TODO: Change to Language Unified API
-//    @AuthenticatedStaff
-//    @PatchMapping("/lab/{labId}")
-//    fun updateLab(
-//        @PathVariable labId: Long,
-//        @Valid
-//        @RequestPart("request")
-//        request: LabUpdateRequest,
-//        @RequestPart("pdf") pdf: MultipartFile?
-//    ): ResponseEntity<LabDto> {
-//        return ResponseEntity.ok(researchService.updateLab(labId, request, pdf))
-//    }
+    // Search APIs
 
     @GetMapping("/search/top")
     fun searchTop(

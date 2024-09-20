@@ -8,13 +8,13 @@ data class LabDto(
     val id: Long,
     val language: String,
     val name: String,
-    val professors: List<LabProfessorResponse>?,
+    val professors: List<LabProfessorResponse>,
     val location: String?,
     val tel: String?,
     val acronym: String?,
     val pdf: AttachmentResponse?,
     val youtube: String?,
-    val group: String,
+    val group: String?,
     val description: String?,
     val websiteURL: String?
 ) {
@@ -30,7 +30,7 @@ data class LabDto(
                 acronym = this.acronym,
                 pdf = pdf,
                 youtube = this.youtube,
-                group = this.research?.name ?: "",
+                group = this.research?.name,
                 description = this.description,
                 websiteURL = this.websiteURL
             )
