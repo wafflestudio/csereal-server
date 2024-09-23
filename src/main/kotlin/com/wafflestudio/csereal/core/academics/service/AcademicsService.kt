@@ -411,6 +411,8 @@ class AcademicsServiceImpl(
             academicsSearch = AcademicsSearchEntity.create(this)
         }
 
+        scholarshipRepository.save(koScholarship)
+        scholarshipRepository.save(enScholarship)
         scholarshipLanguageRepository.save(ScholarshipLanguageEntity(koScholarship, enScholarship))
     }
 
@@ -465,6 +467,8 @@ class AcademicsServiceImpl(
         }
 
         scholarshipLanguageRepository.delete(scholarshipLanguage!!)
+        scholarshipRepository.delete(scholarshipLanguage.koScholarship)
+        scholarshipRepository.delete(scholarshipLanguage.enScholarship)
     }
 
     private fun makeStringToAcademicsStudentType(postType: String): AcademicsStudentType {
