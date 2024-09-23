@@ -68,7 +68,7 @@ class ResearchSearchEntity(
             lab.tel?.let { appendLine(it) }
             lab.acronym?.let { appendLine(it) }
             lab.youtube?.let { appendLine(it) }
-            appendLine(lab.research.name)
+            lab.research?.let { appendLine(it.name) }
             lab.description?.let {
                 appendLine(cleanTextFromHtml(it))
             }
@@ -105,11 +105,4 @@ class ResearchSearchEntity(
     fun update(conference: ConferenceEntity) {
         this.content = createContent(conference)
     }
-}
-
-enum class ResearchSearchType {
-    RESEARCH_GROUP,
-    RESEARCH_CENTER,
-    LAB,
-    CONFERENCE;
 }

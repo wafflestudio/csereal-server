@@ -43,9 +43,9 @@ class ProfessorController(
     @PostMapping(consumes = ["multipart/form-data"])
     fun createProfessor(
         @RequestPart("request") requestBody: CreateProfessorLanguagesReqBody,
-        @RequestPart("image") image: MultipartFile?
+        @RequestPart("mainImage") mainImage: MultipartFile?
     ): ProfessorLanguagesDto =
-        professorService.createProfessorLanguages(requestBody, image)
+        professorService.createProfessorLanguages(requestBody, mainImage)
 
     @AuthenticatedStaff
     @PutMapping("/{koProfessorId}/{enProfessorId}", consumes = ["multipart/form-data"])
@@ -57,10 +57,10 @@ class ProfessorController(
         @RequestPart("request") requestBody: ModifyProfessorLanguagesReqBody,
 
         @Parameter(description = "image 교체할 경우 업로드. Request Body의 removeImage 관계없이 변경됨.")
-        @RequestPart("newImage")
-        newImage: MultipartFile?
+        @RequestPart("newMainImage")
+        newMainImage: MultipartFile?
     ): ProfessorLanguagesDto =
-        professorService.updateProfessorLanguages(koProfessorId, enProfessorId, requestBody, newImage)
+        professorService.updateProfessorLanguages(koProfessorId, enProfessorId, requestBody, newMainImage)
 
     @AuthenticatedStaff
     @DeleteMapping("/{koProfessorId}/{enProfessorId}")

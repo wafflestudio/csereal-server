@@ -1,15 +1,15 @@
-package com.wafflestudio.csereal.core.academics.database
+package com.wafflestudio.csereal.core.about.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import jakarta.persistence.*
 
-@Entity(name = "scholarship_language")
-class ScholarshipLanguageEntity(
+@Entity(name = "about_language")
+class AboutLanguageEntity(
     @OneToOne
     @JoinColumn(name = "korean_id")
-    val koScholarship: ScholarshipEntity,
+    val koAbout: AboutEntity,
 
     @OneToOne
     @JoinColumn(name = "english_id")
-    val enScholarship: ScholarshipEntity
+    val enAbout: AboutEntity
 ) : BaseTimeEntity()
