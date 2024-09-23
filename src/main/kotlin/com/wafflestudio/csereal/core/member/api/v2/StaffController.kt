@@ -42,8 +42,8 @@ class StaffController(
     @PostMapping(consumes = ["multipart/form-data"])
     fun createStaff(
         @RequestPart("request") createStaffLanguagesReqBody: CreateStaffLanguagesReqBody,
-        @RequestPart("image") image: MultipartFile?
-    ): StaffLanguagesDto = staffService.createStaffLanguages(createStaffLanguagesReqBody, image)
+        @RequestPart("mainImage") mainImage: MultipartFile?
+    ): StaffLanguagesDto = staffService.createStaffLanguages(createStaffLanguagesReqBody, mainImage)
 
     @AuthenticatedStaff
     @PutMapping("/{koStaffId}/{enStaffId}", consumes = ["multipart/form-data"])
@@ -55,10 +55,10 @@ class StaffController(
         @RequestPart("request") modifyStaffLanguageReq: ModifyStaffLanguagesReqBody,
 
         @Parameter(description = "image 교체할 경우 업로드. Request Body의 removeImage 관계없이 변경됨.")
-        @RequestPart("newImage")
-        newImage: MultipartFile?
+        @RequestPart("newMainImage")
+        newMainImage: MultipartFile?
     ): StaffLanguagesDto =
-        staffService.updateStaffLanguages(koStaffId, enStaffId, modifyStaffLanguageReq, newImage)
+        staffService.updateStaffLanguages(koStaffId, enStaffId, modifyStaffLanguageReq, newMainImage)
 
     @AuthenticatedStaff
     @DeleteMapping("/{koStaffId}/{enStaffId}")

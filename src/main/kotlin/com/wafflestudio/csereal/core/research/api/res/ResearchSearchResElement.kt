@@ -3,15 +3,14 @@ package com.wafflestudio.csereal.core.research.api.res
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.substringAroundKeyword
-import com.wafflestudio.csereal.core.research.database.ResearchPostType
 import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
-import com.wafflestudio.csereal.core.research.database.ResearchSearchType
+import com.wafflestudio.csereal.core.research.type.ResearchRelatedType
 
 data class ResearchSearchResElement(
     val id: Long,
     val language: String,
     val name: String,
-    val researchType: ResearchSearchType,
+    val researchType: ResearchRelatedType,
     val partialDescription: String,
     val boldStartIdx: Int,
     val boldEndIdx: Int
@@ -36,10 +35,7 @@ data class ResearchSearchResElement(
                         id = it.id,
                         name = it.name,
                         language = it.language.let { ln -> LanguageType.makeLowercase(ln) },
-                        researchType = when (it.postType) {
-                            ResearchPostType.GROUPS -> ResearchSearchType.RESEARCH_GROUP
-                            ResearchPostType.CENTERS -> ResearchSearchType.RESEARCH_CENTER
-                        },
+                        researchType = it.postType.ofResearchRelatedType(),
                         partialDescription = partialDesc,
                         boldStartIdx = startIdx ?: 0,
                         boldEndIdx = startIdx?.plus(keyword.length) ?: 0
@@ -59,7 +55,7 @@ data class ResearchSearchResElement(
                         id = it.id,
                         name = it.name,
                         language = it.language.let { ln -> LanguageType.makeLowercase(ln) },
-                        researchType = ResearchSearchType.LAB,
+                        researchType = ResearchRelatedType.LAB,
                         partialDescription = partialDesc,
                         boldStartIdx = startIdx ?: 0,
                         boldEndIdx = startIdx?.plus(keyword.length) ?: 0
@@ -79,7 +75,7 @@ data class ResearchSearchResElement(
                         id = it.id,
                         name = it.name,
                         language = it.language.let { ln -> LanguageType.makeLowercase(ln) },
-                        researchType = ResearchSearchType.CONFERENCE,
+                        researchType = ResearchRelatedType.CONFERENCE,
                         partialDescription = partialDesc,
                         boldStartIdx = startIdx ?: 0,
                         boldEndIdx = startIdx?.plus(keyword.length) ?: 0
