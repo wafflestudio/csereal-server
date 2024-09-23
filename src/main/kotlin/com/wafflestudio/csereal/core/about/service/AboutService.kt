@@ -300,7 +300,11 @@ class AboutServiceImpl(
             LanguageType.EN -> aboutLanguageRepository.findByEnAbout(facility)
         }
 
-        aboutLanguageRepository.delete(facilityLanguage!!)
+        listOf(facilityLanguage!!.koAbout, facilityLanguage.enAbout).forEach {
+            it.mainImage?.let { image -> mainImageService.removeImage(image) }
+        }
+
+        aboutLanguageRepository.delete(facilityLanguage)
         aboutRepository.delete(facilityLanguage.koAbout)
         aboutRepository.delete(facilityLanguage.enAbout)
     }
