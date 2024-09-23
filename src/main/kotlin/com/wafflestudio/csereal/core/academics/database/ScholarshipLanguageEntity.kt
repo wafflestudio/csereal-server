@@ -5,11 +5,11 @@ import jakarta.persistence.*
 
 @Entity(name = "scholarship_language")
 class ScholarshipLanguageEntity(
-    @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
+    @OneToOne
     @JoinColumn(name = "korean_id")
     val koScholarship: ScholarshipEntity,
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
+    @OneToOne
     @JoinColumn(name = "english_id")
     val enScholarship: ScholarshipEntity
 ) : BaseTimeEntity()

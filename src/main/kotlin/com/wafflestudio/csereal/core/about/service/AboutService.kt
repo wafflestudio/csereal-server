@@ -138,6 +138,8 @@ class AboutServiceImpl(
             clubs.forEach { mainImageService.uploadMainImage(it, mainImage) }
         }
 
+        aboutRepository.save(clubs[0])
+        aboutRepository.save(clubs[1])
         aboutLanguageRepository.save(AboutLanguageEntity(clubs[0], clubs[1]))
     }
 
@@ -187,6 +189,8 @@ class AboutServiceImpl(
         }
 
         aboutLanguageRepository.delete(aboutLanguage)
+        aboutRepository.delete(aboutLanguage.koAbout)
+        aboutRepository.delete(aboutLanguage.enAbout)
     }
 
     @Transactional(readOnly = true)
@@ -239,7 +243,8 @@ class AboutServiceImpl(
         if (mainImage != null) {
             facilities.forEach { mainImageService.uploadMainImage(it, mainImage) }
         }
-
+        aboutRepository.save(facilities[0])
+        aboutRepository.save(facilities[1])
         aboutLanguageRepository.save(AboutLanguageEntity(facilities[0], facilities[1]))
     }
 
@@ -296,6 +301,8 @@ class AboutServiceImpl(
         }
 
         aboutLanguageRepository.delete(facilityLanguage!!)
+        aboutRepository.delete(facilityLanguage.koAbout)
+        aboutRepository.delete(facilityLanguage.enAbout)
     }
 
     @Transactional(readOnly = true)
