@@ -2,6 +2,8 @@ package com.wafflestudio.csereal.core.research.dto
 
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.research.database.LabEntity
+import com.wafflestudio.csereal.core.research.database.ResearchEntity
+import com.wafflestudio.csereal.core.research.type.ResearchType
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 
 data class LabDto(
@@ -14,7 +16,7 @@ data class LabDto(
     val acronym: String?,
     val pdf: AttachmentResponse?,
     val youtube: String?,
-    val group: String?,
+    val group: LabGroupDto?,
     val description: String?,
     val websiteURL: String?
 ) {
@@ -30,10 +32,25 @@ data class LabDto(
                 acronym = this.acronym,
                 pdf = pdf,
                 youtube = this.youtube,
-                group = this.research?.name,
+                group = this.research?.let { LabGroupDto.of(it) },
                 description = this.description,
                 websiteURL = this.websiteURL
             )
+        }
+    }
+}
+
+data class LabGroupDto(
+    val id: Long,
+    val name: String,
+) {
+    companion object {
+        fun of(entity: ResearchEntity): LabGroupDto {
+            if (entity.postType != ResearchType.GROUPS) {
+                throw IllegalArgumentException("ResearchEntity is not a group")
+            }
+
+            return LabGroupDto(entity.id, entity.name)
         }
     }
 }
