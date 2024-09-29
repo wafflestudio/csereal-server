@@ -42,7 +42,7 @@ data class LabDto(
 
 data class LabGroupDto(
     val id: Long,
-    val name: String,
+    val name: String
 ) {
     companion object {
         fun of(entity: ResearchEntity): LabGroupDto {
