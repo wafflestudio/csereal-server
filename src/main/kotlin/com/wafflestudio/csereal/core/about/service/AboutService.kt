@@ -408,9 +408,9 @@ class AboutServiceImpl(
             throw CserealException.Csereal409("year already exist")
         }
         for (stat in request.statList) {
-            statRepository.save(StatEntity(request.year, Degree.BACHELOR, stat.company.krName, stat.bachelor))
-            statRepository.save(StatEntity(request.year, Degree.MASTER, stat.company.krName, stat.master))
-            statRepository.save(StatEntity(request.year, Degree.DOCTOR, stat.company.krName, stat.doctor))
+            statRepository.save(StatEntity(request.year, Degree.BACHELOR, stat.career.krName, stat.bachelor))
+            statRepository.save(StatEntity(request.year, Degree.MASTER, stat.career.krName, stat.master))
+            statRepository.save(StatEntity(request.year, Degree.DOCTOR, stat.career.krName, stat.doctor))
         }
     }
 
@@ -425,7 +425,7 @@ class AboutServiceImpl(
                 Degree.MASTER to update.master,
                 Degree.DOCTOR to update.doctor
             ).forEach { (degree, count) ->
-                statsMap[update.company.krName to degree]?.count = count
+                statsMap[update.career.krName to degree]?.count = count
             }
         }
     }

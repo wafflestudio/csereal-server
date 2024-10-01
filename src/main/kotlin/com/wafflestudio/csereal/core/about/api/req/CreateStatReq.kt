@@ -6,7 +6,7 @@ data class CreateStatReq(
 )
 
 data class StatDto(
-    val company: Career,
+    val career: Career,
     val bachelor: Int,
     val master: Int,
     val doctor: Int
