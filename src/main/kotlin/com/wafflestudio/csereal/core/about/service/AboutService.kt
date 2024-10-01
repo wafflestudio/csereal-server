@@ -36,9 +36,13 @@ interface AboutService {
     fun updateFacility(id: Long, request: UpdateFacReq, newMainImage: MultipartFile?)
     fun deleteFacility(id: Long)
     fun readAllFacilities(language: String): List<AboutDto>
+    fun readAllGroupedFacilities(): List<GroupedFacDto>
     fun readAllDirections(language: String): List<AboutDto>
+    fun readAllGroupedDirections(): List<GroupedDirectionDto>
     fun updateDirection(id: Long, request: UpdateDescriptionReq)
     fun updateFutureCareersPage(request: UpdateDescriptionReq)
+    fun createFutureCareersStat(request: CreateStatReq)
+    fun updateFutureCareersStat(request: CreateStatReq)
     fun readFutureCareers(language: String): FutureCareersPage
     fun createCompany(request: CreateCompanyReq)
     fun updateCompany(id: Long, request: CreateCompanyReq)
@@ -214,7 +218,7 @@ class AboutServiceImpl(
 
     @Transactional(readOnly = true)
     override fun readAllGroupedClubs(): List<GroupedClubDto> {
-        val clubs = aboutLanguageRepository.findAll().filter { it.koAbout.postType == AboutPostType.STUDENT_CLUBS }
+        val clubs = aboutLanguageRepository.findAllByKoAboutPostType(AboutPostType.STUDENT_CLUBS)
             .sortedBy { it.koAbout.name }
         return clubs.map {
             val imageURL = mainImageService.createImageURL(it.koAbout.mainImage)
@@ -327,6 +331,16 @@ class AboutServiceImpl(
     }
 
     @Transactional(readOnly = true)
+    override fun readAllGroupedFacilities(): List<GroupedFacDto> {
+        val facilities =
+            aboutLanguageRepository.findAllByKoAboutPostType(AboutPostType.FACILITIES).sortedBy { it.koAbout.name }
+        return facilities.map {
+            val imageURL = mainImageService.createImageURL(it.koAbout.mainImage)
+            GroupedFacDto(ko = FacDtoWithId.of(it.koAbout, imageURL), en = FacDtoWithId.of(it.enAbout, imageURL))
+        }
+    }
+
+    @Transactional(readOnly = true)
     override fun readAllDirections(language: String): List<AboutDto> {
         val languageType = LanguageType.makeStringToLanguageType(language)
         val directions =
@@ -340,6 +354,15 @@ class AboutServiceImpl(
             }
 
         return directions
+    }
+
+    @Transactional(readOnly = true)
+    override fun readAllGroupedDirections(): List<GroupedDirectionDto> {
+        val directions =
+            aboutLanguageRepository.findAllByKoAboutPostType(AboutPostType.DIRECTIONS).sortedBy { it.koAbout.name }
+        return directions.map {
+            GroupedDirectionDto(ko = DirDto.of(it.koAbout), en = DirDto.of(it.enAbout))
+        }
     }
 
     @Transactional
@@ -377,6 +400,34 @@ class AboutServiceImpl(
 
         ko.syncSearchContent()
         en.syncSearchContent()
+    }
+
+    @Transactional
+    override fun createFutureCareersStat(request: CreateStatReq) {
+        if (statRepository.findAllByYear(request.year).isNotEmpty()) {
+            throw CserealException.Csereal409("year already exist")
+        }
+        for (stat in request.statList) {
+            statRepository.save(StatEntity(request.year, Degree.BACHELOR, stat.company.krName, stat.bachelor))
+            statRepository.save(StatEntity(request.year, Degree.MASTER, stat.company.krName, stat.master))
+            statRepository.save(StatEntity(request.year, Degree.DOCTOR, stat.company.krName, stat.doctor))
+        }
+    }
+
+    @Transactional
+    override fun updateFutureCareersStat(request: CreateStatReq) {
+        val stats = statRepository.findAllByYear(request.year)
+        val statsMap = stats.associateBy { it.name to it.degree }
+
+        request.statList.forEach { update ->
+            listOf(
+                Degree.BACHELOR to update.bachelor,
+                Degree.MASTER to update.master,
+                Degree.DOCTOR to update.doctor
+            ).forEach { (degree, count) ->
+                statsMap[update.company.krName to degree]?.count = count
+            }
+        }
     }
 
     @Transactional
