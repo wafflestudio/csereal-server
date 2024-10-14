@@ -47,6 +47,9 @@ class AboutController(
     fun createFacilities(@RequestPart request: CreateFacReq, @RequestPart mainImage: MultipartFile?) =
         aboutService.createFacilities(request, mainImage)
 
+    @GetMapping("/facilities")
+    fun readAllGroupedFacilities() = aboutService.readAllGroupedFacilities()
+
     @AuthenticatedStaff
     @PutMapping("/facilities/{id}")
     fun updateFacility(
@@ -59,10 +62,21 @@ class AboutController(
     @DeleteMapping("/facilities/{id}")
     fun deleteFacility(@PathVariable id: Long) = aboutService.deleteFacility(id)
 
+    @GetMapping("/directions")
+    fun readAllGroupedDirections() = aboutService.readAllGroupedDirections()
+
     @AuthenticatedStaff
     @PutMapping("/directions/{id}")
     fun updateDirection(@PathVariable id: Long, @RequestBody request: UpdateDescriptionReq) =
         aboutService.updateDirection(id, request)
+
+    @AuthenticatedStaff
+    @PostMapping("/future-careers/stats")
+    fun createStats(@RequestBody request: CreateStatReq) = aboutService.createFutureCareersStat(request)
+
+    @AuthenticatedStaff
+    @PutMapping("/future-careers/stats")
+    fun updateStats(@RequestBody request: CreateStatReq) = aboutService.updateFutureCareersStat(request)
 
     @AuthenticatedStaff
     @PutMapping("/future-careers")

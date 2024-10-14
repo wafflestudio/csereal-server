@@ -38,6 +38,7 @@ class AboutController(
         return ResponseEntity.ok(aboutService.readAllClubs(language))
     }
 
+    @Deprecated("Use V2 API")
     @GetMapping("/facilities")
     fun readAllFacilities(
         @RequestParam(required = false, defaultValue = "ko") language: String
@@ -45,6 +46,7 @@ class AboutController(
         return ResponseEntity.ok(aboutService.readAllFacilities(language))
     }
 
+    @Deprecated("Use V2 API")
     @GetMapping("/directions")
     fun readAllDirections(
         @RequestParam(required = false, defaultValue = "ko") language: String
