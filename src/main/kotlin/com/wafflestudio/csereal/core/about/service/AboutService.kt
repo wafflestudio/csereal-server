@@ -289,10 +289,10 @@ class AboutServiceImpl(
         }
     }
 
-    private fun updateFacility(facility: AboutEntity, facDto: FacDto) {
-        facility.name = facDto.name
-        facility.description = facDto.description
-        facility.locations = facDto.locations
+    private fun updateFacility(facility: AboutEntity, facReq: FacReq) {
+        facility.name = facReq.name
+        facility.description = facReq.description
+        facility.locations = facReq.locations
     }
 
     @Transactional
@@ -335,8 +335,9 @@ class AboutServiceImpl(
         val facilities =
             aboutLanguageRepository.findAllByKoAboutPostType(AboutPostType.FACILITIES).sortedBy { it.koAbout.name }
         return facilities.map {
-            val imageURL = mainImageService.createImageURL(it.koAbout.mainImage)
-            GroupedFacDto(ko = FacDtoWithId.of(it.koAbout, imageURL), en = FacDtoWithId.of(it.enAbout, imageURL))
+            val koImageURL = mainImageService.createImageURL(it.koAbout.mainImage)
+            val enImageURL = mainImageService.createImageURL(it.enAbout.mainImage)
+            GroupedFacDto(ko = FacDto.of(it.koAbout, koImageURL), en = FacDto.of(it.enAbout, enImageURL))
         }
     }
 
@@ -406,6 +407,9 @@ class AboutServiceImpl(
     override fun createFutureCareersStat(request: CreateStatReq) {
         if (statRepository.findAllByYear(request.year).isNotEmpty()) {
             throw CserealException.Csereal409("year already exist")
+        }
+        if (request.statList.size != 6) {
+            throw CserealException.Csereal400("모든 row data 필요")
         }
         for (stat in request.statList) {
             statRepository.save(StatEntity(request.year, Degree.BACHELOR, stat.career.krName, stat.bachelor))
