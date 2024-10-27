@@ -9,7 +9,6 @@ import java.util.UUID
 
 interface ReservationRepository : JpaRepository<ReservationEntity, Long> {
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query(
         "SELECT r FROM reservation r " +
             "WHERE r.room.id = :roomId " +
