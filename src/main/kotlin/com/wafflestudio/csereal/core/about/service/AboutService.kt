@@ -435,6 +435,43 @@ class AboutServiceImpl(
     }
 
     @Transactional
+    override fun updateDirection(id: Long, request: UpdateDescriptionReq) {
+        val direction = aboutRepository.findByIdOrNull(id) ?: throw CserealException.Csereal404("direction not found")
+
+        val corresponding = when (direction.language) {
+            LanguageType.KO -> aboutLanguageRepository.findByKoAbout(direction)!!.enAbout
+            LanguageType.EN -> aboutLanguageRepository.findByEnAbout(direction)!!.koAbout
+        }
+
+        when (direction.language) {
+            LanguageType.KO -> {
+                direction.description = request.koDescription
+                corresponding.description = request.enDescription
+            }
+
+            LanguageType.EN -> {
+                direction.description = request.enDescription
+                corresponding.description = request.koDescription
+            }
+        }
+
+        direction.syncSearchContent()
+        corresponding.syncSearchContent()
+    }
+
+    @Transactional
+    override fun updateFutureCareersPage(request: UpdateDescriptionReq) {
+        val ko = aboutRepository.findByLanguageAndPostType(LanguageType.KO, AboutPostType.FUTURE_CAREERS)
+        val en = aboutRepository.findByLanguageAndPostType(LanguageType.EN, AboutPostType.FUTURE_CAREERS)
+
+        ko.description = request.koDescription
+        en.description = request.enDescription
+
+        ko.syncSearchContent()
+        en.syncSearchContent()
+    }
+
+    @Transactional
     override fun readFutureCareers(language: String): FutureCareersPage {
         val languageType = LanguageType.makeStringToLanguageType(language)
         val description =
