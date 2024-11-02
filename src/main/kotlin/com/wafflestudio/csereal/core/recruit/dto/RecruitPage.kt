@@ -6,7 +6,7 @@ data class RecruitPage(
     val latestRecruitTitle: String,
     val latestRecruitUrl: String,
     val description: String,
-    val mainImageUrl: String?,
+    val mainImageUrl: String?
 ) {
     companion object {
         private val emptyPage = RecruitPage("", "", "", null)
@@ -17,7 +17,7 @@ data class RecruitPage(
                 latestRecruitTitle = recruitEntity.latestRecruitTitle,
                 latestRecruitUrl = recruitEntity.latestRecruitUrl,
                 description = recruitEntity.description,
-                mainImageUrl = mainImageUrl,
+                mainImageUrl = mainImageUrl
             )
         }
     }

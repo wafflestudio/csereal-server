@@ -16,7 +16,7 @@ class RecruitEntity(
     var description: String,
 
     @OneToOne
-    var mainImage: MainImageEntity? = null,
+    var mainImage: MainImageEntity? = null
 ) : BaseTimeEntity(), MainImageContentEntityType {
     override fun bringMainImage(): MainImageEntity? = mainImage
 }

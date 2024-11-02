@@ -4,5 +4,5 @@ data class ModifyRecruitReqBody(
     val latestRecruitTitle: String,
     val latestRecruitUrl: String,
     val description: String,
-    val removeImage: Boolean,
+    val removeImage: Boolean
 )

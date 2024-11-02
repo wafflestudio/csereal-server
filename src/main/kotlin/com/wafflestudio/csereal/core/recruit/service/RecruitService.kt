@@ -18,7 +18,7 @@ interface RecruitService {
 @Transactional
 class RecruitServiceImpl(
     private val recruitRepository: RecruitRepository,
-    private val mainImageService: MainImageService,
+    private val mainImageService: MainImageService
 ) : RecruitService {
 
     @Transactional(readOnly = true)
@@ -41,10 +41,9 @@ class RecruitServiceImpl(
                 RecruitEntity(
                     it.latestRecruitTitle,
                     it.latestRecruitUrl,
-                    it.description,
+                    it.description
                 )
             }
-
 
             1 -> oldRecruitEntities.first().apply {
                 modifyRecruitReqBody.let {
@@ -53,7 +52,6 @@ class RecruitServiceImpl(
                     description = it.description
                 }
             }
-
 
             else -> oldRecruitEntities.also { entities ->
                 // remove leftovers
@@ -73,8 +71,8 @@ class RecruitServiceImpl(
             }
         }
 
-        if (modifiedRecruitEntity.mainImage != null
-            && (newMainImage != null || modifyRecruitReqBody.removeImage)
+        if (modifiedRecruitEntity.mainImage != null &&
+            (newMainImage != null || modifyRecruitReqBody.removeImage)
         ) {
             mainImageService.removeImage(modifiedRecruitEntity.mainImage!!)
             modifiedRecruitEntity.mainImage = null

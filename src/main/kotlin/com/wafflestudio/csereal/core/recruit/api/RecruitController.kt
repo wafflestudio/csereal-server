@@ -23,7 +23,7 @@ class RecruitController(
     @PutMapping(consumes = ["multipart/form-data"])
     fun upsertRecruitPage(
         @RequestPart("request") modifyRecruitReqBody: ModifyRecruitReqBody,
-        @RequestPart("newMainImage") newMainImage: MultipartFile?,
+        @RequestPart("newMainImage") newMainImage: MultipartFile?
     ): RecruitPage {
         return recruitService.upsertRecruitPage(modifyRecruitReqBody, newMainImage)
     }
