@@ -5,14 +5,19 @@ import com.wafflestudio.csereal.core.recruit.database.RecruitEntity
 data class RecruitPage(
     val latestRecruitTitle: String,
     val latestRecruitUrl: String,
-    val description: String
+    val description: String,
+    val mainImageUrl: String?,
 ) {
     companion object {
-        fun of(recruitEntity: RecruitEntity): RecruitPage {
+        private val emptyPage = RecruitPage("", "", "", null)
+        fun empty() = emptyPage
+
+        fun of(recruitEntity: RecruitEntity, mainImageUrl: String?): RecruitPage {
             return RecruitPage(
                 latestRecruitTitle = recruitEntity.latestRecruitTitle,
                 latestRecruitUrl = recruitEntity.latestRecruitUrl,
-                description = recruitEntity.description
+                description = recruitEntity.description,
+                mainImageUrl = mainImageUrl,
             )
         }
     }
