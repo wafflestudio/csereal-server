@@ -17,7 +17,9 @@ class RecruitServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getRecruitPage(): RecruitPage {
-        val recruit = recruitRepository.findAll()[0]
-        return RecruitPage.of(recruit)
+        // return empty page if not exists
+        return recruitRepository.findAll().firstOrNull()
+            ?.let { RecruitPage.of(it, mainImageService.createImageURL(it.mainImage)) }
+            ?: RecruitPage.empty()
     }
 }
