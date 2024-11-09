@@ -1,14 +1,21 @@
 package com.wafflestudio.csereal.core.recruit.database
 
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
+import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.OneToOne
 
 @Entity(name = "recruit")
 class RecruitEntity(
-    val latestRecruitTitle: String,
-    val latestRecruitUrl: String,
+    var title: String,
 
     @Column(columnDefinition = "text")
-    val description: String
-) : BaseTimeEntity()
+    var description: String,
+
+    @OneToOne
+    var mainImage: MainImageEntity? = null
+) : BaseTimeEntity(), MainImageContentEntityType {
+    override fun bringMainImage(): MainImageEntity? = mainImage
+}
