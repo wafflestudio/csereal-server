@@ -31,7 +31,7 @@ jobs:
                     java-version: '21'
                     distribution: 'temurin'
 
-            -   run: ./gradlew clean bootJar -x test
+            -   run: ./gradlew test bootJar
 
             -   name: Log in to the Container Registry
                 uses: docker/login-action@v2.2.0
