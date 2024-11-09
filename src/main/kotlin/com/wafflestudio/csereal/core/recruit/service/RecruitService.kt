@@ -39,16 +39,14 @@ class RecruitServiceImpl(
         val modifiedRecruitEntity = when (oldRecruitEntities.size) {
             0 -> modifyRecruitReqBody.let {
                 RecruitEntity(
-                    it.latestRecruitTitle,
-                    it.latestRecruitUrl,
+                    it.title,
                     it.description
                 )
             }
 
             1 -> oldRecruitEntities.first().apply {
                 modifyRecruitReqBody.let {
-                    latestRecruitTitle = it.latestRecruitTitle
-                    latestRecruitUrl = it.latestRecruitUrl
+                    title = it.title
                     description = it.description
                 }
             }
@@ -64,8 +62,7 @@ class RecruitServiceImpl(
             }.first().apply {
                 // modify first
                 modifyRecruitReqBody.let {
-                    latestRecruitTitle = it.latestRecruitTitle
-                    latestRecruitUrl = it.latestRecruitUrl
+                    title = it.title
                     description = it.description
                 }
             }

@@ -9,8 +9,7 @@ import jakarta.persistence.OneToOne
 
 @Entity(name = "recruit")
 class RecruitEntity(
-    var latestRecruitTitle: String,
-    var latestRecruitUrl: String,
+    var title: String,
 
     @Column(columnDefinition = "text")
     var description: String,
