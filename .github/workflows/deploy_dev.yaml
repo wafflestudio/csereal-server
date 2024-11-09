@@ -1,4 +1,8 @@
 on:
+    # DEBUG: For test only
+    pull_request:
+        branches:
+            - develop
     push:
         branches:
             - develop
