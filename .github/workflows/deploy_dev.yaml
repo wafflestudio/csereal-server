@@ -70,30 +70,30 @@ jobs:
             -   name: SCP Command to Transfer Files
                 uses: Wandalen/wretry.action@master
                 with:
-                    -   action: appleboy/scp-action@v0.1.7
-                        attempt_limit: 3
-                        attempt_delay: 2000
-                        with: |
-                            host: ${{secrets.SSH_HOST_DEV}}
-                            username: ${{secrets.SSH_USER}}
-                            key: ${{secrets.SSH_KEY}}
-                            source: "docker-compose-backend.yml, .env"
-                            target: "~/app"
-                            overwrite: true
+                    action: appleboy/scp-action@v0.1.7
+                    attempt_limit: 3
+                    attempt_delay: 2000
+                    with: |
+                        host: ${{secrets.SSH_HOST_DEV}}
+                        username: ${{secrets.SSH_USER}}
+                        key: ${{secrets.SSH_KEY}}
+                        source: "docker-compose-backend.yml, .env"
+                        target: "~/app"
+                        overwrite: true
 
             -   name: SSH Remote Commands
                 uses: Wandalen/wretry.action@master
                 with:
-                    -   action: appleboy/ssh-action@v1.0.0
-                        attempt_limit: 3
-                        attempt_delay: 2000
-                        with: |
-                            host: ${{secrets.SSH_HOST_DEV}}
-                            username: ${{secrets.SSH_USER}}
-                            key: ${{secrets.SSH_KEY}}
-                            script: |
-                                cd ~/app
-                                source .env
-                                docker-compose -f docker-compose-backend.yml down
-                                docker-compose -f docker-compose-backend.yml pull
-                                docker-compose -f docker-compose-backend.yml up -d
+                    action: appleboy/ssh-action@v1.0.0
+                    attempt_limit: 3
+                    attempt_delay: 2000
+                    with: |
+                        host: ${{secrets.SSH_HOST_DEV}}
+                        username: ${{secrets.SSH_USER}}
+                        key: ${{secrets.SSH_KEY}}
+                        script: |
+                            cd ~/app
+                            source .env
+                            docker-compose -f docker-compose-backend.yml down
+                            docker-compose -f docker-compose-backend.yml pull
+                            docker-compose -f docker-compose-backend.yml up -d
