@@ -1,99 +1,99 @@
 on:
-    # DEBUG: For test only
-    pull_request:
-        branches:
-            - develop
-    push:
-        branches:
-            - develop
-        paths:
-            - docker-compose-backend.yml
-            - Dockerfile
-            - gradle.properties
-            - gradlew
-            - gradlew.bat
-            - build.gradle.kts
-            - settings.gradle.kts
-            - src/**
-            - gradle/**
-            - .github/workflows/deploy_dev.yaml
+  # DEBUG: For test only
+  pull_request:
+    branches:
+      - develop
+
+  push:
+    branches:
+      - develop
+    paths:
+      - docker-compose-backend.yml
+      - Dockerfile
+      - gradle.properties
+      - gradlew
+      - gradlew.bat
+      - build.gradle.kts
+      - settings.gradle.kts
+      - src/**
+      - gradle/**
+      - .github/workflows/deploy_dev.yaml
 
 jobs:
-    build-and-deploy:
-        runs-on: ubuntu-latest
-        permissions:
-            packages: write
-            contents: read
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
-        steps:
-            -   name: Checkout
-                uses: actions/checkout@v3
+      - name: Setup Java JDK
+        uses: actions/setup-java@v3.12.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
 
-            -   name: Setup Java JDK
-                uses: actions/setup-java@v3.12.0
-                with:
-                    java-version: '21'
-                    distribution: 'temurin'
+      - run: ./gradlew test bootJar
 
-            -   run: ./gradlew test bootJar
+      - name: Log in to the Container Registry
+        uses: docker/login-action@v2.2.0
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
 
-            -   name: Log in to the Container Registry
-                uses: docker/login-action@v2.2.0
-                with:
-                    registry: ghcr.io
-                    username: ${{github.actor}}
-                    password: ${{secrets.GITHUB_TOKEN}}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: .
+          push: true
+          build-args: |
+            PROFILE=dev
+          tags: |
+            ghcr.io/wafflestudio/csereal-server/server_image:dev
+            ghcr.io/wafflestudio/csereal-server/server_image:${{github.sha}}
 
-            -   name: Build and push Docker image
-                uses: docker/build-push-action@v4.1.1
-                with:
-                    context: .
-                    push: true
-                    build-args: |
-                        PROFILE=dev
-                    tags: |
-                        ghcr.io/wafflestudio/csereal-server/server_image:dev
-                        ghcr.io/wafflestudio/csereal-server/server_image:${{github.sha}}
+      - name: Create .env file
+        run: |
+          echo "PROFILE=dev" > .env
+          echo "MYSQL_ROOT_PASSWORD=${{secrets.MYSQL_ROOT_PASSWORD}}" >> .env
+          echo "MYSQL_USER=${{secrets.MYSQL_USER}}" >> .env
+          echo "MYSQL_PASSWORD=${{secrets.MYSQL_PASSWORD}}" >> .env
+          echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
+          echo "OIDC_CLIENT_SECRET_DEV=${{secrets.OIDC_CLIENT_SECRET_DEV}}" >> .env
+          echo "URL=${{secrets.URL_DEV}}" >> .env
+          # echo "SLACK_TOKEN=${{secrets.SLACK_TOKEN}}" >> .env
+          # echo "SLACK_CHANNEL=${{secrets.SLACK_CHANNEL}}" >> .env
 
-            -   name: Create .env file
-                run: |
-                    echo "PROFILE=dev" > .env
-                    echo "MYSQL_ROOT_PASSWORD=${{secrets.MYSQL_ROOT_PASSWORD}}" >> .env
-                    echo "MYSQL_USER=${{secrets.MYSQL_USER}}" >> .env
-                    echo "MYSQL_PASSWORD=${{secrets.MYSQL_PASSWORD}}" >> .env
-                    echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
-                    echo "OIDC_CLIENT_SECRET_DEV=${{secrets.OIDC_CLIENT_SECRET_DEV}}" >> .env
-                    echo "URL=${{secrets.URL_DEV}}" >> .env
-                    # echo "SLACK_TOKEN=${{secrets.SLACK_TOKEN}}" >> .env
-                    # echo "SLACK_CHANNEL=${{secrets.SLACK_CHANNEL}}" >> .env
+      - name: SCP Command to Transfer Files
+        uses: Wandalen/wretry.action@master
+        with:
+          action: appleboy/scp-action@v0.1.7
+          attempt_limit: 3
+          attempt_delay: 2000
+          with: |
+            host: ${{secrets.SSH_HOST_DEV}}
+            username: ${{secrets.SSH_USER}}
+            key: ${{secrets.SSH_KEY}}
+            source: 'docker-compose-backend.yml, .env'
+            target: '~/app'
+            overwrite: true
 
-            -   name: SCP Command to Transfer Files
-                uses: Wandalen/wretry.action@master
-                with:
-                    action: appleboy/scp-action@v0.1.7
-                    attempt_limit: 3
-                    attempt_delay: 2000
-                    with: |
-                        host: ${{secrets.SSH_HOST_DEV}}
-                        username: ${{secrets.SSH_USER}}
-                        key: ${{secrets.SSH_KEY}}
-                        source: "docker-compose-backend.yml, .env"
-                        target: "~/app"
-                        overwrite: true
-
-            -   name: SSH Remote Commands
-                uses: Wandalen/wretry.action@master
-                with:
-                    action: appleboy/ssh-action@v1.0.0
-                    attempt_limit: 3
-                    attempt_delay: 2000
-                    with: |
-                        host: ${{secrets.SSH_HOST_DEV}}
-                        username: ${{secrets.SSH_USER}}
-                        key: ${{secrets.SSH_KEY}}
-                        script: |
-                            cd ~/app
-                            source .env
-                            docker-compose -f docker-compose-backend.yml down
-                            docker-compose -f docker-compose-backend.yml pull
-                            docker-compose -f docker-compose-backend.yml up -d
+      - name: SSH Remote Commands
+        uses: Wandalen/wretry.action@master
+        with:
+          action: appleboy/ssh-action@v1.0.0
+          attempt_limit: 3
+          attempt_delay: 2000
+          with: |
+            host: ${{secrets.SSH_HOST_DEV}}
+            username: ${{secrets.SSH_USER}}
+            key: ${{secrets.SSH_KEY}}
+            script: |
+              cd ~/app
+              source .env
+              docker-compose -f docker-compose-backend.yml down
+              docker-compose -f docker-compose-backend.yml pull
+              docker-compose -f docker-compose-backend.yml up -d
