@@ -63,8 +63,9 @@ class AcademicsController(
         @RequestParam(required = false, defaultValue = "ko") language: String,
         @PathVariable studentType: String,
         @PathVariable postType: String,
-        @RequestBody request: CreateYearReq
-    ) = academicsService.createAcademicsYearResponse(language, studentType, postType, request)
+        @RequestPart request: CreateYearReq,
+        @RequestPart attachments: List<MultipartFile>?
+    ) = academicsService.createAcademicsYearResponse(language, studentType, postType, request, attachments)
 
     @AuthenticatedStaff
     @PutMapping("/{studentType}/{postType}/{year}")
@@ -73,8 +74,9 @@ class AcademicsController(
         @PathVariable studentType: String,
         @PathVariable postType: String,
         @PathVariable year: Int,
-        @RequestBody request: UpdateYearReq
-    ) = academicsService.updateAcademicsYearResponse(language, studentType, postType, year, request)
+        @RequestBody request: UpdateYearReq,
+        @RequestPart newAttachments: List<MultipartFile>?
+    ) = academicsService.updateAcademicsYearResponse(language, studentType, postType, year, request, newAttachments)
 
     @AuthenticatedStaff
     @DeleteMapping("/{studentType}/{postType}/{year}")
