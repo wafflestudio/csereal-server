@@ -74,7 +74,7 @@ class AcademicsController(
         @PathVariable studentType: String,
         @PathVariable postType: String,
         @PathVariable year: Int,
-        @RequestBody request: UpdateYearReq,
+        @RequestPart request: UpdateYearReq,
         @RequestPart newAttachments: List<MultipartFile>?
     ) = academicsService.updateAcademicsYearResponse(language, studentType, postType, year, request, newAttachments)
 
