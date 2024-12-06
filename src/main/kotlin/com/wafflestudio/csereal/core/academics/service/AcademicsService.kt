@@ -53,11 +53,18 @@ interface AcademicsService {
         studentType: String,
         postType: String,
         year: Int,
-        request: UpdateYearReq
+        request: UpdateYearReq,
+        newAttachments: List<MultipartFile>?
     )
 
     fun deleteAcademicsYearResponse(language: String, studentType: String, postType: String, year: Int)
-    fun createAcademicsYearResponse(language: String, studentType: String, postType: String, request: CreateYearReq)
+    fun createAcademicsYearResponse(
+        language: String,
+        studentType: String,
+        postType: String,
+        request: CreateYearReq,
+        attachments: List<MultipartFile>?
+    )
 }
 
 // TODO: add Update, Delete method
@@ -123,7 +130,8 @@ class AcademicsServiceImpl(
         studentType: String,
         postType: String,
         year: Int,
-        request: UpdateYearReq
+        request: UpdateYearReq,
+        newAttachments: List<MultipartFile>?
     ) {
         val languageType = LanguageType.makeStringToLanguageType(language)
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
@@ -140,6 +148,12 @@ class AcademicsServiceImpl(
         academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
             academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
         }
+
+        attachmentService.deleteAttachments(request.deleteIds)
+
+        if (newAttachments != null) {
+            attachmentService.uploadAllAttachments(academicsEntity, newAttachments)
+        }
     }
 
     @Transactional
@@ -155,6 +169,7 @@ class AcademicsServiceImpl(
             year
         ) ?: throw CserealException.Csereal404("AcademicsEntity Not Found")
 
+        attachmentService.deleteAttachments(academicsEntity.attachments.map { it.id })
         academicsRepository.delete(academicsEntity)
     }
 
@@ -163,7 +178,8 @@ class AcademicsServiceImpl(
         language: String,
         studentType: String,
         postType: String,
-        request: CreateYearReq
+        request: CreateYearReq,
+        attachments: List<MultipartFile>?
     ) {
         val languageType = LanguageType.makeStringToLanguageType(language)
         val enumStudentType = makeStringToAcademicsStudentType(studentType)
@@ -183,6 +199,10 @@ class AcademicsServiceImpl(
 
         newAcademics.apply {
             academicsSearch = AcademicsSearchEntity.create(this)
+        }
+
+        if (attachments != null) {
+            attachmentService.uploadAllAttachments(newAcademics, attachments)
         }
 
         academicsRepository.save(newAcademics)
