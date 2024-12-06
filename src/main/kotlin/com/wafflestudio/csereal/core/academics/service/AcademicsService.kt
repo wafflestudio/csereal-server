@@ -21,7 +21,6 @@ interface AcademicsService {
         postType: String
     ): List<AcademicsYearResponse>
 
-    fun readGeneralStudiesRequirements(language: String): GeneralStudiesRequirementsPageResponse
     fun readDegreeRequirements(language: String): DegreeRequirementsPageResponse
     fun updateDegreeRequirements(language: String, request: UpdateSingleReq, newAttachments: List<MultipartFile>?)
     fun createCourse(request: GroupedCourseDto)
@@ -212,25 +211,6 @@ class AcademicsServiceImpl(
         }
 
         return academicsYearResponses
-    }
-
-    @Transactional(readOnly = true)
-    override fun readGeneralStudiesRequirements(language: String): GeneralStudiesRequirementsPageResponse {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
-        val overview =
-            academicsRepository.findByLanguageAndStudentTypeAndPostTypeAndYear(
-                enumLanguageType,
-                AcademicsStudentType.UNDERGRADUATE,
-                AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS,
-                null
-            ) ?: throw CserealException.Csereal404("General Studies Requirements Not Found")
-        val generalStudiesEntity =
-            academicsRepository.findAllByLanguageAndStudentTypeAndPostTypeOrderByYearDesc(
-                enumLanguageType,
-                AcademicsStudentType.UNDERGRADUATE,
-                AcademicsPostType.GENERAL_STUDIES_REQUIREMENTS
-            ).filter { academicsEntity -> academicsEntity.year != null }
-        return GeneralStudiesRequirementsPageResponse.of(overview, generalStudiesEntity)
     }
 
     @Transactional(readOnly = true)

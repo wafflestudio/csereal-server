@@ -39,13 +39,6 @@ class AcademicsController(
         @RequestPart newAttachments: List<MultipartFile>?
     ) = academicsService.updateGuide(language, studentType, request, newAttachments)
 
-    @GetMapping("/undergraduate/general-studies-requirements")
-    fun readGeneralStudiesRequirements(
-        @RequestParam(required = false, defaultValue = "ko") language: String
-    ): ResponseEntity<GeneralStudiesRequirementsPageResponse> {
-        return ResponseEntity.ok(academicsService.readGeneralStudiesRequirements(language))
-    }
-
     @GetMapping("/{studentType}/{postType}")
     fun readAcademicsYearResponses(
         @RequestParam(required = false, defaultValue = "ko") language: String,
