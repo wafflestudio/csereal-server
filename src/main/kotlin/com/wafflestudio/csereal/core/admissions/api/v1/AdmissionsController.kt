@@ -1,20 +1,18 @@
-package com.wafflestudio.csereal.core.admissions.api
+package com.wafflestudio.csereal.core.admissions.api.v1
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.admissions.api.req.AdmissionReqBody
 import com.wafflestudio.csereal.core.admissions.dto.AdmissionsDto
-import com.wafflestudio.csereal.core.admissions.api.req.AdmissionMigrateElem
 import com.wafflestudio.csereal.core.admissions.service.AdmissionsService
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsMainType
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsPostType
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
-import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/api/v1/admissions")
-@RestController
+@RestController("AdmissionsControllerV1")
 class AdmissionsController(
     private val admissionsService: AdmissionsService
 ) {
@@ -31,6 +29,7 @@ class AdmissionsController(
         return admissionsService.createAdmission(req, mainType, postType)
     }
 
+    @Deprecated("USE V2 API")
     @GetMapping("/{mainTypeStr}/{postTypeStr}")
     fun readAdmission(
         @PathVariable(required = true) mainTypeStr: String,
@@ -70,10 +69,4 @@ class AdmissionsController(
         pageNum,
         amount
     )
-
-    @Profile("!prod")
-    @PostMapping("/migrate")
-    fun migrateAdmissions(
-        @RequestBody reqList: List<@Valid AdmissionMigrateElem>
-    ): List<AdmissionsDto> = admissionsService.migrateAdmissions(reqList)
 }
