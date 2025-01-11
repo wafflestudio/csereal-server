@@ -33,7 +33,7 @@ class AdmissionsEntity(
     val postType: AdmissionsPostType,
 
     @Column(columnDefinition = "mediumText")
-    val description: String,
+    var description: String,
 
     @Column(nullable = false, columnDefinition = "mediumText")
     var searchContent: String
