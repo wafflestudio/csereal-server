@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.reservation.api
+package com.wafflestudio.csereal.core.reservation.api.v2
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.aop.AuthenticatedForReservation
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDateTime
 import java.util.UUID
 
-@RequestMapping("/api/v1/reservation")
+@RequestMapping("/api/v2/reservation")
 @RestController
 class ReservationController(
     private val reservationService: ReservationService,
