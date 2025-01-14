@@ -1,20 +1,17 @@
-package com.wafflestudio.csereal.core.conference.api
+package com.wafflestudio.csereal.core.conference.api.v2
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
-import com.wafflestudio.csereal.core.conference.dto.ConferenceDto
 import com.wafflestudio.csereal.core.conference.dto.ConferenceModifyRequest
 import com.wafflestudio.csereal.core.conference.dto.ConferencePage
 import com.wafflestudio.csereal.core.conference.service.ConferenceService
-import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
-@RequestMapping("/api/v1/conference")
+@RequestMapping("/api/v2/conference")
 @RestController
 class ConferenceController(
     private val conferenceService: ConferenceService
 ) {
-
     @GetMapping("/page")
     fun getConferencePage(): ResponseEntity<ConferencePage> {
         return ResponseEntity.ok(conferenceService.getConferencePage())
@@ -26,13 +23,5 @@ class ConferenceController(
         @RequestBody conferenceModifyRequest: ConferenceModifyRequest
     ): ResponseEntity<ConferencePage> {
         return ResponseEntity.ok(conferenceService.modifyConferences(conferenceModifyRequest))
-    }
-
-    @Profile("!prod")
-    @PostMapping("/migrate")
-    fun migrateConferences(
-        @RequestBody requestList: List<ConferenceDto>
-    ): ResponseEntity<List<ConferenceDto>> {
-        return ResponseEntity.ok(conferenceService.migrateConferences(requestList))
     }
 }
