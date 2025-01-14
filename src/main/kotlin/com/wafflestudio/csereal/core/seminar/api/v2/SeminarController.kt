@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.seminar.api
+package com.wafflestudio.csereal.core.seminar.api.v2
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
@@ -15,7 +15,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
-@RequestMapping("/api/v1/seminar")
+@RequestMapping("/api/v2/seminar")
 @RestController
 class SeminarController(
     private val seminarService: SeminarService,

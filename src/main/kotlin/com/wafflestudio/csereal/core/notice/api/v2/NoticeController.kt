@@ -1,12 +1,10 @@
-package com.wafflestudio.csereal.core.news.api
+package com.wafflestudio.csereal.core.notice.api.v2
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.utils.getUsername
-import com.wafflestudio.csereal.core.news.dto.NewsDto
-import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
-import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchDto
-import com.wafflestudio.csereal.core.news.service.NewsService
+import com.wafflestudio.csereal.core.notice.dto.*
+import com.wafflestudio.csereal.core.notice.service.NoticeService
 import com.wafflestudio.csereal.core.user.database.Role
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import jakarta.validation.Valid
@@ -20,21 +18,21 @@ import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
-@RequestMapping("/api/v1/news")
+@RequestMapping("/api/v2/notice")
 @RestController
-class NewsController(
-    private val newsService: NewsService,
+class NoticeController(
+    private val noticeService: NoticeService,
     private val userRepository: UserRepository
 ) {
     @GetMapping
-    fun searchNews(
+    fun searchNotice(
         @RequestParam(required = false) tag: List<String>?,
         @RequestParam(required = false) keyword: String?,
-        @RequestParam(required = false) pageNum: Int?,
-        @RequestParam(required = false, defaultValue = "10") pageSize: Int,
+        @RequestParam(required = false) @Positive pageNum: Int?,
+        @RequestParam(required = false, defaultValue = "20") @Positive pageSize: Int,
         @RequestParam(required = false, defaultValue = "DATE") sortBy: String,
         authentication: Authentication?
-    ): ResponseEntity<NewsSearchResponse> {
+    ): ResponseEntity<NoticeSearchResponse> {
         val username = getUsername(authentication)
         val isStaff = username?.let {
             val user = userRepository.findByUsername(it)
@@ -47,72 +45,86 @@ class NewsController(
 
         val sortType = ContentSearchSortType.fromJsonValue(sortBy)
 
-        return ResponseEntity.ok(newsService.searchNews(tag, keyword, pageRequest, usePageBtn, sortType, isStaff))
+        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, sortType, isStaff))
     }
 
     @GetMapping("/totalSearch")
-    fun searchTotalNews(
+    fun totalSearchNotice(
         @RequestParam(required = true)
-        @Length(min = 1)
+        @Length(min = 2)
         @NotBlank
         keyword: String,
         @RequestParam(required = true) @Positive number: Int,
         @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int,
         authentication: Authentication?
-    ): NewsTotalSearchDto {
+    ): NoticeTotalSearchResponse {
         val username = getUsername(authentication)
         val isStaff = username?.let {
             val user = userRepository.findByUsername(it)
             user?.role == Role.ROLE_STAFF
         } ?: false
 
-        return newsService.searchTotalNews(keyword, number, stringLength, isStaff)
+        return noticeService.searchTotalNotice(keyword, number, stringLength, isStaff)
     }
 
-    @GetMapping("/{newsId}")
-    fun readNews(
-        @PathVariable newsId: Long,
+    @GetMapping("/{noticeId}")
+    fun readNotice(
+        @PathVariable noticeId: Long,
         authentication: Authentication?
-    ): ResponseEntity<NewsDto> {
+    ): ResponseEntity<NoticeDto> {
         val username = getUsername(authentication)
         val isStaff = username?.let {
             val user = userRepository.findByUsername(it)
             user?.role == Role.ROLE_STAFF
         } ?: false
-        return ResponseEntity.ok(newsService.readNews(newsId, isStaff))
+        return ResponseEntity.ok(noticeService.readNotice(noticeId, isStaff))
     }
 
     @AuthenticatedStaff
     @PostMapping
-    fun createNews(
+    fun createNotice(
         @Valid
         @RequestPart("request")
-        request: NewsDto,
-        @RequestPart("mainImage") mainImage: MultipartFile?,
+        request: NoticeDto,
         @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<NewsDto> {
-        return ResponseEntity.ok(newsService.createNews(request, mainImage, attachments))
+    ): ResponseEntity<NoticeDto> {
+        return ResponseEntity.ok(noticeService.createNotice(request, attachments))
     }
 
     @AuthenticatedStaff
-    @PatchMapping("/{newsId}")
-    fun updateNews(
-        @PathVariable newsId: Long,
+    @PatchMapping("/{noticeId}")
+    fun updateNotice(
+        @PathVariable noticeId: Long,
         @Valid
         @RequestPart("request")
-        request: NewsDto,
-        @RequestPart("newMainImage") newMainImage: MultipartFile?,
+        request: NoticeDto,
         @RequestPart("newAttachments") newAttachments: List<MultipartFile>?
-    ): ResponseEntity<NewsDto> {
-        return ResponseEntity.ok(newsService.updateNews(newsId, request, newMainImage, newAttachments))
+    ): ResponseEntity<NoticeDto> {
+        return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, newAttachments))
     }
 
     @AuthenticatedStaff
-    @DeleteMapping("/{newsId}")
-    fun deleteNews(
-        @PathVariable newsId: Long
+    @DeleteMapping("/{noticeId}")
+    fun deleteNotice(
+        @PathVariable noticeId: Long
     ) {
-        newsService.deleteNews(newsId)
+        noticeService.deleteNotice(noticeId)
+    }
+
+    @AuthenticatedStaff
+    @PatchMapping
+    fun unpinManyNotices(
+        @RequestBody request: NoticeIdListRequest
+    ) {
+        noticeService.unpinManyNotices(request.idList)
+    }
+
+    @AuthenticatedStaff
+    @DeleteMapping
+    fun deleteManyNotices(
+        @RequestBody request: NoticeIdListRequest
+    ) {
+        noticeService.deleteManyNotices(request.idList)
     }
 
     @AuthenticatedStaff
@@ -120,12 +132,12 @@ class NewsController(
     fun enrollTag(
         @RequestBody tagName: Map<String, String>
     ): ResponseEntity<String> {
-        newsService.enrollTag(tagName["name"]!!)
+        noticeService.enrollTag(tagName["name"]!!)
         return ResponseEntity<String>("등록되었습니다. (tagName: ${tagName["name"]})", HttpStatus.OK)
     }
 
     @GetMapping("/ids")
     fun getAllIds(): ResponseEntity<List<Long>> {
-        return ResponseEntity.ok(newsService.getAllIds())
+        return ResponseEntity.ok(noticeService.getAllIds())
     }
 }
