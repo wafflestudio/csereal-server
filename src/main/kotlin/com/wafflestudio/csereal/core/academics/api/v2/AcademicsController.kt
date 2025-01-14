@@ -16,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile
 @RestController
 class AcademicsController(
     private val academicsService: AcademicsService,
-    private val academicsSearchService: AcademicsSearchService,
+    private val academicsSearchService: AcademicsSearchService
 ) {
     @AuthenticatedStaff
     @PostMapping("/courses")
