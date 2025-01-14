@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.member.api.v1
+package com.wafflestudio.csereal.core.member.api.v2
 
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.service.MemberSearchService
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 import kotlin.let
 
 @RestController
-@RequestMapping("/api/v1/member/search")
+@RequestMapping("/api/v2/member/search")
 class MemberSearchController(
     private val memberSearchService: MemberSearchService
 ) {
