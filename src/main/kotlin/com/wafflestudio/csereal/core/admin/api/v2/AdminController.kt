@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.admin.api
+package com.wafflestudio.csereal.core.admin.api.v2
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.admin.dto.*
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
-@RequestMapping("/api/v1/admin")
+@RequestMapping("/api/v2/admin")
 @RestController
 class AdminController(
     private val adminService: AdminService
