@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.internal.api
+package com.wafflestudio.csereal.core.internal.api.v2
 
 import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.internal.dto.InternalDto
@@ -7,7 +7,7 @@ import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/v1/internal")
+@RequestMapping("/api/v2/internal")
 class InternalController(
     private val internalService: InternalService
 ) {
