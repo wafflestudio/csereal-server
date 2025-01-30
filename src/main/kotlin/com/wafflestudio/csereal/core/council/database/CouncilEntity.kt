@@ -24,7 +24,7 @@ class CouncilEntity(
     val dataType: CouncilDataType,
 
     @OneToMany(mappedBy = "council")
-    val attachments: MutableSet<AttachmentEntity> = mutableSetOf(),
+    val attachments: MutableSet<AttachmentEntity> = mutableSetOf()
 ) : BaseTimeEntity(), AttachmentContentEntityType {
     override fun bringAttachments(): List<AttachmentEntity> {
         return attachments.toList()

@@ -80,5 +80,5 @@ interface CouncilSubType {
 enum class CouncilDataType {
     ATTACHMENT,
     CONTENT,
-    ATTACHMENT_CONTENT,
+    ATTACHMENT_CONTENT
 }

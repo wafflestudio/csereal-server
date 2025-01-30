@@ -1,7 +1,6 @@
 package com.wafflestudio.csereal.core.council.dto
 
 import com.wafflestudio.csereal.core.council.type.CouncilType.CouncilDataType
-import com.wafflestudio.csereal.core.council.type.CouncilType.CouncilSubType
 import com.wafflestudio.csereal.core.council.type.CouncilType.CouncilType
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
@@ -28,7 +27,7 @@ sealed class CouncilDto(
 }
 
 sealed class CouncilCreateDto(
-    open val type: CouncilType,
+    open val type: CouncilType
 ) {
     data class CouncilAttachmentCreateDto(
         override val type: CouncilType,
