@@ -36,7 +36,7 @@ interface AdmissionsService {
         postType: AdmissionsPostType
     ): GroupedAdmission
 
-    fun updateAdmission(
+    fun updateGroupedAdmission(
         mainType: AdmissionsMainType,
         postType: AdmissionsPostType,
         updateAdmissionReq: UpdateAdmissionReq
@@ -101,7 +101,7 @@ class AdmissionsServiceImpl(
     }
 
     @Transactional
-    override fun updateAdmission(
+    override fun updateGroupedAdmission(
         mainType: AdmissionsMainType,
         postType: AdmissionsPostType,
         updateAdmissionReq: UpdateAdmissionReq

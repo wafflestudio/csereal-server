@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.main.api
+package com.wafflestudio.csereal.core.main.api.v2
 
 import com.wafflestudio.csereal.core.main.dto.MainResponse
 import com.wafflestudio.csereal.core.main.service.MainService
@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v2")
 @RestController
 class MainController(
     private val mainService: MainService
