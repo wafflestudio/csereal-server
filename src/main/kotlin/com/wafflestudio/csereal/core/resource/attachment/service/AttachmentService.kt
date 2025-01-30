@@ -115,6 +115,7 @@ class AttachmentServiceImpl(
         return attachmentsList
     }
 
+    // TODO: move method out from service to entity
     @Transactional
     override fun createOneAttachmentResponse(attachment: AttachmentEntity?): AttachmentResponse? {
         var attachmentDto: AttachmentResponse? = null
@@ -132,6 +133,7 @@ class AttachmentServiceImpl(
         return attachmentDto
     }
 
+    // TODO: move method out from service to entity
     @Transactional
     override fun createAttachmentResponses(attachments: List<AttachmentEntity>?): List<AttachmentResponse> {
         val list = mutableListOf<AttachmentResponse>()
