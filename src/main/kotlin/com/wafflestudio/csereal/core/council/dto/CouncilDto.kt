@@ -5,6 +5,6 @@ import java.time.LocalDateTime
 data class CouncilDto(
     val id: Long,
     val createdAt: LocalDateTime?,
-    val modifiedAt: LocalDateTime?,
+    val modifiedAt: LocalDateTime?
     // ...
 )

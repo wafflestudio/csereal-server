@@ -4,7 +4,7 @@ import com.wafflestudio.csereal.core.council.database.CouncilRepository
 import org.springframework.stereotype.Service
 
 @Service
-class CouncilService (
+class CouncilService(
     private val councilRepository: CouncilRepository
 ) {
     // ...

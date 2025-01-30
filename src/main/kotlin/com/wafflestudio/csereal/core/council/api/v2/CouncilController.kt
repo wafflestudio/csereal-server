@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/v2/council")
-class CouncilController (
+class CouncilController(
     private val councilService: CouncilService
 ) {
     // ...

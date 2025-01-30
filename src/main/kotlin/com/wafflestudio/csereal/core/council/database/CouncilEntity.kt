@@ -4,7 +4,8 @@ import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import jakarta.persistence.Entity
 
 @Entity(name = "council")
-class CouncilEntity (
+class CouncilEntity(
     // ...
-): BaseTimeEntity() {
+) : BaseTimeEntity() {
+    // ...
 }
