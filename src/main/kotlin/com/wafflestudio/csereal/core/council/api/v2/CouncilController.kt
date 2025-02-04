@@ -20,7 +20,7 @@ class CouncilController(
     fun createReport(
         @RequestPart
         request: ReportCreateRequest,
-        @RequestPart mainImage: MultipartFile?,
+        @RequestPart mainImage: MultipartFile?
     ) = councilService.createReport(request, mainImage)
 
     @GetMapping("/report/{id}")

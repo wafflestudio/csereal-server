@@ -12,7 +12,7 @@ data class ReportDto(
     val prevId: Long?,
     val prevTitle: String?,
     val nextId: Long?,
-    val nextTitle: String?,
+    val nextTitle: String?
 ) {
     companion object {
         fun of(entity: CouncilEntity, prev: CouncilEntity?, next: CouncilEntity?): ReportDto = ReportDto(
