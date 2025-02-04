@@ -34,6 +34,10 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
 
+    // flyway
+    implementation("org.flywaydb:flyway-core:10.20.1")
+    implementation("org.flywaydb:flyway-mysql:10.20.1")
+
     // kotest
     testImplementation("io.kotest:kotest-runner-junit5-jvm:5.8.1")
     testImplementation("io.kotest:kotest-assertions-core-jvm:5.8.1")
