@@ -16,7 +16,7 @@ class CouncilController(
     private val councilService: CouncilService
 ) {
     // TODO: api 제한
-    @PostMapping("/report")
+    @PostMapping("/report", consumes = ["multipart/form-data"])
     fun createReport(
         @RequestPart
         request: ReportCreateRequest,
@@ -35,7 +35,7 @@ class CouncilController(
         return councilService.readAllReports(pageRequest)
     }
 
-    @PutMapping("/report/{id}")
+    @PutMapping("/report/{id}", consumes = ["multipart/form-data"])
     fun updateReport(
         @PathVariable id: Long,
         @RequestPart request: ReportUpdateRequest,
