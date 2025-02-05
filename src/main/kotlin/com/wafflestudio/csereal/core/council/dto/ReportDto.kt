@@ -8,7 +8,7 @@ data class ReportDto(
     val title: String,
     val description: String,
     val author: String,
-    val createdAt: LocalDateTime?,
+    val createdAt: LocalDateTime,
     val prevId: Long?,
     val prevTitle: String?,
     val nextId: Long?,
@@ -20,7 +20,7 @@ data class ReportDto(
             title = entity.title,
             description = entity.description,
             author = entity.author.name,
-            createdAt = entity.createdAt,
+            createdAt = entity.createdAt!!,
             prevId = prev?.id,
             prevTitle = prev?.title,
             nextId = next?.id,
@@ -33,7 +33,7 @@ data class SimpleReportDto(
     val id: Long,
     val title: String,
     val author: String,
-    val createdAt: LocalDateTime?,
+    val createdAt: LocalDateTime,
     val imageURL: String?
 ) {
     companion object {
@@ -41,7 +41,7 @@ data class SimpleReportDto(
             id = councilEntity.id,
             title = councilEntity.title,
             author = councilEntity.author.name,
-            createdAt = councilEntity.createdAt,
+            createdAt = councilEntity.createdAt!!,
             imageURL = imageURL
         )
     }
