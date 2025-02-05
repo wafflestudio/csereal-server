@@ -31,5 +31,4 @@ interface CouncilRepository : JpaRepository<CouncilEntity, Long> {
 """
     )
     fun findNextReport(@Param("timestamp") timestamp: LocalDateTime): CouncilEntity?
-
 }
