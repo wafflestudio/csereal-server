@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.council.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.council.database.CouncilEntity
 import com.wafflestudio.csereal.core.council.database.CouncilRepository
+import com.wafflestudio.csereal.core.council.database.CouncilType
 import com.wafflestudio.csereal.core.council.dto.*
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.core.user.database.UserEntity
@@ -47,7 +48,7 @@ class CouncilService(
 
     @Transactional(readOnly = true)
     fun readAllReports(pageRequest: PageRequest): ReportListDto {
-        val reports = councilRepository.findAllByTitleNot("intro", pageRequest)
+        val reports = councilRepository.findAllByType(CouncilType.REPORT, pageRequest)
         val reportList = reports.content.map {
             val imageURL = mainImageService.createImageURL(it.mainImage)
             SimpleReportDto.of(it, imageURL)

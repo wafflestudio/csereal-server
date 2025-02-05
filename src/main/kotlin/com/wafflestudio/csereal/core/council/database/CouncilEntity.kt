@@ -9,6 +9,8 @@ import jakarta.persistence.*
 
 @Entity(name = "council")
 class CouncilEntity(
+    @Enumerated(EnumType.STRING)
+    val type: CouncilType,
 
     var title: String,
 
@@ -28,9 +30,14 @@ class CouncilEntity(
     companion object {
         fun createReport(req: ReportCreateRequest, author: UserEntity): CouncilEntity =
             CouncilEntity(
+                type = CouncilType.REPORT,
                 title = req.title,
                 description = req.description,
                 author = author
             )
     }
+}
+
+enum class CouncilType {
+    INTRO, REPORT
 }

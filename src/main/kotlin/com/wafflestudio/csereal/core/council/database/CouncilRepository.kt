@@ -8,31 +8,28 @@ import org.springframework.data.repository.query.Param
 import java.time.LocalDateTime
 
 interface CouncilRepository : JpaRepository<CouncilEntity, Long> {
-    fun findAllByTitleNot(excludedTitle: String, pageable: Pageable): Page<CouncilEntity>
+    fun findAllByType(type: CouncilType, pageable: Pageable): Page<CouncilEntity>
 
     @Query(
         """
     SELECT c 
     FROM council c
     WHERE c.createdAt < :timestamp 
-      AND c.title <> 'intro'
+      AND c.type = 'REPORT'
     ORDER BY c.createdAt DESC
 """
     )
-    fun findPreviousReport(
-        @Param("timestamp") timestamp: LocalDateTime
-    ): CouncilEntity?
+    fun findPreviousReport(@Param("timestamp") timestamp: LocalDateTime): CouncilEntity?
 
     @Query(
         """
     SELECT c 
     FROM council c
     WHERE c.createdAt > :timestamp 
-      AND c.title <> 'intro'
+      AND c.type = 'REPORT'
     ORDER BY c.createdAt ASC
 """
     )
-    fun findNextReport(
-        @Param("timestamp") timestamp: LocalDateTime
-    ): CouncilEntity?
+    fun findNextReport(@Param("timestamp") timestamp: LocalDateTime): CouncilEntity?
+
 }
