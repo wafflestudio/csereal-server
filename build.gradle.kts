@@ -8,6 +8,7 @@ plugins {
     kotlin("plugin.jpa") version "1.9.22"
     kotlin("kapt") version "1.9.22"
     id("org.jlleitschuh.gradle.ktlint") version "11.6.0"
+    id("org.flywaydb.flyway") version "10.20.1"
 }
 
 group = "com.wafflestudio"
@@ -70,6 +71,15 @@ dependencies {
     // Custom Metadata
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 }
+
+buildscript {
+    dependencies {
+        classpath("org.flywaydb:flyway-mysql:10.20.1")
+        classpath("com.mysql:mysql-connector-j:8.3.0")
+    }
+}
+
+
 noArg {
     annotation("jakarta.persistence.Entity")
     annotation("jakarta.persistence.MappedSuperclass")
@@ -96,4 +106,11 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
     useJUnitPlatform()
     systemProperty("spring.profiles.active", "test")
+}
+
+flyway {
+    url = "jdbc:mysql://127.0.0.1:3306/csereal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul"
+    user = "root"
+    password = "password"
+    locations = arrayOf("classpath:db/migration")
 }
