@@ -1,18 +1,31 @@
 spring:
+    profiles:
+        active: local
+
     threads:
         virtual:
             enabled: false
-    profiles:
-        active: local
+
     datasource:
         driver-class-name: com.mysql.cj.jdbc.Driver
         hikari:
             maximum-pool-size: 65
     jpa:
         show-sql: true
+        hibernate:
+            ddl-auto: validate
         properties:
             hibernate:
                 dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
+    flyway:
+        enabled: true
+        locations: classpath:db/migration
+        validate-on-migrate: true
+        baseline-on-migrate: true
+        baseline-version: 1
+        fail-on-missing-locations: true
+        clean-on-validation-error: false
+
     servlet:
         multipart:
             enabled: true
@@ -72,8 +85,6 @@ spring:
         username: root
         password: password
     jpa:
-        hibernate:
-            ddl-auto: update
         open-in-view: false
     security:
         oauth2:
@@ -98,8 +109,6 @@ customlog:
 spring:
     config.activate.on-profile: prod
     jpa:
-        hibernate:
-            ddl-auto: validate
         open-in-view: false
     security:
         oauth2:
@@ -141,8 +150,6 @@ customlog:
 spring:
     config.activate.on-profile: dev
     jpa:
-        hibernate:
-            ddl-auto: update
         open-in-view: false
     security:
         oauth2:
@@ -195,6 +202,8 @@ spring:
     h2:
         console:
             enabled: true
+    flyway:
+        enabled: false
 customlog:
     file:
         base: "./logs"
