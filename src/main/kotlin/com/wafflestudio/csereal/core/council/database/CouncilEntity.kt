@@ -20,20 +20,19 @@ class CouncilEntity(
     @OneToOne
     var mainImage: MainImageEntity? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id")
-    val author: UserEntity
-
+    var sequence: Int,
+    var name: String
 ) : BaseTimeEntity(), MainImageContentEntityType {
     override fun bringMainImage() = mainImage
 
     companion object {
-        fun createReport(req: ReportCreateRequest, author: UserEntity): CouncilEntity =
+        fun createReport(req: ReportCreateRequest): CouncilEntity =
             CouncilEntity(
                 type = CouncilType.REPORT,
                 title = req.title,
                 description = req.description,
-                author = author
+                sequence = req.sequence,
+                name = req.name
             )
     }
 }

@@ -8,7 +8,8 @@ data class ReportDto(
     val id: Long,
     val title: String,
     val description: String,
-    val author: String,
+    val sequence: Int,
+    val name: String,
     val createdAt: LocalDateTime,
     val prevId: Long?,
     val prevTitle: String?,
@@ -24,7 +25,8 @@ data class ReportDto(
                 id = entity.id,
                 title = entity.title,
                 description = entity.description,
-                author = entity.author.name,
+                sequence = entity.sequence,
+                name = entity.name,
                 createdAt = entity.createdAt!!,
                 prevId = prev?.id,
                 prevTitle = prev?.title,
@@ -38,7 +40,8 @@ data class ReportDto(
 data class SimpleReportDto(
     val id: Long,
     val title: String,
-    val author: String,
+    val sequence: Int,
+    val name: String,
     val createdAt: LocalDateTime,
     val imageURL: String?
 ) {
@@ -46,7 +49,8 @@ data class SimpleReportDto(
         fun of(councilEntity: CouncilEntity, imageURL: String?): SimpleReportDto = SimpleReportDto(
             id = councilEntity.id,
             title = councilEntity.title,
-            author = councilEntity.author.name,
+            sequence = councilEntity.sequence,
+            name = councilEntity.name,
             createdAt = councilEntity.createdAt!!,
             imageURL = imageURL
         )
@@ -60,11 +64,15 @@ data class ReportListDto(
 
 data class ReportCreateRequest(
     val title: String,
-    val description: String
+    val description: String,
+    val sequence: Int,
+    val name: String
 )
 
 data class ReportUpdateRequest(
     val title: String,
     val description: String,
-    val removeImage: Boolean
+    val removeImage: Boolean,
+    val sequence: Int,
+    val name: String
 )

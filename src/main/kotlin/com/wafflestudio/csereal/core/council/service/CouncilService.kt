@@ -20,16 +20,10 @@ import org.springframework.web.multipart.MultipartFile
 @Transactional
 class CouncilService(
     private val councilRepository: CouncilRepository,
-    private val userRepository: UserRepository,
     private val mainImageService: MainImageService
 ) {
     fun createReport(request: ReportCreateRequest, mainImage: MultipartFile?) {
-        val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
-            "loggedInUser",
-            RequestAttributes.SCOPE_REQUEST
-        ) as UserEntity? ?: userRepository.findByUsername("devUser")!!
-
-        val report = CouncilEntity.createReport(request, user)
+        val report = CouncilEntity.createReport(request)
 
         if (mainImage != null) {
             mainImageService.uploadMainImage(report, mainImage)
@@ -64,6 +58,8 @@ class CouncilService(
         report.apply {
             title = request.title
             description = request.description
+            sequence = request.sequence
+            name = request.name
         }
         if (request.removeImage || newMainImage != null) {
             report.mainImage?.let {
