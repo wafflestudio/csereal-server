@@ -281,7 +281,7 @@ gradle-app.setting
 .idea
 
 # local db save files
-db/
+/db
 
 # .env file
 .env
