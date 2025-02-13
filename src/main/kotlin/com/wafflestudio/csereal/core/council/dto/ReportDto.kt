@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.council.dto
 
 import com.wafflestudio.csereal.core.council.database.CouncilEntity
+import com.wafflestudio.csereal.core.council.database.CouncilType
 import java.time.LocalDateTime
 
 data class ReportDto(
@@ -15,17 +16,22 @@ data class ReportDto(
     val nextTitle: String?
 ) {
     companion object {
-        fun of(entity: CouncilEntity, prev: CouncilEntity?, next: CouncilEntity?): ReportDto = ReportDto(
-            id = entity.id,
-            title = entity.title,
-            description = entity.description,
-            author = entity.author.name,
-            createdAt = entity.createdAt!!,
-            prevId = prev?.id,
-            prevTitle = prev?.title,
-            nextId = next?.id,
-            nextTitle = next?.title
-        )
+        fun of(entity: CouncilEntity, prev: CouncilEntity?, next: CouncilEntity?): ReportDto {
+            require(entity.type == CouncilType.REPORT) {
+                "CouncilEntity must be of type REPORT, but was ${entity.type}"
+            }
+            return ReportDto(
+                id = entity.id,
+                title = entity.title,
+                description = entity.description,
+                author = entity.author.name,
+                createdAt = entity.createdAt!!,
+                prevId = prev?.id,
+                prevTitle = prev?.title,
+                nextId = next?.id,
+                nextTitle = next?.title
+            )
+        }
     }
 }
 
