@@ -6,14 +6,10 @@ import com.wafflestudio.csereal.core.council.database.CouncilRepository
 import com.wafflestudio.csereal.core.council.database.CouncilType
 import com.wafflestudio.csereal.core.council.dto.*
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
-import com.wafflestudio.csereal.core.user.database.UserEntity
-import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.context.request.RequestAttributes
-import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.multipart.MultipartFile
 
 @Service

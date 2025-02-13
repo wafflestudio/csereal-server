@@ -4,7 +4,6 @@ import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
 import com.wafflestudio.csereal.core.council.dto.ReportCreateRequest
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
-import com.wafflestudio.csereal.core.user.database.UserEntity
 import jakarta.persistence.*
 
 @Entity(name = "council")
