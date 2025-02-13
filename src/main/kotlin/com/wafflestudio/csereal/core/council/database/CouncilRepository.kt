@@ -15,20 +15,26 @@ interface CouncilRepository : JpaRepository<CouncilEntity, Long> {
     SELECT c 
     FROM council c
     WHERE c.createdAt < :timestamp 
-      AND c.type = 'REPORT'
+      AND c.type = :type
     ORDER BY c.createdAt DESC
 """
     )
-    fun findPreviousReport(@Param("timestamp") timestamp: LocalDateTime): CouncilEntity?
+    fun findPreviousByType(
+        @Param("timestamp") timestamp: LocalDateTime,
+        @Param("type") type: CouncilType
+    ): CouncilEntity?
 
     @Query(
         """
     SELECT c 
     FROM council c
     WHERE c.createdAt > :timestamp 
-      AND c.type = 'REPORT'
+      AND c.type = :type
     ORDER BY c.createdAt ASC
 """
     )
-    fun findNextReport(@Param("timestamp") timestamp: LocalDateTime): CouncilEntity?
+    fun findNextByType(
+        @Param("timestamp") timestamp: LocalDateTime,
+        @Param("type") type: CouncilType
+    ): CouncilEntity?
 }
