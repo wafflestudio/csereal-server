@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
+import com.wafflestudio.csereal.core.council.database.CouncilEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
@@ -125,6 +126,10 @@ class MainImageServiceImpl(
             }
 
             is RecruitEntity -> {
+                contentEntity.mainImage = mainImage
+            }
+
+            is CouncilEntity -> {
                 contentEntity.mainImage = mainImage
             }
 
