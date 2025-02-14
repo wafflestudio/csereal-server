@@ -7,5 +7,5 @@ ALTER TABLE council
     ADD COLUMN name          VARCHAR(255)            NOT NULL;
 
 ALTER TABLE council
-    ADD CONSTRAINT fk_council_main_image_main_image_id
+    ADD CONSTRAINT FK_council_main_image_main_image_id
         FOREIGN KEY (main_image_id) REFERENCES main_image (id);
