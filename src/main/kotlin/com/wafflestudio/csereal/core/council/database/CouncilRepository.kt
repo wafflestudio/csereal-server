@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param
 import java.time.LocalDateTime
 
 interface CouncilRepository : JpaRepository<CouncilEntity, Long> {
+    fun findByType(type: CouncilType): CouncilEntity?
     fun findAllByType(type: CouncilType, pageable: Pageable): Page<CouncilEntity>
 
     @Query(

@@ -71,4 +71,29 @@ class CouncilService(
         report.mainImage?.let { mainImageService.removeImage(it) }
         councilRepository.delete(report)
     }
+
+    @Transactional(readOnly = true)
+    fun readIntro(): CouncilIntroDto {
+        val intro = councilRepository.findByType(CouncilType.INTRO)
+            ?: throw CserealException.Csereal404("Council Intro Not Found")
+        val imageURL = mainImageService.createImageURL(intro.mainImage)
+        return CouncilIntroDto.of(intro, imageURL)
+    }
+
+    fun updateIntro(request: CouncilIntroUpdateRequest, newMainImage: MultipartFile?) {
+        val intro = councilRepository.findByType(CouncilType.INTRO)
+            ?: throw CserealException.Csereal404("Council Intro Not Found")
+        intro.apply {
+            description = request.description
+            sequence = request.sequence
+            name = request.name
+        }
+        if (request.removeImage || newMainImage != null) {
+            intro.mainImage?.let {
+                mainImageService.removeImage(it)
+                intro.mainImage = null
+            }
+        }
+        newMainImage?.let { mainImageService.uploadMainImage(intro, it) }
+    }
 }

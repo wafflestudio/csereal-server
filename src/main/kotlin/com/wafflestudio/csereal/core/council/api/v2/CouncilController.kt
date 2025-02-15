@@ -1,9 +1,6 @@
 package com.wafflestudio.csereal.core.council.api.v2
 
-import com.wafflestudio.csereal.core.council.dto.ReportDto
-import com.wafflestudio.csereal.core.council.dto.ReportCreateRequest
-import com.wafflestudio.csereal.core.council.dto.ReportListDto
-import com.wafflestudio.csereal.core.council.dto.ReportUpdateRequest
+import com.wafflestudio.csereal.core.council.dto.*
 import com.wafflestudio.csereal.core.council.service.CouncilService
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -46,4 +43,13 @@ class CouncilController(
     fun deleteReport(
         @PathVariable id: Long
     ) = councilService.deleteReport(id)
+
+    @GetMapping("/intro")
+    fun readIntro(): CouncilIntroDto = councilService.readIntro()
+
+    @PutMapping("/intro", consumes = ["multipart/form-data"])
+    fun updateIntro(
+        @RequestPart request: CouncilIntroUpdateRequest,
+        @RequestPart newMainImage: MultipartFile?
+    ) = councilService.updateIntro(request, newMainImage)
 }
