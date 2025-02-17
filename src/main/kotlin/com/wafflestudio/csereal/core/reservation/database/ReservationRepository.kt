@@ -25,4 +25,5 @@ interface ReservationRepository : JpaRepository<ReservationEntity, Long> {
     ): List<ReservationEntity>
 
     fun deleteAllByRecurrenceId(recurrenceId: UUID)
+    fun findByRecurrenceId(recurrenceId: UUID): ReservationEntity?
 }

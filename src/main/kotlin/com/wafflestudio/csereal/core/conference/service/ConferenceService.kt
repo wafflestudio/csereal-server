@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.conference.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.common.utils.getCurrentUser
 import com.wafflestudio.csereal.core.conference.database.ConferenceEntity
 import com.wafflestudio.csereal.core.conference.database.ConferencePageEntity
 import com.wafflestudio.csereal.core.conference.database.ConferencePageRepository
@@ -11,13 +12,9 @@ import com.wafflestudio.csereal.core.conference.dto.ConferenceModifyRequest
 import com.wafflestudio.csereal.core.conference.dto.ConferencePage
 import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
 import com.wafflestudio.csereal.core.research.service.ResearchSearchService
-import com.wafflestudio.csereal.core.user.database.UserEntity
-import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.context.request.RequestAttributes
-import org.springframework.web.context.request.RequestContextHolder
 
 interface ConferenceService {
     fun getConferencePage(): ConferencePage
@@ -30,7 +27,6 @@ interface ConferenceService {
 class ConferenceServiceImpl(
     private val conferencePageRepository: ConferencePageRepository,
     private val conferenceRepository: ConferenceRepository,
-    private val userRepository: UserRepository,
     private val researchSearchService: ResearchSearchService
 ) : ConferenceService {
 
@@ -44,10 +40,7 @@ class ConferenceServiceImpl(
     override fun modifyConferences(
         conferenceModifyRequest: ConferenceModifyRequest
     ): ConferencePage {
-        val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
-            "loggedInUser",
-            RequestAttributes.SCOPE_REQUEST
-        ) as UserEntity? ?: userRepository.findByUsername("devUser")!!
+        val user = getCurrentUser()
 
         val conferencePage = conferencePageRepository.findAll()[0]
 
@@ -70,10 +63,7 @@ class ConferenceServiceImpl(
 
     @Transactional
     override fun migrateConferences(requestList: List<ConferenceDto>): List<ConferenceDto> {
-        val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
-            "loggedInUser",
-            RequestAttributes.SCOPE_REQUEST
-        ) as UserEntity
+        val user = getCurrentUser()
 
         val list = mutableListOf<ConferenceDto>()
         val conferencePage = ConferencePageEntity.of(user)

@@ -1,25 +1,22 @@
 package com.wafflestudio.csereal.core.reservation.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.utils.getCurrentUser
+import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.reservation.database.*
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
-import com.wafflestudio.csereal.core.user.database.Role
-import com.wafflestudio.csereal.core.user.database.UserEntity
-import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.context.request.RequestAttributes
-import org.springframework.web.context.request.RequestContextHolder
 import java.time.LocalDateTime
 import java.util.*
 
 interface ReservationService {
     fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto>
     fun getRoomReservationsBetween(roomId: Long, start: LocalDateTime, end: LocalDateTime): List<SimpleReservationDto>
-    fun getReservation(reservationId: Long, isStaff: Boolean): ReservationDto
+    fun getReservation(reservationId: Long): ReservationDto
     fun cancelSpecific(reservationId: Long)
     fun cancelRecurring(recurrenceId: UUID)
 }
@@ -28,8 +25,7 @@ interface ReservationService {
 @Transactional
 class ReservationServiceImpl(
     private val reservationRepository: ReservationRepository,
-    private val roomRepository: RoomRepository,
-    private val userRepository: UserRepository
+    private val roomRepository: RoomRepository
 ) : ReservationService {
 
     override fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto> {
@@ -37,20 +33,13 @@ class ReservationServiceImpl(
             throw CserealException.Csereal400("Policy Not Agreed")
         }
 
-        val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
-            "loggedInUser",
-            RequestAttributes.SCOPE_REQUEST
-        ) as UserEntity? ?: userRepository.findByUsername("devUser")!!
-
-        if (reserveRequest.roomId == 8L && user.role != Role.ROLE_STAFF) {
-            throw CserealException.Csereal403("교수회의실 예약 행정실 문의 바람")
-        }
+        val user = getCurrentUser()
 
         val room =
             roomRepository.findRoomById(reserveRequest.roomId) ?: throw CserealException.Csereal404("Room Not Found")
 
-        if (room.type == RoomType.LECTURE && user.role != Role.ROLE_STAFF) {
-            throw CserealException.Csereal403("교수회의실 예약 행정실 문의 바람")
+        if (!isCurrentUserStaff() && (reserveRequest.roomId == 8L || room.type == RoomType.LECTURE)) {
+            throw CserealException.Csereal403("예약 불가. 행정실 문의 바람")
         }
 
         val reservations = mutableListOf<ReservationEntity>()
@@ -93,11 +82,11 @@ class ReservationServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun getReservation(reservationId: Long, isStaff: Boolean): ReservationDto {
+    override fun getReservation(reservationId: Long): ReservationDto {
         val reservationEntity =
             reservationRepository.findByIdOrNull(reservationId) ?: throw CserealException.Csereal404("예약을 찾을 수 없습니다.")
 
-        return if (isStaff) {
+        return if (isCurrentUserStaff()) {
             ReservationDto.of(reservationEntity)
         } else {
             ReservationDto.forNormalUser(reservationEntity)
@@ -105,10 +94,22 @@ class ReservationServiceImpl(
     }
 
     override fun cancelSpecific(reservationId: Long) {
+        val user = getCurrentUser()
+        val reservation = reservationRepository.findByIdOrNull(reservationId)
+            ?: throw CserealException.Csereal404("reservation not found")
+        if (!isCurrentUserStaff() && user.id != reservation.user.id) {
+            throw CserealException.Csereal403("Cannot cancel other's reservation")
+        }
         reservationRepository.deleteById(reservationId)
     }
 
     override fun cancelRecurring(recurrenceId: UUID) {
+        val user = getCurrentUser()
+        val reservation = reservationRepository.findByRecurrenceId(recurrenceId)
+            ?: throw CserealException.Csereal404("reservation not found")
+        if (!isCurrentUserStaff() && user.id != reservation.user.id) {
+            throw CserealException.Csereal403("Cannot cancel other's reservation")
+        }
         reservationRepository.deleteAllByRecurrenceId(recurrenceId)
     }
 }
