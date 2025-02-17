@@ -1,10 +1,10 @@
 package com.wafflestudio.csereal.core.conference.api.v2
 
-import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.conference.dto.ConferenceModifyRequest
 import com.wafflestudio.csereal.core.conference.dto.ConferencePage
 import com.wafflestudio.csereal.core.conference.service.ConferenceService
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/api/v2/conference")
@@ -17,7 +17,7 @@ class ConferenceController(
         return ResponseEntity.ok(conferenceService.getConferencePage())
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PatchMapping("/page/conferences")
     fun modifyConferencePage(
         @RequestBody conferenceModifyRequest: ConferenceModifyRequest

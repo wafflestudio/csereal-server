@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.member.api.v2
 
-import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.member.api.req.CreateProfessorLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorLanguagesReqBody
 import com.wafflestudio.csereal.core.member.dto.ProfessorLanguagesDto
@@ -10,6 +9,7 @@ import com.wafflestudio.csereal.core.member.service.ProfessorService
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.constraints.Positive
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
@@ -39,7 +39,7 @@ class ProfessorController(
         return ResponseEntity.ok(professorService.getInactiveProfessors(language))
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping(consumes = ["multipart/form-data"])
     fun createProfessor(
         @RequestPart("request") requestBody: CreateProfessorLanguagesReqBody,
@@ -47,7 +47,7 @@ class ProfessorController(
     ): ProfessorLanguagesDto =
         professorService.createProfessorLanguages(requestBody, mainImage)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{koProfessorId}/{enProfessorId}", consumes = ["multipart/form-data"])
     fun updateProfessor(
         @PathVariable @Positive
@@ -62,7 +62,7 @@ class ProfessorController(
     ): ProfessorLanguagesDto =
         professorService.updateProfessorLanguages(koProfessorId, enProfessorId, requestBody, newMainImage)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/{koProfessorId}/{enProfessorId}")
     fun deleteProfessor(
         @PathVariable @Positive

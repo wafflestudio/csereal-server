@@ -1,12 +1,8 @@
 package com.wafflestudio.csereal.core.notice.api.v2
 
-import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
-import com.wafflestudio.csereal.common.utils.getUsername
 import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.notice.service.NoticeService
-import com.wafflestudio.csereal.core.user.database.Role
-import com.wafflestudio.csereal.core.user.database.UserRepository
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
@@ -14,15 +10,14 @@ import org.hibernate.validator.constraints.Length
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.Authentication
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
 @RequestMapping("/api/v2/notice")
 @RestController
 class NoticeController(
-    private val noticeService: NoticeService,
-    private val userRepository: UserRepository
+    private val noticeService: NoticeService
 ) {
     @GetMapping
     fun searchNotice(
@@ -30,22 +25,15 @@ class NoticeController(
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) @Positive pageNum: Int?,
         @RequestParam(required = false, defaultValue = "20") @Positive pageSize: Int,
-        @RequestParam(required = false, defaultValue = "DATE") sortBy: String,
-        authentication: Authentication?
+        @RequestParam(required = false, defaultValue = "DATE") sortBy: String
     ): ResponseEntity<NoticeSearchResponse> {
-        val username = getUsername(authentication)
-        val isStaff = username?.let {
-            val user = userRepository.findByUsername(it)
-            user?.role == Role.ROLE_STAFF
-        } ?: false
-
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
 
         val sortType = ContentSearchSortType.fromJsonValue(sortBy)
 
-        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, sortType, isStaff))
+        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, sortType))
     }
 
     @GetMapping("/totalSearch")
@@ -55,32 +43,19 @@ class NoticeController(
         @NotBlank
         keyword: String,
         @RequestParam(required = true) @Positive number: Int,
-        @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int,
-        authentication: Authentication?
+        @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int
     ): NoticeTotalSearchResponse {
-        val username = getUsername(authentication)
-        val isStaff = username?.let {
-            val user = userRepository.findByUsername(it)
-            user?.role == Role.ROLE_STAFF
-        } ?: false
-
-        return noticeService.searchTotalNotice(keyword, number, stringLength, isStaff)
+        return noticeService.searchTotalNotice(keyword, number, stringLength)
     }
 
     @GetMapping("/{noticeId}")
     fun readNotice(
-        @PathVariable noticeId: Long,
-        authentication: Authentication?
+        @PathVariable noticeId: Long
     ): ResponseEntity<NoticeDto> {
-        val username = getUsername(authentication)
-        val isStaff = username?.let {
-            val user = userRepository.findByUsername(it)
-            user?.role == Role.ROLE_STAFF
-        } ?: false
-        return ResponseEntity.ok(noticeService.readNotice(noticeId, isStaff))
+        return ResponseEntity.ok(noticeService.readNotice(noticeId))
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping
     fun createNotice(
         @Valid
@@ -91,7 +66,7 @@ class NoticeController(
         return ResponseEntity.ok(noticeService.createNotice(request, attachments))
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PatchMapping("/{noticeId}")
     fun updateNotice(
         @PathVariable noticeId: Long,
@@ -103,7 +78,7 @@ class NoticeController(
         return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, newAttachments))
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/{noticeId}")
     fun deleteNotice(
         @PathVariable noticeId: Long
@@ -111,7 +86,7 @@ class NoticeController(
         noticeService.deleteNotice(noticeId)
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PatchMapping
     fun unpinManyNotices(
         @RequestBody request: NoticeIdListRequest
@@ -119,7 +94,7 @@ class NoticeController(
         noticeService.unpinManyNotices(request.idList)
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping
     fun deleteManyNotices(
         @RequestBody request: NoticeIdListRequest
@@ -127,7 +102,7 @@ class NoticeController(
         noticeService.deleteManyNotices(request.idList)
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/tag")
     fun enrollTag(
         @RequestBody tagName: Map<String, String>

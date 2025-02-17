@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.about.api.v2
 
-import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.about.api.req.*
 import com.wafflestudio.csereal.core.about.api.res.AboutSearchResBody
@@ -11,6 +10,7 @@ import com.wafflestudio.csereal.core.about.service.AboutService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
@@ -35,25 +35,25 @@ class AboutController(
     @GetMapping("/student-clubs")
     fun readAllClubs(): List<GroupedClubDto> = aboutService.readAllGroupedClubs()
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/student-clubs")
     fun createClub(
         @RequestPart request: CreateClubReq,
         @RequestPart mainImage: MultipartFile?
     ) = aboutService.createClub(request, mainImage)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/student-clubs")
     fun updateClub(
         @RequestPart request: UpdateClubReq,
         @RequestPart newMainImage: MultipartFile?
     ) = aboutService.updateClub(request, newMainImage)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/student-clubs/{id}")
     fun deleteClub(@PathVariable id: Long) = aboutService.deleteClub(id)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{postType}")
     fun updateAbout(
         @PathVariable postType: String,
@@ -62,7 +62,7 @@ class AboutController(
         @RequestPart newAttachments: List<MultipartFile>?
     ) = aboutService.updateAbout(postType, request, newMainImage, newAttachments)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/facilities")
     fun createFacilities(@RequestPart request: CreateFacReq, @RequestPart mainImage: MultipartFile?) =
         aboutService.createFacilities(request, mainImage)
@@ -70,7 +70,7 @@ class AboutController(
     @GetMapping("/facilities")
     fun readAllGroupedFacilities() = aboutService.readAllGroupedFacilities()
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/facilities/{id}")
     fun updateFacility(
         @PathVariable id: Long,
@@ -78,41 +78,41 @@ class AboutController(
         @RequestPart newMainImage: MultipartFile?
     ) = aboutService.updateFacility(id, request, newMainImage)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/facilities/{id}")
     fun deleteFacility(@PathVariable id: Long) = aboutService.deleteFacility(id)
 
     @GetMapping("/directions")
     fun readAllGroupedDirections() = aboutService.readAllGroupedDirections()
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/directions/{id}")
     fun updateDirection(@PathVariable id: Long, @RequestBody request: UpdateDescriptionReq) =
         aboutService.updateDirection(id, request)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/future-careers/stats")
     fun createStats(@RequestBody request: CreateStatReq) = aboutService.createFutureCareersStat(request)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/future-careers/stats")
     fun updateStats(@RequestBody request: CreateStatReq) = aboutService.updateFutureCareersStat(request)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/future-careers")
     fun updateFutureCareersPage(@RequestBody request: UpdateDescriptionReq) =
         aboutService.updateFutureCareersPage(request)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/future-careers/company")
     fun createCompany(@RequestBody request: CreateCompanyReq) = aboutService.createCompany(request)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/future-careers/company/{id}")
     fun updateCompany(@PathVariable id: Long, @RequestBody request: CreateCompanyReq) =
         aboutService.updateCompany(id, request)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/future-careers/company/{id}")
     fun deleteCompany(@PathVariable id: Long) = aboutService.deleteCompany(id)
 

@@ -8,6 +8,7 @@ import com.wafflestudio.csereal.core.council.service.CouncilFileService
 import com.wafflestudio.csereal.core.council.service.CouncilService
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import com.wafflestudio.csereal.core.council.type.CouncilFileRulesKey
@@ -19,6 +20,7 @@ class CouncilController(
     private val councilService: CouncilService,
     private val councilFileService: CouncilFileService
 ) {
+    @PreAuthorize("hasRole('COUNCIL')")
     @PostMapping("/report", consumes = ["multipart/form-data"])
     fun createReport(
         @RequestPart
@@ -38,6 +40,7 @@ class CouncilController(
         return councilService.readAllReports(pageRequest)
     }
 
+    @PreAuthorize("hasRole('COUNCIL')")
     @PutMapping("/report/{id}", consumes = ["multipart/form-data"])
     fun updateReport(
         @PathVariable id: Long,
@@ -45,6 +48,7 @@ class CouncilController(
         @RequestPart newMainImage: MultipartFile?
     ) = councilService.updateReport(id, request, newMainImage)
 
+    @PreAuthorize("hasRole('COUNCIL')")
     @DeleteMapping("/report/{id}")
     fun deleteReport(
         @PathVariable id: Long
