@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.member.api.v2
 
-import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.member.api.req.CreateStaffLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyStaffLanguagesReqBody
 import com.wafflestudio.csereal.core.member.dto.SimpleStaffDto
@@ -9,6 +8,7 @@ import com.wafflestudio.csereal.core.member.service.StaffService
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.constraints.Positive
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -38,14 +38,14 @@ class StaffController(
         return ResponseEntity.ok(staffService.getAllStaff(language))
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping(consumes = ["multipart/form-data"])
     fun createStaff(
         @RequestPart("request") createStaffLanguagesReqBody: CreateStaffLanguagesReqBody,
         @RequestPart("mainImage") mainImage: MultipartFile?
     ): StaffLanguagesDto = staffService.createStaffLanguages(createStaffLanguagesReqBody, mainImage)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{koStaffId}/{enStaffId}", consumes = ["multipart/form-data"])
     fun updateStaff(
         @PathVariable @Positive
@@ -60,7 +60,7 @@ class StaffController(
     ): StaffLanguagesDto =
         staffService.updateStaffLanguages(koStaffId, enStaffId, modifyStaffLanguageReq, newMainImage)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/{koStaffId}/{enStaffId}")
     fun deleteStaff(
         @PathVariable @Positive

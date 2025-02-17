@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.resource.common.api
 
-import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.resource.common.dto.FileUploadResponse
 import com.wafflestudio.csereal.core.resource.common.dto.UploadFileInfo
@@ -12,6 +11,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.net.URLEncoder
@@ -92,7 +92,7 @@ class FileController(
         }
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/{filename:.+}")
     fun deleteFile(@PathVariable filename: String): ResponseEntity<Any> {
         val file = Paths.get(uploadPath, filename)

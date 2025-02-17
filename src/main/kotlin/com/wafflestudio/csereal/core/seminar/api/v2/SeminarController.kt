@@ -1,50 +1,38 @@
 package com.wafflestudio.csereal.core.seminar.api.v2
 
-import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
-import com.wafflestudio.csereal.common.utils.getUsername
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
 import com.wafflestudio.csereal.core.seminar.service.SeminarService
-import com.wafflestudio.csereal.core.user.database.Role
-import com.wafflestudio.csereal.core.user.database.UserRepository
 import jakarta.validation.Valid
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.Authentication
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
 @RequestMapping("/api/v2/seminar")
 @RestController
 class SeminarController(
-    private val seminarService: SeminarService,
-    private val userRepository: UserRepository
+    private val seminarService: SeminarService
 ) {
     @GetMapping
     fun searchSeminar(
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
         @RequestParam(required = false, defaultValue = "10") pageSize: Int,
-        @RequestParam(required = false, defaultValue = "DATE") sortBy: String,
-        authentication: Authentication?
+        @RequestParam(required = false, defaultValue = "DATE") sortBy: String
     ): ResponseEntity<SeminarSearchResponse> {
-        val username = getUsername(authentication)
-        val isStaff = username?.let {
-            val user = userRepository.findByUsername(it)
-            user?.role == Role.ROLE_STAFF
-        } ?: false
-
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
 
         val sortType = ContentSearchSortType.fromJsonValue(sortBy)
 
-        return ResponseEntity.ok(seminarService.searchSeminar(keyword, pageRequest, usePageBtn, sortType, isStaff))
+        return ResponseEntity.ok(seminarService.searchSeminar(keyword, pageRequest, usePageBtn, sortType))
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping
     fun createSeminar(
         @Valid
@@ -58,18 +46,12 @@ class SeminarController(
 
     @GetMapping("/{seminarId}")
     fun readSeminar(
-        @PathVariable seminarId: Long,
-        authentication: Authentication?
+        @PathVariable seminarId: Long
     ): ResponseEntity<SeminarDto> {
-        val username = getUsername(authentication)
-        val isStaff = username?.let {
-            val user = userRepository.findByUsername(it)
-            user?.role == Role.ROLE_STAFF
-        } ?: false
-        return ResponseEntity.ok(seminarService.readSeminar(seminarId, isStaff))
+        return ResponseEntity.ok(seminarService.readSeminar(seminarId))
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PatchMapping("/{seminarId}")
     fun updateSeminar(
         @PathVariable seminarId: Long,
@@ -89,7 +71,7 @@ class SeminarController(
         )
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/{seminarId}")
     fun deleteSeminar(
         @PathVariable seminarId: Long
