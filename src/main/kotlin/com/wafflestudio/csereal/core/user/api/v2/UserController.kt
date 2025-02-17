@@ -1,36 +1,18 @@
 package com.wafflestudio.csereal.core.user.api.v2
 
-import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.mockauth.CustomPrincipal
-import com.wafflestudio.csereal.core.user.dto.StaffAuthResponse
-import com.wafflestudio.csereal.core.user.service.UserService
+import com.wafflestudio.csereal.common.utils.getCurrentUserRoles
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.Authentication
-import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RequestMapping("/api/v2/user")
 @RestController
-class UserController(
-    private val userService: UserService
-) {
+class UserController {
 
-    @GetMapping("/is-staff")
-    fun isStaff(authentication: Authentication?): ResponseEntity<StaffAuthResponse> {
-        val principal = authentication?.principal ?: throw CserealException.Csereal401("로그인이 필요합니다.")
-
-        val username = when (principal) {
-            is OidcUser -> principal.idToken.getClaim("username")
-            is CustomPrincipal -> principal.userEntity.username
-            else -> throw CserealException.Csereal401("Unsupported principal type")
-        }
-
-        return if (userService.checkStaffAuth(username)) {
-            ResponseEntity.ok(StaffAuthResponse(true))
-        } else {
-            ResponseEntity.ok(StaffAuthResponse(false))
-        }
+    @GetMapping("/my-role")
+    fun getMyRole(): ResponseEntity<Map<String, Any>> {
+        val roles = getCurrentUserRoles()
+        return ResponseEntity.ok(mapOf("roles" to roles))
     }
 }
