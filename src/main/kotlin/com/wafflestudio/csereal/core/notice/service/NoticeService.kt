@@ -3,17 +3,16 @@ package com.wafflestudio.csereal.core.notice.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
+import com.wafflestudio.csereal.common.utils.getCurrentUser
+import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.notice.database.*
 import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
-import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.context.request.RequestAttributes
-import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.multipart.MultipartFile
 
 interface NoticeService {
@@ -22,13 +21,12 @@ interface NoticeService {
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
-        sortBy: ContentSearchSortType,
-        isStaff: Boolean
+        sortBy: ContentSearchSortType
     ): NoticeSearchResponse
 
-    fun searchTotalNotice(keyword: String, number: Int, stringLength: Int, isStaff: Boolean): NoticeTotalSearchResponse
+    fun searchTotalNotice(keyword: String, number: Int, stringLength: Int): NoticeTotalSearchResponse
 
-    fun readNotice(noticeId: Long, isStaff: Boolean): NoticeDto
+    fun readNotice(noticeId: Long): NoticeDto
     fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
     fun updateNotice(
         noticeId: Long,
@@ -58,28 +56,26 @@ class NoticeServiceImpl(
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
-        sortBy: ContentSearchSortType,
-        isStaff: Boolean
+        sortBy: ContentSearchSortType
     ): NoticeSearchResponse {
-        return noticeRepository.searchNotice(tag, keyword, pageable, usePageBtn, sortBy, isStaff)
+        return noticeRepository.searchNotice(tag, keyword, pageable, usePageBtn, sortBy, isCurrentUserStaff())
     }
 
     @Transactional(readOnly = true)
     override fun searchTotalNotice(
         keyword: String,
         number: Int,
-        stringLength: Int,
-        isStaff: Boolean
-    ) = noticeRepository.totalSearchNotice(keyword, number, stringLength, isStaff)
+        stringLength: Int
+    ) = noticeRepository.totalSearchNotice(keyword, number, stringLength, isCurrentUserStaff())
 
     @Transactional(readOnly = true)
-    override fun readNotice(noticeId: Long, isStaff: Boolean): NoticeDto {
+    override fun readNotice(noticeId: Long): NoticeDto {
         val notice = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
 
         if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
 
-        if (notice.isPrivate && !isStaff) throw CserealException.Csereal401("접근 권한이 없습니다.")
+        if (notice.isPrivate && !isCurrentUserStaff()) throw CserealException.Csereal401("접근 권한이 없습니다.")
 
         val attachmentResponses = attachmentService.createAttachmentResponses(notice.attachments)
 
@@ -97,10 +93,7 @@ class NoticeServiceImpl(
 
     @Transactional
     override fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto {
-        val user = RequestContextHolder.getRequestAttributes()?.getAttribute(
-            "loggedInUser",
-            RequestAttributes.SCOPE_REQUEST
-        ) as UserEntity? ?: userRepository.findByUsername("devUser")!!
+        val user = getCurrentUser()
 
         val newNotice = NoticeEntity(
             title = request.title,

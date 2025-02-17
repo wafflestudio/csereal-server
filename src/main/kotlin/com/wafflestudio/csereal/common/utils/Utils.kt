@@ -1,12 +1,11 @@
 package com.wafflestudio.csereal.common.utils
 
-import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.mockauth.CustomPrincipal
+import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
+import com.wafflestudio.csereal.core.user.database.UserEntity
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import org.jsoup.safety.Safelist
-import org.springframework.security.core.Authentication
-import org.springframework.security.oauth2.core.oidc.user.OidcUser
+import org.springframework.security.core.context.SecurityContextHolder
 import kotlin.math.ceil
 
 fun cleanTextFromHtml(description: String): String {
@@ -45,18 +44,26 @@ fun exchangeValidPageNum(pageSize: Int, pageNum: Int, total: Long): Int {
     }
 }
 
-fun getUsername(authentication: Authentication?): String? {
-    val principal = authentication?.principal
-
-    return principal?.let {
-        when (principal) {
-            is OidcUser -> principal.idToken.getClaim("username")
-            is CustomPrincipal -> principal.userEntity.username
-            else -> throw CserealException.Csereal401("Unsupported principal type")
-        }
+fun getCurrentUser(): UserEntity {
+    val authentication =
+        SecurityContextHolder.getContext().authentication ?: throw IllegalStateException("No authentication available")
+    val principal = authentication.principal
+    if (principal is CustomOidcUser) {
+        return principal.userEntity
+    } else {
+        throw IllegalStateException("Unexpected principal type: ${principal::class.java}")
     }
 }
 
 fun startsWithEnglish(name: String): Boolean {
     return name.isNotEmpty() && name.first().let { it in 'A'..'Z' || it in 'a'..'z' }
+}
+
+fun isCurrentUserStaff(): Boolean {
+    return "ROLE_STAFF" in getCurrentUserRoles()
+}
+
+fun getCurrentUserRoles(): List<String> {
+    val authentication = SecurityContextHolder.getContext().authentication
+    return authentication.authorities.map { it.authority }
 }

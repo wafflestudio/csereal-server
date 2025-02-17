@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.seminar.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
+import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
@@ -19,12 +20,11 @@ interface SeminarService {
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
-        sortBy: ContentSearchSortType,
-        isStaff: Boolean
+        sortBy: ContentSearchSortType
     ): SeminarSearchResponse
 
     fun createSeminar(request: SeminarDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): SeminarDto
-    fun readSeminar(seminarId: Long, isStaff: Boolean): SeminarDto
+    fun readSeminar(seminarId: Long): SeminarDto
     fun updateSeminar(
         seminarId: Long,
         request: SeminarDto,
@@ -47,10 +47,9 @@ class SeminarServiceImpl(
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
-        sortBy: ContentSearchSortType,
-        isStaff: Boolean
+        sortBy: ContentSearchSortType
     ): SeminarSearchResponse {
-        return seminarRepository.searchSeminar(keyword, pageable, usePageBtn, sortBy, isStaff)
+        return seminarRepository.searchSeminar(keyword, pageable, usePageBtn, sortBy, isCurrentUserStaff())
     }
 
     @Transactional
@@ -77,13 +76,13 @@ class SeminarServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readSeminar(seminarId: Long, isStaff: Boolean): SeminarDto {
+    override fun readSeminar(seminarId: Long): SeminarDto {
         val seminar: SeminarEntity = seminarRepository.findByIdOrNull(seminarId)
             ?: throw CserealException.Csereal404("존재하지 않는 세미나입니다.(seminarId: $seminarId)")
 
         if (seminar.isDeleted) throw CserealException.Csereal400("삭제된 세미나입니다. (seminarId: $seminarId)")
 
-        if (seminar.isPrivate && !isStaff) throw CserealException.Csereal401("접근 권한이 없습니다.")
+        if (seminar.isPrivate && !isCurrentUserStaff()) throw CserealException.Csereal401("접근 권한이 없습니다.")
 
         val imageURL = mainImageService.createImageURL(seminar.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
