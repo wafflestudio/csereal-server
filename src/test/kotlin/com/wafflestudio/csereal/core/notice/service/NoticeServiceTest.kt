@@ -3,59 +3,30 @@ package com.wafflestudio.csereal.core.notice.service
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
 import com.wafflestudio.csereal.core.notice.database.NoticeRepository
 import com.wafflestudio.csereal.core.notice.dto.NoticeDto
-import com.wafflestudio.csereal.core.user.database.Role
-import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
+import com.wafflestudio.csereal.core.user.service.UserService
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkStatic
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.web.context.request.RequestAttributes
-import org.springframework.web.context.request.RequestContextHolder
+import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
+@Transactional
 class NoticeServiceTest(
     private val noticeService: NoticeService,
     private val userRepository: UserRepository,
+    private val userService: UserService,
     private val noticeRepository: NoticeRepository
 ) : BehaviorSpec() {
     init {
-        beforeContainer {
-            userRepository.save(
-                UserEntity(
-                    "username",
-                    "name",
-                    "email",
-                    "studentId",
-                    Role.ROLE_STAFF
-                )
-            )
-        }
-
         afterContainer {
             noticeRepository.deleteAll()
             userRepository.deleteAll()
         }
 
         Given("간단한 공지사항을 생성하려고 할 때") {
-            val userEntity = userRepository.findByUsername("username")!!
-
-            mockkStatic(RequestContextHolder::class)
-            val mockRequestAttributes = mockk<RequestAttributes>()
-            every {
-                RequestContextHolder.getRequestAttributes()
-            } returns mockRequestAttributes
-            every {
-                mockRequestAttributes.getAttribute(
-                    "loggedInUser",
-                    RequestAttributes.SCOPE_REQUEST
-                )
-            } returns userEntity
-
             val noticeDto = NoticeDto(
                 id = -1,
                 title = "title",
@@ -107,7 +78,7 @@ class NoticeServiceTest(
                     isPrivate = false,
                     isPinned = false,
                     isImportant = false,
-                    author = userRepository.findByUsername("username")!!
+                    author = userService.getLoginUser()
                 )
             )
             val modifiedRequest = NoticeDto.of(

@@ -2,7 +2,6 @@ package com.wafflestudio.csereal.core.conference.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.common.utils.getCurrentUser
 import com.wafflestudio.csereal.core.conference.database.ConferenceEntity
 import com.wafflestudio.csereal.core.conference.database.ConferencePageEntity
 import com.wafflestudio.csereal.core.conference.database.ConferencePageRepository
@@ -12,6 +11,7 @@ import com.wafflestudio.csereal.core.conference.dto.ConferenceModifyRequest
 import com.wafflestudio.csereal.core.conference.dto.ConferencePage
 import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
 import com.wafflestudio.csereal.core.research.service.ResearchSearchService
+import com.wafflestudio.csereal.core.user.service.UserService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -27,7 +27,8 @@ interface ConferenceService {
 class ConferenceServiceImpl(
     private val conferencePageRepository: ConferencePageRepository,
     private val conferenceRepository: ConferenceRepository,
-    private val researchSearchService: ResearchSearchService
+    private val researchSearchService: ResearchSearchService,
+    private val userService: UserService
 ) : ConferenceService {
 
     @Transactional(readOnly = true)
@@ -40,7 +41,7 @@ class ConferenceServiceImpl(
     override fun modifyConferences(
         conferenceModifyRequest: ConferenceModifyRequest
     ): ConferencePage {
-        val user = getCurrentUser()
+        val user = userService.getLoginUser()
 
         val conferencePage = conferencePageRepository.findAll()[0]
 
@@ -63,7 +64,7 @@ class ConferenceServiceImpl(
 
     @Transactional
     override fun migrateConferences(requestList: List<ConferenceDto>): List<ConferenceDto> {
-        val user = getCurrentUser()
+        val user = userService.getLoginUser()
 
         val list = mutableListOf<ConferenceDto>()
         val conferencePage = ConferencePageEntity.of(user)

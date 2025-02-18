@@ -1,12 +1,12 @@
 package com.wafflestudio.csereal.core.reservation.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.utils.getCurrentUser
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.reservation.database.*
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
+import com.wafflestudio.csereal.core.user.service.UserService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -25,7 +25,8 @@ interface ReservationService {
 @Transactional
 class ReservationServiceImpl(
     private val reservationRepository: ReservationRepository,
-    private val roomRepository: RoomRepository
+    private val roomRepository: RoomRepository,
+    private val userService: UserService
 ) : ReservationService {
 
     override fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto> {
@@ -33,7 +34,7 @@ class ReservationServiceImpl(
             throw CserealException.Csereal400("Policy Not Agreed")
         }
 
-        val user = getCurrentUser()
+        val user = userService.getLoginUser()
 
         val room =
             roomRepository.findRoomById(reserveRequest.roomId) ?: throw CserealException.Csereal404("Room Not Found")
@@ -94,7 +95,7 @@ class ReservationServiceImpl(
     }
 
     override fun cancelSpecific(reservationId: Long) {
-        val user = getCurrentUser()
+        val user = userService.getLoginUser()
         val reservation = reservationRepository.findByIdOrNull(reservationId)
             ?: throw CserealException.Csereal404("reservation not found")
         if (!isCurrentUserStaff() && user.id != reservation.user.id) {
@@ -104,7 +105,7 @@ class ReservationServiceImpl(
     }
 
     override fun cancelRecurring(recurrenceId: UUID) {
-        val user = getCurrentUser()
+        val user = userService.getLoginUser()
         val reservation = reservationRepository.findByRecurrenceId(recurrenceId)
             ?: throw CserealException.Csereal404("reservation not found")
         if (!isCurrentUserStaff() && user.id != reservation.user.id) {

@@ -1,7 +1,5 @@
 package com.wafflestudio.csereal.common.utils
 
-import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
-import com.wafflestudio.csereal.core.user.database.UserEntity
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import org.jsoup.safety.Safelist
@@ -41,17 +39,6 @@ fun exchangeValidPageNum(pageSize: Int, pageNum: Int, total: Long): Int {
         total == 0L -> 1
         (pageNum - 1) * pageSize < total -> pageNum
         else -> ceil(total.toDouble() / pageSize).toInt()
-    }
-}
-
-fun getCurrentUser(): UserEntity {
-    val authentication =
-        SecurityContextHolder.getContext().authentication ?: throw IllegalStateException("No authentication available")
-    val principal = authentication.principal
-    if (principal is CustomOidcUser) {
-        return principal.userEntity
-    } else {
-        throw IllegalStateException("Unexpected principal type: ${principal::class.java}")
     }
 }
 
