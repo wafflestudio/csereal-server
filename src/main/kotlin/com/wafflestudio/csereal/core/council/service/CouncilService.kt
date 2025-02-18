@@ -74,15 +74,15 @@ class CouncilService(
 
     @Transactional(readOnly = true)
     fun readIntro(): CouncilIntroDto {
-        val intro = councilRepository.findByType(CouncilType.INTRO)
+        val intro = councilRepository.findFirstByType(CouncilType.INTRO)
             ?: throw CserealException.Csereal404("Council Intro Not Found")
         val imageURL = mainImageService.createImageURL(intro.mainImage)
         return CouncilIntroDto.of(intro, imageURL)
     }
 
-    fun updateIntro(request: CouncilIntroUpdateRequest, newMainImage: MultipartFile?) {
-        val intro = councilRepository.findByType(CouncilType.INTRO)
-            ?: throw CserealException.Csereal404("Council Intro Not Found")
+    fun upsertIntro(request: CouncilIntroUpdateRequest, newMainImage: MultipartFile?) {
+        val intro = councilRepository.findFirstByType(CouncilType.INTRO)
+            ?: councilRepository.save(CouncilEntity(CouncilType.INTRO, "intro", "", null, 0, ""))
         intro.apply {
             description = request.description
             sequence = request.sequence

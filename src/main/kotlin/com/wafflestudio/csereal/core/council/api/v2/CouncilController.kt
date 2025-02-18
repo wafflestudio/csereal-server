@@ -48,8 +48,8 @@ class CouncilController(
     fun readIntro(): CouncilIntroDto = councilService.readIntro()
 
     @PutMapping("/intro", consumes = ["multipart/form-data"])
-    fun updateIntro(
+    fun upsertIntro(
         @RequestPart request: CouncilIntroUpdateRequest,
         @RequestPart newMainImage: MultipartFile?
-    ) = councilService.updateIntro(request, newMainImage)
+    ) = councilService.upsertIntro(request, newMainImage)
 }
