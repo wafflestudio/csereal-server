@@ -3,12 +3,11 @@ package com.wafflestudio.csereal.core.notice.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
-import com.wafflestudio.csereal.common.utils.getCurrentUser
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.notice.database.*
 import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
-import com.wafflestudio.csereal.core.user.database.UserRepository
+import com.wafflestudio.csereal.core.user.service.UserService
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -47,7 +46,7 @@ class NoticeServiceImpl(
     private val tagInNoticeRepository: TagInNoticeRepository,
     private val noticeTagRepository: NoticeTagRepository,
     private val attachmentService: AttachmentService,
-    private val userRepository: UserRepository
+    private val userService: UserService
 ) : NoticeService {
 
     @Transactional(readOnly = true)
@@ -93,7 +92,7 @@ class NoticeServiceImpl(
 
     @Transactional
     override fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto {
-        val user = getCurrentUser()
+        val user = userService.getLoginUser()
 
         val newNotice = NoticeEntity(
             title = request.title,
