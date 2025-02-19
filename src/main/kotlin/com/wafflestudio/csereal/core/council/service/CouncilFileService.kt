@@ -162,8 +162,8 @@ class CouncilFileServiceImpl(
 
         attachmentService.uploadAllAttachments(councilFile, attachments)
 
-        return councilFileRepository.save(councilFile).let {
-            CouncilFileDto.from(it) { attachmentService.createAttachmentResponses(it) }
+        return councilFileRepository.save(councilFile).let { entity ->
+            CouncilFileDto.from(entity) { attachmentService.createAttachmentResponses(it) }
         }
     }
 
@@ -189,8 +189,8 @@ class CouncilFileServiceImpl(
 
         attachmentService.uploadAllAttachments(councilFile, addFiles)
 
-        return councilFileRepository.save(councilFile).let {
-            CouncilFileDto.from(it) { attachmentService.createAttachmentResponses(it) }
+        return councilFileRepository.save(councilFile).let { entity ->
+            CouncilFileDto.from(entity) { attachmentService.createAttachmentResponses(it) }
         }
     }
 
@@ -217,15 +217,15 @@ class CouncilFileServiceImpl(
 
     @Transactional(readOnly = true)
     fun getCouncilFiles(type: CouncilFileType): List<CouncilFileDto> {
-        return councilFileRepository.findAllByType(type).map {
-            CouncilFileDto.from(it) { attachmentService.createAttachmentResponses(it) }
+        return councilFileRepository.findAllByType(type).map { entity ->
+            CouncilFileDto.from(entity) { attachmentService.createAttachmentResponses(it) }
         }
     }
 
     @Transactional(readOnly = true)
     fun getCouncilFilesWithKeyPrefixOf(type: CouncilFileType, keyPrefix: String): List<CouncilFileDto> {
-        return councilFileRepository.findAllByTypeAndKeyStartsWith(type, keyPrefix).map {
-            CouncilFileDto.from(it) { attachmentService.createAttachmentResponses(it) }
+        return councilFileRepository.findAllByTypeAndKeyStartsWith(type, keyPrefix).map { entity ->
+            CouncilFileDto.from(entity) { attachmentService.createAttachmentResponses(it) }
         }
     }
 }
