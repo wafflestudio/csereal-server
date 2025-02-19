@@ -5,6 +5,7 @@ import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
+import com.wafflestudio.csereal.core.council.database.CouncilFileEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
 import com.wafflestudio.csereal.core.research.database.LabEntity
@@ -210,6 +211,11 @@ class AttachmentServiceImpl(
             is AcademicsEntity -> {
                 contentEntity.attachments.add(attachment)
                 attachment.academics = contentEntity
+            }
+
+            is CouncilFileEntity -> {
+                contentEntity.attachments.add(attachment)
+                attachment.councilFile = contentEntity
             }
         }
     }
