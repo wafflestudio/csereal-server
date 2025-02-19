@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.council.api.v2
 
-
 import com.wafflestudio.csereal.core.council.dto.*
 import com.wafflestudio.csereal.core.council.api.res.CouncilFileRuleResponse
 import com.wafflestudio.csereal.core.council.api.res.CouncilFileRulesResponse
