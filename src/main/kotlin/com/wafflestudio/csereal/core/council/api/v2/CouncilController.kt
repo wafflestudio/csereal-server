@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import com.wafflestudio.csereal.core.council.type.CouncilFileRulesKey
 
-// TODO: api 제한
 @RestController
 @RequestMapping("/api/v2/council")
 class CouncilController(
