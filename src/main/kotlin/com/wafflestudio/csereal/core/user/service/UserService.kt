@@ -14,7 +14,7 @@ class UserService(
     @Transactional
     fun getLoginUser(): UserEntity {
         val auth = SecurityContextHolder.getContext().authentication
-        // for test
+            // for test
             ?: return userRepository.save(
                 UserEntity(
                     "test",
