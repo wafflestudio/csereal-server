@@ -46,14 +46,19 @@ data class SimpleReportDto(
     val imageURL: String?
 ) {
     companion object {
-        fun of(councilEntity: CouncilEntity, imageURL: String?): SimpleReportDto = SimpleReportDto(
-            id = councilEntity.id,
-            title = councilEntity.title,
-            sequence = councilEntity.sequence,
-            name = councilEntity.name,
-            createdAt = councilEntity.createdAt!!,
-            imageURL = imageURL
-        )
+        fun of(councilEntity: CouncilEntity, imageURL: String?): SimpleReportDto {
+            require(councilEntity.type == CouncilType.REPORT) {
+                "CouncilEntity must be of type REPORT, but was ${councilEntity.type}"
+            }
+            return SimpleReportDto(
+                id = councilEntity.id,
+                title = councilEntity.title,
+                sequence = councilEntity.sequence,
+                name = councilEntity.name,
+                createdAt = councilEntity.createdAt!!,
+                imageURL = imageURL
+            )
+        }
     }
 }
 
