@@ -11,18 +11,16 @@ import org.springframework.transaction.annotation.Transactional
 class UserService(
     private val userRepository: UserRepository
 ) {
-    @Transactional(readOnly = true)
+    @Transactional
     fun getLoginUser(): UserEntity {
         val auth = SecurityContextHolder.getContext().authentication
-            // for test
-            ?: return userRepository.findByUsername("test") ?: userRepository.save(
-                userRepository.save(
-                    UserEntity(
-                        "test",
-                        "test",
-                        "test@abc.com",
-                        "0000-00000"
-                    )
+        // for test
+            ?: return userRepository.save(
+                UserEntity(
+                    "test",
+                    "test",
+                    "test@abc.com",
+                    "0000-00000"
                 )
             )
         return when (val principal = auth.principal) {
