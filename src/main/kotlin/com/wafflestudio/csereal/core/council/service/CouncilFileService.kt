@@ -180,9 +180,7 @@ class CouncilFileServiceImpl(
         councilFile.attachments
             .also { attachments ->
                 attachments.filter { it.id in removeFileIds }
-                    .map { it.filename }
-                    .map { FileDeleteEvent(it) }
-                    .forEach { eventPublisher.publishEvent(it) }
+                    .forEach { eventPublisher.publishEvent(FileDeleteEvent(it.filename)) }
             }.also { attachments ->
                 attachments.removeAll { it.id in removeFileIds }
             }
