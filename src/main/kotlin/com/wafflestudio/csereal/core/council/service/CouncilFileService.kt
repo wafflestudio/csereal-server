@@ -46,6 +46,7 @@ interface CouncilFileService {
     ): CouncilFileMeetingMinuteDto
 
     fun deleteCouncilMeetingMinute(year: Int, index: Int)
+    fun getAllCouncilMeetingMinutes(): List<CouncilFileMeetingMinuteDto>
     fun getCouncilMeetingMinute(year: Int, index: Int): CouncilFileMeetingMinuteDto
     fun getCouncilMeetingMinutes(year: Int): List<CouncilFileMeetingMinuteDto>
 }
@@ -140,6 +141,13 @@ class CouncilFileServiceImpl(
             .map { CouncilFileMeetingMinuteDto.from(it) }
     }
 
+    // TODO: Add pagination
+    @Transactional(readOnly = true)
+    override fun getAllCouncilMeetingMinutes(): List<CouncilFileMeetingMinuteDto> {
+        return getCouncilFiles(CouncilFileType.MEETING_MINUTE)
+            .map { CouncilFileMeetingMinuteDto.from(it) }
+    }
+
     @Transactional(readOnly = true)
     fun getLastIndexOfMeetingMinute(year: Int): Int? {
         val keys = getCouncilFilesWithKeyPrefixOf(CouncilFileType.MEETING_MINUTE, "$year-")
@@ -148,6 +156,7 @@ class CouncilFileServiceImpl(
             .sortedBy { it.index }
         return keys.lastOrNull()?.index
     }
+
 
     // Common File methods
 

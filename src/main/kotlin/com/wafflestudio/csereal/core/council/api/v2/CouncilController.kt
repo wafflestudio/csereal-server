@@ -99,6 +99,15 @@ class CouncilController(
         councilFileService.deleteCouncilRule(CouncilFileRulesKey.from(type))
     }
 
+    // TODO: pagination
+    @GetMapping("/meeting-minute")
+    fun getMeetingMinutes(
+    ): Map<Int, List<CouncilFileMeetingMinuteResponse>> =
+        councilFileService
+            .getAllCouncilMeetingMinutes()
+            .map { CouncilFileMeetingMinuteResponse.from(it) }
+            .groupBy { it.year }
+
     @GetMapping("/meeting-minute/{year}")
     fun getMeetingMinutesOfYear(
         @PathVariable(required = true) year: Int
