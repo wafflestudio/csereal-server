@@ -104,8 +104,7 @@ class CouncilController(
 
     // TODO: pagination
     @GetMapping("/meeting-minute")
-    fun getMeetingMinutes(
-    ): Map<Int, List<CouncilFileMeetingMinuteResponse>> =
+    fun getMeetingMinutes(): Map<Int, List<CouncilFileMeetingMinuteResponse>> =
         councilFileService
             .getAllCouncilMeetingMinutes()
             .map { CouncilFileMeetingMinuteResponse.from(it) }

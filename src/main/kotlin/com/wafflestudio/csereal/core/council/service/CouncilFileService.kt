@@ -157,7 +157,6 @@ class CouncilFileServiceImpl(
         return keys.lastOrNull()?.index
     }
 
-
     // Common File methods
 
     @Transactional
