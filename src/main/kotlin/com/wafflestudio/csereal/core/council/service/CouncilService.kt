@@ -31,8 +31,11 @@ class CouncilService(
     @Transactional(readOnly = true)
     fun readReport(id: Long): ReportDto {
         val report = councilRepository.findByIdOrNull(id) ?: throw CserealException.Csereal404("Report Not Found")
-        val prevReport = councilRepository.findPreviousByType(report.createdAt!!, CouncilType.REPORT)
-        val nextReport = councilRepository.findNextByType(report.createdAt!!, CouncilType.REPORT)
+        val prevReport =
+            councilRepository.findPreviousByType(report.createdAt!!, CouncilType.REPORT, PageRequest.of(0, 1))
+                .firstOrNull()
+        val nextReport =
+            councilRepository.findNextByType(report.createdAt!!, CouncilType.REPORT, PageRequest.of(0, 1)).firstOrNull()
         return ReportDto.of(report, prevReport, nextReport)
     }
 
