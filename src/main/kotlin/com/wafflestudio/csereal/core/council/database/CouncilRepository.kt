@@ -22,8 +22,9 @@ interface CouncilRepository : JpaRepository<CouncilEntity, Long> {
     )
     fun findPreviousByType(
         @Param("timestamp") timestamp: LocalDateTime,
-        @Param("type") type: CouncilType
-    ): CouncilEntity?
+        @Param("type") type: CouncilType,
+        pageable: Pageable
+    ): List<CouncilEntity>
 
     @Query(
         """
@@ -36,6 +37,7 @@ interface CouncilRepository : JpaRepository<CouncilEntity, Long> {
     )
     fun findNextByType(
         @Param("timestamp") timestamp: LocalDateTime,
-        @Param("type") type: CouncilType
-    ): CouncilEntity?
+        @Param("type") type: CouncilType,
+        pageable: Pageable
+    ): List<CouncilEntity>
 }
