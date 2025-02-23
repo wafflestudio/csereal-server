@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.admin.api.v2
 
-import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.core.admin.dto.*
 import com.wafflestudio.csereal.core.admin.service.AdminService
 import org.springframework.http.ResponseEntity
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController
 class AdminController(
     private val adminService: AdminService
 ) {
-    @AuthenticatedStaff
     @GetMapping("/slide")
     fun readAllSlides(
         @RequestParam(required = false, defaultValue = "1") pageNum: Long,
@@ -25,7 +23,6 @@ class AdminController(
         return ResponseEntity.ok(adminService.readAllSlides(pageNum - 1, pageSize))
     }
 
-    @AuthenticatedStaff
     @PatchMapping("/slide")
     fun unSlideManyNews(
         @RequestBody request: NewsIdListRequest
@@ -33,7 +30,6 @@ class AdminController(
         adminService.unSlideManyNews(request.newsIdList)
     }
 
-    @AuthenticatedStaff
     @GetMapping("/important")
     fun readAllImportants(
         @RequestParam(required = false, defaultValue = "1") pageNum: Int,
@@ -44,7 +40,6 @@ class AdminController(
         )
     }
 
-    @AuthenticatedStaff
     @PatchMapping("/important")
     fun makeNotImportants(
         @RequestBody request: ImportantRequest

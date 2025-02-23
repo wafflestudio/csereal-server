@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.academics.api.v2
 
-import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.api.req.*
 import com.wafflestudio.csereal.core.academics.dto.*
@@ -9,6 +8,7 @@ import com.wafflestudio.csereal.core.academics.service.AcademicsService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
@@ -18,7 +18,7 @@ class AcademicsController(
     private val academicsService: AcademicsService,
     private val academicsSearchService: AcademicsSearchService
 ) {
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/courses")
     fun createCourse(
         @Valid
@@ -33,15 +33,15 @@ class AcademicsController(
     ): List<GroupedCourseDto> =
         academicsService.readAllGroupedCourses(studentType, sort)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/courses")
     fun updateCourse(@RequestBody updateRequest: GroupedCourseDto) = academicsService.updateCourse(updateRequest)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/courses/{code}")
     fun deleteCourse(@PathVariable code: String) = academicsService.deleteCourse(code)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/{studentType}/scholarship")
     fun createScholarship(
         @PathVariable studentType: String,
@@ -54,15 +54,15 @@ class AcademicsController(
         @PathVariable scholarshipId: Long
     ): Pair<ScholarshipDto, ScholarshipDto> = academicsService.readScholarshipV2(scholarshipId)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/scholarship")
     fun updateScholarship(@RequestBody request: UpdateScholarshipReq) = academicsService.updateScholarship(request)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/scholarship/{scholarshipId}")
     fun deleteScholarship(@PathVariable scholarshipId: Long) = academicsService.deleteScholarship(scholarshipId)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{studentType}/scholarship")
     fun updateScholarshipPage(
         @RequestParam(required = false, defaultValue = "ko") language: String,
@@ -78,7 +78,7 @@ class AcademicsController(
         return ResponseEntity.ok(academicsService.readGuide(language, studentType))
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{studentType}/guide")
     fun updateGuide(
         @RequestParam(required = false, defaultValue = "ko") language: String,
@@ -98,7 +98,7 @@ class AcademicsController(
         )
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/{studentType}/{postType}")
     fun createAcademicsYearResponse(
         @RequestParam(required = false, defaultValue = "ko") language: String,
@@ -108,7 +108,7 @@ class AcademicsController(
         @RequestPart attachments: List<MultipartFile>?
     ) = academicsService.createAcademicsYearResponse(language, studentType, postType, request, attachments)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{studentType}/{postType}/{year}")
     fun updateAcademicsYearResponse(
         @RequestParam(required = false, defaultValue = "ko") language: String,
@@ -126,7 +126,7 @@ class AcademicsController(
         return ResponseEntity.ok(academicsService.readDegreeRequirements(language))
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/undergraduate/degree-requirements")
     fun updateDegreeRequirements(
         @RequestParam(required = false, defaultValue = "ko") language: String,
@@ -142,7 +142,7 @@ class AcademicsController(
         return ResponseEntity.ok(academicsService.readAllScholarship(language, studentType))
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/{studentType}/{postType}/{year}")
     fun deleteAcademicsYearResponse(
         @RequestParam(required = false, defaultValue = "ko") language: String,

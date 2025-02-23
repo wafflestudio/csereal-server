@@ -1,14 +1,10 @@
 package com.wafflestudio.csereal.core.news.api.v2
 
-import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
-import com.wafflestudio.csereal.common.utils.getUsername
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
 import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchDto
 import com.wafflestudio.csereal.core.news.service.NewsService
-import com.wafflestudio.csereal.core.user.database.Role
-import com.wafflestudio.csereal.core.user.database.UserRepository
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
@@ -16,15 +12,14 @@ import org.hibernate.validator.constraints.Length
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.Authentication
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
 @RequestMapping("/api/v2/news")
 @RestController
 class NewsController(
-    private val newsService: NewsService,
-    private val userRepository: UserRepository
+    private val newsService: NewsService
 ) {
     @GetMapping
     fun searchNews(
@@ -32,22 +27,15 @@ class NewsController(
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
         @RequestParam(required = false, defaultValue = "10") pageSize: Int,
-        @RequestParam(required = false, defaultValue = "DATE") sortBy: String,
-        authentication: Authentication?
+        @RequestParam(required = false, defaultValue = "DATE") sortBy: String
     ): ResponseEntity<NewsSearchResponse> {
-        val username = getUsername(authentication)
-        val isStaff = username?.let {
-            val user = userRepository.findByUsername(it)
-            user?.role == Role.ROLE_STAFF
-        } ?: false
-
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
 
         val sortType = ContentSearchSortType.fromJsonValue(sortBy)
 
-        return ResponseEntity.ok(newsService.searchNews(tag, keyword, pageRequest, usePageBtn, sortType, isStaff))
+        return ResponseEntity.ok(newsService.searchNews(tag, keyword, pageRequest, usePageBtn, sortType))
     }
 
     @GetMapping("/totalSearch")
@@ -57,32 +45,19 @@ class NewsController(
         @NotBlank
         keyword: String,
         @RequestParam(required = true) @Positive number: Int,
-        @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int,
-        authentication: Authentication?
+        @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int
     ): NewsTotalSearchDto {
-        val username = getUsername(authentication)
-        val isStaff = username?.let {
-            val user = userRepository.findByUsername(it)
-            user?.role == Role.ROLE_STAFF
-        } ?: false
-
-        return newsService.searchTotalNews(keyword, number, stringLength, isStaff)
+        return newsService.searchTotalNews(keyword, number, stringLength)
     }
 
     @GetMapping("/{newsId}")
     fun readNews(
-        @PathVariable newsId: Long,
-        authentication: Authentication?
+        @PathVariable newsId: Long
     ): ResponseEntity<NewsDto> {
-        val username = getUsername(authentication)
-        val isStaff = username?.let {
-            val user = userRepository.findByUsername(it)
-            user?.role == Role.ROLE_STAFF
-        } ?: false
-        return ResponseEntity.ok(newsService.readNews(newsId, isStaff))
+        return ResponseEntity.ok(newsService.readNews(newsId))
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping
     fun createNews(
         @Valid
@@ -94,7 +69,7 @@ class NewsController(
         return ResponseEntity.ok(newsService.createNews(request, mainImage, attachments))
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PatchMapping("/{newsId}")
     fun updateNews(
         @PathVariable newsId: Long,
@@ -107,7 +82,7 @@ class NewsController(
         return ResponseEntity.ok(newsService.updateNews(newsId, request, newMainImage, newAttachments))
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/{newsId}")
     fun deleteNews(
         @PathVariable newsId: Long
@@ -115,7 +90,7 @@ class NewsController(
         newsService.deleteNews(newsId)
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/tag")
     fun enrollTag(
         @RequestBody tagName: Map<String, String>

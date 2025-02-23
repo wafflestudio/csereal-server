@@ -1,17 +1,11 @@
 package com.wafflestudio.csereal.core.reservation.api.v2
 
-import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.aop.AuthenticatedForReservation
-import com.wafflestudio.csereal.common.mockauth.CustomPrincipal
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
 import com.wafflestudio.csereal.core.reservation.service.ReservationService
-import com.wafflestudio.csereal.core.user.database.Role
-import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.Authentication
-import org.springframework.security.oauth2.core.oidc.user.OidcUser
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -26,8 +20,7 @@ import java.util.UUID
 @RequestMapping("/api/v2/reservation")
 @RestController
 class ReservationController(
-    private val reservationService: ReservationService,
-    private val userRepository: UserRepository
+    private val reservationService: ReservationService
 ) {
 
     @GetMapping("/month")
@@ -55,39 +48,27 @@ class ReservationController(
 
     @GetMapping("/{reservationId}")
     fun getReservation(
-        @PathVariable reservationId: Long,
-        authentication: Authentication?
+        @PathVariable reservationId: Long
     ): ResponseEntity<ReservationDto> {
-        val principal = authentication?.principal
-
-        val isStaff = principal?.let {
-            val username = when (principal) {
-                is OidcUser -> principal.idToken.getClaim("username")
-                is CustomPrincipal -> principal.userEntity.username
-                else -> throw CserealException.Csereal401("Unsupported principal type")
-            }
-            val user = userRepository.findByUsername(username)
-            user?.role == Role.ROLE_STAFF
-        } ?: false
-        return ResponseEntity.ok(reservationService.getReservation(reservationId, isStaff))
+        return ResponseEntity.ok(reservationService.getReservation(reservationId))
     }
 
+    @PreAuthorize("hasAnyRole('STAFF','RESERVATION')")
     @PostMapping
-    @AuthenticatedForReservation
     fun reserveRoom(
         @RequestBody reserveRequest: ReserveRequest
     ): ResponseEntity<List<ReservationDto>> {
         return ResponseEntity.ok(reservationService.reserveRoom(reserveRequest))
     }
 
+    @PreAuthorize("hasAnyRole('STAFF','RESERVATION')")
     @DeleteMapping("/{reservationId}")
-    @AuthenticatedForReservation
     fun cancelSpecific(@PathVariable reservationId: Long): ResponseEntity<Any> {
         return ResponseEntity.ok(reservationService.cancelSpecific(reservationId))
     }
 
+    @PreAuthorize("hasAnyRole('STAFF','RESERVATION')")
     @DeleteMapping("/recurring/{recurrenceId}")
-    @AuthenticatedForReservation
     fun cancelRecurring(@PathVariable recurrenceId: UUID): ResponseEntity<Any> {
         return ResponseEntity.ok(reservationService.cancelRecurring(recurrenceId))
     }

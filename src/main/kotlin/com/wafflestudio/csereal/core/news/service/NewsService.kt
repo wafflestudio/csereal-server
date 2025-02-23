@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.news.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
+import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.admin.dto.AdminSlidesResponse
 import com.wafflestudio.csereal.core.news.database.*
 import com.wafflestudio.csereal.core.news.dto.NewsDto
@@ -21,11 +22,10 @@ interface NewsService {
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
-        sortBy: ContentSearchSortType,
-        isStaff: Boolean
+        sortBy: ContentSearchSortType
     ): NewsSearchResponse
 
-    fun readNews(newsId: Long, isStaff: Boolean): NewsDto
+    fun readNews(newsId: Long): NewsDto
     fun createNews(request: NewsDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): NewsDto
     fun updateNews(
         newsId: Long,
@@ -36,7 +36,7 @@ interface NewsService {
 
     fun deleteNews(newsId: Long)
     fun enrollTag(tagName: String)
-    fun searchTotalNews(keyword: String, number: Int, amount: Int, isStaff: Boolean): NewsTotalSearchDto
+    fun searchTotalNews(keyword: String, number: Int, amount: Int): NewsTotalSearchDto
     fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse
     fun unSlideManyNews(request: List<Long>)
     fun getAllIds(): List<Long>
@@ -56,34 +56,32 @@ class NewsServiceImpl(
         keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
-        sortBy: ContentSearchSortType,
-        isStaff: Boolean
+        sortBy: ContentSearchSortType
     ): NewsSearchResponse {
-        return newsRepository.searchNews(tag, keyword, pageable, usePageBtn, sortBy, isStaff)
+        return newsRepository.searchNews(tag, keyword, pageable, usePageBtn, sortBy, isCurrentUserStaff())
     }
 
     @Transactional(readOnly = true)
     override fun searchTotalNews(
         keyword: String,
         number: Int,
-        amount: Int,
-        isStaff: Boolean
+        amount: Int
     ) = newsRepository.searchTotalNews(
         keyword,
         number,
         amount,
         mainImageService::createImageURL,
-        isStaff
+        isCurrentUserStaff()
     )
 
     @Transactional(readOnly = true)
-    override fun readNews(newsId: Long, isStaff: Boolean): NewsDto {
+    override fun readNews(newsId: Long): NewsDto {
         val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
             ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다.(newsId: $newsId)")
 
         if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.(newsId: $newsId)")
 
-        if (news.isPrivate && !isStaff) throw CserealException.Csereal401("접근 권한이 없습니다.")
+        if (news.isPrivate && !isCurrentUserStaff()) throw CserealException.Csereal401("접근 권한이 없습니다.")
 
         val imageURL = mainImageService.createImageURL(news.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(news.attachments)

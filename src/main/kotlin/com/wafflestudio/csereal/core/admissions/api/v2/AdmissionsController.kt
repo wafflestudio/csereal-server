@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.admissions.api.v2
 
-import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.admissions.api.req.UpdateAdmissionReq
 import com.wafflestudio.csereal.core.admissions.api.res.GroupedAdmission
@@ -9,6 +8,7 @@ import com.wafflestudio.csereal.core.admissions.type.AdmissionsMainType
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsPostType
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/api/v2/admissions")
@@ -28,7 +28,7 @@ class AdmissionsController(
 
     // TODO: Add Create, Delete Admission Pair API if needed
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{mainTypeStr}/{postTypeStr}")
     fun updateAdmission(
         @PathVariable(required = true) mainTypeStr: String,

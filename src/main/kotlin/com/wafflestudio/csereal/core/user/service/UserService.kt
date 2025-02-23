@@ -1,24 +1,31 @@
 package com.wafflestudio.csereal.core.user.service
 
-import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.core.user.database.Role
+import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
+import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-interface UserService {
-    fun checkStaffAuth(username: String): Boolean
-}
-
 @Service
-@Transactional
-class UserServiceImpl(
+class UserService(
     private val userRepository: UserRepository
-) : UserService {
-
-    @Transactional(readOnly = true)
-    override fun checkStaffAuth(username: String): Boolean {
-        val user = userRepository.findByUsername(username) ?: throw CserealException.Csereal404("재로그인이 필요합니다.")
-        return user.role == Role.ROLE_STAFF
+) {
+    @Transactional
+    fun getLoginUser(): UserEntity {
+        val auth = SecurityContextHolder.getContext().authentication
+            // for test
+            ?: return userRepository.save(
+                UserEntity(
+                    "test",
+                    "test",
+                    "test@abc.com",
+                    "0000-00000"
+                )
+            )
+        return when (val principal = auth.principal) {
+            is CustomOidcUser -> principal.userEntity
+            else -> throw IllegalStateException("Unexpected principal type: ${principal::class.java}")
+        }
     }
 }
