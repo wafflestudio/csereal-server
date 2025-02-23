@@ -109,6 +109,7 @@ class CouncilController(
             .getAllCouncilMeetingMinutes()
             .map { CouncilFileMeetingMinuteResponse.from(it) }
             .groupBy { it.year }
+            .toSortedMap(reverseOrder())
 
     @GetMapping("/meeting-minute/{year}")
     fun getMeetingMinutesOfYear(
