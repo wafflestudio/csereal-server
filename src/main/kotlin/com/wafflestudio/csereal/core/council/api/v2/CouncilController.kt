@@ -11,6 +11,9 @@ import org.springframework.data.domain.Sort
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import com.wafflestudio.csereal.core.council.type.CouncilFileRulesKey
+import jakarta.validation.Valid
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
 
 // TODO: api 제한
 @RestController
@@ -99,6 +102,15 @@ class CouncilController(
         councilFileService.deleteCouncilRule(CouncilFileRulesKey.from(type))
     }
 
+    // TODO: pagination
+    @GetMapping("/meeting-minute")
+    fun getMeetingMinutes(): Map<Int, List<CouncilFileMeetingMinuteResponse>> =
+        councilFileService
+            .getAllCouncilMeetingMinutes()
+            .map { CouncilFileMeetingMinuteResponse.from(it) }
+            .groupBy { it.year }
+            .toSortedMap(reverseOrder())
+
     @GetMapping("/meeting-minute/{year}")
     fun getMeetingMinutesOfYear(
         @PathVariable(required = true) year: Int
@@ -118,7 +130,11 @@ class CouncilController(
 
     @PostMapping("/meeting-minute/{year}", consumes = ["multipart/form-data"])
     fun createMeetingMinute(
-        @PathVariable(required = true) year: Int,
+        @PathVariable(required = true)
+        @Valid
+        @Min(1900)
+        @Max(2100)
+        year: Int,
         @RequestPart("attachments") attachments: List<MultipartFile>
     ): CouncilFileMeetingMinuteResponse =
         councilFileService

@@ -46,6 +46,7 @@ interface CouncilFileService {
     ): CouncilFileMeetingMinuteDto
 
     fun deleteCouncilMeetingMinute(year: Int, index: Int)
+    fun getAllCouncilMeetingMinutes(): List<CouncilFileMeetingMinuteDto>
     fun getCouncilMeetingMinute(year: Int, index: Int): CouncilFileMeetingMinuteDto
     fun getCouncilMeetingMinutes(year: Int): List<CouncilFileMeetingMinuteDto>
 }
@@ -137,6 +138,13 @@ class CouncilFileServiceImpl(
     @Transactional(readOnly = true)
     override fun getCouncilMeetingMinutes(year: Int): List<CouncilFileMeetingMinuteDto> {
         return getCouncilFilesWithKeyPrefixOf(CouncilFileType.MEETING_MINUTE, "$year-")
+            .map { CouncilFileMeetingMinuteDto.from(it) }
+    }
+
+    // TODO: Add pagination
+    @Transactional(readOnly = true)
+    override fun getAllCouncilMeetingMinutes(): List<CouncilFileMeetingMinuteDto> {
+        return getCouncilFiles(CouncilFileType.MEETING_MINUTE)
             .map { CouncilFileMeetingMinuteDto.from(it) }
     }
 
