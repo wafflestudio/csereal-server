@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.common.mockauth
 
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
+import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Profile
@@ -57,6 +58,11 @@ class DevAuthController(
         response: HttpServletResponse
     ): ResponseEntity<String> {
         request.getSession(false)?.invalidate()
+        val cookie = Cookie("JSESSIONID", null).apply {
+            path = "/"
+            maxAge = 0
+        }
+        response.addCookie(cookie)
         return ResponseEntity.ok("Mock logout successful")
     }
 }
