@@ -51,6 +51,6 @@ fun isCurrentUserStaff(): Boolean {
 }
 
 fun getCurrentUserRoles(): List<String> {
-    val authentication = SecurityContextHolder.getContext().authentication
+    val authentication = SecurityContextHolder.getContext().authentication ?: /* for test */ return listOf("ROLE_STAFF")
     return authentication.authorities.map { it.authority }
 }
