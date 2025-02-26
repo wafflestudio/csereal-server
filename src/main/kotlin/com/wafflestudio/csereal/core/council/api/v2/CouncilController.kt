@@ -79,6 +79,7 @@ class CouncilController(
             .getCouncilRule(CouncilFileRulesKey.from(type))
             .let { CouncilFileRuleResponse.from(it) }
 
+    @PreAuthorize("hasRole('COUNCIL')")
     @PostMapping("/rule/{type}", consumes = ["multipart/form-data"])
     fun createRuleByType(
         @PathVariable(required = true) type: String,
@@ -88,6 +89,7 @@ class CouncilController(
             .createCouncilRule(CouncilFileRulesKey.from(type), attachments)
             .let { CouncilFileRuleResponse.from(it) }
 
+    @PreAuthorize("hasRole('COUNCIL')")
     @PutMapping("/rule/{type}", consumes = ["multipart/form-data"])
     fun updateRuleByType(
         @PathVariable(required = true) type: String,
@@ -98,6 +100,7 @@ class CouncilController(
             .updateCouncilRule(CouncilFileRulesKey.from(type), deleteIds, addFiles)
             .let { CouncilFileRuleResponse.from(it) }
 
+    @PreAuthorize("hasRole('COUNCIL')")
     @DeleteMapping("/rule/{type}")
     fun deleteRuleByType(
         @PathVariable(required = true) type: String
@@ -131,6 +134,7 @@ class CouncilController(
             .getCouncilMeetingMinute(year, index)
             .let { CouncilFileMeetingMinuteResponse.from(it) }
 
+    @PreAuthorize("hasRole('COUNCIL')")
     @PostMapping("/meeting-minute/{year}", consumes = ["multipart/form-data"])
     fun createMeetingMinute(
         @PathVariable(required = true)
@@ -144,6 +148,7 @@ class CouncilController(
             .createCouncilMeetingMinute(year, attachments)
             .let { CouncilFileMeetingMinuteResponse.from(it) }
 
+    @PreAuthorize("hasRole('COUNCIL')")
     @PutMapping("/meeting-minute/{year}/{index}", consumes = ["multipart/form-data"])
     fun updateMeetingMinute(
         @PathVariable(required = true) year: Int,
@@ -155,6 +160,7 @@ class CouncilController(
             .updateCouncilMeetingMinute(year, index, deleteIds, addFiles)
             .let { CouncilFileMeetingMinuteResponse.from(it) }
 
+    @PreAuthorize("hasRole('COUNCIL')")
     @DeleteMapping("/meeting-minute/{year}/{index}")
     fun deleteMeetingMinute(
         @PathVariable(required = true) year: Int,
