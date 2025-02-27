@@ -36,7 +36,7 @@ class CouncilService(
                 .firstOrNull()
         val nextReport =
             councilRepository.findNextByType(report.createdAt!!, CouncilType.REPORT, PageRequest.of(0, 1)).firstOrNull()
-        return ReportDto.of(report, prevReport, nextReport)
+        return ReportDto.of(report, prevReport, nextReport, mainImageService.createImageURL(report.mainImage))
     }
 
     @Transactional(readOnly = true)
