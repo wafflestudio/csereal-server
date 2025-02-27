@@ -8,6 +8,7 @@ data class ReportDto(
     val id: Long,
     val title: String,
     val description: String,
+    val imageURL: String?,
     val sequence: Int,
     val name: String,
     val createdAt: LocalDateTime,
@@ -17,7 +18,7 @@ data class ReportDto(
     val nextTitle: String?
 ) {
     companion object {
-        fun of(entity: CouncilEntity, prev: CouncilEntity?, next: CouncilEntity?): ReportDto {
+        fun of(entity: CouncilEntity, prev: CouncilEntity?, next: CouncilEntity?, imageURL: String?): ReportDto {
             require(entity.type == CouncilType.REPORT) {
                 "CouncilEntity must be of type REPORT, but was ${entity.type}"
             }
@@ -25,6 +26,7 @@ data class ReportDto(
                 id = entity.id,
                 title = entity.title,
                 description = entity.description,
+                imageURL = imageURL,
                 sequence = entity.sequence,
                 name = entity.name,
                 createdAt = entity.createdAt!!,
