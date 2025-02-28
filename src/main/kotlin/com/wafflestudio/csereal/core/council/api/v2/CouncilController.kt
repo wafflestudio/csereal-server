@@ -91,11 +91,11 @@ class CouncilController(
     @PutMapping("/rule/{type}", consumes = ["multipart/form-data"])
     fun updateRuleByType(
         @PathVariable(required = true) type: String,
-        @RequestPart("removeFileIds") removeFileIds: List<Long>,
+        @RequestPart("deleteIds") deleteIds: List<Long>,
         @RequestPart("addFiles") addFiles: List<MultipartFile>
     ): CouncilFileRuleResponse =
         councilFileService
-            .updateCouncilRule(CouncilFileRulesKey.from(type), removeFileIds, addFiles)
+            .updateCouncilRule(CouncilFileRulesKey.from(type), deleteIds, addFiles)
             .let { CouncilFileRuleResponse.from(it) }
 
     @DeleteMapping("/rule/{type}")
@@ -148,11 +148,11 @@ class CouncilController(
     fun updateMeetingMinute(
         @PathVariable(required = true) year: Int,
         @PathVariable(required = true) index: Int,
-        @RequestPart("removeFileIds") removeFileIds: List<Long>,
+        @RequestPart("deleteIds") deleteIds: List<Long>,
         @RequestPart("addFiles") addFiles: List<MultipartFile>
     ): CouncilFileMeetingMinuteResponse =
         councilFileService
-            .updateCouncilMeetingMinute(year, index, removeFileIds, addFiles)
+            .updateCouncilMeetingMinute(year, index, deleteIds, addFiles)
             .let { CouncilFileMeetingMinuteResponse.from(it) }
 
     @DeleteMapping("/meeting-minute/{year}/{index}")
