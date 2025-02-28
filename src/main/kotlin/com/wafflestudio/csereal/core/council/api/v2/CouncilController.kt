@@ -59,6 +59,7 @@ class CouncilController(
     @GetMapping("/intro")
     fun readIntro(): CouncilIntroDto = councilService.readIntro()
 
+    @PreAuthorize("hasAnyRole('COUNCIL', 'STAFF')")
     @PutMapping("/intro", consumes = ["multipart/form-data"])
     fun upsertIntro(
         @RequestPart request: CouncilIntroUpdateRequest,
