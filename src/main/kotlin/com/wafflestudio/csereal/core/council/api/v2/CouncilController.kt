@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.council.api.v2
 
+import com.wafflestudio.csereal.core.council.api.req.CouncilFileModifyReq
 import com.wafflestudio.csereal.core.council.dto.*
 import com.wafflestudio.csereal.core.council.api.res.CouncilFileRuleResponse
 import com.wafflestudio.csereal.core.council.api.res.CouncilFileRulesResponse
@@ -94,11 +95,11 @@ class CouncilController(
     @PutMapping("/rule/{type}", consumes = ["multipart/form-data"])
     fun updateRuleByType(
         @PathVariable(required = true) type: String,
-        @RequestPart("deleteIds") deleteIds: List<Long>,
+        @RequestPart("request") request: CouncilFileModifyReq,
         @RequestPart("newAttachments") newAttachments: List<MultipartFile>
     ): CouncilFileRuleResponse =
         councilFileService
-            .updateCouncilRule(CouncilFileRulesKey.from(type), deleteIds, newAttachments)
+            .updateCouncilRule(CouncilFileRulesKey.from(type), request.deleteIds, newAttachments)
             .let { CouncilFileRuleResponse.from(it) }
 
     @PreAuthorize("hasAnyRole('COUNCIL', 'STAFF')")
@@ -154,11 +155,11 @@ class CouncilController(
     fun updateMeetingMinute(
         @PathVariable(required = true) year: Int,
         @PathVariable(required = true) index: Int,
-        @RequestPart("deleteIds") deleteIds: List<Long>,
+        @RequestPart("request") request: CouncilFileModifyReq,
         @RequestPart("newAttachments") newAttachments: List<MultipartFile>
     ): CouncilFileMeetingMinuteResponse =
         councilFileService
-            .updateCouncilMeetingMinute(year, index, deleteIds, newAttachments)
+            .updateCouncilMeetingMinute(year, index, request.deleteIds, newAttachments)
             .let { CouncilFileMeetingMinuteResponse.from(it) }
 
     @PreAuthorize("hasAnyRole('COUNCIL', 'STAFF')")
