@@ -95,10 +95,10 @@ class CouncilController(
     fun updateRuleByType(
         @PathVariable(required = true) type: String,
         @RequestPart("deleteIds") deleteIds: List<Long>,
-        @RequestPart("addFiles") addFiles: List<MultipartFile>
+        @RequestPart("newAttachments") newAttachments: List<MultipartFile>
     ): CouncilFileRuleResponse =
         councilFileService
-            .updateCouncilRule(CouncilFileRulesKey.from(type), deleteIds, addFiles)
+            .updateCouncilRule(CouncilFileRulesKey.from(type), deleteIds, newAttachments)
             .let { CouncilFileRuleResponse.from(it) }
 
     @PreAuthorize("hasAnyRole('COUNCIL', 'STAFF')")
@@ -155,10 +155,10 @@ class CouncilController(
         @PathVariable(required = true) year: Int,
         @PathVariable(required = true) index: Int,
         @RequestPart("deleteIds") deleteIds: List<Long>,
-        @RequestPart("addFiles") addFiles: List<MultipartFile>
+        @RequestPart("newAttachments") newAttachments: List<MultipartFile>
     ): CouncilFileMeetingMinuteResponse =
         councilFileService
-            .updateCouncilMeetingMinute(year, index, deleteIds, addFiles)
+            .updateCouncilMeetingMinute(year, index, deleteIds, newAttachments)
             .let { CouncilFileMeetingMinuteResponse.from(it) }
 
     @PreAuthorize("hasAnyRole('COUNCIL', 'STAFF')")
