@@ -22,7 +22,7 @@ class CouncilController(
     private val councilService: CouncilService,
     private val councilFileService: CouncilFileService
 ) {
-    @PreAuthorize("hasRole('COUNCIL')")
+    @PreAuthorize("hasAnyRole('COUNCIL', 'STAFF')")
     @PostMapping("/report", consumes = ["multipart/form-data"])
     fun createReport(
         @RequestPart
@@ -42,7 +42,7 @@ class CouncilController(
         return councilService.readAllReports(pageRequest)
     }
 
-    @PreAuthorize("hasRole('COUNCIL')")
+    @PreAuthorize("hasAnyRole('COUNCIL', 'STAFF')")
     @PutMapping("/report/{id}", consumes = ["multipart/form-data"])
     fun updateReport(
         @PathVariable id: Long,
@@ -50,7 +50,7 @@ class CouncilController(
         @RequestPart newMainImage: MultipartFile?
     ) = councilService.updateReport(id, request, newMainImage)
 
-    @PreAuthorize("hasRole('COUNCIL')")
+    @PreAuthorize("hasAnyRole('COUNCIL', 'STAFF')")
     @DeleteMapping("/report/{id}")
     fun deleteReport(
         @PathVariable id: Long
@@ -59,6 +59,7 @@ class CouncilController(
     @GetMapping("/intro")
     fun readIntro(): CouncilIntroDto = councilService.readIntro()
 
+    @PreAuthorize("hasAnyRole('COUNCIL', 'STAFF')")
     @PutMapping("/intro", consumes = ["multipart/form-data"])
     fun upsertIntro(
         @RequestPart request: CouncilIntroUpdateRequest,
@@ -79,6 +80,7 @@ class CouncilController(
             .getCouncilRule(CouncilFileRulesKey.from(type))
             .let { CouncilFileRuleResponse.from(it) }
 
+    @PreAuthorize("hasAnyRole('COUNCIL', 'STAFF')")
     @PostMapping("/rule/{type}", consumes = ["multipart/form-data"])
     fun createRuleByType(
         @PathVariable(required = true) type: String,
@@ -88,16 +90,18 @@ class CouncilController(
             .createCouncilRule(CouncilFileRulesKey.from(type), attachments)
             .let { CouncilFileRuleResponse.from(it) }
 
+    @PreAuthorize("hasAnyRole('COUNCIL', 'STAFF')")
     @PutMapping("/rule/{type}", consumes = ["multipart/form-data"])
     fun updateRuleByType(
         @PathVariable(required = true) type: String,
-        @RequestPart("removeFileIds") removeFileIds: List<Long>,
+        @RequestPart("deleteIds") deleteIds: List<Long>,
         @RequestPart("addFiles") addFiles: List<MultipartFile>
     ): CouncilFileRuleResponse =
         councilFileService
-            .updateCouncilRule(CouncilFileRulesKey.from(type), removeFileIds, addFiles)
+            .updateCouncilRule(CouncilFileRulesKey.from(type), deleteIds, addFiles)
             .let { CouncilFileRuleResponse.from(it) }
 
+    @PreAuthorize("hasAnyRole('COUNCIL', 'STAFF')")
     @DeleteMapping("/rule/{type}")
     fun deleteRuleByType(
         @PathVariable(required = true) type: String
@@ -131,6 +135,7 @@ class CouncilController(
             .getCouncilMeetingMinute(year, index)
             .let { CouncilFileMeetingMinuteResponse.from(it) }
 
+    @PreAuthorize("hasAnyRole('COUNCIL', 'STAFF')")
     @PostMapping("/meeting-minute/{year}", consumes = ["multipart/form-data"])
     fun createMeetingMinute(
         @PathVariable(required = true)
@@ -144,17 +149,19 @@ class CouncilController(
             .createCouncilMeetingMinute(year, attachments)
             .let { CouncilFileMeetingMinuteResponse.from(it) }
 
+    @PreAuthorize("hasAnyRole('COUNCIL', 'STAFF')")
     @PutMapping("/meeting-minute/{year}/{index}", consumes = ["multipart/form-data"])
     fun updateMeetingMinute(
         @PathVariable(required = true) year: Int,
         @PathVariable(required = true) index: Int,
-        @RequestPart("removeFileIds") removeFileIds: List<Long>,
+        @RequestPart("deleteIds") deleteIds: List<Long>,
         @RequestPart("addFiles") addFiles: List<MultipartFile>
     ): CouncilFileMeetingMinuteResponse =
         councilFileService
-            .updateCouncilMeetingMinute(year, index, removeFileIds, addFiles)
+            .updateCouncilMeetingMinute(year, index, deleteIds, addFiles)
             .let { CouncilFileMeetingMinuteResponse.from(it) }
 
+    @PreAuthorize("hasAnyRole('COUNCIL', 'STAFF')")
     @DeleteMapping("/meeting-minute/{year}/{index}")
     fun deleteMeetingMinute(
         @PathVariable(required = true) year: Int,
