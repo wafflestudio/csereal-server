@@ -8,13 +8,11 @@ import java.util.UUID
 interface ReservationRepository : JpaRepository<ReservationEntity, Long> {
 
     @Query(
-        "SELECT r FROM reservation r " +
-            "WHERE r.room.id = :roomId " +
-            "AND ((:start <= r.startTime " +
-            "AND r.startTime < :end) " +
-            "OR (:start < r.endTime " +
-            "AND r.endTime <= :end) " +
-            "OR (r.startTime <= :start AND r.endTime >= :end))"
+        """
+        SELECT r FROM reservation r
+        WHERE r.room.id = :roomId
+        AND r.startTime < :end AND r.endTime > :start
+        """
     )
     fun findByRoomIdAndTimeOverlap(roomId: Long, start: LocalDateTime, end: LocalDateTime): List<ReservationEntity>
 
