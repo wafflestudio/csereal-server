@@ -2,10 +2,11 @@ package com.wafflestudio.csereal.core.admissions.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.core.admissions.api.req.AdmissionMigrateElem
 import com.wafflestudio.csereal.core.admissions.api.req.AdmissionReqBody
+import com.wafflestudio.csereal.core.admissions.api.req.UpdateAdmissionReq
 import com.wafflestudio.csereal.core.admissions.api.res.AdmissionSearchResBody
 import com.wafflestudio.csereal.core.admissions.api.res.AdmissionSearchResElem
+import com.wafflestudio.csereal.core.admissions.api.res.GroupedAdmission
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsEntity
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsRepository
 import com.wafflestudio.csereal.core.admissions.dto.AdmissionsDto
@@ -30,7 +31,16 @@ interface AdmissionsService {
         language: LanguageType
     ): AdmissionsDto
 
-    fun migrateAdmissions(requestList: List<AdmissionMigrateElem>): List<AdmissionsDto>
+    fun readGroupedAdmission(
+        mainType: AdmissionsMainType,
+        postType: AdmissionsPostType
+    ): GroupedAdmission
+
+    fun updateGroupedAdmission(
+        mainType: AdmissionsMainType,
+        postType: AdmissionsPostType,
+        updateAdmissionReq: UpdateAdmissionReq
+    )
 
     fun searchPageAdmission(
         keyword: String,
@@ -69,6 +79,48 @@ class AdmissionsServiceImpl(
         language
     )?.let { AdmissionsDto.of(it) }
         ?: throw CserealException.Csereal404("해당하는 페이지를 찾을 수 없습니다.")
+
+    @Transactional(readOnly = true)
+    override fun readGroupedAdmission(
+        mainType: AdmissionsMainType,
+        postType: AdmissionsPostType
+    ): GroupedAdmission {
+        val koAdmission = admissionsRepository.findByMainTypeAndPostTypeAndLanguage(
+            mainType,
+            postType,
+            LanguageType.KO
+        )?.let { AdmissionsDto.of(it) }
+            ?: throw CserealException.Csereal404("해당하는 한글 페이지를 찾을 수 없습니다.")
+        val enAdmission = admissionsRepository.findByMainTypeAndPostTypeAndLanguage(
+            mainType,
+            postType,
+            LanguageType.EN
+        )?.let { AdmissionsDto.of(it) }
+            ?: throw CserealException.Csereal404("해당하는 영어 페이지를 찾을 수 없습니다.")
+        return GroupedAdmission(koAdmission, enAdmission)
+    }
+
+    @Transactional
+    override fun updateGroupedAdmission(
+        mainType: AdmissionsMainType,
+        postType: AdmissionsPostType,
+        updateAdmissionReq: UpdateAdmissionReq
+    ) {
+        val koAdmission = admissionsRepository.findByMainTypeAndPostTypeAndLanguage(
+            mainType,
+            postType,
+            LanguageType.KO
+        ) ?: throw CserealException.Csereal404("해당하는 한글 페이지를 찾을 수 없습니다.")
+        val enAdmission = admissionsRepository.findByMainTypeAndPostTypeAndLanguage(
+            mainType,
+            postType,
+            LanguageType.EN
+        ) ?: throw CserealException.Csereal404("해당하는 한글 페이지를 찾을 수 없습니다.")
+        koAdmission.description = updateAdmissionReq.ko
+        enAdmission.description = updateAdmissionReq.en
+        syncSearchAdmission(koAdmission)
+        syncSearchAdmission(enAdmission)
+    }
 
     @Transactional(readOnly = true)
     override fun searchTopAdmission(
@@ -122,31 +174,5 @@ class AdmissionsServiceImpl(
                 AdmissionSearchResElem.of(it, keyword, amount)
             }
         )
-    }
-
-    @Transactional
-    override fun migrateAdmissions(requestList: List<AdmissionMigrateElem>) = requestList.map {
-        // Todo: add admission migrate search
-        val mainType = AdmissionsMainType.fromJsonValue(it.mainType)
-        val postType = AdmissionsPostType.fromJsonValue(it.postType)
-        val language = LanguageType.makeStringToLanguageType(it.language)
-        AdmissionsEntity(
-            name = it.name!!,
-            mainType = mainType,
-            postType = postType,
-            language = language,
-            description = it.description!!,
-            searchContent = AdmissionsEntity.createSearchContent(
-                name = it.name,
-                mainType = mainType,
-                postType = postType,
-                language = language,
-                description = it.description
-            )
-        )
-    }.let {
-        admissionsRepository.saveAll(it)
-    }.map {
-        AdmissionsDto.of(it)
     }
 }

@@ -1,13 +1,14 @@
 package com.wafflestudio.csereal.core.user.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.core.user.database.Role
+import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
+import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService
@@ -40,20 +41,21 @@ class CustomOidcUserService(
             user = createUser(username, userInfoAttributes)
         }
 
-        val groups = oidcUser.idToken.getClaim<List<String>>("groups")
-        val role = if ("staff" in groups) {
-            Role.ROLE_STAFF
-        } else if ("professor" in groups) {
-            Role.ROLE_PROFESSOR
-        } else if ("graduate" in groups) {
-            Role.ROLE_GRADUATE
-        } else {
-            null
+        val authorities = mutableSetOf<GrantedAuthority>()
+        authorities.addAll(oidcUser.authorities)
+
+        val groups = oidcUser.idToken.getClaim<List<String>>("groups") ?: emptyList()
+        if ("staff" in groups) {
+            authorities.add(SimpleGrantedAuthority("ROLE_STAFF"))
+        }
+        if ("professor" in groups || "graduate" in groups) {
+            authorities.add(SimpleGrantedAuthority("ROLE_RESERVATION"))
+        }
+        if ("student-council" in groups) {
+            authorities.add(SimpleGrantedAuthority("ROLE_COUNCIL"))
         }
 
-        user.role = role
-
-        return oidcUser
+        return CustomOidcUser(user, authorities, oidcUser.idToken)
     }
 
     private fun fetchUserInfo(userRequest: OidcUserRequest): Map<String, Any> {
@@ -90,8 +92,7 @@ class CustomOidcUserService(
             username = username,
             name = name,
             email = email,
-            studentId = studentId,
-            role = null
+            studentId = studentId
         )
 
         userRepository.save(newUser)

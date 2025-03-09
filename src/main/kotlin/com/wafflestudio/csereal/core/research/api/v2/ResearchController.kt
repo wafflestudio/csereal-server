@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.research.api.v2
 
-import com.wafflestudio.csereal.common.aop.AuthenticatedStaff
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.research.api.req.CreateLabLanguageReqBody
 import com.wafflestudio.csereal.core.research.api.req.CreateResearchLanguageReqBody
@@ -14,6 +13,7 @@ import com.wafflestudio.csereal.core.research.type.ResearchType
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
@@ -45,14 +45,14 @@ class ResearchController(
         return researchService.readAllResearch(languageEnum, researchTypeEnum)
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping(consumes = ["multipart/form-data"])
     fun createResearchGroup(
         @RequestPart("request") request: CreateResearchLanguageReqBody,
         @RequestPart("mainImage") mainImage: MultipartFile?
     ): ResearchLanguageDto = researchService.createResearchLanguage(request, mainImage)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{koreanId}/{englishId}", consumes = ["multipart/form-data"])
     fun updateResearch(
         @PathVariable @Positive
@@ -68,7 +68,7 @@ class ResearchController(
         return researchService.updateResearchLanguage(koreanId, englishId, request, newMainImage)
     }
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/{koreanId}/{englishId}")
     fun deleteResearch(
         @PathVariable @Positive
@@ -92,7 +92,7 @@ class ResearchController(
         @PathVariable labId: Long
     ): LabLanguageDto = labService.readLabLanguage(labId)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/lab", consumes = ["multipart/form-data"])
     fun createLab(
         @Valid
@@ -102,7 +102,7 @@ class ResearchController(
         @RequestPart("pdf") pdf: MultipartFile?
     ): LabLanguageDto = labService.createLabLanguage(request, pdf)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/lab/{koreanLabId}/{englishLabId}", consumes = ["multipart/form-data"])
     fun updateLab(
         @PathVariable @Positive
@@ -115,7 +115,7 @@ class ResearchController(
         @RequestPart("pdf") pdf: MultipartFile?
     ): LabLanguageDto = labService.updateLabLanguage(koreanLabId, englishLabId, request, pdf)
 
-    @AuthenticatedStaff
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/lab/{koreanLabId}/{englishLabId}")
     fun deleteLab(
         @PathVariable @Positive

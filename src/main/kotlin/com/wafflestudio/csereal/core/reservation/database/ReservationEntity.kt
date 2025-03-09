@@ -6,14 +6,17 @@ import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
+import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.PrePersist
 import jakarta.persistence.PreUpdate
+import jakarta.persistence.Table
 import java.time.LocalDateTime
 import java.util.*
 
 @Entity(name = "reservation")
+@Table(indexes = [Index(columnList = "room_id,start_time,end_time", unique = true)])
 class ReservationEntity(
 
     @ManyToOne(fetch = FetchType.LAZY)

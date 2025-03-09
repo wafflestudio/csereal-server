@@ -7,20 +7,14 @@ import com.wafflestudio.csereal.core.conference.database.ConferencePageRepositor
 import com.wafflestudio.csereal.core.conference.database.ConferenceRepository
 import com.wafflestudio.csereal.core.conference.dto.ConferenceDto
 import com.wafflestudio.csereal.core.conference.dto.ConferenceModifyRequest
-import com.wafflestudio.csereal.core.user.database.Role
-import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
+import com.wafflestudio.csereal.core.user.service.UserService
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkStatic
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.context.request.RequestAttributes
-import org.springframework.web.context.request.RequestContextHolder
 
 @SpringBootTest
 @Transactional
@@ -28,24 +22,15 @@ class ConferenceServiceTest(
     private val conferenceService: ConferenceService,
     private val conferencePageRepository: ConferencePageRepository,
     private val conferenceRepository: ConferenceRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val userService: UserService
 ) : BehaviorSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
 
     beforeSpec {
-        val user = userRepository.save(
-            UserEntity(
-                username = "admin",
-                name = "admin",
-                email = "email",
-                studentId = "studentId",
-                role = Role.ROLE_STAFF
-            )
-        )
-
         conferencePageRepository.save(
             ConferencePageEntity(
-                author = user
+                author = userService.getLoginUser()
             )
         )
     }
@@ -58,20 +43,6 @@ class ConferenceServiceTest(
 
     // ConferencePage
     Given("Conference를 수정하려고 할 때") {
-        val userEntity = userRepository.findByUsername("admin")!!
-
-        mockkStatic(RequestContextHolder::class)
-        val mockRequestAttributes = mockk<RequestAttributes>()
-        every {
-            RequestContextHolder.getRequestAttributes()
-        } returns mockRequestAttributes
-        every {
-            mockRequestAttributes.getAttribute(
-                "loggedInUser",
-                RequestAttributes.SCOPE_REQUEST
-            )
-        } returns userEntity
-
         var conferencePage = conferencePageRepository.findAll().first()
 
         val conferences = conferenceRepository.saveAll(

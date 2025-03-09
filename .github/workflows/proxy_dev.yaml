@@ -39,6 +39,7 @@ jobs:
         with:
           host: ${{secrets.SSH_HOST_DEV}}
           username: ${{secrets.SSH_USER}}
+          port: ${{secrets.SSH_PORT_DEV}}
           key: ${{secrets.SSH_KEY}}
           script: |
             cd ~/proxy
