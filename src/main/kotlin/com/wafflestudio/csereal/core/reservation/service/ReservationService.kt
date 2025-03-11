@@ -106,9 +106,11 @@ class ReservationServiceImpl(
 
     override fun cancelRecurring(recurrenceId: UUID) {
         val user = userService.getLoginUser()
-        val reservation = reservationRepository.findByRecurrenceId(recurrenceId)
-            ?: throw CserealException.Csereal404("reservation not found")
-        if (!isCurrentUserStaff() && user.id != reservation.user.id) {
+        val reservation = reservationRepository.findAllByRecurrenceId(recurrenceId)
+        if (reservation.isEmpty()) {
+            throw CserealException.Csereal404("reservation not found")
+        }
+        if (!isCurrentUserStaff() && user.id != reservation[0].user.id) {
             throw CserealException.Csereal403("Cannot cancel other's reservation")
         }
         reservationRepository.deleteAllByRecurrenceId(recurrenceId)
