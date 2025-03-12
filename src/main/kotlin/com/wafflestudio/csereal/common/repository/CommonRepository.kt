@@ -197,7 +197,7 @@ class CommonRepositoryImpl : CommonRepository {
         replaceOperatorsToSpace(keyword)
     )
 
-    val operatorRegex = """[+-<>'"@]""".toRegex()
+    val operatorRegex = """[+\-<>'"@()~*]""".toRegex()
 
     // Currently, we do not want user to search with operators, or having sql error by using @ operator.
     // So we replace all operators to space.
