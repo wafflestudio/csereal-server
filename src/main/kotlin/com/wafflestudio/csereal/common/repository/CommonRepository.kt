@@ -24,6 +24,7 @@ interface CommonRepository {
         field4: Any,
         field5: Any
     ): NumberTemplate<Double>
+
     fun searchFullSextupleTextTemplate(
         keyword: String,
         field1: Any,
@@ -33,6 +34,7 @@ interface CommonRepository {
         field5: Any,
         field6: Any
     ): NumberTemplate<Double>
+
     fun searchFullSeptupleTextTemplate(
         keyword: String,
         field1: Any,
@@ -43,6 +45,7 @@ interface CommonRepository {
         field6: Any,
         field7: Any
     ): NumberTemplate<Double>
+
     fun searchFullOctupleTextTemplate(
         keyword: String,
         field1: Any,
@@ -65,7 +68,7 @@ class CommonRepositoryImpl : CommonRepository {
         Double::class.javaObjectType,
         "function('match',{0},{1})",
         field,
-        keyword
+        replaceOperatorsToSpace(keyword)
     )
 
     override fun searchFullDoubleTextTemplate(
@@ -77,7 +80,7 @@ class CommonRepositoryImpl : CommonRepository {
         "function('match2',{0},{1},{2})",
         field1,
         field2,
-        keyword
+        replaceOperatorsToSpace(keyword)
     )
 
     override fun searchFullTripleTextTemplate(
@@ -91,7 +94,7 @@ class CommonRepositoryImpl : CommonRepository {
         field1,
         field2,
         field3,
-        keyword
+        replaceOperatorsToSpace(keyword)
     )
 
     override fun searchFullQuadrapleTextTemplate(
@@ -107,7 +110,7 @@ class CommonRepositoryImpl : CommonRepository {
         field2,
         field3,
         field4,
-        keyword
+        replaceOperatorsToSpace(keyword)
     )
 
     override fun searchFullQuintupleTextTemplate(
@@ -125,7 +128,7 @@ class CommonRepositoryImpl : CommonRepository {
         field3,
         field4,
         field5,
-        keyword
+        replaceOperatorsToSpace(keyword)
     )
 
     override fun searchFullSextupleTextTemplate(
@@ -145,7 +148,7 @@ class CommonRepositoryImpl : CommonRepository {
         field4,
         field5,
         field6,
-        keyword
+        replaceOperatorsToSpace(keyword)
     )
 
     override fun searchFullSeptupleTextTemplate(
@@ -167,7 +170,7 @@ class CommonRepositoryImpl : CommonRepository {
         field5,
         field6,
         field7,
-        keyword
+        replaceOperatorsToSpace(keyword)
     )
 
     override fun searchFullOctupleTextTemplate(
@@ -191,6 +194,14 @@ class CommonRepositoryImpl : CommonRepository {
         field6,
         field7,
         field8,
-        keyword
+        replaceOperatorsToSpace(keyword)
     )
+
+    val operatorRegex = """[+\-<>'"@()~*]""".toRegex()
+
+    // Currently, we do not want user to search with operators, or having sql error by using @ operator.
+    // So we replace all operators to space.
+    // This should be changed if we want to support operators or advanced search in the future.
+    private inline fun replaceOperatorsToSpace(keyword: String): String =
+        operatorRegex.replace(keyword, " ")
 }
