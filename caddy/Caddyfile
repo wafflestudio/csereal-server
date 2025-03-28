@@ -10,7 +10,7 @@
 	reverse_proxy host.docker.internal:3000
 
 	@backend_denied {
-		path /api/v1/search/refresh
+		path /api/v2/search/refresh
 		not remote_ip {$LOCAL_IP}
 	}
 	abort @backend_denied
