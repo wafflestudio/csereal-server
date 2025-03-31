@@ -9,7 +9,7 @@ services:
         ports:
             - '3306:3306'
         volumes:
-            - ./db:/var/lib/mysql
+            - db:/var/lib/mysql
             - ./db_config:/etc/mysql/conf.d
         networks:
             - my-network
