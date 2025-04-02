@@ -1,0 +1,36 @@
+services:
+    db:
+        image: mysql:8.0
+        cap_add:
+            - SYS_NICE
+        environment:
+            - MYSQL_DATABASE=csereal
+            - MYSQL_ROOT_PASSWORD=password
+        ports:
+            - '3306:3306'
+        volumes:
+            - db:/var/lib/mysql
+            - ./db_config:/etc/mysql/conf.d
+        networks:
+            - my-network
+
+    my_server:
+        image: my_server_image:1.0
+        environment:
+            - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/csereal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
+            - SPRING_DATASOURCE_USERNAME=root
+            - SPRING_DATASOURCE_PASSWORD=password
+        build:
+            context: .
+        ports:
+            - '8080:8080'
+        depends_on:
+            - db
+        restart: on-failure
+        networks:
+            - my-network
+volumes:
+    db:
+        driver: local
+networks:
+    my-network:
