@@ -205,10 +205,6 @@ class ProfessorServiceImpl(
             ResearchAreaEntity.create(researchArea, professor)
         }
 
-//        for (career in createProfessorRequest.careers) {
-//            CareerEntity.create(career, professor)
-//        }
-
         if (mainImage != null) {
             mainImageService.uploadMainImage(professor, mainImage)
         }
@@ -310,15 +306,6 @@ class ProfessorServiceImpl(
         for (researchArea in researchAreasToAdd) {
             ResearchAreaEntity.create(researchArea, professor)
         }
-
-//        // 경력 업데이트
-//        val oldCareers = professor.careers.map { it.name }
-//        val careersToRemove = oldCareers - updateReq.careers
-//        val careersToAdd = updateReq.careers - oldCareers
-//        professor.careers.removeIf { it.name in careersToRemove }
-//        for (career in careersToAdd) {
-//            CareerEntity.create(career, professor)
-//        }
 
         // 검색 엔티티 업데이트
         professor.memberSearch!!.update(professor)
