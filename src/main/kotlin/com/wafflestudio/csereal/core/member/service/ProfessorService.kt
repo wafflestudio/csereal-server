@@ -187,7 +187,7 @@ class ProfessorServiceImpl(
                 fax = fax,
                 email = email,
                 website = website,
-                careers = careers.toMutableList(),
+                careers = careers.toMutableList()
             )
         }
 
