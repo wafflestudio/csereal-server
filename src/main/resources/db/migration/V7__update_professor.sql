@@ -11,3 +11,5 @@ SET careers = (
 WHERE EXISTS (
     SELECT * FROM career WHERE career.professor_id = professor.id
 );
+
+DROP TABLE career;
