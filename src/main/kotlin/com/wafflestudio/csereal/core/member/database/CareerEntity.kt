@@ -19,7 +19,7 @@ class CareerEntity(
                 name = name,
                 professor = professor
             )
-            professor.careers.add(careerEntity)
+            // professor.careers.add(careerEntity)
             return careerEntity
         }
     }
