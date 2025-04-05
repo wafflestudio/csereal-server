@@ -186,7 +186,8 @@ class ProfessorServiceImpl(
                 phone = phone,
                 fax = fax,
                 email = email,
-                website = website
+                website = website,
+                careers = careers.toMutableList()
             )
         }
 
@@ -202,10 +203,6 @@ class ProfessorServiceImpl(
 
         for (researchArea in createProfessorRequest.researchAreas) {
             ResearchAreaEntity.create(researchArea, professor)
-        }
-
-        for (career in createProfessorRequest.careers) {
-            CareerEntity.create(career, professor)
         }
 
         if (mainImage != null) {
@@ -274,6 +271,7 @@ class ProfessorServiceImpl(
                 fax = it.fax
                 email = it.email
                 website = it.website
+                careers = it.careers.toMutableList()
             }
         }
 
@@ -307,15 +305,6 @@ class ProfessorServiceImpl(
         professor.researchAreas.removeIf { it.name in researchAreasToRemove }
         for (researchArea in researchAreasToAdd) {
             ResearchAreaEntity.create(researchArea, professor)
-        }
-
-        // 경력 업데이트
-        val oldCareers = professor.careers.map { it.name }
-        val careersToRemove = oldCareers - updateReq.careers
-        val careersToAdd = updateReq.careers - oldCareers
-        professor.careers.removeIf { it.name in careersToRemove }
-        for (career in careersToAdd) {
-            CareerEntity.create(career, professor)
         }
 
         // 검색 엔티티 업데이트

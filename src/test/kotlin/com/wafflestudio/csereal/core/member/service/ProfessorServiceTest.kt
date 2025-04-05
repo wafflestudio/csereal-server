@@ -91,7 +91,7 @@ class ProfessorServiceTest(
                 professorEntity.website shouldBe professorCreateReq.website
                 professorEntity.educations.map { it.name } shouldBe professorCreateReq.educations
                 professorEntity.researchAreas.map { it.name } shouldBe professorCreateReq.researchAreas
-                professorEntity.careers.map { it.name } shouldBe professorCreateReq.careers
+                professorEntity.careers shouldBe professorCreateReq.careers
             }
 
             Then("교수의 검색 정보가 생성되어야 한다") {
@@ -218,7 +218,7 @@ class ProfessorServiceTest(
                 professorEntity.website shouldBe modifyProfessorReq.website
                 professorEntity.educations.map { it.name } shouldBe modifyProfessorReq.educations
                 professorEntity.researchAreas.map { it.name } shouldBe modifyProfessorReq.researchAreas
-                professorEntity.careers.map { it.name } shouldBe modifyProfessorReq.careers
+                professorEntity.careers shouldBe modifyProfessorReq.careers
             }
 
             Then("검색 정보가 수정되어야 한다.") {

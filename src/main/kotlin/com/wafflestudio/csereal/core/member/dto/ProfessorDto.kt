@@ -44,7 +44,7 @@ data class ProfessorDto(
                 website = professorEntity.website,
                 educations = professorEntity.educations.map { it.name },
                 researchAreas = professorEntity.researchAreas.map { it.name },
-                careers = professorEntity.careers.map { it.name },
+                careers = professorEntity.careers,
                 imageURL = imageURL
             )
         }

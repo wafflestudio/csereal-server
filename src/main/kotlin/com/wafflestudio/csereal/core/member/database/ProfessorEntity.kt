@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.member.database
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.common.utils.StringListConverter
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.research.database.LabEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
@@ -40,8 +41,9 @@ class ProfessorEntity(
     @OneToMany(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
     val researchAreas: MutableList<ResearchAreaEntity> = mutableListOf(),
 
-    @OneToMany(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val careers: MutableList<CareerEntity> = mutableListOf(),
+    @Column(columnDefinition = "TEXT")
+    @Convert(converter = StringListConverter::class)
+    var careers: MutableList<String> = mutableListOf(),
 
     @OneToOne
     var mainImage: MainImageEntity? = null,

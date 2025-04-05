@@ -4,7 +4,6 @@ import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.JPAExpressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.core.member.database.QCareerEntity.careerEntity
 import com.wafflestudio.csereal.core.member.database.QEducationEntity.educationEntity
 import com.wafflestudio.csereal.core.member.database.QMemberLanguageEntity.memberLanguageEntity
 import com.wafflestudio.csereal.core.member.database.QProfessorEntity.professorEntity
@@ -57,7 +56,6 @@ class ProfessorRepositoryCustomImpl(
                 )
             ).leftJoin(mainImageEntity).fetchJoin()
             .leftJoin(labEntity).fetchJoin()
-            .leftJoin(careerEntity).on(careerEntity.professor.eq(professorEntity))
             .leftJoin(researchAreaEntity).on(researchAreaEntity.professor.eq(professorEntity))
             .leftJoin(educationEntity).on(educationEntity.professor.eq(professorEntity))
             .fetch()

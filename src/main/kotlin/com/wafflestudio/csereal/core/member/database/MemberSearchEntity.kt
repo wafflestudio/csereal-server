@@ -52,7 +52,7 @@ class MemberSearchEntity(
             professor.website?.let { stringBuilder.appendLine(it) }
             professor.educations.forEach { stringBuilder.appendLine(it.name) }
             professor.researchAreas.forEach { stringBuilder.appendLine(it.name) }
-            professor.careers.forEach { stringBuilder.appendLine(it.name) }
+            professor.careers.forEach { stringBuilder.appendLine(it) }
 
             return stringBuilder.toString()
         }
