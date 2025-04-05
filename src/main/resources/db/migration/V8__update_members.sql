@@ -36,3 +36,7 @@ SET tasks = (
 WHERE EXISTS (
     SELECT * FROM task WHERE task.staff_id = staff.id
 );
+
+DROP TABLE education;
+DROP TABLE research_area;
+DROP TABLE task;
