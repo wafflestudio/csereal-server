@@ -35,11 +35,13 @@ class ProfessorEntity(
     var email: String?,
     var website: String?,
 
-    @OneToMany(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val educations: MutableList<EducationEntity> = mutableListOf(),
+    @Column(columnDefinition = "TEXT")
+    @Convert(converter = StringListConverter::class)
+    var educations: MutableList<String> = mutableListOf(),
 
-    @OneToMany(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val researchAreas: MutableList<ResearchAreaEntity> = mutableListOf(),
+    @Column(columnDefinition = "TEXT")
+    @Convert(converter = StringListConverter::class)
+    var researchAreas: MutableList<String> = mutableListOf(),
 
     @Column(columnDefinition = "TEXT")
     @Convert(converter = StringListConverter::class)

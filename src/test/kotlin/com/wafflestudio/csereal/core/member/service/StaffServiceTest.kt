@@ -56,7 +56,7 @@ class StaffServiceTest(
                 staffEntity.office shouldBe createStaffReq.office
                 staffEntity.phone shouldBe createStaffReq.phone
                 staffEntity.email shouldBe createStaffReq.email
-                staffEntity.tasks.map { it.name } shouldBe createStaffReq.tasks
+                staffEntity.tasks shouldBe createStaffReq.tasks
             }
 
             Then("검색 정보가 생성된다") {
@@ -112,7 +112,7 @@ class StaffServiceTest(
                 staffEntity.office shouldBe modifyStaffReq.office
                 staffEntity.phone shouldBe modifyStaffReq.phone
                 staffEntity.email shouldBe modifyStaffReq.email
-                staffEntity.tasks.map { it.name } shouldBe modifyStaffReq.tasks
+                staffEntity.tasks shouldBe modifyStaffReq.tasks
             }
 
             Then("검색 정보가 수정된다") {

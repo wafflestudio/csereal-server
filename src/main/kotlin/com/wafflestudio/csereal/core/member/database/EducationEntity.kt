@@ -18,7 +18,7 @@ class EducationEntity(
                 name = name,
                 professor = professor
             )
-            professor.educations.add(educationEntity)
+            // professor.educations.add(educationEntity)
             return educationEntity
         }
     }

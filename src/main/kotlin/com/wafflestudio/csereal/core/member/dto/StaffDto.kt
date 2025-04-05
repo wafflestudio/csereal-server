@@ -24,7 +24,7 @@ data class StaffDto(
                 office = staffEntity.office,
                 phone = staffEntity.phone,
                 email = staffEntity.email,
-                tasks = staffEntity.tasks.map { it.name },
+                tasks = staffEntity.tasks,
                 imageURL = imageURL
             )
         }

@@ -89,8 +89,8 @@ class ProfessorServiceTest(
                 professorEntity.phone shouldBe professorCreateReq.phone
                 professorEntity.fax shouldBe professorCreateReq.fax
                 professorEntity.website shouldBe professorCreateReq.website
-                professorEntity.educations.map { it.name } shouldBe professorCreateReq.educations
-                professorEntity.researchAreas.map { it.name } shouldBe professorCreateReq.researchAreas
+                professorEntity.educations shouldBe professorCreateReq.educations
+                professorEntity.researchAreas shouldBe professorCreateReq.researchAreas
                 professorEntity.careers shouldBe professorCreateReq.careers
             }
 
@@ -216,8 +216,8 @@ class ProfessorServiceTest(
                 professorEntity.phone shouldBe modifyProfessorReq.phone
                 professorEntity.fax shouldBe modifyProfessorReq.fax
                 professorEntity.website shouldBe modifyProfessorReq.website
-                professorEntity.educations.map { it.name } shouldBe modifyProfessorReq.educations
-                professorEntity.researchAreas.map { it.name } shouldBe modifyProfessorReq.researchAreas
+                professorEntity.educations shouldBe modifyProfessorReq.educations
+                professorEntity.researchAreas shouldBe modifyProfessorReq.researchAreas
                 professorEntity.careers shouldBe modifyProfessorReq.careers
             }
 

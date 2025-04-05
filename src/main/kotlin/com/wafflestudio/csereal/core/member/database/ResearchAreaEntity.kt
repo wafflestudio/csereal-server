@@ -22,7 +22,7 @@ class ResearchAreaEntity(
                 name = name,
                 professor = professor
             )
-            professor.researchAreas.add(researchArea)
+            // professor.researchAreas.add(researchArea)
             return researchArea
         }
     }

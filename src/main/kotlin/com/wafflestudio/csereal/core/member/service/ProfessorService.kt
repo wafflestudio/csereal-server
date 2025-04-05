@@ -187,6 +187,8 @@ class ProfessorServiceImpl(
                 fax = fax,
                 email = email,
                 website = website,
+                educations = educations.toMutableList(),
+                researchAreas = researchAreas.toMutableList(),
                 careers = careers.toMutableList()
             )
         }
@@ -195,14 +197,6 @@ class ProfessorServiceImpl(
             val lab = labRepository.findByIdOrNull(createProfessorRequest.labId)
                 ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다. LabId: ${createProfessorRequest.labId}")
             professor.addLab(lab)
-        }
-
-        for (education in createProfessorRequest.educations) {
-            EducationEntity.create(education, professor)
-        }
-
-        for (researchArea in createProfessorRequest.researchAreas) {
-            ResearchAreaEntity.create(researchArea, professor)
         }
 
         if (mainImage != null) {
@@ -271,6 +265,8 @@ class ProfessorServiceImpl(
                 fax = it.fax
                 email = it.email
                 website = it.website
+                educations = it.educations.toMutableList()
+                researchAreas = it.researchAreas.toMutableList()
                 careers = it.careers.toMutableList()
             }
         }
@@ -286,25 +282,6 @@ class ProfessorServiceImpl(
                 mainImageService.removeImage(it)
             }
             mainImageService.uploadMainImage(professor, newImage)
-        }
-
-        // 학력 업데이트
-        val oldEducations = professor.educations.map { it.name }
-
-        val educationsToRemove = oldEducations - updateReq.educations
-        val educationsToAdd = updateReq.educations - oldEducations
-        professor.educations.removeIf { it.name in educationsToRemove }
-        for (education in educationsToAdd) {
-            EducationEntity.create(education, professor)
-        }
-
-        // 연구 분야 업데이트
-        val oldResearchAreas = professor.researchAreas.map { it.name }
-        val researchAreasToRemove = oldResearchAreas - updateReq.researchAreas
-        val researchAreasToAdd = updateReq.researchAreas - oldResearchAreas
-        professor.researchAreas.removeIf { it.name in researchAreasToRemove }
-        for (researchArea in researchAreasToAdd) {
-            ResearchAreaEntity.create(researchArea, professor)
         }
 
         // 검색 엔티티 업데이트
