@@ -83,7 +83,7 @@ class StaffServiceImpl(
                 office,
                 phone,
                 email,
-                tasks = tasks.toMutableList()
+                tasks = tasks.map {it.trim() }.toMutableList()
             )
         }
 
@@ -180,7 +180,7 @@ class StaffServiceImpl(
             office = req.office
             phone = req.phone
             email = req.email
-            tasks = req.tasks.toMutableList()
+            tasks = req.tasks.map {it.trim() }.toMutableList()
         }
 
         if (req.removeImage && newImage == null) {
