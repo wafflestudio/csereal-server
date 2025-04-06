@@ -38,7 +38,7 @@ class StaffServiceTest(
             office = "office",
             phone = "phone",
             email = "email",
-            tasks = listOf("task1", "task2")
+            tasks = listOf("task1", "task2 ")
         )
 
         When("행정직원을 생성하면") {
@@ -56,7 +56,7 @@ class StaffServiceTest(
                 staffEntity.office shouldBe createStaffReq.office
                 staffEntity.phone shouldBe createStaffReq.phone
                 staffEntity.email shouldBe createStaffReq.email
-                staffEntity.tasks.map { it.name } shouldBe createStaffReq.tasks
+                staffEntity.tasks shouldBe createStaffReq.tasks.map { it.trim() }
             }
 
             Then("검색 정보가 생성된다") {
@@ -98,7 +98,7 @@ class StaffServiceTest(
                 office = "office2",
                 phone = "phone2",
                 email = "email2",
-                tasks = listOf("task1", "task3", "task4"),
+                tasks = listOf("task1", "task3", "task4 "),
                 removeImage = false
             )
 
@@ -112,7 +112,7 @@ class StaffServiceTest(
                 staffEntity.office shouldBe modifyStaffReq.office
                 staffEntity.phone shouldBe modifyStaffReq.phone
                 staffEntity.email shouldBe modifyStaffReq.email
-                staffEntity.tasks.map { it.name } shouldBe modifyStaffReq.tasks
+                staffEntity.tasks shouldBe modifyStaffReq.tasks.map { it.trim() }
             }
 
             Then("검색 정보가 수정된다") {

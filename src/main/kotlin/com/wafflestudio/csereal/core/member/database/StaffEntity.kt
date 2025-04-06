@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.member.database
 import com.wafflestudio.csereal.common.config.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.common.utils.StringListConverter
 import com.wafflestudio.csereal.core.member.dto.StaffDto
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.*
@@ -19,8 +20,9 @@ class StaffEntity(
     var phone: String,
     var email: String,
 
-    @OneToMany(mappedBy = "staff", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val tasks: MutableList<TaskEntity> = mutableListOf(),
+    @Column(columnDefinition = "TEXT")
+    @Convert(converter = StringListConverter::class)
+    var tasks: MutableList<String> = mutableListOf(),
 
     @OneToOne
     var mainImage: MainImageEntity? = null,
