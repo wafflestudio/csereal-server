@@ -187,9 +187,9 @@ class ProfessorServiceImpl(
                 fax = fax,
                 email = email,
                 website = website,
-                educations = educations.map {it.trim() }.toMutableList(),
-                researchAreas = researchAreas.map {it.trim() }.toMutableList(),
-                careers = careers.map {it.trim() }.toMutableList()
+                educations = educations.map { it.trim() }.toMutableList(),
+                researchAreas = researchAreas.map { it.trim() }.toMutableList(),
+                careers = careers.map { it.trim() }.toMutableList()
             )
         }
 
@@ -265,9 +265,9 @@ class ProfessorServiceImpl(
                 fax = it.fax
                 email = it.email
                 website = it.website
-                educations = it.educations.map {it.trim() }.toMutableList()
-                researchAreas = it.researchAreas.map {it.trim() }.toMutableList()
-                careers = it.careers.map {it.trim() }.toMutableList()
+                educations = it.educations.map { it.trim() }.toMutableList()
+                researchAreas = it.researchAreas.map { it.trim() }.toMutableList()
+                careers = it.careers.map { it.trim() }.toMutableList()
             }
         }
 
