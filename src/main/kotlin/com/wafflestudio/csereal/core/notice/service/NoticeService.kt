@@ -13,6 +13,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.time.LocalDate
 
 interface NoticeService {
     fun searchNotice(
@@ -101,7 +102,9 @@ class NoticeServiceImpl(
             plainTextDescription = cleanTextFromHtml(request.description),
             isPrivate = request.isPrivate,
             isPinned = request.isPinned,
+            pinnedUntil = if (request.isPinned) request.pinnedUntil else null,
             isImportant = request.isImportant,
+            importantUntil = if (request.isImportant) request.importantUntil else null,
             author = user
         )
 
