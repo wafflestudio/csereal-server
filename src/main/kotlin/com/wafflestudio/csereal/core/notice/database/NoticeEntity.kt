@@ -7,6 +7,7 @@ import com.wafflestudio.csereal.core.notice.dto.NoticeDto
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import jakarta.persistence.*
+import java.time.LocalDate
 
 @Entity(name = "notice")
 class NoticeEntity(
@@ -23,8 +24,12 @@ class NoticeEntity(
     var plainTextDescription: String,
 
     var isPrivate: Boolean,
+
     var isPinned: Boolean,
+    var pinnedUntil: LocalDate? = null,
+
     var isImportant: Boolean,
+    var importantUntil: LocalDate? = null,
 
     @OneToMany(mappedBy = "notice", cascade = [CascadeType.ALL])
     var noticeTags: MutableSet<NoticeTagEntity> = mutableSetOf(),
@@ -49,7 +54,13 @@ class NoticeEntity(
         this.titleForMain = updateNoticeRequest.titleForMain
         this.description = updateNoticeRequest.description
         this.isPrivate = updateNoticeRequest.isPrivate
+
+        // Pin related fields (prioritize isPinned flag)
         this.isPinned = updateNoticeRequest.isPinned
+        this.pinnedUntil = if (updateNoticeRequest.isPinned) updateNoticeRequest.pinnedUntil else null
+
+        // Important related fields (prioritize isImportant flag)
         this.isImportant = updateNoticeRequest.isImportant
+        this.importantUntil = if (updateNoticeRequest.isImportant) updateNoticeRequest.importantUntil else null
     }
 }
