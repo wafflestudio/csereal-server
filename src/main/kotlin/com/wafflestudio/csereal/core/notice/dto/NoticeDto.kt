@@ -5,13 +5,14 @@ import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
 import java.time.LocalDate
 
+// TODO: split between dto, response, request data classes
 data class NoticeDto(
     val id: Long,
     val title: String,
     val titleForMain: String?,
     val description: String,
     val author: String?,
-    val tags: List<String>,
+    val tags: List<String>, // TODO: make nullable
     val createdAt: LocalDateTime?,
     val modifiedAt: LocalDateTime?,
     val isPrivate: Boolean,
