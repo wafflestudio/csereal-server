@@ -39,7 +39,7 @@ class ReservationServiceImpl(
         val room =
             roomRepository.findRoomById(reserveRequest.roomId) ?: throw CserealException.Csereal404("Room Not Found")
 
-        if (!isCurrentUserStaff() && (reserveRequest.roomId == 8L || room.type == RoomType.LECTURE || room.type == RoomType.LAB)) {
+        if (!isCurrentUserStaff() && (reserveRequest.roomId == 8L || room.type != RoomType.LECTURE)) {
             throw CserealException.Csereal403("예약 불가. 행정실 문의 바람")
         }
 
