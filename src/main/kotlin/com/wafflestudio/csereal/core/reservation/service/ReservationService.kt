@@ -39,7 +39,8 @@ class ReservationServiceImpl(
         val room =
             roomRepository.findRoomById(reserveRequest.roomId) ?: throw CserealException.Csereal404("Room Not Found")
 
-        if (!isCurrentUserStaff() && (reserveRequest.roomId == 8L || room.type == RoomType.LECTURE)) {
+        // 현재 일반 예약 권한으로 교수회의실 제외한 세미나실만 예약 가능 (행정실 요청)
+        if (!isCurrentUserStaff() && (reserveRequest.roomId == 8L || room.type != RoomType.SEMINAR)) {
             throw CserealException.Csereal403("예약 불가. 행정실 문의 바람")
         }
 
