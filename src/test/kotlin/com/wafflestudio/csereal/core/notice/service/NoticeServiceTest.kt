@@ -42,12 +42,14 @@ class NoticeServiceTest(
                 modifiedAt = null,
                 isPrivate = false,
                 isPinned = false,
+                pinnedUntil = null,
                 isImportant = false,
+                importantUntil = null,
                 prevId = null,
                 prevTitle = null,
                 nextId = null,
                 nextTitle = null,
-                attachments = null
+                attachments = null,
             )
 
             When("공지사항을 생성하면") {
