@@ -44,14 +44,30 @@ class NoticeSchedulerTest(
         Given("Various notices with different expiration dates are present") {
             // Create test notices
             val noticeExpiredPinned = createTestNotice("Expired Pinned", isPinned = true, pinnedUntil = yesterday)
-            val noticeExpiredImportant = createTestNotice("Expired Important", isImportant = true, importantUntil = yesterday)
+            val noticeExpiredImportant = createTestNotice(
+                "Expired Important",
+                isImportant = true,
+                importantUntil = yesterday
+            )
             val noticeTodayPinned = createTestNotice("Today Pinned", isPinned = true, pinnedUntil = today)
             val noticeTodayImportant = createTestNotice("Today Important", isImportant = true, importantUntil = today)
             val noticeFuturePinned = createTestNotice("Future Pinned", isPinned = true, pinnedUntil = tomorrow)
-            val noticeFutureImportant = createTestNotice("Future Important", isImportant = true, importantUntil = tomorrow)
+            val noticeFutureImportant = createTestNotice(
+                "Future Important",
+                isImportant = true,
+                importantUntil = tomorrow
+            )
             val noticePermanentPinned = createTestNotice("Permanent Pinned", isPinned = true, pinnedUntil = null)
-            val noticePermanentImportant = createTestNotice("Permanent Important", isImportant = true, importantUntil = null)
-            val noticeNotPinnedOrImportant = createTestNotice("Not Pinned or Important", isPinned = false, isImportant = false)
+            val noticePermanentImportant = createTestNotice(
+                "Permanent Important",
+                isImportant = true,
+                importantUntil = null
+            )
+            val noticeNotPinnedOrImportant = createTestNotice(
+                "Not Pinned or Important",
+                isPinned = false,
+                isImportant = false
+            )
 
             When("The updateNoticeExpirationStatus scheduler task runs") {
                 noticeScheduler.updateNoticeExpirationStatus()
@@ -127,4 +143,4 @@ class NoticeSchedulerTest(
             )
         )
     }
-} 
+}

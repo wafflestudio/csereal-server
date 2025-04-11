@@ -24,7 +24,10 @@ class NoticeScheduler(
     fun updateNoticeExpirationStatus() {
         val currentDate = LocalDate.now(ZoneId.of("Asia/Seoul"))
         // This task updates notices expired *before* the start of today (currentDate KST).
-        logger.info("[updateNoticeExpirationStatus] Running scheduled task to update notices expired before: {}", currentDate)
+        logger.info(
+            "[updateNoticeExpirationStatus] Running scheduled task to update notices expired before: {}",
+            currentDate
+        )
 
         try {
             val updatedPinnedCount = noticeRepository.updateExpiredPinnedStatus(currentDate)
@@ -32,10 +35,16 @@ class NoticeScheduler(
 
             val updatedImportantCount = noticeRepository.updateExpiredImportantStatus(currentDate)
             logger.info("[updateNoticeExpirationStatus] Marked {} notices as not important.", updatedImportantCount)
-
         } catch (e: Exception) {
-            logger.error("[updateNoticeExpirationStatus] Error occurred during notice expiration update for date {}.", currentDate, e)
+            logger.error(
+                "[updateNoticeExpirationStatus] Error occurred during notice expiration update for date {}.",
+                currentDate,
+                e
+            )
         }
-         logger.info("[updateNoticeExpirationStatus] Finished scheduled task for notices expired before: {}", currentDate)
+        logger.info(
+            "[updateNoticeExpirationStatus] Finished scheduled task for notices expired before: {}",
+            currentDate
+        )
     }
-} 
+}

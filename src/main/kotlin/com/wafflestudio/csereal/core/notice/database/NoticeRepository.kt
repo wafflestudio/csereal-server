@@ -36,11 +36,23 @@ interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepo
     fun findAllIds(): List<Long>
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE notice n SET n.isPinned = false, n.pinnedUntil = null WHERE n.isPinned = true AND n.pinnedUntil < :currentDate")
+    @Query(
+        """
+        UPDATE notice n 
+        SET n.isPinned = false, n.pinnedUntil = null 
+        WHERE n.isPinned = true AND n.pinnedUntil < :currentDate
+    """
+    )
     fun updateExpiredPinnedStatus(@Param("currentDate") currentDate: LocalDate): Int
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE notice n SET n.isImportant = false, n.importantUntil = null WHERE n.isImportant = true AND n.importantUntil < :currentDate")
+    @Query(
+        """
+        UPDATE notice n 
+        SET n.isImportant = false, n.importantUntil = null 
+        WHERE n.isImportant = true AND n.importantUntil < :currentDate
+    """
+    )
     fun updateExpiredImportantStatus(@Param("currentDate") currentDate: LocalDate): Int
 }
 
@@ -218,7 +230,11 @@ class NoticeRepositoryImpl(
             ).orderBy(
                 noticeEntity.createdAt.desc()
             ).let {
-                if (cnt != null) { it.limit(cnt.toLong()) } else it
+                if (cnt != null) {
+                    it.limit(cnt.toLong())
+                } else {
+                    it
+                }
             }
             .fetch()
 }
