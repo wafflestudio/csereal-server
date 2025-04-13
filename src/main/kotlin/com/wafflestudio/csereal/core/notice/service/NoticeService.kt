@@ -101,7 +101,9 @@ class NoticeServiceImpl(
             plainTextDescription = cleanTextFromHtml(request.description),
             isPrivate = request.isPrivate,
             isPinned = request.isPinned,
+            pinnedUntil = if (request.isPinned) request.pinnedUntil else null,
             isImportant = request.isImportant,
+            importantUntil = if (request.isImportant) request.importantUntil else null,
             author = user
         )
 

@@ -16,9 +16,12 @@ import com.wafflestudio.csereal.core.notice.dto.NoticeTotalSearchElement
 import com.wafflestudio.csereal.core.notice.dto.NoticeTotalSearchResponse
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
+import java.time.LocalDate
 
 interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepository {
     fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
@@ -31,6 +34,26 @@ interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepo
 
     @Query("SELECT n.id FROM notice n")
     fun findAllIds(): List<Long>
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(
+        """
+        UPDATE notice n 
+        SET n.isPinned = false, n.pinnedUntil = null 
+        WHERE n.isPinned = true AND n.pinnedUntil < :currentDate
+    """
+    )
+    fun updateExpiredPinnedStatus(@Param("currentDate") currentDate: LocalDate): Int
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(
+        """
+        UPDATE notice n 
+        SET n.isImportant = false, n.importantUntil = null 
+        WHERE n.isImportant = true AND n.importantUntil < :currentDate
+    """
+    )
+    fun updateExpiredImportantStatus(@Param("currentDate") currentDate: LocalDate): Int
 }
 
 interface CustomNoticeRepository {
@@ -207,7 +230,11 @@ class NoticeRepositoryImpl(
             ).orderBy(
                 noticeEntity.createdAt.desc()
             ).let {
-                if (cnt != null) { it.limit(cnt.toLong()) } else it
+                if (cnt != null) {
+                    it.limit(cnt.toLong())
+                } else {
+                    it
+                }
             }
             .fetch()
 }
