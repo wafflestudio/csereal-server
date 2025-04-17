@@ -62,9 +62,9 @@ class ProfessorServiceTest(
             phone = "phone",
             fax = "fax",
             website = "website",
-            educations = listOf("education1", "education2"),
-            researchAreas = listOf("researchArea1", "researchArea2"),
-            careers = listOf("career1", "career2")
+            educations = listOf("education1", "education2 "),
+            researchAreas = listOf("researchArea1", "researchArea2 "),
+            careers = listOf("career1", "career2 ")
         )
 
         When("교수를 생성한다면") {
@@ -89,9 +89,9 @@ class ProfessorServiceTest(
                 professorEntity.phone shouldBe professorCreateReq.phone
                 professorEntity.fax shouldBe professorCreateReq.fax
                 professorEntity.website shouldBe professorCreateReq.website
-                professorEntity.educations.map { it.name } shouldBe professorCreateReq.educations
-                professorEntity.researchAreas.map { it.name } shouldBe professorCreateReq.researchAreas
-                professorEntity.careers.map { it.name } shouldBe professorCreateReq.careers
+                professorEntity.educations shouldBe professorCreateReq.educations.map { it.trim() }
+                professorEntity.researchAreas shouldBe professorCreateReq.researchAreas.map { it.trim() }
+                professorEntity.careers shouldBe professorCreateReq.careers.map { it.trim() }
             }
 
             Then("교수의 검색 정보가 생성되어야 한다") {
@@ -188,9 +188,9 @@ class ProfessorServiceTest(
                 phone = "modifiedPhone",
                 fax = "modifiedFax",
                 website = "modifiedWebsite",
-                educations = listOf("education1", "modifiedEducation2", "modifiedEducation3"),
-                researchAreas = listOf("researchArea1", "modifiedResearchArea2", "modifiedResearchArea3"),
-                careers = listOf("career1", "modifiedCareer2", "modifiedCareer3"),
+                educations = listOf("education1", "modifiedEducation2", "modifiedEducation3 "),
+                researchAreas = listOf("researchArea1", "modifiedResearchArea2", "modifiedResearchArea3 "),
+                careers = listOf("career1", "modifiedCareer2", "modifiedCareer3 "),
                 removeImage = false
             )
 
@@ -216,9 +216,9 @@ class ProfessorServiceTest(
                 professorEntity.phone shouldBe modifyProfessorReq.phone
                 professorEntity.fax shouldBe modifyProfessorReq.fax
                 professorEntity.website shouldBe modifyProfessorReq.website
-                professorEntity.educations.map { it.name } shouldBe modifyProfessorReq.educations
-                professorEntity.researchAreas.map { it.name } shouldBe modifyProfessorReq.researchAreas
-                professorEntity.careers.map { it.name } shouldBe modifyProfessorReq.careers
+                professorEntity.educations shouldBe modifyProfessorReq.educations.map { it.trim() }
+                professorEntity.researchAreas shouldBe modifyProfessorReq.researchAreas.map { it.trim() }
+                professorEntity.careers shouldBe modifyProfessorReq.careers.map { it.trim() }
             }
 
             Then("검색 정보가 수정되어야 한다.") {

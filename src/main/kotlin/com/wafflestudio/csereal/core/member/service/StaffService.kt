@@ -11,7 +11,6 @@ import com.wafflestudio.csereal.core.member.database.MemberLanguageRepository
 import com.wafflestudio.csereal.core.member.database.MemberSearchEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.member.database.StaffRepository
-import com.wafflestudio.csereal.core.member.database.TaskEntity
 import com.wafflestudio.csereal.core.member.dto.SimpleStaffDto
 import com.wafflestudio.csereal.core.member.dto.StaffDto
 import com.wafflestudio.csereal.core.member.dto.StaffLanguagesDto
@@ -83,12 +82,9 @@ class StaffServiceImpl(
                 role,
                 office,
                 phone,
-                email
+                email,
+                tasks = tasks.map { it.trim() }.toMutableList()
             )
-        }
-
-        createStaffRequest.tasks.forEach {
-            TaskEntity.create(it, staff)
         }
 
         if (mainImage != null) {
@@ -184,6 +180,7 @@ class StaffServiceImpl(
             office = req.office
             phone = req.phone
             email = req.email
+            tasks = req.tasks.map { it.trim() }.toMutableList()
         }
 
         if (req.removeImage && newImage == null) {
@@ -196,17 +193,6 @@ class StaffServiceImpl(
                 mainImageService.removeImage(it)
             }
             mainImageService.uploadMainImage(staff, newImage)
-        }
-
-        // 주요 업무 업데이트
-        val oldTasks = staff.tasks.map { it.name }
-        val tasksToRemove = oldTasks - req.tasks
-        val tasksToAdd = req.tasks - oldTasks
-
-        staff.tasks.removeIf { it.name in tasksToRemove }
-
-        for (task in tasksToAdd) {
-            TaskEntity.create(task, staff)
         }
 
         // 검색 엔티티 업데이트

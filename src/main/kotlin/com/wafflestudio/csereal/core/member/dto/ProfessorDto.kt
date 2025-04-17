@@ -42,9 +42,9 @@ data class ProfessorDto(
                 fax = professorEntity.fax,
                 email = professorEntity.email,
                 website = professorEntity.website,
-                educations = professorEntity.educations.map { it.name },
-                researchAreas = professorEntity.researchAreas.map { it.name },
-                careers = professorEntity.careers.map { it.name },
+                educations = professorEntity.educations,
+                researchAreas = professorEntity.researchAreas,
+                careers = professorEntity.careers,
                 imageURL = imageURL
             )
         }

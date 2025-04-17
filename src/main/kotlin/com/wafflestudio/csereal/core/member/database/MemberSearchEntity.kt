@@ -50,9 +50,9 @@ class MemberSearchEntity(
             professor.fax?.let { stringBuilder.appendLine(it) }
             professor.email?.let { stringBuilder.appendLine(it) }
             professor.website?.let { stringBuilder.appendLine(it) }
-            professor.educations.forEach { stringBuilder.appendLine(it.name) }
-            professor.researchAreas.forEach { stringBuilder.appendLine(it.name) }
-            professor.careers.forEach { stringBuilder.appendLine(it.name) }
+            professor.educations.forEach { stringBuilder.appendLine(it) }
+            professor.researchAreas.forEach { stringBuilder.appendLine(it) }
+            professor.careers.forEach { stringBuilder.appendLine(it) }
 
             return stringBuilder.toString()
         }
@@ -64,7 +64,7 @@ class MemberSearchEntity(
             stringBuilder.appendLine(staff.office)
             stringBuilder.appendLine(staff.phone)
             stringBuilder.appendLine(staff.email)
-            staff.tasks.forEach { stringBuilder.appendLine(it.name) }
+            staff.tasks.forEach { stringBuilder.appendLine(it) }
 
             return stringBuilder.toString()
         }
