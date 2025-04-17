@@ -2,17 +2,6 @@ on:
     push:
         branches:
             - main
-        paths:
-            - docker-compose-backend.yml
-            - Dockerfile
-            - gradle.properties
-            - gradlew
-            - gradlew.bat
-            - build.gradle.kts
-            - settings.gradle.kts
-            - src/**
-            - gradle/**
-            - .github/workflows/deploy.yaml
 
 jobs:
     build-and-deploy:
