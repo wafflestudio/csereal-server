@@ -5,7 +5,7 @@ import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.about.service.AboutService
 import com.wafflestudio.csereal.core.academics.service.AcademicsSearchService
 import com.wafflestudio.csereal.core.admissions.service.AdmissionsService
-import com.wafflestudio.csereal.core.main.dto.TotalSearchResponse
+import com.wafflestudio.csereal.core.main.api.res.TotalSearchResponse
 import com.wafflestudio.csereal.core.main.database.MainRepository
 import com.wafflestudio.csereal.core.main.dto.MainImportantResponse
 import com.wafflestudio.csereal.core.main.dto.MainResponse
@@ -52,7 +52,7 @@ class MainServiceImpl(
     private val memberSearchService: MemberSearchService,
     private val researchSearchService: ResearchSearchService,
     private val admissionsService: AdmissionsService,
-    private val academicsSearchService: AcademicsSearchService
+    private val academicsSearchService: AcademicsSearchService,
 ) : MainService {
     @Transactional(readOnly = true)
     override fun readMain(importantCnt: Int?): MainResponse {
@@ -90,13 +90,13 @@ class MainServiceImpl(
         number: Int,
         memberNumber: Int,
         stringLength: Int,
-        language: LanguageType
+        language: LanguageType,
     ): TotalSearchResponse {
         val aboutResult = aboutService.searchTopAbout(
             keyword,
             language,
             number,
-            stringLength
+            stringLength,
         )
         val noticeResult = noticeService.searchTotalNotice(
             keyword,
@@ -111,7 +111,7 @@ class MainServiceImpl(
         val seminarResult = seminarService.searchSeminar(
             keyword,
             PageRequest.of(0, 10),
-            usePageBtn = true,
+            false,
             ContentSearchSortType.DATE
         )
         val memberResult = memberSearchService.searchTopMember(
@@ -146,7 +146,7 @@ class MainServiceImpl(
             memberResult = memberResult,
             researchResult = researchResult,
             admissionsResult = admissionsResult,
-            academicsResult = academicsResult
+            academicsResult = academicsResult,
         )
     }
 }

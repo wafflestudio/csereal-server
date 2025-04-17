@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.main.api.v2
 
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.core.main.dto.TotalSearchResponse
+import com.wafflestudio.csereal.core.main.api.res.TotalSearchResponse
 import com.wafflestudio.csereal.core.main.dto.MainResponse
 import com.wafflestudio.csereal.core.main.service.MainService
 import jakarta.validation.constraints.NotBlank
@@ -32,21 +32,18 @@ class MainController(
 
     @GetMapping("/totalSearch")
     fun searchTotal(
-        @RequestParam(required = true)
-        @Length(min = 2)
-        @NotBlank
-        keyword: String,
+        @RequestParam(required = true) @Length(min = 2) @NotBlank keyword: String,
         @RequestParam(required = false, defaultValue = "3") @Positive number: Int,
         @RequestParam(required = false, defaultValue = "10") @Positive memberNumber: Int,
         @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int,
-        @RequestParam(required = false, defaultValue = "ko") language: String
+        @RequestParam(required = false, defaultValue = "ko") language: String,
     ): TotalSearchResponse {
         return mainService.totalSearch(
             keyword,
             number,
             memberNumber,
             stringLength,
-            LanguageType.makeStringToLanguageType(language)
+            LanguageType.makeStringToLanguageType(language),
         )
     }
 }
