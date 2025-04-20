@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.main.api.v2
 
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.core.main.api.res.TotalSearchResponse
+import com.wafflestudio.csereal.core.main.dto.TotalSearchResponse
 import com.wafflestudio.csereal.core.main.dto.MainResponse
 import com.wafflestudio.csereal.core.main.service.MainService
 import jakarta.validation.constraints.NotBlank

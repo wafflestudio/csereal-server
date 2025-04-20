@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.main.api.res
+package com.wafflestudio.csereal.core.main.dto
 
 import com.wafflestudio.csereal.core.about.api.res.AboutSearchResBody
 import com.wafflestudio.csereal.core.academics.api.res.AcademicsSearchResBody
