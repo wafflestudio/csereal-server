@@ -5,7 +5,7 @@ import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.about.service.AboutService
 import com.wafflestudio.csereal.core.academics.service.AcademicsSearchService
 import com.wafflestudio.csereal.core.admissions.service.AdmissionsService
-import com.wafflestudio.csereal.core.main.api.res.TotalSearchResponse
+import com.wafflestudio.csereal.core.main.dto.TotalSearchResponse
 import com.wafflestudio.csereal.core.main.database.MainRepository
 import com.wafflestudio.csereal.core.main.dto.MainImportantResponse
 import com.wafflestudio.csereal.core.main.dto.MainResponse
