@@ -9,7 +9,7 @@ import com.wafflestudio.csereal.core.notice.dto.NoticeTotalSearchResponse
 import com.wafflestudio.csereal.core.research.api.res.ResearchSearchResBody
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
 
-data class TotalSearchResponse (
+data class TotalSearchResponse(
     val aboutResult: AboutSearchResBody,
     val noticeResult: NoticeTotalSearchResponse,
     val newsResult: NewsTotalSearchDto,
@@ -17,5 +17,5 @@ data class TotalSearchResponse (
     val memberResult: MemberSearchResBody,
     val researchResult: ResearchSearchResBody,
     val admissionsResult: AdmissionSearchResBody,
-    val academicsResult: AcademicsSearchResBody,
+    val academicsResult: AcademicsSearchResBody
 )
