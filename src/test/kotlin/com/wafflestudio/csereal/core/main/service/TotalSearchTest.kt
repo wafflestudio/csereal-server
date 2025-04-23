@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.main.service
 
+// TODO : testContainer 적용하기
 //import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 //import com.wafflestudio.csereal.common.enums.LanguageType
 //import com.wafflestudio.csereal.core.about.api.req.ClubReqBody
