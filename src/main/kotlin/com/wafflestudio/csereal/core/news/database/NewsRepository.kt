@@ -22,9 +22,12 @@ import com.wafflestudio.csereal.core.resource.mainImage.database.QMainImageEntit
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import java.time.LocalDate
 
 interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository {
     fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
@@ -37,6 +40,10 @@ interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository
 
     @Query("SELECT n.id FROM news n")
     fun findAllIds(): List<Long>
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE news n SET n.isImportant = false, n.importantUntil = NULL WHERE n.isImportant = true AND n.importantUntil < :currentDate")
+    fun updateExpiredImportantStatus(@Param("currentDate") currentDate: LocalDate): Int
 }
 
 interface CustomNewsRepository {
