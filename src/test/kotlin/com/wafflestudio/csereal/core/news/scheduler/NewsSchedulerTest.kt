@@ -3,7 +3,8 @@ package com.wafflestudio.csereal.core.news.scheduler
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.news.database.NewsRepository
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.extensions.spring.SpringExtension
+import io.kotest.extensions.spring.SpringTestExtension
+import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.shouldBe
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.repository.findByIdOrNull
@@ -18,16 +19,13 @@ class NewsSchedulerTest(
     private val newsRepository: NewsRepository
 ) : BehaviorSpec() {
 
-    override fun extensions() = listOf(SpringExtension)
-
     private val KST: ZoneId = ZoneId.of("Asia/Seoul")
     private val today: LocalDate = LocalDate.now(KST)
     private val yesterday: LocalDate = today.minusDays(1)
     private val tomorrow: LocalDate = today.plusDays(1)
 
     init {
-        beforeSpec {
-        }
+        extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
 
         afterSpec {
             newsRepository.deleteAll()
