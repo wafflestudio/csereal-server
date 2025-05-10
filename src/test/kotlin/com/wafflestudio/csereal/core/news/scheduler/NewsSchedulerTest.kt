@@ -2,8 +2,6 @@ package com.wafflestudio.csereal.core.news.scheduler
 
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.news.database.NewsRepository
-// import com.wafflestudio.csereal.core.user.database.UserEntity // 제거
-// import com.wafflestudio.csereal.core.user.database.UserRepository // 제거
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
@@ -35,7 +33,10 @@ class NewsSchedulerTest(
             newsRepository.deleteAll()
         }
 
-        Given("Various news items with different importance expiration dates are present") {
+        Given(
+            "Various news items with different importance " +
+                "expiration dates are present"
+        ) {
             val newsExpiredImportant = createTestNews(
                 title = "Expired Important News",
                 isImportant = true,
@@ -68,13 +69,19 @@ class NewsSchedulerTest(
             When("The updateNewsExpirationStatus scheduler task runs") {
                 newsScheduler.updateNewsExpirationStatus()
 
-                Then("News items with importance expiration date before today should be updated") {
+                Then(
+                    "News items with importance expiration date before today " +
+                        "should be updated"
+                ) {
                     val updatedExpiredImportant = newsRepository.findByIdOrNull(newsExpiredImportant.id)!!
                     updatedExpiredImportant.isImportant shouldBe false
                     updatedExpiredImportant.importantUntil shouldBe null
                 }
 
-                Then("News items with importance expiration date today or later, or no expiration date, should remain unchanged") {
+                Then(
+                    "News items with importance expiration date today or later, " +
+                        "or no expiration date, should remain unchanged"
+                ) {
                     val updatedTodayImportant = newsRepository.findByIdOrNull(newsTodayImportant.id)!!
                     updatedTodayImportant.isImportant shouldBe true
                     updatedTodayImportant.importantUntil shouldBe today
@@ -117,4 +124,4 @@ class NewsSchedulerTest(
             )
         )
     }
-} 
+}

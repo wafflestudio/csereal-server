@@ -34,7 +34,10 @@ class SeminarSchedulerTest(
             seminarRepository.deleteAll()
         }
 
-        Given("Various seminars with different importance expiration dates are present") {
+        Given(
+            "Various seminars with different importance " +
+                "expiration dates are present"
+        ) {
             val seminarExpiredImportant = createTestSeminar(
                 title = "Expired Important Seminar",
                 isImportant = true,
@@ -67,13 +70,19 @@ class SeminarSchedulerTest(
             When("The updateSeminarExpirationStatus scheduler task runs") {
                 seminarScheduler.updateSeminarExpirationStatus()
 
-                Then("Seminars with importance expiration date before today should be updated") {
+                Then(
+                    "Seminars with importance expiration date before today " +
+                        "should be updated"
+                ) {
                     val updatedExpiredImportant = seminarRepository.findByIdOrNull(seminarExpiredImportant.id)!!
                     updatedExpiredImportant.isImportant shouldBe false
                     updatedExpiredImportant.importantUntil shouldBe null
                 }
 
-                Then("Seminars with importance expiration date today or later, or no expiration date, should remain unchanged") {
+                Then(
+                    "Seminars with importance expiration date today or later, " +
+                        "or no expiration date, should remain unchanged"
+                ) {
                     val updatedTodayImportant = seminarRepository.findByIdOrNull(seminarTodayImportant.id)!!
                     updatedTodayImportant.isImportant shouldBe true
                     updatedTodayImportant.importantUntil shouldBe today
@@ -126,4 +135,4 @@ class SeminarSchedulerTest(
             )
         )
     }
-} 
+}

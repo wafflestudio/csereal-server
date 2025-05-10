@@ -42,4 +42,4 @@ class SeminarScheduler(
             currentDate
         )
     }
-} 
+}

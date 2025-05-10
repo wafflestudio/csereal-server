@@ -34,7 +34,10 @@ interface SeminarRepository : JpaRepository<SeminarEntity, Long>, CustomSeminarR
     fun findAllIds(): List<Long>
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE seminar s SET s.isImportant = false, s.importantUntil = NULL WHERE s.isImportant = true AND s.importantUntil < :currentDate")
+    @Query(
+        "UPDATE seminar s SET s.isImportant = false, s.isImportant = NULL " +
+            "WHERE s.isImportant = true AND s.importantUntil < :currentDate"
+    )
     fun updateExpiredImportantStatus(@Param("currentDate") currentDate: LocalDate): Int
 }
 
@@ -106,9 +109,10 @@ class SeminarRepositoryImpl(
             .limit(pageRequest.pageSize.toLong())
 
         val seminarEntityList = when {
-            sortBy == ContentSearchSortType.DATE || keyword.isNullOrEmpty() -> seminarEntityQuery.orderBy(
-                seminarEntity.startDate.desc()
-            )
+            sortBy == ContentSearchSortType.DATE || keyword.isNullOrEmpty() ->
+                seminarEntityQuery.orderBy(
+                    seminarEntity.startDate.desc()
+                )
 
             else /* sortBy == RELEVANCE */ -> seminarEntityQuery
         }.fetch()

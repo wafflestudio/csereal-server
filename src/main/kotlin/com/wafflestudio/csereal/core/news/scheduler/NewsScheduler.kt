@@ -42,4 +42,4 @@ class NewsScheduler(
             currentDate
         )
     }
-} 
+}
