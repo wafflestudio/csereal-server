@@ -42,6 +42,7 @@ class NewsServiceTest(
                 isPrivate = false,
                 isSlide = false,
                 isImportant = false,
+                importantUntil = null,
                 prevId = null,
                 prevTitle = null,
                 nextId = null,

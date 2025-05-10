@@ -9,6 +9,7 @@ import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEnti
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.*
 import java.time.LocalDateTime
+import java.time.LocalDate
 
 @Entity(name = "news")
 class NewsEntity(
@@ -29,6 +30,7 @@ class NewsEntity(
     var isPrivate: Boolean,
     var isSlide: Boolean,
     var isImportant: Boolean,
+    var importantUntil: LocalDate? = null,
 
     @OneToOne
     var mainImage: MainImageEntity? = null,
@@ -53,7 +55,8 @@ class NewsEntity(
                 date = newsDto.date,
                 isPrivate = newsDto.isPrivate,
                 isSlide = newsDto.isSlide,
-                isImportant = newsDto.isImportant
+                isImportant = newsDto.isImportant,
+                importantUntil = if (newsDto.isImportant) newsDto.importantUntil else null
             )
         }
     }
@@ -69,5 +72,6 @@ class NewsEntity(
         this.isPrivate = updateNewsRequest.isPrivate
         this.isSlide = updateNewsRequest.isSlide
         this.isImportant = updateNewsRequest.isImportant
+        this.importantUntil = if (updateNewsRequest.isImportant) updateNewsRequest.importantUntil else null
     }
 }

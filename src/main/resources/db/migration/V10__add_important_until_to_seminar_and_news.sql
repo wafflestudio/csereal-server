@@ -1,0 +1,5 @@
+ALTER TABLE seminar
+ADD COLUMN important_until DATE DEFAULT NULL;
+
+ALTER TABLE news
+ADD COLUMN important_until DATE DEFAULT NULL; 
