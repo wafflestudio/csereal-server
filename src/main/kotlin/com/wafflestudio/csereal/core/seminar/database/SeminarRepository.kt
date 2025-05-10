@@ -35,7 +35,7 @@ interface SeminarRepository : JpaRepository<SeminarEntity, Long>, CustomSeminarR
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(
-        "UPDATE seminar s SET s.isImportant = false, s.isImportant = NULL " +
+        "UPDATE seminar s SET s.isImportant = false, s.importantUntil = NULL " +
             "WHERE s.isImportant = true AND s.importantUntil < :currentDate"
     )
     fun updateExpiredImportantStatus(@Param("currentDate") currentDate: LocalDate): Int
