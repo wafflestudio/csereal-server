@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.main.service
 
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.common.util.CleanUp
 import com.wafflestudio.csereal.core.about.api.req.ClubReqBody
 import com.wafflestudio.csereal.core.about.api.req.CreateClubReq
 import com.wafflestudio.csereal.core.about.api.req.CreateFacReq
@@ -36,21 +37,17 @@ import com.wafflestudio.csereal.core.seminar.service.SeminarService
 import com.wafflestudio.csereal.global.config.TestContainerInitializer
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import org.junit.jupiter.api.TestInstance
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.domain.PageRequest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
-import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 @SpringBootTest
 @ActiveProfiles("test")
 @ContextConfiguration(initializers = [TestContainerInitializer::class])
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Transactional
 class TotalSearchTest(
     private val aboutService: AboutService,
     private val noticeService: NoticeService,
@@ -64,8 +61,13 @@ class TotalSearchTest(
     private val admissionsService: AdmissionsService,
     private val academicsService: AcademicsService,
     private val academicsSearchService: AcademicsSearchService,
-    private val mainService: MainService
+    private val mainService: MainService,
+    private val cleanUp: CleanUp,
 ) : BehaviorSpec({
+    afterContainer {
+        cleanUp.all()
+    }
+
     Given("각 서비스에 keyword가 포함된 여러 글이 있을 때") {
         val keyword = "description"
         val aboutDataNumber = 2
