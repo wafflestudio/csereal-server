@@ -62,7 +62,7 @@ class TotalSearchTest(
     private val academicsService: AcademicsService,
     private val academicsSearchService: AcademicsSearchService,
     private val mainService: MainService,
-    private val cleanUp: CleanUp,
+    private val cleanUp: CleanUp
 ) : BehaviorSpec({
     afterContainer {
         cleanUp.all()
