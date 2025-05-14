@@ -5,7 +5,8 @@ import com.wafflestudio.csereal.core.notice.database.NoticeRepository
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.extensions.spring.SpringExtension
+import io.kotest.extensions.spring.SpringTestExtension
+import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.shouldBe
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.repository.findByIdOrNull
@@ -21,8 +22,6 @@ class NoticeSchedulerTest(
     private val userRepository: UserRepository
 ) : BehaviorSpec() {
 
-    override fun extensions() = listOf(SpringExtension)
-
     private lateinit var user: UserEntity
     private val KST: ZoneId = ZoneId.of("Asia/Seoul")
     private val today: LocalDate = LocalDate.now(KST)
@@ -30,6 +29,8 @@ class NoticeSchedulerTest(
     private val tomorrow: LocalDate = today.plusDays(1)
 
     init {
+        extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
+
         // Setup: Create a user first
         beforeSpec {
             user = userRepository.save(UserEntity("username", "name", "email", "studentId"))

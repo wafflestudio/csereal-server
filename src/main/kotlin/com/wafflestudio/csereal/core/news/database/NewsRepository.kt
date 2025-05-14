@@ -22,9 +22,12 @@ import com.wafflestudio.csereal.core.resource.mainImage.database.QMainImageEntit
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import java.time.LocalDate
 
 interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository {
     fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
@@ -37,6 +40,13 @@ interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository
 
     @Query("SELECT n.id FROM news n")
     fun findAllIds(): List<Long>
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(
+        "UPDATE news n SET n.isImportant = false, n.importantUntil = NULL " +
+            "WHERE n.isImportant = true AND n.importantUntil < :currentDate"
+    )
+    fun updateExpiredImportantStatus(@Param("currentDate") currentDate: LocalDate): Int
 }
 
 interface CustomNewsRepository {
@@ -105,7 +115,11 @@ class NewsRepositoryImpl(
         val jpaQuery = queryFactory.selectFrom(newsEntity)
             .leftJoin(newsTagEntity).on(newsTagEntity.news.eq(newsEntity))
             .where(newsEntity.isDeleted.eq(false))
-            .where(keywordBooleanBuilder, tagsBooleanBuilder, isPrivateBooleanBuilder)
+            .where(
+                keywordBooleanBuilder,
+                tagsBooleanBuilder,
+                isPrivateBooleanBuilder
+            )
 
         val total: Long
         var pageRequest = pageable
@@ -124,9 +138,10 @@ class NewsRepositoryImpl(
             .distinct()
 
         val newsEntityList = when {
-            sortBy == ContentSearchSortType.DATE || keyword.isNullOrEmpty() -> newsEntityQuery.orderBy(
-                newsEntity.date.desc()
-            )
+            sortBy == ContentSearchSortType.DATE || keyword.isNullOrEmpty() ->
+                newsEntityQuery.orderBy(
+                    newsEntity.date.desc()
+                )
 
             else /* sortBy == RELEVANCE */ -> newsEntityQuery
         }.fetch()
@@ -139,7 +154,9 @@ class NewsRepositoryImpl(
                 description = it.plainTextDescription,
                 createdAt = it.createdAt,
                 date = it.date,
-                tags = it.newsTags.map { newsTagEntity -> newsTagEntity.tag.name.krName },
+                tags = it.newsTags.map { newsTagEntity ->
+                    newsTagEntity.tag.name.krName
+                },
                 imageURL = imageURL,
                 isPrivate = it.isPrivate
             )
@@ -169,7 +186,8 @@ class NewsRepositoryImpl(
             newsEntity.plainTextDescription,
             mainImageEntity
         ).from(newsEntity)
-            .leftJoin(mainImageEntity).on(newsEntity.mainImage.eq(mainImageEntity))
+            .leftJoin(mainImageEntity)
+            .on(newsEntity.mainImage.eq(mainImageEntity))
             .where(doubleTemplate.gt(0.0), privateBoolean)
             .orderBy(newsEntity.date.desc())
             .limit(number.toLong())
@@ -181,7 +199,11 @@ class NewsRepositoryImpl(
         ).from(newsTagEntity)
             .rightJoin(newsEntity).on(newsTagEntity.news.eq(newsEntity))
             .leftJoin(tagInNewsEntity).on(newsTagEntity.tag.eq(tagInNewsEntity))
-            .where(newsTagEntity.news.id.`in`(searchResult.map { it[newsEntity.id] }))
+            .where(
+                newsTagEntity.news.id.`in`(
+                    searchResult.map { it[newsEntity.id] }
+                )
+            )
             .distinct()
             .fetch()
 
@@ -217,7 +239,11 @@ class NewsRepositoryImpl(
             newsEntity.title,
             newsEntity.createdAt
         ).from(newsEntity)
-            .where(newsEntity.isDeleted.eq(false), newsEntity.isPrivate.eq(false), newsEntity.isSlide.eq(true))
+            .where(
+                newsEntity.isDeleted.eq(false),
+                newsEntity.isPrivate.eq(false),
+                newsEntity.isSlide.eq(true)
+            )
             .orderBy(newsEntity.createdAt.desc())
             .offset(pageSize * pageNum)
             .limit(pageSize.toLong())
@@ -225,7 +251,11 @@ class NewsRepositoryImpl(
 
         val total = queryFactory.select(newsEntity.count())
             .from(newsEntity)
-            .where(newsEntity.isDeleted.eq(false), newsEntity.isPrivate.eq(false), newsEntity.isSlide.eq(true))
+            .where(
+                newsEntity.isDeleted.eq(false),
+                newsEntity.isPrivate.eq(false),
+                newsEntity.isSlide.eq(true)
+            )
             .fetchOne()!!
 
         return AdminSlidesResponse(
