@@ -3,16 +3,19 @@ package com.wafflestudio.csereal.core.seminar.service
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import com.wafflestudio.csereal.core.seminar.database.SeminarRepository
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
+import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import jakarta.transaction.Transactional
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDateTime
 
 @SpringBootTest
 @Transactional
+@Import(MySQLTestContainerConfig::class)
 class SeminarServiceTest(
     private val seminarService: SeminarService,
     private val seminarRepository: SeminarRepository

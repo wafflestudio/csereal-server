@@ -4,16 +4,19 @@ import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.news.database.NewsRepository
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.news.service.NewsService
+import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDateTime
 
 @SpringBootTest
+@Import(MySQLTestContainerConfig::class)
 class NewsServiceTest(
     private val newsService: NewsService,
     private val newsRepository: NewsRepository
