@@ -2,11 +2,13 @@ package com.wafflestudio.csereal.core.seminar.scheduler
 
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import com.wafflestudio.csereal.core.seminar.database.SeminarRepository
+import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.shouldBe
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -15,6 +17,7 @@ import java.time.ZoneId
 
 @SpringBootTest
 @Transactional
+@Import(MySQLTestContainerConfig::class)
 class SeminarSchedulerTest(
     private val seminarScheduler: SeminarScheduler,
     private val seminarRepository: SeminarRepository
