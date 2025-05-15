@@ -55,6 +55,7 @@ class ReservationServiceImpl(
             val end = reserveRequest.endTime.plusWeeks(week.toLong())
 
             // 중복 예약 방지
+            // TODO : resolve concurrency issue
             val overlappingReservations = reservationRepository.findByRoomIdAndTimeOverlap(
                 reserveRequest.roomId,
                 start,

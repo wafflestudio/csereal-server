@@ -34,20 +34,18 @@ import com.wafflestudio.csereal.core.research.service.ResearchSearchService
 import com.wafflestudio.csereal.core.research.service.ResearchService
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import com.wafflestudio.csereal.core.seminar.service.SeminarService
-import com.wafflestudio.csereal.global.config.TestContainerInitializer
+import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.data.domain.PageRequest
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.ContextConfiguration
 import java.time.LocalDateTime
 
 @SpringBootTest
 @ActiveProfiles("test")
-@ContextConfiguration(initializers = [TestContainerInitializer::class])
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(MySQLTestContainerConfig::class)
 class TotalSearchTest(
     private val aboutService: AboutService,
     private val noticeService: NoticeService,

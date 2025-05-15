@@ -5,15 +5,18 @@ import com.wafflestudio.csereal.core.notice.database.NoticeRepository
 import com.wafflestudio.csereal.core.notice.dto.NoticeDto
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import com.wafflestudio.csereal.core.user.service.UserService
+import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
 @Transactional
+@Import(MySQLTestContainerConfig::class)
 class NoticeServiceTest(
     private val noticeService: NoticeService,
     private val userRepository: UserRepository,

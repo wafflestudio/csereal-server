@@ -10,11 +10,13 @@ import com.wafflestudio.csereal.core.research.dto.ResearchLanguageDto
 import com.wafflestudio.csereal.core.research.dto.ResearchSealedDto
 import com.wafflestudio.csereal.core.research.service.ResearchService
 import com.wafflestudio.csereal.core.research.type.ResearchRelatedType
+import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.shouldBe
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Import(MySQLTestContainerConfig::class)
 class ResearchServiceTest(
     private val researchService: ResearchService,
     private val researchLanguageRepository: ResearchLanguageRepository,

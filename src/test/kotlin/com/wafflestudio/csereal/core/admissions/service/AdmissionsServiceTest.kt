@@ -7,6 +7,7 @@ import com.wafflestudio.csereal.core.admissions.database.AdmissionsEntity
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsRepository
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsMainType
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsPostType
+import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
@@ -14,6 +15,7 @@ import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Profile
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional
 @SpringBootTest
 @Profile("test")
 @Transactional
+@Import(MySQLTestContainerConfig::class)
 class AdmissionsServiceTest(
     private val admissionsService: AdmissionsService,
     private val admissionsRepository: AdmissionsRepository
