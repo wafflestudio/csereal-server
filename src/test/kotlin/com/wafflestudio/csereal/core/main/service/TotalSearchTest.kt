@@ -78,7 +78,7 @@ class TotalSearchTest(
             )
         }
     }
-    
+
     afterContainer {
         cleanUp.all()
     }

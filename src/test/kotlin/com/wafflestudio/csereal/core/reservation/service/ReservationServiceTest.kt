@@ -13,7 +13,6 @@ import io.kotest.matchers.or
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
-import io.kotest.matchers.types.shouldBeInstanceOf
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.dao.DataIntegrityViolationException
@@ -102,7 +101,10 @@ class ReservationServiceTest(
                 results.filter { it.isFailure }
                     .forEach { result ->
                         result.exceptionOrNull()
-                            .should(beInstanceOf<CserealException.Csereal409>() or beInstanceOf<DataIntegrityViolationException>())
+                            .should(
+                                beInstanceOf<CserealException.Csereal409>() or
+                                    beInstanceOf<DataIntegrityViolationException>()
+                            )
                     }
 
                 val reservations = reservationRepository.findByRoomIdAndTimeOverlap(
