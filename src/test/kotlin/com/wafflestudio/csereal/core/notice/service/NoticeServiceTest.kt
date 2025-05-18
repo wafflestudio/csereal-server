@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.notice.service
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
 import com.wafflestudio.csereal.core.notice.database.NoticeRepository
 import com.wafflestudio.csereal.core.notice.dto.NoticeDto
+import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import com.wafflestudio.csereal.core.user.service.UserService
 import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
@@ -24,7 +25,20 @@ class NoticeServiceTest(
     private val noticeRepository: NoticeRepository
 ) : BehaviorSpec() {
     init {
-        afterContainer {
+        beforeSpec {
+            if (userRepository.findByUsername("test") == null) {
+                userRepository.save(
+                    UserEntity(
+                        "test",
+                        "test",
+                        "test@abc.com",
+                        "0000-00000"
+                    )
+                )
+            }
+        }
+
+        afterSpec {
             noticeRepository.deleteAll()
             userRepository.deleteAll()
         }

@@ -7,6 +7,7 @@ import com.wafflestudio.csereal.core.conference.database.ConferencePageRepositor
 import com.wafflestudio.csereal.core.conference.database.ConferenceRepository
 import com.wafflestudio.csereal.core.conference.dto.ConferenceDto
 import com.wafflestudio.csereal.core.conference.dto.ConferenceModifyRequest
+import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import com.wafflestudio.csereal.core.user.service.UserService
 import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
@@ -31,9 +32,17 @@ class ConferenceServiceTest(
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
 
     beforeSpec {
+        val user = userRepository.findByUsername("test") ?: userRepository.save(
+            UserEntity(
+                "test",
+                "test",
+                "test@abc.com",
+                "0000-00000"
+            )
+        )
         conferencePageRepository.save(
             ConferencePageEntity(
-                author = userService.getLoginUser()
+                author = user
             )
         )
     }
