@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.internal.database.InternalEntity
 import com.wafflestudio.csereal.core.internal.database.InternalRepository
 import com.wafflestudio.csereal.core.internal.dto.InternalDto
+import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
@@ -11,11 +12,13 @@ import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
 @Transactional
+@Import(MySQLTestContainerConfig::class)
 class InternalServiceTest(
     private val internalService: InternalService,
     private val internalRepository: InternalRepository

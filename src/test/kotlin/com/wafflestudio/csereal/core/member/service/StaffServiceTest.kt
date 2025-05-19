@@ -5,6 +5,7 @@ import com.wafflestudio.csereal.core.member.api.req.CreateStaffReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyStaffReqBody
 import com.wafflestudio.csereal.core.member.database.MemberSearchRepository
 import com.wafflestudio.csereal.core.member.database.StaffRepository
+import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
@@ -12,12 +13,14 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import jakarta.transaction.Transactional
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Import(MySQLTestContainerConfig::class)
 class StaffServiceTest(
     private val staffService: StaffService,
     private val staffRepository: StaffRepository,

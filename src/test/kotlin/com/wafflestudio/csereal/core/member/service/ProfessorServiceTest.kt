@@ -8,6 +8,7 @@ import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
 import com.wafflestudio.csereal.core.research.database.LabEntity
 import com.wafflestudio.csereal.core.research.database.LabRepository
+import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
@@ -15,6 +16,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import jakarta.transaction.Transactional
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
@@ -22,6 +24,7 @@ import java.time.LocalDate
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Import(MySQLTestContainerConfig::class)
 class ProfessorServiceTest(
     private val professorService: ProfessorService,
     private val professorRepository: ProfessorRepository,
