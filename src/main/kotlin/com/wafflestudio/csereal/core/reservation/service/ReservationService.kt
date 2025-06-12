@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.reservation.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
+import com.wafflestudio.csereal.common.utils.isCurrentUserStaffOrProfessor
 import com.wafflestudio.csereal.core.reservation.database.*
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
@@ -40,7 +41,12 @@ class ReservationServiceImpl(
             roomRepository.findRoomById(reserveRequest.roomId) ?: throw CserealException.Csereal404("Room Not Found")
 
         // 현재 일반 예약 권한으로 교수회의실 제외한 세미나실만 예약 가능 (행정실 요청)
-        if (!isCurrentUserStaff() && (reserveRequest.roomId == 8L || room.type != RoomType.SEMINAR)) {
+        if (!isCurrentUserStaff() && room.type != RoomType.SEMINAR) {
+            throw CserealException.Csereal403("예약 불가. 행정실 문의 바람")
+        }
+
+        // 세미나실 중 교수회의실은 스태프 또는 교수만 예약 가능
+        if (!isCurrentUserStaffOrProfessor() && reserveRequest.roomId == 8L) {
             throw CserealException.Csereal403("예약 불가. 행정실 문의 바람")
         }
 

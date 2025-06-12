@@ -51,6 +51,9 @@ class CustomOidcUserService(
         if ("professor" in groups || "graduate" in groups) {
             authorities.add(SimpleGrantedAuthority("ROLE_RESERVATION"))
         }
+        if ("professor" in groups) {
+            authorities.add(SimpleGrantedAuthority("ROLE_PROFESSOR"))
+        }
         if ("student-council" in groups) {
             authorities.add(SimpleGrantedAuthority("ROLE_COUNCIL"))
         }
