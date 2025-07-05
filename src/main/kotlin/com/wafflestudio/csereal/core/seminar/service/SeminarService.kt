@@ -80,19 +80,17 @@ class SeminarServiceImpl(
         val seminar: SeminarEntity = seminarRepository.findByIdOrNull(seminarId)
             ?: throw CserealException.Csereal404("존재하지 않는 세미나입니다.(seminarId: $seminarId)")
 
-        if (seminar.isDeleted) throw CserealException.Csereal400("삭제된 세미나입니다. (seminarId: $seminarId)")
-
         if (seminar.isPrivate && !isCurrentUserStaff()) throw CserealException.Csereal401("접근 권한이 없습니다.")
 
         val imageURL = mainImageService.createImageURL(seminar.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
 
         val prevSeminar =
-            seminarRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
+            seminarRepository.findFirstByIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
                 seminar.createdAt!!
             )
         val nextSeminar =
-            seminarRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
+            seminarRepository.findFirstByIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
                 seminar.createdAt!!
             )
 
@@ -108,7 +106,6 @@ class SeminarServiceImpl(
     ): SeminarDto {
         val seminar: SeminarEntity = seminarRepository.findByIdOrNull(seminarId)
             ?: throw CserealException.Csereal404("존재하지 않는 세미나입니다")
-        if (seminar.isDeleted) throw CserealException.Csereal404("삭제된 세미나입니다. (seminarId: $seminarId)")
 
         seminar.update(request)
 
@@ -131,10 +128,10 @@ class SeminarServiceImpl(
 
     @Transactional
     override fun deleteSeminar(seminarId: Long) {
-        val seminar: SeminarEntity = seminarRepository.findByIdOrNull(seminarId)
+        seminarRepository.findByIdOrNull(seminarId)
             ?: throw CserealException.Csereal404("존재하지 않는 세미나입니다.(seminarId=$seminarId")
 
-        seminar.isDeleted = true
+        seminarRepository.deleteById(seminarId)
     }
 
     @Transactional(readOnly = true)

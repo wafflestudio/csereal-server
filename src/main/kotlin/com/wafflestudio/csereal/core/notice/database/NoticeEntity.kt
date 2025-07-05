@@ -11,7 +11,6 @@ import java.time.LocalDate
 
 @Entity(name = "notice")
 class NoticeEntity(
-    var isDeleted: Boolean = false,
     var title: String,
 
     @Column(columnDefinition = "text")

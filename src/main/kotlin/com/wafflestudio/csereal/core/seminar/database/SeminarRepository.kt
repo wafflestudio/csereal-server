@@ -22,11 +22,11 @@ import java.time.LocalDateTime
 import java.time.LocalDate
 
 interface SeminarRepository : JpaRepository<SeminarEntity, Long>, CustomSeminarRepository {
-    fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
+    fun findFirstByIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
         timestamp: LocalDateTime
     ): SeminarEntity?
 
-    fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
+    fun findFirstByIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
         timestamp: LocalDateTime
     ): SeminarEntity?
 
@@ -90,7 +90,6 @@ class SeminarRepositoryImpl(
         }
 
         val jpaQuery = queryFactory.selectFrom(seminarEntity)
-            .where(seminarEntity.isDeleted.eq(false))
             .where(keywordBooleanBuilder, isPrivateBooleanBuilder)
 
         val total: Long
@@ -162,7 +161,6 @@ class SeminarRepositoryImpl(
         ).from(seminarEntity)
             .where(
                 seminarEntity.isImportant.isTrue(),
-                seminarEntity.isDeleted.isFalse(),
                 seminarEntity.isPrivate.isFalse()
             ).orderBy(
                 seminarEntity.createdAt.desc()

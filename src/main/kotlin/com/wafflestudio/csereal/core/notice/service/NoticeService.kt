@@ -72,18 +72,16 @@ class NoticeServiceImpl(
         val notice = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
 
-        if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
-
         if (notice.isPrivate && !isCurrentUserStaff()) throw CserealException.Csereal401("접근 권한이 없습니다.")
 
         val attachmentResponses = attachmentService.createAttachmentResponses(notice.attachments)
 
         val prevNotice =
-            noticeRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
+            noticeRepository.findFirstByIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
                 notice.createdAt!!
             )
         val nextNotice =
-            noticeRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
+            noticeRepository.findFirstByIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
                 notice.createdAt!!
             )
 
@@ -132,7 +130,6 @@ class NoticeServiceImpl(
     ): NoticeDto {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
-        if (notice.isDeleted) throw CserealException.Csereal404("삭제된 공지사항입니다.(noticeId: $noticeId)")
 
         notice.update(request)
 
@@ -165,10 +162,10 @@ class NoticeServiceImpl(
 
     @Transactional
     override fun deleteNotice(noticeId: Long) {
-        val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
+        noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
 
-        notice.isDeleted = true
+        noticeRepository.deleteById(noticeId)
     }
 
     @Transactional
@@ -183,9 +180,9 @@ class NoticeServiceImpl(
     @Transactional
     override fun deleteManyNotices(idList: List<Long>) {
         for (noticeId in idList) {
-            val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
+            noticeRepository.findByIdOrNull(noticeId)
                 ?: throw CserealException.Csereal404("존재하지 않는 공지사항을 입력하였습니다.(noticeId: $noticeId)")
-            notice.isDeleted = true
+            noticeRepository.deleteById(noticeId)
         }
     }
 

@@ -30,11 +30,11 @@ import java.time.LocalDateTime
 import java.time.LocalDate
 
 interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository {
-    fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
+    fun findFirstByIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
         timestamp: LocalDateTime
     ): NewsEntity?
 
-    fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
+    fun findFirstByIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
         timestamp: LocalDateTime
     ): NewsEntity?
 
@@ -114,7 +114,6 @@ class NewsRepositoryImpl(
 
         val jpaQuery = queryFactory.selectFrom(newsEntity)
             .leftJoin(newsTagEntity).on(newsTagEntity.news.eq(newsEntity))
-            .where(newsEntity.isDeleted.eq(false))
             .where(
                 keywordBooleanBuilder,
                 tagsBooleanBuilder,
@@ -240,7 +239,6 @@ class NewsRepositoryImpl(
             newsEntity.createdAt
         ).from(newsEntity)
             .where(
-                newsEntity.isDeleted.eq(false),
                 newsEntity.isPrivate.eq(false),
                 newsEntity.isSlide.eq(true)
             )
@@ -252,7 +250,6 @@ class NewsRepositoryImpl(
         val total = queryFactory.select(newsEntity.count())
             .from(newsEntity)
             .where(
-                newsEntity.isDeleted.eq(false),
                 newsEntity.isPrivate.eq(false),
                 newsEntity.isSlide.eq(true)
             )
@@ -284,8 +281,7 @@ class NewsRepositoryImpl(
         ).from(newsEntity)
             .where(
                 newsEntity.isImportant.isTrue(),
-                newsEntity.isPrivate.isFalse(),
-                newsEntity.isDeleted.isFalse()
+                newsEntity.isPrivate.isFalse()
             ).orderBy(
                 newsEntity.createdAt.desc()
             ).let {
