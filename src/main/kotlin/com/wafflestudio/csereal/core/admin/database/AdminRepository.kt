@@ -16,15 +16,15 @@ class AdminRepository(
             (
                 SELECT id, title, created_at, 'notice' AS type
                 FROM notice
-                WHERE (is_deleted = false AND is_important = TRUE)
+                WHERE is_important = TRUE
                 UNION ALL
                 SELECT news.id, title, date, 'news' AS type
                 FROM news
-                WHERE (is_deleted = false AND is_important = TRUE)
+                WHERE is_important = TRUE
                 UNION ALL
                 SELECT seminar.id, title, created_at, 'seminar' AS type
                 FROM seminar
-                WHERE (is_deleted = false AND is_important = TRUE)
+                WHERE is_important = TRUE
             ) ORDER BY created_at DESC
             LIMIT :pageSize OFFSET :offset
             """.trimIndent()
@@ -52,15 +52,15 @@ class AdminRepository(
             SELECT COUNT(*) FROM (
                 SELECT id, title, created_at, 'notice' AS type
                 FROM notice
-                WHERE (is_deleted = false AND is_important = TRUE)
+                WHERE is_important = TRUE
                 UNION ALL
                 SELECT news.id, title, created_at, 'news' AS type
                 FROM news
-                WHERE (is_deleted = false AND is_important = TRUE)
+                WHERE is_important = TRUE
                 UNION ALL
                 SELECT seminar.id, title, created_at, 'seminar' AS type
                 FROM seminar
-                WHERE (is_deleted = false AND is_important = TRUE)
+                WHERE is_important = TRUE
             ) as nn
             """.trimIndent()
         )

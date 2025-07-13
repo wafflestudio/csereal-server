@@ -13,9 +13,6 @@ import java.time.LocalDate
 
 @Entity(name = "seminar")
 class SeminarEntity(
-
-    var isDeleted: Boolean = false,
-
     var title: String,
 
     @Column(columnDefinition = "text")
