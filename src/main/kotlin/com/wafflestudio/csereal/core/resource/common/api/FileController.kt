@@ -69,7 +69,7 @@ class FileController(
                 val saveFile = Paths.get(totalFilename)
                 file.transferTo(saveFile)
 
-                val imageUrl = "${endpointProperties.backend}/v1/file/$filename"
+                val imageUrl = "/v1/file/$filename"
 
                 results.add(
                     UploadFileInfo(
