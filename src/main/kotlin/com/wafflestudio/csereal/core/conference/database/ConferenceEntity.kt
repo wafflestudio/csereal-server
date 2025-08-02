@@ -1,6 +1,6 @@
 package com.wafflestudio.csereal.core.conference.database
 
-import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.conference.dto.ConferenceDto
 import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity

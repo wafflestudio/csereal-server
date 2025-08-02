@@ -1,6 +1,6 @@
 package com.wafflestudio.csereal.core.council.database
 
-import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
 import com.wafflestudio.csereal.core.council.type.CouncilFileType
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
