@@ -20,14 +20,14 @@ class ClientInfoInterceptor(
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
-        val userId: String? = request.getHeader(CLIENT_INFO_HEADER)
         val ipAddress: String = request.getHeader(FORWARDED_FOR_HEADER)?.let { xff ->
             xff.split(",").map { it.trim() }.firstOrNull()
         } ?: request.remoteAddr
+        val clientId: String? = request.getHeader(CLIENT_INFO_HEADER)
 
         clientInfo.apply {
             this.setIpAddress(ipAddress)
-            this.setUserId(userId)
+            this.setClientId(clientId)
         }
 
         logger.info("client info: {}", clientInfo)
@@ -40,11 +40,11 @@ class ClientInfoInterceptor(
 @RequestScope
 data class ClientInfo(
     var ipAddress: InetAddress? = null,
-    var userId: UUID? = null
+    var clientId: UUID? = null
 ) {
-    constructor(ipAddress: String, userId: String?) : this() {
+    constructor(ipAddress: String, clientId: String?) : this() {
         this.setIpAddress(ipAddress)
-        this.setUserId(userId)
+        this.setClientId(clientId)
     }
 
     fun setIpAddress(ipAddress: String) {
@@ -55,15 +55,15 @@ data class ClientInfo(
         }
     }
 
-    fun setUserId(userId: String?) {
+    fun setClientId(userId: String?) {
         try {
-            this.userId = userId?.let {
+            this.clientId = userId?.let {
                 UUID.fromString(it)
             }
         } catch (e: Exception) {
-            this.userId = null
+            this.clientId = null
         }
     }
 
-    fun isValid() = ipAddress != null && userId != null
+    fun isValid() = ipAddress != null && clientId != null
 }
