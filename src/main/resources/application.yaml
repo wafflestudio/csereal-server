@@ -77,6 +77,12 @@ customlog:
     file:
         name: "csereal-backend"
 
+management:
+    endpoints:
+        web:
+            exposure:
+                include: health,info,prometheus
+
 ---
 spring:
     config.activate.on-profile: local
