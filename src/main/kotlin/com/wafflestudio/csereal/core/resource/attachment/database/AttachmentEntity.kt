@@ -19,6 +19,8 @@ class AttachmentEntity(
     @Column(unique = true)
     val filename: String,
 
+    val folder: String? = null,
+
     val attachmentsOrder: Int,
     val size: Long,
 
@@ -57,4 +59,8 @@ class AttachmentEntity(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "council_file_id")
     var councilFile: CouncilFileEntity? = null
-) : BaseTimeEntity()
+) : BaseTimeEntity() {
+    fun filePath(): String {
+        return if(folder.isNullOrBlank()) return filename else "${folder}/${filename}"
+    }
+}

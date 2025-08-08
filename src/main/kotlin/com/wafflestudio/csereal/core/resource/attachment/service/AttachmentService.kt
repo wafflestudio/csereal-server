@@ -58,15 +58,18 @@ class AttachmentServiceImpl(
         val timeMillis = System.currentTimeMillis()
 
         val filename = "${timeMillis}_${requestAttachment.originalFilename}"
-        val totalFilename = path + filename
-        val saveFile = Paths.get(totalFilename)
-        requestAttachment.transferTo(saveFile)
+        val folder = "lab"
 
         val attachment = AttachmentEntity(
             filename = filename,
+            folder = folder,
             attachmentsOrder = 1,
             size = requestAttachment.size
         )
+
+        val totalFilename = path + attachment.filePath()
+        val saveFile = Paths.get(totalFilename)
+        requestAttachment.transferTo(saveFile)
 
         labEntity.pdf = attachment
         attachmentRepository.save(attachment)
@@ -91,15 +94,18 @@ class AttachmentServiceImpl(
             val timeMillis = System.currentTimeMillis()
 
             val filename = "${timeMillis}_${requestAttachment.originalFilename}"
-            val totalFilename = path + filename
-            val saveFile = Paths.get(totalFilename)
-            requestAttachment.transferTo(saveFile)
+            val folder = getFolder(contentEntityType)
 
             val attachment = AttachmentEntity(
                 filename = filename,
+                folder = folder,
                 attachmentsOrder = index + 1,
                 size = requestAttachment.size
             )
+
+            val totalFilename = path + attachment.filePath()
+            val saveFile = Paths.get(totalFilename)
+            requestAttachment.transferTo(saveFile)
 
             connectAttachmentToEntity(contentEntityType, attachment)
             //Todo: update에서도 uploadAllAttachments 사용, 이에 따른 attachmentsOrder에 대한 조정 필요
@@ -124,7 +130,7 @@ class AttachmentServiceImpl(
                 attachmentDto = AttachmentResponse(
                     id = attachment.id,
                     name = attachment.filename.substringAfter("_"),
-                    url = "${endpointProperties.backend}/v1/file/${attachment.filename}",
+                    url = "${endpointProperties.backend}/v1/file/${attachment.filePath()}",
                     bytes = attachment.size
                 )
             }
@@ -142,7 +148,7 @@ class AttachmentServiceImpl(
                     val attachmentDto = AttachmentResponse(
                         id = attachment.id,
                         name = attachment.filename.substringAfter("_"),
-                        url = "${endpointProperties.backend}/v1/file/${attachment.filename}",
+                        url = "${endpointProperties.backend}/v1/file/${attachment.filePath()}",
                         bytes = attachment.size
                     )
                     list.add(attachmentDto)
@@ -170,7 +176,7 @@ class AttachmentServiceImpl(
 
     @Transactional
     override fun deleteAttachment(attachment: AttachmentEntity) {
-        val fileDirectory = path + attachment.filename
+        val fileDirectory = path + attachment.filePath()
         attachmentRepository.delete(attachment)
         eventPublisher.publishEvent(FileDeleteEvent(fileDirectory))
     }
@@ -217,6 +223,18 @@ class AttachmentServiceImpl(
                 contentEntity.attachments.add(attachment)
                 attachment.councilFile = contentEntity
             }
+        }
+    }
+
+    private fun getFolder(contentEntityType: AttachmentContentEntityType): String? {
+        return when (contentEntityType) {
+            is NewsEntity -> "news"
+            is NoticeEntity -> "notice"
+            is SeminarEntity -> "seminar"
+            is AboutEntity -> "about"
+            is AcademicsEntity -> "academics"
+            is CouncilFileEntity -> "council"
+            else -> null
         }
     }
 }

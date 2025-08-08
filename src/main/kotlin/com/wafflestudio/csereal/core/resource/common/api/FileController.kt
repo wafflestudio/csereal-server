@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.util.AntPathMatcher
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.net.URLEncoder
@@ -26,13 +27,16 @@ class FileController(
     private val uploadPath: String,
     private val endpointProperties: EndpointProperties
 ) {
-
-    @GetMapping("/{filename:.+}")
+    @GetMapping("/**/{filename:.+}")
     fun serveFile(
         @PathVariable filename: String,
         request: HttpServletRequest
     ): ResponseEntity<Resource> {
-        val file = Paths.get(uploadPath, filename)
+        val fileSubDir = AntPathMatcher().extractPathWithinPattern(
+            "/api/v1/file/**",
+            request.servletPath
+        ).substringAfter("/api/v1/file/")
+        val file = Paths.get(uploadPath, fileSubDir)
         val resource = UrlResource(file.toUri())
 
         if (resource.exists() || resource.isReadable) {
@@ -93,9 +97,16 @@ class FileController(
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @DeleteMapping("/{filename:.+}")
-    fun deleteFile(@PathVariable filename: String): ResponseEntity<Any> {
-        val file = Paths.get(uploadPath, filename)
+    @DeleteMapping("/**/{filename:.+}")
+    fun deleteFile(
+        @PathVariable filename: String,
+        request: HttpServletRequest
+    ): ResponseEntity<Any> {
+        val fileSubDir = AntPathMatcher().extractPathWithinPattern(
+            "/api/v1/file/**",
+            request.servletPath
+        ).substringAfter("/api/v1/file/")
+        val file = Paths.get(uploadPath, fileSubDir)
 
         if (Files.exists(file)) {
             Files.delete(file)
