@@ -1,12 +1,11 @@
 package com.wafflestudio.csereal.common.interceptor
 
+import com.wafflestudio.csereal.common.context.ClientInfoHolder
 import com.wafflestudio.csereal.common.dto.ClientInfo
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Configuration
-import org.springframework.stereotype.Component
-import org.springframework.web.context.annotation.RequestScope
 import org.springframework.web.servlet.HandlerInterceptor
 
 private const val CLIENT_INFO_HEADER = "X-Client-Id"
@@ -32,11 +31,4 @@ class ClientInfoInterceptor(
 
         return true
     }
-}
-
-@Component
-@RequestScope
-class ClientInfoHolder {
-    lateinit var clientInfo: ClientInfo
-        internal set
 }
