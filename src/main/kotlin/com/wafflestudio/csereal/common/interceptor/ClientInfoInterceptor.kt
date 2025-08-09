@@ -17,10 +17,16 @@ class ClientInfoInterceptor(
 ) : HandlerInterceptor {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
-        val ipAddress: String = request.getHeader(FORWARDED_FOR_HEADER)?.let { xff ->
-            xff.split(",").map { it.trim() }.firstOrNull()
-        } ?: request.remoteAddr
+    override fun preHandle(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        handler: Any
+    ): Boolean {
+        val ipAddress: String = request.getHeader(FORWARDED_FOR_HEADER)
+            ?.split(",")
+            ?.map { it.trim() }
+            ?.firstOrNull()
+            ?: request.remoteAddr
         val clientId: String? = request.getHeader(CLIENT_INFO_HEADER)
 
         val clientInfo = ClientInfo(ipAddress, clientId)
