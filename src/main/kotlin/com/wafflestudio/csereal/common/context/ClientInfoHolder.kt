@@ -11,10 +11,7 @@ import org.springframework.web.context.annotation.RequestScope
  * its own instance and associated [ClientInfo].
  */
 interface ClientInfoContext {
-    /**
-     * Returns the [ClientInfo] associated with the current request.
-     */
-    fun getClientInfo(): ClientInfo
+    val clientInfo: ClientInfo
 }
 
 /**
@@ -33,7 +30,5 @@ class ClientInfoHolder : ClientInfoContext {
      * This property is initialized by the request processing pipeline, typically
      * in [com.wafflestudio.csereal.common.interceptor.ClientInfoInterceptor].
      */
-    lateinit var clientInfo: ClientInfo
-
-    override fun getClientInfo() = clientInfo
+    override lateinit var clientInfo: ClientInfo
 }
