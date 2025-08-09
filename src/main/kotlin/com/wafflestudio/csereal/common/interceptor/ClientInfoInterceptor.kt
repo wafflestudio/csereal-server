@@ -11,6 +11,14 @@ import org.springframework.web.servlet.HandlerInterceptor
 private const val CLIENT_INFO_HEADER = "X-Client-Id"
 private const val FORWARDED_FOR_HEADER = "X-Forwarded-For"
 
+/**
+ * Intercepts incoming HTTP requests to extract client information.
+ *
+ * The interceptor resolves the client's IP address using the `X-Forwarded-For` header
+ * when available, falling back to the remote address. It also reads an optional
+ * `X-Client-Id` header and attempts to parse it as a UUID. The captured data is stored
+ * in a request-scoped [ClientInfoHolder] for downstream usage.
+ */
 @Configuration
 class ClientInfoInterceptor(
     private val clientInfoHolder: ClientInfoHolder
