@@ -8,8 +8,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
 import org.springframework.web.context.annotation.RequestScope
 import org.springframework.web.servlet.HandlerInterceptor
-import java.net.InetAddress
-import java.util.UUID
 
 private const val CLIENT_INFO_HEADER = "X-Client-Id"
 private const val FORWARDED_FOR_HEADER = "X-Forwarded-For"
@@ -40,4 +38,5 @@ class ClientInfoInterceptor(
 @RequestScope
 class ClientInfoHolder {
     lateinit var clientInfo: ClientInfo
+        internal set
 }

@@ -4,11 +4,12 @@ import java.net.InetAddress
 import java.util.*
 
 data class ClientInfo(
-    val ipAddress: InetAddress, val clientId: UUID? = null
+    val ipAddress: InetAddress,
+    val clientId: UUID? = null
 ) {
     constructor(ipAddress: String, clientId: String?) : this(
         ipAddress = ipAddressOf(ipAddress),
-        clientId = clientId?.let { clientIdOfOrNull(it) },
+        clientId = clientId?.let { clientIdOfOrNull(it) }
     )
 
     fun isValid() = clientId != null
