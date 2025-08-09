@@ -1,6 +1,6 @@
 package com.wafflestudio.csereal.core.council.database
 
-import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
 import com.wafflestudio.csereal.core.council.dto.ReportCreateRequest
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
