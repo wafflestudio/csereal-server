@@ -2,7 +2,7 @@ package com.wafflestudio.csereal.core.notice.database
 
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.domain.AttachmentAttachable
+import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.core.notice.dto.NoticeDto
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.user.database.UserEntity

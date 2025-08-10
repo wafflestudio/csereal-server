@@ -1,8 +1,8 @@
 package com.wafflestudio.csereal.core.about.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.domain.AttachmentAttachable
-import com.wafflestudio.csereal.common.domain.MainImageAttachable
+import com.wafflestudio.csereal.common.entity.AttachmentAttachable
+import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.StringListConverter
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml

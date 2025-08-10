@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.academics.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.domain.AttachmentAttachable
+import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.api.req.CreateYearReq
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity

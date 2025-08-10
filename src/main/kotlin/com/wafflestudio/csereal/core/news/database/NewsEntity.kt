@@ -1,8 +1,8 @@
 package com.wafflestudio.csereal.core.news.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.domain.AttachmentAttachable
-import com.wafflestudio.csereal.common.domain.MainImageAttachable
+import com.wafflestudio.csereal.common.entity.AttachmentAttachable
+import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity

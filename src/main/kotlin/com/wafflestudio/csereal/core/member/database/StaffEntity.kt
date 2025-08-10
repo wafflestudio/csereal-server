@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.domain.MainImageAttachable
+import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.StringListConverter
 import com.wafflestudio.csereal.core.member.dto.StaffDto

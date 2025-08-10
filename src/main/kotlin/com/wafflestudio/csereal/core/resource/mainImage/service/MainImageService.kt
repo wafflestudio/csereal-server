@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.resource.mainImage.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.domain.MainImageAttachable
+import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.council.database.CouncilEntity

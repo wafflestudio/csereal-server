@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.recruit.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.domain.MainImageAttachable
+import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.resource.attachment.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.domain.AttachmentAttachable
+import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
