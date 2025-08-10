@@ -1,8 +1,8 @@
 package com.wafflestudio.csereal.core.about.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
-import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
+import com.wafflestudio.csereal.common.domain.AttachmentAttachable
+import com.wafflestudio.csereal.common.domain.MainImageAttachable
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.StringListConverter
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
@@ -27,17 +27,15 @@ class AboutEntity(
     var locations: MutableList<String> = mutableListOf(),
 
     @OneToMany(mappedBy = "about", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+    override var attachments: MutableList<AttachmentEntity> = mutableListOf(),
 
     @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
-    var mainImage: MainImageEntity? = null,
+    override var mainImage: MainImageEntity? = null,
 
     @Column(columnDefinition = "TEXT")
     var searchContent: String
 
-) : BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
-    override fun bringMainImage(): MainImageEntity? = mainImage
-    override fun bringAttachments(): List<AttachmentEntity> = attachments
+) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable {
 
     companion object {
         fun of(

@@ -1,8 +1,8 @@
 package com.wafflestudio.csereal.core.seminar.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
-import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
+import com.wafflestudio.csereal.common.domain.AttachmentAttachable
+import com.wafflestudio.csereal.common.domain.MainImageAttachable
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
@@ -58,14 +58,12 @@ class SeminarEntity(
     var plainTextAdditionalNote: String?,
 
     @OneToOne
-    var mainImage: MainImageEntity? = null,
+    override var mainImage: MainImageEntity? = null,
 
     @OneToMany(mappedBy = "seminar", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attachments: MutableList<AttachmentEntity> = mutableListOf()
+    override var attachments: MutableList<AttachmentEntity> = mutableListOf()
 
-) : BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
-    override fun bringMainImage(): MainImageEntity? = mainImage
-    override fun bringAttachments() = attachments
+) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable {
 
     companion object {
         fun of(seminarDto: SeminarDto): SeminarEntity {

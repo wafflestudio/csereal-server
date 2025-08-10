@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.council.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
+import com.wafflestudio.csereal.common.domain.MainImageAttachable
 import com.wafflestudio.csereal.core.council.dto.ReportCreateRequest
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.*
@@ -17,12 +17,11 @@ class CouncilEntity(
     var description: String,
 
     @OneToOne
-    var mainImage: MainImageEntity? = null,
+    override var mainImage: MainImageEntity? = null,
 
     var sequence: Int,
     var name: String
-) : BaseTimeEntity(), MainImageContentEntityType {
-    override fun bringMainImage() = mainImage
+) : BaseTimeEntity(), MainImageAttachable {
 
     companion object {
         fun createReport(req: ReportCreateRequest): CouncilEntity =

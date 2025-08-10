@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.research.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
+import com.wafflestudio.csereal.common.domain.MainImageAttachable
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.research.dto.ResearchDto
 import com.wafflestudio.csereal.core.research.type.ResearchType
@@ -27,12 +27,11 @@ class ResearchEntity(
     var labs: MutableSet<LabEntity> = mutableSetOf(),
 
     @OneToOne
-    var mainImage: MainImageEntity? = null,
+    override var mainImage: MainImageEntity? = null,
 
     @OneToOne(mappedBy = "research", cascade = [CascadeType.ALL], orphanRemoval = true)
     var researchSearch: ResearchSearchEntity? = null
-) : BaseTimeEntity(), MainImageContentEntityType {
-    override fun bringMainImage() = mainImage
+) : BaseTimeEntity(), MainImageAttachable {
 
     companion object {
         fun of(languageType: LanguageType, researchDto: ResearchDto): ResearchEntity {

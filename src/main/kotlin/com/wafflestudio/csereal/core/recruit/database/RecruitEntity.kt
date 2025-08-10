@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.recruit.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
+import com.wafflestudio.csereal.common.domain.MainImageAttachable
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -15,7 +15,5 @@ class RecruitEntity(
     var description: String,
 
     @OneToOne
-    var mainImage: MainImageEntity? = null
-) : BaseTimeEntity(), MainImageContentEntityType {
-    override fun bringMainImage(): MainImageEntity? = mainImage
-}
+    override var mainImage: MainImageEntity? = null
+) : BaseTimeEntity(), MainImageAttachable
