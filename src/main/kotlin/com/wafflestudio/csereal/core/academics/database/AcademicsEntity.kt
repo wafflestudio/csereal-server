@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.academics.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
+import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.api.req.CreateYearReq
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
@@ -24,13 +24,12 @@ class AcademicsEntity(
     var year: Int?,
 
     @OneToMany(mappedBy = "academics", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+    override var attachments: MutableList<AttachmentEntity> = mutableListOf(),
 
     @OneToOne(mappedBy = "academics", cascade = [CascadeType.ALL], orphanRemoval = true)
     var academicsSearch: AcademicsSearchEntity? = null
 
-) : BaseTimeEntity(), AttachmentContentEntityType {
-    override fun bringAttachments() = attachments
+) : BaseTimeEntity(), AttachmentAttachable {
 
     companion object {
         fun createYearResponse(

@@ -2,7 +2,7 @@ package com.wafflestudio.csereal.core.notice.database
 
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
+import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.core.notice.dto.NoticeDto
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.user.database.UserEntity
@@ -38,10 +38,9 @@ class NoticeEntity(
     val author: UserEntity,
 
     @OneToMany(mappedBy = "notice", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attachments: MutableList<AttachmentEntity> = mutableListOf()
+    override var attachments: MutableList<AttachmentEntity> = mutableListOf()
 
-) : BaseTimeEntity(), AttachmentContentEntityType {
-    override fun bringAttachments() = attachments
+) : BaseTimeEntity(), AttachmentAttachable {
 
     fun update(updateNoticeRequest: NoticeDto) {
         // Update plainTextDescription if description is changed

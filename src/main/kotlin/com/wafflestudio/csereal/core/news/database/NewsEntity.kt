@@ -1,8 +1,8 @@
 package com.wafflestudio.csereal.core.news.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
-import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
+import com.wafflestudio.csereal.common.entity.AttachmentAttachable
+import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
@@ -31,17 +31,15 @@ class NewsEntity(
     var importantUntil: LocalDate? = null,
 
     @OneToOne
-    var mainImage: MainImageEntity? = null,
+    override var mainImage: MainImageEntity? = null,
 
     @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+    override var attachments: MutableList<AttachmentEntity> = mutableListOf(),
 
     @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL])
     var newsTags: MutableSet<NewsTagEntity> = mutableSetOf()
 
-) : BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
-    override fun bringMainImage() = mainImage
-    override fun bringAttachments() = attachments
+) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable {
 
     companion object {
         fun of(newsDto: NewsDto): NewsEntity {

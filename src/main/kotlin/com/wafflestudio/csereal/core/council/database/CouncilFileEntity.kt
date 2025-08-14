@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.council.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
+import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.core.council.type.CouncilFileType
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import jakarta.persistence.*
@@ -20,7 +20,5 @@ class CouncilFileEntity(
     val key: String,
 
     @OneToMany(mappedBy = "councilFile", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val attachments: MutableList<AttachmentEntity> = mutableListOf()
-) : BaseTimeEntity(), AttachmentContentEntityType {
-    override fun bringAttachments(): List<AttachmentEntity> = attachments
-}
+    override val attachments: MutableList<AttachmentEntity> = mutableListOf()
+) : BaseTimeEntity(), AttachmentAttachable

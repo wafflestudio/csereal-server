@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.resource.mainImage.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
+import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.council.database.CouncilEntity
@@ -27,7 +27,7 @@ import java.nio.file.Paths
 
 interface MainImageService {
     fun uploadMainImage(
-        contentEntityType: MainImageContentEntityType,
+        contentEntityType: MainImageAttachable,
         requestImage: MultipartFile
     ): MainImageDto
 
@@ -47,7 +47,7 @@ class MainImageServiceImpl(
 
     @Transactional
     override fun uploadMainImage(
-        contentEntityType: MainImageContentEntityType,
+        contentEntityType: MainImageAttachable,
         requestImage: MultipartFile
     ): MainImageDto {
         Files.createDirectories(Paths.get(path))
@@ -99,7 +99,7 @@ class MainImageServiceImpl(
     }
 
     // TODO: 각 entity의 interface로 refactoring하기.
-    private fun connectMainImageToEntity(contentEntity: MainImageContentEntityType, mainImage: MainImageEntity) {
+    private fun connectMainImageToEntity(contentEntity: MainImageAttachable, mainImage: MainImageEntity) {
         when (contentEntity) {
             is NewsEntity -> {
                 contentEntity.mainImage = mainImage

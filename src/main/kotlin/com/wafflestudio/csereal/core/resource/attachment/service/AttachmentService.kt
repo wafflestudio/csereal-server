@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.resource.attachment.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
+import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
@@ -31,7 +31,7 @@ interface AttachmentService {
     ): AttachmentDto
 
     fun uploadAllAttachments(
-        contentEntityType: AttachmentContentEntityType,
+        contentEntityType: AttachmentAttachable,
         requestAttachments: List<MultipartFile>
     ): List<AttachmentDto>
 
@@ -80,7 +80,7 @@ class AttachmentServiceImpl(
 
     @Transactional
     override fun uploadAllAttachments(
-        contentEntityType: AttachmentContentEntityType,
+        contentEntityType: AttachmentAttachable,
         requestAttachments: List<MultipartFile>
     ): List<AttachmentDto> {
         Files.createDirectories(Paths.get(path))
@@ -186,7 +186,7 @@ class AttachmentServiceImpl(
         }
     }
 
-    private fun connectAttachmentToEntity(contentEntity: AttachmentContentEntityType, attachment: AttachmentEntity) {
+    private fun connectAttachmentToEntity(contentEntity: AttachmentAttachable, attachment: AttachmentEntity) {
         when (contentEntity) {
             is NewsEntity -> {
                 contentEntity.attachments.add(attachment)
