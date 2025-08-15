@@ -17,6 +17,6 @@ class MainImageEntity(
 
 ) : BaseTimeEntity() {
     fun filePath(): String {
-        return if(folder.isNullOrBlank()) return filename else "${folder}/${filename}"
+        return if (folder.isNullOrBlank()) return filename else "$folder/$filename"
     }
 }
