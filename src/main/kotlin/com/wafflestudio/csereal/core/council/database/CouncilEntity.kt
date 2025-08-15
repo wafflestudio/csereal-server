@@ -33,6 +33,8 @@ class CouncilEntity(
                 name = req.name
             )
     }
+
+    override fun getMainImageFolder() = "mainImage/council"
 }
 
 enum class CouncilType {

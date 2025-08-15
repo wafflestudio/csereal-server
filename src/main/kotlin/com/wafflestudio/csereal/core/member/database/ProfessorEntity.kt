@@ -77,6 +77,8 @@ class ProfessorEntity(
         this.lab = lab
         lab.professors.add(this)
     }
+
+    override fun getMainImageFolder() = "mainImage/professor"
 }
 
 enum class ProfessorStatus(

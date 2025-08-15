@@ -21,4 +21,6 @@ class CouncilFileEntity(
 
     @OneToMany(mappedBy = "councilFile", cascade = [CascadeType.ALL], orphanRemoval = true)
     override val attachments: MutableList<AttachmentEntity> = mutableListOf()
-) : BaseTimeEntity(), AttachmentAttachable
+) : BaseTimeEntity(), AttachmentAttachable {
+    override fun getAttachmentFolder() = "attachment/council"
+}

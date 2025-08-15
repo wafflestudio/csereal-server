@@ -48,4 +48,6 @@ class AcademicsEntity(
             )
         }
     }
+
+    override fun getAttachmentFolder() = "attachment/academics"
 }

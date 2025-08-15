@@ -16,4 +16,6 @@ class RecruitEntity(
 
     @OneToOne
     override var mainImage: MainImageEntity? = null
-) : BaseTimeEntity(), MainImageAttachable
+) : BaseTimeEntity(), MainImageAttachable {
+    override fun getMainImageFolder() = "mainImage/research"
+}

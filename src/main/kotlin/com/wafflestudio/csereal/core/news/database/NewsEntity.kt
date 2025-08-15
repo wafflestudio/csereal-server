@@ -70,4 +70,8 @@ class NewsEntity(
         this.isImportant = updateNewsRequest.isImportant
         this.importantUntil = if (updateNewsRequest.isImportant) updateNewsRequest.importantUntil else null
     }
+
+    override fun getAttachmentFolder() = "attachment/news"
+
+    override fun getMainImageFolder() = "mainImage/news"
 }

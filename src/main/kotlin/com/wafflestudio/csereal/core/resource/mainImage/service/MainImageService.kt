@@ -3,25 +3,16 @@ package com.wafflestudio.csereal.core.resource.mainImage.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.properties.EndpointProperties
-import com.wafflestudio.csereal.core.about.database.AboutEntity
-import com.wafflestudio.csereal.core.council.database.CouncilEntity
-import com.wafflestudio.csereal.core.member.database.ProfessorEntity
-import com.wafflestudio.csereal.core.member.database.StaffEntity
-import com.wafflestudio.csereal.core.news.database.NewsEntity
-import com.wafflestudio.csereal.core.recruit.database.RecruitEntity
-import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.resource.common.event.FileDeleteEvent
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageRepository
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.resource.mainImage.dto.MainImageDto
-import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import org.apache.commons.io.FilenameUtils
 import org.springframework.context.ApplicationEventPublisher
-import java.lang.invoke.WrongMethodTypeException
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -50,7 +41,7 @@ class MainImageServiceImpl(
         contentEntityType: MainImageAttachable,
         requestImage: MultipartFile
     ): MainImageDto {
-        val folder = getMainImageFolder(contentEntityType)
+        val folder = contentEntityType.getMainImageFolder()
         val uploadDir = Paths.get(path, folder)
         Files.createDirectories(uploadDir)
 
@@ -73,7 +64,7 @@ class MainImageServiceImpl(
             size = requestImage.size
         )
 
-        connectMainImageToEntity(contentEntityType, mainImage)
+        contentEntityType.mainImage = mainImage
         mainImageRepository.save(mainImage)
 
         return MainImageDto(
@@ -100,58 +91,7 @@ class MainImageServiceImpl(
         eventPublisher.publishEvent(FileDeleteEvent(fileDirectory))
     }
 
-    // TODO: 각 entity의 interface로 refactoring하기.
     private fun connectMainImageToEntity(contentEntity: MainImageAttachable, mainImage: MainImageEntity) {
-        when (contentEntity) {
-            is NewsEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is SeminarEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is AboutEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is ProfessorEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is StaffEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is ResearchEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is RecruitEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is CouncilEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            else -> {
-                throw WrongMethodTypeException("해당하는 엔티티가 없습니다")
-            }
-        }
-    }
-
-    private fun getMainImageFolder(contentEntityType: MainImageAttachable): String {
-        return "mainImage/" + when (contentEntityType) {
-            is NewsEntity -> "news"
-            is SeminarEntity -> "seminar"
-            is AboutEntity -> "about"
-            is ProfessorEntity -> "professor"
-            is StaffEntity -> "staff"
-            is ResearchEntity -> "research"
-            is RecruitEntity -> "recruit"
-            is CouncilEntity -> "council"
-            else -> ""
-        }
+        contentEntity.mainImage = mainImage
     }
 }

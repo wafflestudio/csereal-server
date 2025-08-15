@@ -128,4 +128,8 @@ class SeminarEntity(
         isImportant = updateSeminarRequest.isImportant
         importantUntil = if (updateSeminarRequest.isImportant) updateSeminarRequest.importantUntil else null
     }
+
+    override fun getAttachmentFolder() = "attachment/seminar"
+
+    override fun getMainImageFolder() = "mainImage/seminar"
 }

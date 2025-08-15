@@ -21,6 +21,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.lang.invoke.WrongMethodTypeException
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -71,6 +72,7 @@ class AttachmentServiceImpl(
         )
 
         labEntity.pdf = attachment
+        attachment.lab = labEntity
         attachmentRepository.save(attachment)
 
         return AttachmentDto(
@@ -85,7 +87,7 @@ class AttachmentServiceImpl(
         contentEntityType: AttachmentAttachable,
         requestAttachments: List<MultipartFile>
     ): List<AttachmentDto> {
-        val folder = getAttachmentFolder(contentEntityType)
+        val folder = contentEntityType.getAttachmentFolder()
         val uploadDir = Paths.get(path, folder)
         Files.createDirectories(uploadDir)
 
@@ -221,18 +223,10 @@ class AttachmentServiceImpl(
                 contentEntity.attachments.add(attachment)
                 attachment.councilFile = contentEntity
             }
-        }
-    }
 
-    private fun getAttachmentFolder(contentEntityType: AttachmentAttachable): String {
-        return "attachment/" + when (contentEntityType) {
-            is NewsEntity -> "news"
-            is NoticeEntity -> "notice"
-            is SeminarEntity -> "seminar"
-            is AboutEntity -> "about"
-            is AcademicsEntity -> "academics"
-            is CouncilFileEntity -> "council"
-            else -> ""
+            else -> {
+                throw WrongMethodTypeException("파일을 엔티티에 연결할 수 없습니다")
+            }
         }
     }
 }

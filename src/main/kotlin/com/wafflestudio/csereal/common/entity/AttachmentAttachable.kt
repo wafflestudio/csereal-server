@@ -4,4 +4,6 @@ import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEnti
 
 interface AttachmentAttachable {
     val attachments: List<AttachmentEntity>
+
+    fun getAttachmentFolder(): String
 }

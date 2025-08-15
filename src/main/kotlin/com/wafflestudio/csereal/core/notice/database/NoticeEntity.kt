@@ -61,4 +61,6 @@ class NoticeEntity(
         this.isImportant = updateNoticeRequest.isImportant
         this.importantUntil = if (updateNoticeRequest.isImportant) updateNoticeRequest.importantUntil else null
     }
+
+    override fun getAttachmentFolder() = "attachment/notice"
 }

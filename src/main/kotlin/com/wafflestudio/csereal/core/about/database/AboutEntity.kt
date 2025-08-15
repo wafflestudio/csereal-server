@@ -89,4 +89,8 @@ class AboutEntity(
         assert(postType == AboutPostType.FUTURE_CAREERS)
         searchContent = createContent(name, description, statNames, companyNames)
     }
+
+    override fun getAttachmentFolder() = "attachment/about"
+
+    override fun getMainImageFolder() = "mainImage/about"
 }
