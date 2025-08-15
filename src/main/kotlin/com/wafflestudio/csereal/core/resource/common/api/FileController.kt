@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.util.AntPathMatcher
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.net.URLEncoder
@@ -27,16 +26,12 @@ class FileController(
     private val uploadPath: String,
     private val endpointProperties: EndpointProperties
 ) {
-    @GetMapping("/**/{filename:.+}")
+    @GetMapping("/{*filepath}")
     fun serveFile(
-        @PathVariable filename: String,
+        @PathVariable filepath: String,
         request: HttpServletRequest
     ): ResponseEntity<Resource> {
-        val fileSubDir = AntPathMatcher().extractPathWithinPattern(
-            "/api/v1/file/**",
-            request.servletPath
-        ).substringAfter("/api/v1/file/")
-        val file = Paths.get(uploadPath, fileSubDir)
+        val file = Paths.get(uploadPath, filepath)
         val resource = UrlResource(file.toUri())
 
         if (resource.exists() || resource.isReadable) {
@@ -45,6 +40,7 @@ class FileController(
 
             headers.contentType = MediaType.parseMediaType(contentType ?: "application/octet-stream")
 
+            val filename = filepath.substringAfterLast("/")
             val originalFilename = filename.substringAfter("_")
             val encodedFilename = URLEncoder.encode(originalFilename, UTF_8.toString()).replace("+", "%20")
 
@@ -97,16 +93,12 @@ class FileController(
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @DeleteMapping("/**/{filename:.+}")
+    @DeleteMapping("/{*filepath}")
     fun deleteFile(
-        @PathVariable filename: String,
+        @PathVariable filepath: String,
         request: HttpServletRequest
     ): ResponseEntity<Any> {
-        val fileSubDir = AntPathMatcher().extractPathWithinPattern(
-            "/api/v1/file/**",
-            request.servletPath
-        ).substringAfter("/api/v1/file/")
-        val file = Paths.get(uploadPath, fileSubDir)
+        val file = Paths.get(uploadPath, filepath)
 
         if (Files.exists(file)) {
             Files.delete(file)

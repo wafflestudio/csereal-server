@@ -53,12 +53,15 @@ class AttachmentServiceImpl(
     private val eventPublisher: ApplicationEventPublisher
 ) : AttachmentService {
     override fun uploadAttachmentInLabEntity(labEntity: LabEntity, requestAttachment: MultipartFile): AttachmentDto {
-        Files.createDirectories(Paths.get(path))
+        val folder = "attachment/lab"
+        val uploadDir = Paths.get(path, folder)
+        Files.createDirectories(uploadDir)
 
         val timeMillis = System.currentTimeMillis()
 
         val filename = "${timeMillis}_${requestAttachment.originalFilename}"
-        val folder = "lab"
+        val saveFile = Paths.get(path, folder, filename)
+        requestAttachment.transferTo(saveFile)
 
         val attachment = AttachmentEntity(
             filename = filename,
@@ -66,10 +69,6 @@ class AttachmentServiceImpl(
             attachmentsOrder = 1,
             size = requestAttachment.size
         )
-
-        val totalFilename = path + attachment.filePath()
-        val saveFile = Paths.get(totalFilename)
-        requestAttachment.transferTo(saveFile)
 
         labEntity.pdf = attachment
         attachmentRepository.save(attachment)
@@ -86,7 +85,9 @@ class AttachmentServiceImpl(
         contentEntityType: AttachmentAttachable,
         requestAttachments: List<MultipartFile>
     ): List<AttachmentDto> {
-        Files.createDirectories(Paths.get(path))
+        val folder = getAttachmentFolder(contentEntityType)
+        val uploadDir = Paths.get(path, folder)
+        Files.createDirectories(uploadDir)
 
         val attachmentsList = mutableListOf<AttachmentDto>()
 
@@ -94,7 +95,8 @@ class AttachmentServiceImpl(
             val timeMillis = System.currentTimeMillis()
 
             val filename = "${timeMillis}_${requestAttachment.originalFilename}"
-            val folder = getFolder(contentEntityType)
+            val saveFile = uploadDir.resolve(filename)
+            requestAttachment.transferTo(saveFile)
 
             val attachment = AttachmentEntity(
                 filename = filename,
@@ -102,10 +104,6 @@ class AttachmentServiceImpl(
                 attachmentsOrder = index + 1,
                 size = requestAttachment.size
             )
-
-            val totalFilename = path + attachment.filePath()
-            val saveFile = Paths.get(totalFilename)
-            requestAttachment.transferTo(saveFile)
 
             connectAttachmentToEntity(contentEntityType, attachment)
             //Todo: update에서도 uploadAllAttachments 사용, 이에 따른 attachmentsOrder에 대한 조정 필요
@@ -226,15 +224,15 @@ class AttachmentServiceImpl(
         }
     }
 
-    private fun getFolder(contentEntityType: AttachmentContentEntityType): String? {
-        return when (contentEntityType) {
+    private fun getAttachmentFolder(contentEntityType: AttachmentAttachable): String {
+        return "attachment/" + when (contentEntityType) {
             is NewsEntity -> "news"
             is NoticeEntity -> "notice"
             is SeminarEntity -> "seminar"
             is AboutEntity -> "about"
             is AcademicsEntity -> "academics"
             is CouncilFileEntity -> "council"
-            else -> null
+            else -> ""
         }
     }
 }
