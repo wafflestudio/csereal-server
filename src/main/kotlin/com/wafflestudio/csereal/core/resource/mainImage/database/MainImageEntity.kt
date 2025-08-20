@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import jakarta.persistence.*
 
 @Entity(name = "mainImage")
+@Table(uniqueConstraints = [ UniqueConstraint(columnNames = ["filename", "directory"])])
 class MainImageEntity(
     var isDeleted: Boolean? = false,
 

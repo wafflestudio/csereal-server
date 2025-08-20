@@ -13,6 +13,7 @@ import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import jakarta.persistence.*
 
 @Entity(name = "attachment")
+@Table(uniqueConstraints = [ UniqueConstraint(columnNames = ["filename", "directory"])])
 class AttachmentEntity(
     var isDeleted: Boolean? = false,
 
