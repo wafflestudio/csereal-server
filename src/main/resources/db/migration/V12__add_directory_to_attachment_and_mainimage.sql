@@ -1,0 +1,5 @@
+ALTER TABLE attachment
+ADD COLUMN directory VARCHAR(255) NULL;
+
+ALTER TABLE main_image
+ADD COLUMN directory VARCHAR(255) NULL;

@@ -1,5 +1,0 @@
-ALTER TABLE attachment
-ADD COLUMN folder VARCHAR(255) NULL;
-
-ALTER TABLE main_image
-ADD COLUMN folder VARCHAR(255) NULL;

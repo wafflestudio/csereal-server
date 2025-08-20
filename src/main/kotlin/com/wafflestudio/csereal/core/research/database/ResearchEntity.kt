@@ -44,6 +44,4 @@ class ResearchEntity(
             )
         }
     }
-
-    override fun getMainImageFolder() = "mainImage/research"
 }

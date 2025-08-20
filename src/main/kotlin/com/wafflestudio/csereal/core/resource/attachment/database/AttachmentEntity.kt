@@ -19,7 +19,7 @@ class AttachmentEntity(
     @Column(unique = true)
     val filename: String,
 
-    val folder: String? = null,
+    val directory: String? = null,
 
     val attachmentsOrder: Int,
     val size: Long,
@@ -61,6 +61,6 @@ class AttachmentEntity(
     var councilFile: CouncilFileEntity? = null
 ) : BaseTimeEntity() {
     fun filePath(): String {
-        return if (folder.isNullOrBlank()) return filename else "$folder/$filename"
+        return if (directory.isNullOrBlank()) return filename else "$directory/$filename"
     }
 }

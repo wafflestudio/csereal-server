@@ -3,10 +3,18 @@ package com.wafflestudio.csereal.core.resource.mainImage.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.properties.EndpointProperties
+import com.wafflestudio.csereal.core.about.database.AboutEntity
+import com.wafflestudio.csereal.core.council.database.CouncilEntity
+import com.wafflestudio.csereal.core.member.database.ProfessorEntity
+import com.wafflestudio.csereal.core.member.database.StaffEntity
+import com.wafflestudio.csereal.core.news.database.NewsEntity
+import com.wafflestudio.csereal.core.recruit.database.RecruitEntity
+import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.resource.common.event.FileDeleteEvent
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageRepository
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.resource.mainImage.dto.MainImageDto
+import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -41,8 +49,8 @@ class MainImageServiceImpl(
         contentEntityType: MainImageAttachable,
         requestImage: MultipartFile
     ): MainImageDto {
-        val folder = contentEntityType.getMainImageFolder()
-        val uploadDir = Paths.get(path, folder)
+        val directory = mainImageDirectoryOf(contentEntityType)
+        val uploadDir = Paths.get(path, directory)
         Files.createDirectories(uploadDir)
 
         val extension = FilenameUtils.getExtension(requestImage.originalFilename)
@@ -59,7 +67,7 @@ class MainImageServiceImpl(
 
         val mainImage = MainImageEntity(
             filename = filename,
-            folder = folder,
+            directory = directory,
             imagesOrder = 1,
             size = requestImage.size
         )
@@ -89,5 +97,19 @@ class MainImageServiceImpl(
         val fileDirectory = path + image.filePath()
         mainImageRepository.delete(image)
         eventPublisher.publishEvent(FileDeleteEvent(fileDirectory))
+    }
+
+    private fun mainImageDirectoryOf(contentEntityType: MainImageAttachable): String {
+        return "mainImage/" + when (contentEntityType) {
+            is NewsEntity -> "news"
+            is SeminarEntity -> "seminar"
+            is AboutEntity -> "about"
+            is ProfessorEntity -> "professor"
+            is StaffEntity -> "staff"
+            is ResearchEntity -> "research"
+            is RecruitEntity -> "recruit"
+            is CouncilEntity -> "council"
+            else -> ""
+        }
     }
 }

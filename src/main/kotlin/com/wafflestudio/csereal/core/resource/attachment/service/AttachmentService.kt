@@ -54,19 +54,19 @@ class AttachmentServiceImpl(
     private val eventPublisher: ApplicationEventPublisher
 ) : AttachmentService {
     override fun uploadAttachmentInLabEntity(labEntity: LabEntity, requestAttachment: MultipartFile): AttachmentDto {
-        val folder = "attachment/lab"
-        val uploadDir = Paths.get(path, folder)
+        val directory = "attachment/lab"
+        val uploadDir = Paths.get(path, directory)
         Files.createDirectories(uploadDir)
 
         val timeMillis = System.currentTimeMillis()
 
         val filename = "${timeMillis}_${requestAttachment.originalFilename}"
-        val saveFile = Paths.get(path, folder, filename)
+        val saveFile = Paths.get(path, directory, filename)
         requestAttachment.transferTo(saveFile)
 
         val attachment = AttachmentEntity(
             filename = filename,
-            folder = folder,
+            directory = directory,
             attachmentsOrder = 1,
             size = requestAttachment.size
         )
@@ -87,8 +87,8 @@ class AttachmentServiceImpl(
         contentEntityType: AttachmentAttachable,
         requestAttachments: List<MultipartFile>
     ): List<AttachmentDto> {
-        val folder = contentEntityType.getAttachmentFolder()
-        val uploadDir = Paths.get(path, folder)
+        val directory = attachmentDirectoryOf(contentEntityType)
+        val uploadDir = Paths.get(path, directory)
         Files.createDirectories(uploadDir)
 
         val attachmentsList = mutableListOf<AttachmentDto>()
@@ -102,7 +102,7 @@ class AttachmentServiceImpl(
 
             val attachment = AttachmentEntity(
                 filename = filename,
-                folder = folder,
+                directory = directory,
                 attachmentsOrder = index + 1,
                 size = requestAttachment.size
             )
@@ -227,6 +227,18 @@ class AttachmentServiceImpl(
             else -> {
                 throw WrongMethodTypeException("파일을 엔티티에 연결할 수 없습니다")
             }
+        }
+    }
+
+    private fun attachmentDirectoryOf(contentEntityType: AttachmentAttachable): String {
+        return "attachment/" + when (contentEntityType) {
+            is NewsEntity -> "news"
+            is NoticeEntity -> "notice"
+            is SeminarEntity -> "seminar"
+            is AboutEntity -> "about"
+            is AcademicsEntity -> "academics"
+            is CouncilFileEntity -> "council"
+            else -> ""
         }
     }
 }

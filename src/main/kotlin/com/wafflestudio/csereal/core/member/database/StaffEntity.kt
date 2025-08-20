@@ -51,6 +51,4 @@ class StaffEntity(
         this.phone = staffDto.phone
         this.email = staffDto.email
     }
-
-    override fun getMainImageFolder() = "mainImage/staff"
 }
