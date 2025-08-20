@@ -90,8 +90,4 @@ class MainImageServiceImpl(
         mainImageRepository.delete(image)
         eventPublisher.publishEvent(FileDeleteEvent(fileDirectory))
     }
-
-    private fun connectMainImageToEntity(contentEntity: MainImageAttachable, mainImage: MainImageEntity) {
-        contentEntity.mainImage = mainImage
-    }
 }

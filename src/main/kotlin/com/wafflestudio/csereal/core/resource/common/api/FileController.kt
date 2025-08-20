@@ -96,7 +96,6 @@ class FileController(
     @DeleteMapping("/{*filepath}")
     fun deleteFile(
         @PathVariable filepath: String,
-        request: HttpServletRequest
     ): ResponseEntity<Any> {
         val file = Paths.get(uploadPath, filepath)
 
