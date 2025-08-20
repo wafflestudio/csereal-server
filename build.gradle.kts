@@ -70,6 +70,13 @@ dependencies {
 
     // Custom Metadata
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
+    // google guava
+    implementation("com.google.guava:guava:33.4.8-jre")
+
+    // prometheus
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-prometheus")
 }
 
 buildscript {
