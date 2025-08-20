@@ -95,7 +95,7 @@ class FileController(
     @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/{*filepath}")
     fun deleteFile(
-        @PathVariable filepath: String,
+        @PathVariable filepath: String
     ): ResponseEntity<Any> {
         val file = Paths.get(uploadPath, filepath)
 
