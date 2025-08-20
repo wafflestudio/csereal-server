@@ -26,13 +26,12 @@ class FileController(
     private val uploadPath: String,
     private val endpointProperties: EndpointProperties
 ) {
-
-    @GetMapping("/{filename:.+}")
+    @GetMapping("/{*filepath}")
     fun serveFile(
-        @PathVariable filename: String,
+        @PathVariable filepath: String,
         request: HttpServletRequest
     ): ResponseEntity<Resource> {
-        val file = Paths.get(uploadPath, filename)
+        val file = Paths.get(uploadPath, filepath)
         val resource = UrlResource(file.toUri())
 
         if (resource.exists() || resource.isReadable) {
@@ -41,6 +40,7 @@ class FileController(
 
             headers.contentType = MediaType.parseMediaType(contentType ?: "application/octet-stream")
 
+            val filename = filepath.substringAfterLast("/")
             val originalFilename = filename.substringAfter("_")
             val encodedFilename = URLEncoder.encode(originalFilename, UTF_8.toString()).replace("+", "%20")
 
@@ -69,7 +69,7 @@ class FileController(
                 val saveFile = Paths.get(totalFilename)
                 file.transferTo(saveFile)
 
-                val imageUrl = "${endpointProperties.backend}/v1/file/$filename"
+                val imageUrl = "/v1/file/$filename"
 
                 results.add(
                     UploadFileInfo(
@@ -93,9 +93,11 @@ class FileController(
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @DeleteMapping("/{filename:.+}")
-    fun deleteFile(@PathVariable filename: String): ResponseEntity<Any> {
-        val file = Paths.get(uploadPath, filename)
+    @DeleteMapping("/{*filepath}")
+    fun deleteFile(
+        @PathVariable filepath: String
+    ): ResponseEntity<Any> {
+        val file = Paths.get(uploadPath, filepath)
 
         if (Files.exists(file)) {
             Files.delete(file)

@@ -13,11 +13,14 @@ import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import jakarta.persistence.*
 
 @Entity(name = "attachment")
+@Table(uniqueConstraints = [ UniqueConstraint(columnNames = ["filename", "directory"])])
 class AttachmentEntity(
     var isDeleted: Boolean? = false,
 
     @Column(unique = true)
     val filename: String,
+
+    val directory: String? = null,
 
     val attachmentsOrder: Int,
     val size: Long,
@@ -57,4 +60,8 @@ class AttachmentEntity(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "council_file_id")
     var councilFile: CouncilFileEntity? = null
-) : BaseTimeEntity()
+) : BaseTimeEntity() {
+    fun filePath(): String {
+        return if (directory.isNullOrBlank()) return filename else "$directory/$filename"
+    }
+}

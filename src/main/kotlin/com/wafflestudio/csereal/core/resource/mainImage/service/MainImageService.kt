@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import org.apache.commons.io.FilenameUtils
 import org.springframework.context.ApplicationEventPublisher
-import java.lang.invoke.WrongMethodTypeException
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -50,7 +49,9 @@ class MainImageServiceImpl(
         contentEntityType: MainImageAttachable,
         requestImage: MultipartFile
     ): MainImageDto {
-        Files.createDirectories(Paths.get(path))
+        val directory = mainImageDirectoryOf(contentEntityType)
+        val uploadDir = Paths.get(path, directory)
+        Files.createDirectories(uploadDir)
 
         val extension = FilenameUtils.getExtension(requestImage.originalFilename)
 
@@ -61,17 +62,17 @@ class MainImageServiceImpl(
         val timeMillis = System.currentTimeMillis()
 
         val filename = "${timeMillis}_${requestImage.originalFilename}"
-        val totalFilename = path + filename
-        val saveFile = Paths.get(totalFilename)
+        val saveFile = uploadDir.resolve(filename)
         requestImage.transferTo(saveFile)
 
         val mainImage = MainImageEntity(
             filename = filename,
+            directory = directory,
             imagesOrder = 1,
             size = requestImage.size
         )
 
-        connectMainImageToEntity(contentEntityType, mainImage)
+        contentEntityType.mainImage = mainImage
         mainImageRepository.save(mainImage)
 
         return MainImageDto(
@@ -83,9 +84,9 @@ class MainImageServiceImpl(
 
     // TODO: `MainImageEntity`의 메서드로 refactoring하기.
     @Transactional
-    override fun createImageURL(mainImage: MainImageEntity?): String? {
-        return if (mainImage != null) {
-            "${endpointProperties.backend}/v1/file/${mainImage.filename}"
+    override fun createImageURL(image: MainImageEntity?): String? {
+        return if (image != null) {
+            "${endpointProperties.backend}/v1/file/${image.filePath()}"
         } else {
             null
         }
@@ -93,49 +94,22 @@ class MainImageServiceImpl(
 
     @Transactional
     override fun removeImage(image: MainImageEntity) {
-        val fileDirectory = path + image.filename
+        val fileDirectory = path + image.filePath()
         mainImageRepository.delete(image)
         eventPublisher.publishEvent(FileDeleteEvent(fileDirectory))
     }
 
-    // TODO: 각 entity의 interface로 refactoring하기.
-    private fun connectMainImageToEntity(contentEntity: MainImageAttachable, mainImage: MainImageEntity) {
-        when (contentEntity) {
-            is NewsEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is SeminarEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is AboutEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is ProfessorEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is StaffEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is ResearchEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is RecruitEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is CouncilEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            else -> {
-                throw WrongMethodTypeException("해당하는 엔티티가 없습니다")
-            }
+    private fun mainImageDirectoryOf(contentEntityType: MainImageAttachable): String {
+        return "mainImage/" + when (contentEntityType) {
+            is NewsEntity -> "news"
+            is SeminarEntity -> "seminar"
+            is AboutEntity -> "about"
+            is ProfessorEntity -> "professor"
+            is StaffEntity -> "staff"
+            is ResearchEntity -> "research"
+            is RecruitEntity -> "recruit"
+            is CouncilEntity -> "council"
+            else -> ""
         }
     }
 }

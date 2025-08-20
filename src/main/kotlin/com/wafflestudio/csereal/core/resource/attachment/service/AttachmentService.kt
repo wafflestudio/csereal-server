@@ -21,6 +21,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.lang.invoke.WrongMethodTypeException
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -53,22 +54,25 @@ class AttachmentServiceImpl(
     private val eventPublisher: ApplicationEventPublisher
 ) : AttachmentService {
     override fun uploadAttachmentInLabEntity(labEntity: LabEntity, requestAttachment: MultipartFile): AttachmentDto {
-        Files.createDirectories(Paths.get(path))
+        val directory = "attachment/lab"
+        val uploadDir = Paths.get(path, directory)
+        Files.createDirectories(uploadDir)
 
         val timeMillis = System.currentTimeMillis()
 
         val filename = "${timeMillis}_${requestAttachment.originalFilename}"
-        val totalFilename = path + filename
-        val saveFile = Paths.get(totalFilename)
+        val saveFile = Paths.get(path, directory, filename)
         requestAttachment.transferTo(saveFile)
 
         val attachment = AttachmentEntity(
             filename = filename,
+            directory = directory,
             attachmentsOrder = 1,
             size = requestAttachment.size
         )
 
         labEntity.pdf = attachment
+        attachment.lab = labEntity
         attachmentRepository.save(attachment)
 
         return AttachmentDto(
@@ -83,7 +87,9 @@ class AttachmentServiceImpl(
         contentEntityType: AttachmentAttachable,
         requestAttachments: List<MultipartFile>
     ): List<AttachmentDto> {
-        Files.createDirectories(Paths.get(path))
+        val directory = attachmentDirectoryOf(contentEntityType)
+        val uploadDir = Paths.get(path, directory)
+        Files.createDirectories(uploadDir)
 
         val attachmentsList = mutableListOf<AttachmentDto>()
 
@@ -91,12 +97,12 @@ class AttachmentServiceImpl(
             val timeMillis = System.currentTimeMillis()
 
             val filename = "${timeMillis}_${requestAttachment.originalFilename}"
-            val totalFilename = path + filename
-            val saveFile = Paths.get(totalFilename)
+            val saveFile = uploadDir.resolve(filename)
             requestAttachment.transferTo(saveFile)
 
             val attachment = AttachmentEntity(
                 filename = filename,
+                directory = directory,
                 attachmentsOrder = index + 1,
                 size = requestAttachment.size
             )
@@ -124,7 +130,7 @@ class AttachmentServiceImpl(
                 attachmentDto = AttachmentResponse(
                     id = attachment.id,
                     name = attachment.filename.substringAfter("_"),
-                    url = "${endpointProperties.backend}/v1/file/${attachment.filename}",
+                    url = "${endpointProperties.backend}/v1/file/${attachment.filePath()}",
                     bytes = attachment.size
                 )
             }
@@ -142,7 +148,7 @@ class AttachmentServiceImpl(
                     val attachmentDto = AttachmentResponse(
                         id = attachment.id,
                         name = attachment.filename.substringAfter("_"),
-                        url = "${endpointProperties.backend}/v1/file/${attachment.filename}",
+                        url = "${endpointProperties.backend}/v1/file/${attachment.filePath()}",
                         bytes = attachment.size
                     )
                     list.add(attachmentDto)
@@ -170,7 +176,7 @@ class AttachmentServiceImpl(
 
     @Transactional
     override fun deleteAttachment(attachment: AttachmentEntity) {
-        val fileDirectory = path + attachment.filename
+        val fileDirectory = path + attachment.filePath()
         attachmentRepository.delete(attachment)
         eventPublisher.publishEvent(FileDeleteEvent(fileDirectory))
     }
@@ -217,6 +223,22 @@ class AttachmentServiceImpl(
                 contentEntity.attachments.add(attachment)
                 attachment.councilFile = contentEntity
             }
+
+            else -> {
+                throw WrongMethodTypeException("파일을 엔티티에 연결할 수 없습니다")
+            }
+        }
+    }
+
+    private fun attachmentDirectoryOf(contentEntityType: AttachmentAttachable): String {
+        return "attachment/" + when (contentEntityType) {
+            is NewsEntity -> "news"
+            is NoticeEntity -> "notice"
+            is SeminarEntity -> "seminar"
+            is AboutEntity -> "about"
+            is AcademicsEntity -> "academics"
+            is CouncilFileEntity -> "council"
+            else -> ""
         }
     }
 }
