@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.resource.attachment.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.core.resource.directory.Directory
 import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
@@ -54,7 +55,7 @@ class AttachmentServiceImpl(
     private val eventPublisher: ApplicationEventPublisher
 ) : AttachmentService {
     override fun uploadAttachmentInLabEntity(labEntity: LabEntity, requestAttachment: MultipartFile): AttachmentDto {
-        val directory = "attachment/lab"
+        val directory = "attachment/" + Directory.LAB.toString().lowercase()
         val uploadDir = Paths.get(path, directory)
         Files.createDirectories(uploadDir)
 
@@ -232,12 +233,12 @@ class AttachmentServiceImpl(
 
     private fun attachmentDirectoryOf(contentEntityType: AttachmentAttachable): String {
         return "attachment/" + when (contentEntityType) {
-            is NewsEntity -> "news"
-            is NoticeEntity -> "notice"
-            is SeminarEntity -> "seminar"
-            is AboutEntity -> "about"
-            is AcademicsEntity -> "academics"
-            is CouncilFileEntity -> "council"
+            is NewsEntity -> Directory.NEWS.toString().lowercase()
+            is NoticeEntity -> Directory.NOTICE.toString().lowercase()
+            is SeminarEntity -> Directory.SEMINAR.toString().lowercase()
+            is AboutEntity -> Directory.ABOUT.toString().lowercase()
+            is AcademicsEntity -> Directory.ACADEMICS.toString().lowercase()
+            is CouncilFileEntity -> Directory.COUNCIL.toString().lowercase()
             else -> ""
         }
     }

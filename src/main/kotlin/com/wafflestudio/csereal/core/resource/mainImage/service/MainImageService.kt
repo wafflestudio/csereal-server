@@ -11,6 +11,7 @@ import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.recruit.database.RecruitEntity
 import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.resource.common.event.FileDeleteEvent
+import com.wafflestudio.csereal.core.resource.directory.Directory
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageRepository
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.resource.mainImage.dto.MainImageDto
@@ -101,14 +102,14 @@ class MainImageServiceImpl(
 
     private fun mainImageDirectoryOf(contentEntityType: MainImageAttachable): String {
         return "mainImage/" + when (contentEntityType) {
-            is NewsEntity -> "news"
-            is SeminarEntity -> "seminar"
-            is AboutEntity -> "about"
-            is ProfessorEntity -> "professor"
-            is StaffEntity -> "staff"
-            is ResearchEntity -> "research"
-            is RecruitEntity -> "recruit"
-            is CouncilEntity -> "council"
+            is NewsEntity -> Directory.NEWS.toString().lowercase()
+            is SeminarEntity -> Directory.SEMINAR.toString().lowercase()
+            is AboutEntity -> Directory.ABOUT.toString().lowercase()
+            is ProfessorEntity -> Directory.PROFESSOR.toString().lowercase()
+            is StaffEntity -> Directory.STAFF.toString().lowercase()
+            is ResearchEntity -> Directory.RESEARCH.toString().lowercase()
+            is RecruitEntity -> Directory.RECRUIT.toString().lowercase()
+            is CouncilEntity -> Directory.COUNCIL.toString().lowercase()
             else -> ""
         }
     }
