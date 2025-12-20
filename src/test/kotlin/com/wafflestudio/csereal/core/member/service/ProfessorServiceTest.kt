@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.api.req.CreateProfessorReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorReqBody
 import com.wafflestudio.csereal.core.member.database.MemberSearchRepository
+import com.wafflestudio.csereal.core.member.database.ProfessorDepartment
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
 import com.wafflestudio.csereal.core.research.database.LabEntity
@@ -57,6 +58,7 @@ class ProfessorServiceTest(
             name = "name",
             email = "email",
             status = ProfessorStatus.ACTIVE,
+            department = ProfessorDepartment.CSE,
             academicRank = "academicRank",
             labId = labEntity.id,
             startDate = date,
@@ -84,6 +86,7 @@ class ProfessorServiceTest(
                 professorEntity.name shouldBe professorCreateReq.name
                 professorEntity.email shouldBe professorCreateReq.email
                 professorEntity.status shouldBe professorCreateReq.status
+                professorEntity.department shouldBe professorCreateReq.department
                 professorEntity.academicRank shouldBe professorCreateReq.academicRank
                 professorEntity.lab shouldBe labEntity
                 professorEntity.startDate shouldBe professorCreateReq.startDate
@@ -107,6 +110,7 @@ class ProfessorServiceTest(
                 val contentExpected = """
                         name
                         교수
+                        컴퓨터공학부
                         academicRank
                         labName
                         $date
@@ -163,6 +167,7 @@ class ProfessorServiceTest(
                 name = "name",
                 email = "email",
                 status = ProfessorStatus.ACTIVE,
+                department = ProfessorDepartment.CSE,
                 academicRank = "academicRank",
                 labId = labEntity1.id,
                 startDate = date,
@@ -183,6 +188,7 @@ class ProfessorServiceTest(
                 name = "modifiedName",
                 email = "modifiedEmail",
                 status = ProfessorStatus.INACTIVE,
+                department = ProfessorDepartment.TI,
                 academicRank = "modifiedAcademicRank",
                 labId = labEntity2.id,
                 startDate = date.plusDays(1),
@@ -211,6 +217,7 @@ class ProfessorServiceTest(
                 professorEntity!!.name shouldBe modifyProfessorReq.name
                 professorEntity.email shouldBe modifyProfessorReq.email
                 professorEntity.status shouldBe modifyProfessorReq.status
+                professorEntity.department shouldBe modifyProfessorReq.department
                 professorEntity.academicRank shouldBe modifyProfessorReq.academicRank
                 professorEntity.lab shouldBe labEntity2
                 professorEntity.startDate shouldBe modifyProfessorReq.startDate
@@ -234,6 +241,7 @@ class ProfessorServiceTest(
                 memberSearchEntity?.content shouldBe """
                         modifiedName
                         역대 교수
+                        첨단융합학부
                         modifiedAcademicRank
                         labName2
                         ${date.plusDays(1)}
