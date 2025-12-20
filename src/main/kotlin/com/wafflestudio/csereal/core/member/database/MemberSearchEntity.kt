@@ -41,8 +41,8 @@ class MemberSearchEntity(
             val stringBuilder = StringBuilder()
             stringBuilder.appendLine(professor.name)
             stringBuilder.appendLine(professor.status.krValue)
+            professor.department?.let { stringBuilder.appendLine(it.searchName) }
             stringBuilder.appendLine(professor.academicRank)
-            professor.department?.let {stringBuilder.appendLine(it.searchName) }
             professor.lab?.let { stringBuilder.appendLine(it.name) }
             professor.startDate?.let { stringBuilder.appendLine(it) }
             professor.endDate?.let { stringBuilder.appendLine(it) }

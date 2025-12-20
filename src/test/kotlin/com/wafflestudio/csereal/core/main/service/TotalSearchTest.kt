@@ -20,6 +20,7 @@ import com.wafflestudio.csereal.core.admissions.type.AdmissionsMainType
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsPostType
 import com.wafflestudio.csereal.core.member.api.req.CreateProfessorReqBody
 import com.wafflestudio.csereal.core.member.api.req.CreateStaffReqBody
+import com.wafflestudio.csereal.core.member.database.ProfessorDepartment
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
 import com.wafflestudio.csereal.core.member.service.MemberSearchService
 import com.wafflestudio.csereal.core.member.service.ProfessorService
@@ -212,6 +213,7 @@ class TotalSearchTest(
                 name = "name",
                 email = "email",
                 status = ProfessorStatus.ACTIVE,
+                department = ProfessorDepartment.CSE,
                 academicRank = "academicRank",
                 labId = null,
                 startDate = null,

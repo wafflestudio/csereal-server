@@ -94,7 +94,7 @@ enum class ProfessorStatus(
 enum class ProfessorDepartment(
     val searchName: String
 ) {
-    CSE("컴퓨터공학부"),
-    TI("첨단융합학부"),
-    II("지능정보융합학과")
+    CSE("컴퓨터공학부"), // Computer Science and Engineering
+    TI("첨단융합학부"), // Transdisciplinary innovations
+    II("지능정보융합학과") // Intelligence and Information
 }

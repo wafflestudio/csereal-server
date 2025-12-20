@@ -227,7 +227,7 @@ class ProfessorServiceImpl(
         req: CreateProfessorLanguagesReqBody,
         mainImage: MultipartFile?
     ): ProfessorLanguagesDto {
-        if(req.ko.department != req.en.department) {
+        if (req.ko.department != req.en.department) {
             throw CserealException.Csereal400("한국어와 영어 소속이 다릅니다.")
         }
 
@@ -314,7 +314,7 @@ class ProfessorServiceImpl(
         req: ModifyProfessorLanguagesReqBody,
         newImage: MultipartFile?
     ): ProfessorLanguagesDto {
-        if(req.ko.department != req.en.department) {
+        if (req.ko.department != req.en.department) {
             throw CserealException.Csereal400("한국어와 영어 소속이 다릅니다.")
         }
 
