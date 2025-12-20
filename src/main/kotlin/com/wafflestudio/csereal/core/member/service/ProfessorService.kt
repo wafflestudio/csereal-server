@@ -130,6 +130,9 @@ class ProfessorServiceImpl(
         }.sortedWith { a, b ->
 
             when {
+                a.department != b.department -> {
+                    compareValues(a.department, b.department)
+                }
                 enumLanguageType == LanguageType.EN -> {
                     val lastNameA = a.name.split(" ").last()
                     val lastNameB = b.name.split(" ").last()
@@ -156,6 +159,9 @@ class ProfessorServiceImpl(
             SimpleProfessorDto.of(it, imageURL)
         }.sortedWith { a, b ->
             when {
+                a.department != b.department -> {
+                    compareValues(a.department, b.department)
+                }
                 enumLanguageType == LanguageType.EN -> {
                     val lastNameA = a.name.split(" ").last()
                     val lastNameB = b.name.split(" ").last()
@@ -221,6 +227,10 @@ class ProfessorServiceImpl(
         req: CreateProfessorLanguagesReqBody,
         mainImage: MultipartFile?
     ): ProfessorLanguagesDto {
+        if(req.ko.department != req.en.department) {
+            throw CserealException.Csereal400("한국어와 영어 소속이 다릅니다.")
+        }
+
         val koreanProfessorDto = createProfessor(LanguageType.KO, req.ko, mainImage)
         val englishProfessorDto = createProfessor(LanguageType.EN, req.ko, mainImage)
 
@@ -304,6 +314,10 @@ class ProfessorServiceImpl(
         req: ModifyProfessorLanguagesReqBody,
         newImage: MultipartFile?
     ): ProfessorLanguagesDto {
+        if(req.ko.department != req.en.department) {
+            throw CserealException.Csereal400("한국어와 영어 소속이 다릅니다.")
+        }
+
         // check given id is paired
         if (!memberLanguageRepository.existsByKoreanIdAndEnglishIdAndType(
                 koProfessorId,
@@ -311,7 +325,7 @@ class ProfessorServiceImpl(
                 MemberType.PROFESSOR
             )
         ) {
-            throw CserealException.Csereal404("해당 교수 쌍을 찾을 수 없스빈다. <$koProfessorId, $enProfessorId>")
+            throw CserealException.Csereal404("해당 교수 쌍을 찾을 수 없습니다. <$koProfessorId, $enProfessorId>")
         }
 
         val koProfessorDto = updateProfessor(koProfessorId, req.ko, newImage)
