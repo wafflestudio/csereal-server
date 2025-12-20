@@ -28,9 +28,9 @@ jobs:
             - name: SCP Command to Transfer Files
               uses: appleboy/scp-action@v0.1.4
               with:
-                  host: ${{secrets.SSH_HOST_DEV}}
-                  username: ${{secrets.SSH_USER}}
-                  key: ${{secrets.SSH_KEY}}
+                  host: ${{secrets.SSH_HOST_DEV_2}}
+                  username: ${{secrets.SSH_USER_2}}
+                  key: ${{secrets.SSH_KEY_2}}
                   source: "docker-compose-db.yml, .env"
                   target: "~/database"
                   overwrite: true
@@ -38,10 +38,10 @@ jobs:
             - name: SSH Remote Commands
               uses: appleboy/ssh-action@v1.0.0
               with:
-                  host: ${{secrets.SSH_HOST_DEV}}
-                  username: ${{secrets.SSH_USER}}
-                  port: ${{secrets.SSH_PORT_DEV}}
-                  key: ${{secrets.SSH_KEY}}
+                  host: ${{secrets.SSH_HOST_DEV_2}}
+                  username: ${{secrets.SSH_USER_2}}
+                  port: ${{secrets.SSH_PORT_DEV_2}}
+                  key: ${{secrets.SSH_KEY_2}}
                   script: |
                       cd ~/database
                       source .env

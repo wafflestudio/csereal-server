@@ -17,15 +17,15 @@ jobs:
 
             - name: Create .env file
               run: |
-                  echo "URL=${{secrets.URL_DEV}}" > .env
-                  echo "LOCAL_IP=${{secrets.LOCAL_IP_DEV}}" >> .env
+                  echo "URL=${{secrets.URL_DEV_2}}" > .env
+                  echo "LOCAL_IP=${{secrets.LOCAL_IP_DEV_2}}" >> .env
 
             - name: SCP Command to Transfer Files
               uses: appleboy/scp-action@v0.1.4
               with:
-                  host: ${{secrets.SSH_HOST_DEV}}
-                  username: ${{secrets.SSH_USER}}
-                  key: ${{secrets.SSH_KEY}}
+                  host: ${{secrets.SSH_HOST_DEV_2}}
+                  username: ${{secrets.SSH_USER_DEV_2}}
+                  key: ${{secrets.SSH_KEY_DEV_2}}
                   source: "docker-compose-caddy.yml, .env, caddy/Caddyfile.dev"
                   target: "~/proxy"
                   overwrite: true
@@ -33,10 +33,10 @@ jobs:
             - name: SSH Command to Run Docker Compose
               uses: appleboy/ssh-action@v1.0.0
               with:
-                  host: ${{secrets.SSH_HOST_DEV}}
-                  username: ${{secrets.SSH_USER}}
-                  port: ${{secrets.SSH_PORT_DEV}}
-                  key: ${{secrets.SSH_KEY}}
+                  host: ${{secrets.SSH_HOST_DEV_2}}
+                  username: ${{secrets.SSH_USER_DEV_2}}
+                  port: ${{secrets.SSH_PORT_DEV_2}}
+                  key: ${{secrets.SSH_KEY_DEV_2}}
                   script: |
                       cd ~/proxy
                       mv caddy/Caddyfile.dev caddy/Caddyfile
