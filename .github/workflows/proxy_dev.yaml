@@ -5,7 +5,7 @@ on:
         paths:
             - docker-compose-caddy.yml
             - caddy/Caddyfile.dev
-            - .github/workflows/proxy.yaml
+            - .github/workflows/proxy_dev.yaml
 
 jobs:
     proxy-initialize:
