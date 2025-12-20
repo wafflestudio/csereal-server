@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.member.dto
 
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.member.database.ProfessorDepartment
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
 import java.time.LocalDate
@@ -10,6 +11,7 @@ data class ProfessorDto(
     val language: String,
     val name: String,
     val status: ProfessorStatus,
+    val department: ProfessorDepartment?,
     val academicRank: String,
     val labId: Long?,
     val labName: String?,
@@ -32,6 +34,7 @@ data class ProfessorDto(
                 language = LanguageType.makeLowercase(professorEntity.language),
                 name = professorEntity.name,
                 status = professorEntity.status,
+                department = professorEntity.department,
                 academicRank = professorEntity.academicRank,
                 labId = professorEntity.lab?.id,
                 labName = professorEntity.lab?.name,

@@ -179,6 +179,7 @@ class ProfessorServiceImpl(
                 language = language,
                 name = name,
                 status = status,
+                department = department,
                 academicRank = academicRank,
                 startDate = startDate,
                 endDate = endDate,
@@ -257,6 +258,7 @@ class ProfessorServiceImpl(
             professor.run {
                 name = it.name
                 status = it.status
+                department = it.department
                 academicRank = it.academicRank
                 startDate = it.startDate
                 endDate = it.endDate

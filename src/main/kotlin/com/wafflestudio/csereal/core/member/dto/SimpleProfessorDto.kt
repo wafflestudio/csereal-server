@@ -1,10 +1,12 @@
 package com.wafflestudio.csereal.core.member.dto
 
+import com.wafflestudio.csereal.core.member.database.ProfessorDepartment
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 
 data class SimpleProfessorDto(
     val id: Long,
     val name: String,
+    val department: ProfessorDepartment?,
     val academicRank: String,
     val status: String,
     val labId: Long?,
@@ -18,6 +20,7 @@ data class SimpleProfessorDto(
             return SimpleProfessorDto(
                 id = professorEntity.id,
                 name = professorEntity.name,
+                department = professorEntity.department,
                 academicRank = professorEntity.academicRank,
                 status = professorEntity.status.toString(),
                 labId = professorEntity.lab?.id,

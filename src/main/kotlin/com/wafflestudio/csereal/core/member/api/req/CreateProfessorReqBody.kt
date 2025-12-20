@@ -1,11 +1,13 @@
 package com.wafflestudio.csereal.core.member.api.req
 
+import com.wafflestudio.csereal.core.member.database.ProfessorDepartment
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
 import java.time.LocalDate
 
 data class CreateProfessorReqBody(
     val name: String,
     val status: ProfessorStatus,
+    val department: ProfessorDepartment?,
     val academicRank: String,
     val labId: Long?,
     val startDate: LocalDate?,

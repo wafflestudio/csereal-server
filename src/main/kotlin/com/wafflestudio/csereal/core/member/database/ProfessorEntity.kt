@@ -18,6 +18,9 @@ class ProfessorEntity(
     var name: String,
 
     @Enumerated(EnumType.STRING)
+    var department: ProfessorDepartment?,
+
+    @Enumerated(EnumType.STRING)
     var status: ProfessorStatus,
 
     var academicRank: String,
@@ -60,6 +63,7 @@ class ProfessorEntity(
                 language = languageType,
                 name = professorDto.name,
                 status = professorDto.status,
+                department = professorDto.department,
                 academicRank = professorDto.academicRank,
                 startDate = professorDto.startDate,
                 endDate = professorDto.endDate,
@@ -85,4 +89,12 @@ enum class ProfessorStatus(
     ACTIVE("교수"),
     INACTIVE("역대 교수"),
     VISITING("객원교수");
+}
+
+enum class ProfessorDepartment(
+    val searchName: String
+) {
+    CSE("컴퓨터공학부"),
+    TI("첨단융합학부"),
+    CST("지능정보융합학과")
 }
