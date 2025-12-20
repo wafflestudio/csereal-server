@@ -9,7 +9,8 @@ on:
 
 jobs:
   database-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
+    # runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
