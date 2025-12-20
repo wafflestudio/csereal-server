@@ -96,5 +96,5 @@ enum class ProfessorDepartment(
 ) {
     CSE("컴퓨터공학부"),
     TI("첨단융합학부"),
-    CST("지능정보융합학과")
+    II("지능정보융합학과")
 }
