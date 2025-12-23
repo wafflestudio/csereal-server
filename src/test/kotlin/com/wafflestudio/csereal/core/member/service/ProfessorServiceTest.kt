@@ -265,4 +265,74 @@ class ProfessorServiceTest(
             }
         }
     }
+
+    Given("소속이 다른 여러 교수가 있을 때") {
+        val date = LocalDate.now()
+
+        val cseProfessorCreateReq = CreateProfessorReqBody(
+            name = "name1",
+            email = "email",
+            status = ProfessorStatus.ACTIVE,
+            department = ProfessorDepartment.CSE,
+            academicRank = "academicRank",
+            labId = null,
+            startDate = date,
+            endDate = date,
+            office = "office",
+            phone = "phone",
+            fax = "fax",
+            website = "website",
+            educations = listOf("education1", "education2 "),
+            researchAreas = listOf("researchArea1", "researchArea2 "),
+            careers = listOf("career1", "career2 ")
+        )
+
+        val iiProfessorCreateReq = CreateProfessorReqBody(
+            name = "name2",
+            email = "email",
+            status = ProfessorStatus.ACTIVE,
+            department = ProfessorDepartment.CSE,
+            academicRank = "academicRank",
+            labId = null,
+            startDate = date,
+            endDate = date,
+            office = "office",
+            phone = "phone",
+            fax = "fax",
+            website = "website",
+            educations = listOf("education1", "education2 "),
+            researchAreas = listOf("researchArea1", "researchArea2 "),
+            careers = listOf("career1", "career2 ")
+        )
+
+        val tiProfessorCreateReq = CreateProfessorReqBody(
+            name = "name3",
+            email = "email",
+            status = ProfessorStatus.ACTIVE,
+            department = ProfessorDepartment.CSE,
+            academicRank = "academicRank",
+            labId = null,
+            startDate = date,
+            endDate = date,
+            office = "office",
+            phone = "phone",
+            fax = "fax",
+            website = "website",
+            educations = listOf("education1", "education2 "),
+            researchAreas = listOf("researchArea1", "researchArea2 "),
+            careers = listOf("career1", "career2 ")
+        )
+
+        When("교수를 생성하고 검색하면") {
+            professorService.createProfessor(LanguageType.KO, iiProfessorCreateReq, null)
+            professorService.createProfessor(LanguageType.KO, cseProfessorCreateReq, null)
+            professorService.createProfessor(LanguageType.KO, tiProfessorCreateReq, null)
+
+            val professorPageDto = professorService.getActiveProfessors("ko")
+
+            Then("CSE 교수가 가장 앞에 나와야 한다") {
+                professorPageDto.professors[0].department shouldBe ProfessorDepartment.CSE
+            }
+        }
+    }
 })
