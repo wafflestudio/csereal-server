@@ -58,6 +58,7 @@ class ProfessorServiceTest(
             email = "email",
             status = ProfessorStatus.ACTIVE,
             academicRank = "academicRank",
+            department = "department",
             labId = labEntity.id,
             startDate = date,
             endDate = date,
@@ -85,6 +86,7 @@ class ProfessorServiceTest(
                 professorEntity.email shouldBe professorCreateReq.email
                 professorEntity.status shouldBe professorCreateReq.status
                 professorEntity.academicRank shouldBe professorCreateReq.academicRank
+                professorEntity.department shouldBe professorCreateReq.department
                 professorEntity.lab shouldBe labEntity
                 professorEntity.startDate shouldBe professorCreateReq.startDate
                 professorEntity.endDate shouldBe professorCreateReq.endDate
@@ -108,6 +110,7 @@ class ProfessorServiceTest(
                         name
                         교수
                         academicRank
+                        department
                         labName
                         $date
                         $date
@@ -164,6 +167,7 @@ class ProfessorServiceTest(
                 email = "email",
                 status = ProfessorStatus.ACTIVE,
                 academicRank = "academicRank",
+                department = "department",
                 labId = labEntity1.id,
                 startDate = date,
                 endDate = date,
@@ -184,6 +188,7 @@ class ProfessorServiceTest(
                 email = "modifiedEmail",
                 status = ProfessorStatus.INACTIVE,
                 academicRank = "modifiedAcademicRank",
+                department = "modifiedDepartment",
                 labId = labEntity2.id,
                 startDate = date.plusDays(1),
                 endDate = date.plusDays(1),
@@ -212,6 +217,7 @@ class ProfessorServiceTest(
                 professorEntity.email shouldBe modifyProfessorReq.email
                 professorEntity.status shouldBe modifyProfessorReq.status
                 professorEntity.academicRank shouldBe modifyProfessorReq.academicRank
+                professorEntity.department shouldBe modifyProfessorReq.department
                 professorEntity.lab shouldBe labEntity2
                 professorEntity.startDate shouldBe modifyProfessorReq.startDate
                 professorEntity.endDate shouldBe modifyProfessorReq.endDate
@@ -235,6 +241,7 @@ class ProfessorServiceTest(
                         modifiedName
                         역대 교수
                         modifiedAcademicRank
+                        modifiedDepartment
                         labName2
                         ${date.plusDays(1)}
                         ${date.plusDays(1)}
