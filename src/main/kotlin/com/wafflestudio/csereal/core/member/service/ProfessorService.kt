@@ -222,7 +222,7 @@ class ProfessorServiceImpl(
         mainImage: MultipartFile?
     ): ProfessorLanguagesDto {
         val koreanProfessorDto = createProfessor(LanguageType.KO, req.ko, mainImage)
-        val englishProfessorDto = createProfessor(LanguageType.EN, req.ko, mainImage)
+        val englishProfessorDto = createProfessor(LanguageType.EN, req.en, mainImage)
 
         memberLanguageRepository.save(
             MemberLanguageEntity(
