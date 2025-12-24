@@ -6,7 +6,7 @@ data class SimpleProfessorDto(
     val id: Long,
     val name: String,
     val academicRank: String,
-    val department: String?,
+    val department: String,
     val status: String,
     val labId: Long?,
     val labName: String?,

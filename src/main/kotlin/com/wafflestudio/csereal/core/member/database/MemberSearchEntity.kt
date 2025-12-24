@@ -42,7 +42,7 @@ class MemberSearchEntity(
             stringBuilder.appendLine(professor.name)
             stringBuilder.appendLine(professor.status.krValue)
             stringBuilder.appendLine(professor.academicRank)
-            professor.department?.let { stringBuilder.appendLine(it) }
+            stringBuilder.appendLine(professor.department)
             professor.lab?.let { stringBuilder.appendLine(it.name) }
             professor.startDate?.let { stringBuilder.appendLine(it) }
             professor.endDate?.let { stringBuilder.appendLine(it) }

@@ -11,7 +11,7 @@ data class ProfessorDto(
     val name: String,
     val status: ProfessorStatus,
     val academicRank: String,
-    val department: String?,
+    val department: String,
     val labId: Long?,
     val labName: String?,
     val startDate: LocalDate?,

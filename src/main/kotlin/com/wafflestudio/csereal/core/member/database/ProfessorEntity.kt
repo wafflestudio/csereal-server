@@ -21,7 +21,7 @@ class ProfessorEntity(
     var status: ProfessorStatus,
 
     var academicRank: String,
-    var department: String?,
+    var department: String,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lab_id")
