@@ -180,6 +180,7 @@ class ProfessorServiceImpl(
                 name = name,
                 status = status,
                 academicRank = academicRank,
+                department = department,
                 startDate = startDate,
                 endDate = endDate,
                 office = office,
@@ -221,7 +222,7 @@ class ProfessorServiceImpl(
         mainImage: MultipartFile?
     ): ProfessorLanguagesDto {
         val koreanProfessorDto = createProfessor(LanguageType.KO, req.ko, mainImage)
-        val englishProfessorDto = createProfessor(LanguageType.EN, req.ko, mainImage)
+        val englishProfessorDto = createProfessor(LanguageType.EN, req.en, mainImage)
 
         memberLanguageRepository.save(
             MemberLanguageEntity(
@@ -258,6 +259,7 @@ class ProfessorServiceImpl(
                 name = it.name
                 status = it.status
                 academicRank = it.academicRank
+                department = it.department
                 startDate = it.startDate
                 endDate = it.endDate
                 office = it.office
@@ -309,7 +311,7 @@ class ProfessorServiceImpl(
                 MemberType.PROFESSOR
             )
         ) {
-            throw CserealException.Csereal404("해당 교수 쌍을 찾을 수 없스빈다. <$koProfessorId, $enProfessorId>")
+            throw CserealException.Csereal404("해당 교수 쌍을 찾을 수 없습니다. <$koProfessorId, $enProfessorId>")
         }
 
         val koProfessorDto = updateProfessor(koProfessorId, req.ko, newImage)

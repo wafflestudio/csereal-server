@@ -213,6 +213,7 @@ class TotalSearchTest(
                 email = "email",
                 status = ProfessorStatus.ACTIVE,
                 academicRank = "academicRank",
+                department = "department",
                 labId = null,
                 startDate = null,
                 endDate = null,
