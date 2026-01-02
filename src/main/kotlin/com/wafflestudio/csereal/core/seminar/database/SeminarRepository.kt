@@ -14,21 +14,31 @@ import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchDto
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
+import java.time.LocalDate
 
 interface SeminarRepository : JpaRepository<SeminarEntity, Long>, CustomSeminarRepository {
-    fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
+    fun findFirstByIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
         timestamp: LocalDateTime
     ): SeminarEntity?
 
-    fun findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
+    fun findFirstByIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
         timestamp: LocalDateTime
     ): SeminarEntity?
 
     @Query("SELECT s.id FROM seminar s")
     fun findAllIds(): List<Long>
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(
+        "UPDATE seminar s SET s.isImportant = false, s.importantUntil = NULL " +
+            "WHERE s.isImportant = true AND s.importantUntil < :currentDate"
+    )
+    fun updateExpiredImportantStatus(@Param("currentDate") currentDate: LocalDate): Int
 }
 
 interface CustomSeminarRepository {
@@ -80,7 +90,6 @@ class SeminarRepositoryImpl(
         }
 
         val jpaQuery = queryFactory.selectFrom(seminarEntity)
-            .where(seminarEntity.isDeleted.eq(false))
             .where(keywordBooleanBuilder, isPrivateBooleanBuilder)
 
         val total: Long
@@ -99,9 +108,10 @@ class SeminarRepositoryImpl(
             .limit(pageRequest.pageSize.toLong())
 
         val seminarEntityList = when {
-            sortBy == ContentSearchSortType.DATE || keyword.isNullOrEmpty() -> seminarEntityQuery.orderBy(
-                seminarEntity.startDate.desc()
-            )
+            sortBy == ContentSearchSortType.DATE || keyword.isNullOrEmpty() ->
+                seminarEntityQuery.orderBy(
+                    seminarEntity.startDate.desc()
+                )
 
             else /* sortBy == RELEVANCE */ -> seminarEntityQuery
         }.fetch()
@@ -151,7 +161,6 @@ class SeminarRepositoryImpl(
         ).from(seminarEntity)
             .where(
                 seminarEntity.isImportant.isTrue(),
-                seminarEntity.isDeleted.isFalse(),
                 seminarEntity.isPrivate.isFalse()
             ).orderBy(
                 seminarEntity.createdAt.desc()

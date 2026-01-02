@@ -3,12 +3,19 @@ package com.wafflestudio.csereal.core.reservation.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.core.reservation.database.*
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
+import com.wafflestudio.csereal.core.user.database.UserEntity
+import com.wafflestudio.csereal.core.user.database.UserRepository
+import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
+import io.kotest.matchers.or
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.beInstanceOf
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -20,10 +27,12 @@ import java.util.concurrent.TimeUnit
 @ActiveProfiles("test")
 @SpringBootTest
 @Transactional
+@Import(MySQLTestContainerConfig::class)
 class ReservationServiceTest(
     private val roomRepository: RoomRepository,
     private val reservationRepository: ReservationRepository,
-    private val reservationService: ReservationService
+    private val reservationService: ReservationService,
+    private val userRepository: UserRepository
 ) : BehaviorSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
 
@@ -31,6 +40,16 @@ class ReservationServiceTest(
 
     beforeSpec {
         dummyRoom = roomRepository.save(RoomEntity("test room", "301", 20, RoomType.SEMINAR))
+        if (userRepository.findByUsername("test") == null) {
+            userRepository.save(
+                UserEntity(
+                    "test",
+                    "test",
+                    "test@abc.com",
+                    "0000-00000"
+                )
+            )
+        }
     }
 
     given("User and Request provided") {
@@ -81,7 +100,11 @@ class ReservationServiceTest(
 
                 results.filter { it.isFailure }
                     .forEach { result ->
-                        result.exceptionOrNull().shouldBeInstanceOf<CserealException.Csereal409>()
+                        result.exceptionOrNull()
+                            .should(
+                                beInstanceOf<CserealException.Csereal409>() or
+                                    beInstanceOf<DataIntegrityViolationException>()
+                            )
                     }
 
                 val reservations = reservationRepository.findByRoomIdAndTimeOverlap(

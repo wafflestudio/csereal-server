@@ -1,4 +1,4 @@
-FROM openjdk:21-slim
+FROM eclipse-temurin:21
 
 # Set profile
 ARG PROFILE
@@ -9,6 +9,7 @@ RUN mkdir /app
 WORKDIR /app
 
 # Copy jar file
+# Since using the jar file, app should be built before building the docker image
 COPY ./build/libs/*.jar /app/app.jar
 
 # Make directories to mount

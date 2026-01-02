@@ -1,6 +1,6 @@
 package com.wafflestudio.csereal.core.academics.database
 
-import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.enums.LanguageType
 import jakarta.persistence.*
 

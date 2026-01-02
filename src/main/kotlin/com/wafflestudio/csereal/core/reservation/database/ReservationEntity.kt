@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.reservation.database
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import jakarta.persistence.Entity

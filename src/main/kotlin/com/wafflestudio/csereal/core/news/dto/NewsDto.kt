@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.news.dto
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
+import java.time.LocalDate
 
 data class NewsDto(
     val id: Long,
@@ -16,6 +17,7 @@ data class NewsDto(
     val isPrivate: Boolean,
     val isSlide: Boolean,
     val isImportant: Boolean,
+    val importantUntil: LocalDate?,
     val prevId: Long?,
     val prevTitle: String?,
     val nextId: Long?,
@@ -44,6 +46,7 @@ data class NewsDto(
                 isPrivate = this.isPrivate,
                 isSlide = this.isSlide,
                 isImportant = this.isImportant,
+                importantUntil = this.importantUntil,
                 prevId = prevNews?.id,
                 prevTitle = prevNews?.title,
                 nextId = nextNews?.id,

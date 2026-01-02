@@ -79,19 +79,17 @@ class NewsServiceImpl(
         val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
             ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다.(newsId: $newsId)")
 
-        if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.(newsId: $newsId)")
-
         if (news.isPrivate && !isCurrentUserStaff()) throw CserealException.Csereal401("접근 권한이 없습니다.")
 
         val imageURL = mainImageService.createImageURL(news.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(news.attachments)
 
         val prevNews =
-            newsRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
+            newsRepository.findFirstByIsPrivateFalseAndCreatedAtLessThanOrderByCreatedAtDesc(
                 news.createdAt!!
             )
         val nextNews =
-            newsRepository.findFirstByIsDeletedFalseAndIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
+            newsRepository.findFirstByIsPrivateFalseAndCreatedAtGreaterThanOrderByCreatedAtAsc(
                 news.createdAt!!
             )
 
@@ -132,7 +130,6 @@ class NewsServiceImpl(
         newAttachments: List<MultipartFile>?
     ): NewsDto {
         val news: NewsEntity = getNewsEntityByIdOrThrow(newsId)
-        if (news.isDeleted) throw CserealException.Csereal404("삭제된 새소식입니다.")
 
         news.update(request)
 
@@ -171,9 +168,8 @@ class NewsServiceImpl(
 
     @Transactional
     override fun deleteNews(newsId: Long) {
-        val news: NewsEntity = getNewsEntityByIdOrThrow(newsId)
-
-        news.isDeleted = true
+        getNewsEntityByIdOrThrow(newsId)
+        newsRepository.deleteById(newsId)
     }
 
     override fun enrollTag(tagName: String) {

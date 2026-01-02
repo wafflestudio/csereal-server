@@ -1,19 +1,18 @@
 package com.wafflestudio.csereal.core.news.database
 
-import com.wafflestudio.csereal.common.config.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
-import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
+import com.wafflestudio.csereal.common.entity.BaseTimeEntity
+import com.wafflestudio.csereal.common.entity.AttachmentAttachable
+import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.news.dto.NewsDto
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.*
 import java.time.LocalDateTime
+import java.time.LocalDate
 
 @Entity(name = "news")
 class NewsEntity(
-
-    var isDeleted: Boolean = false,
     var title: String,
 
     @Column(columnDefinition = "text")
@@ -29,19 +28,18 @@ class NewsEntity(
     var isPrivate: Boolean,
     var isSlide: Boolean,
     var isImportant: Boolean,
+    var importantUntil: LocalDate? = null,
 
     @OneToOne
-    var mainImage: MainImageEntity? = null,
+    override var mainImage: MainImageEntity? = null,
 
     @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+    override var attachments: MutableList<AttachmentEntity> = mutableListOf(),
 
     @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL])
     var newsTags: MutableSet<NewsTagEntity> = mutableSetOf()
 
-) : BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
-    override fun bringMainImage() = mainImage
-    override fun bringAttachments() = attachments
+) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable {
 
     companion object {
         fun of(newsDto: NewsDto): NewsEntity {
@@ -53,7 +51,8 @@ class NewsEntity(
                 date = newsDto.date,
                 isPrivate = newsDto.isPrivate,
                 isSlide = newsDto.isSlide,
-                isImportant = newsDto.isImportant
+                isImportant = newsDto.isImportant,
+                importantUntil = if (newsDto.isImportant) newsDto.importantUntil else null
             )
         }
     }
@@ -69,5 +68,6 @@ class NewsEntity(
         this.isPrivate = updateNewsRequest.isPrivate
         this.isSlide = updateNewsRequest.isSlide
         this.isImportant = updateNewsRequest.isImportant
+        this.importantUntil = if (updateNewsRequest.isImportant) updateNewsRequest.importantUntil else null
     }
 }

@@ -27,7 +27,7 @@ class MainRepositoryImpl(
 ) : MainRepository {
     override fun readMainSlide(): List<MainSlideResponse> {
         val newsEntityList = queryFactory.selectFrom(newsEntity)
-            .where(newsEntity.isDeleted.eq(false), newsEntity.isPrivate.eq(false), newsEntity.isSlide.eq(true))
+            .where(newsEntity.isPrivate.eq(false), newsEntity.isSlide.eq(true))
             .orderBy(newsEntity.createdAt.desc())
             .limit(20).fetch()
 
@@ -56,7 +56,7 @@ class MainRepositoryImpl(
                 noticeEntity.isPinned
             )
         ).from(noticeEntity)
-            .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPrivate.eq(false))
+            .where(noticeEntity.isPrivate.eq(false))
             .orderBy(noticeEntity.createdAt.desc())
             .limit(6).fetch()
     }
@@ -74,7 +74,7 @@ class MainRepositoryImpl(
             .rightJoin(noticeEntity).on(noticeTagEntity.notice.eq(noticeEntity))
             .rightJoin(tagInNoticeEntity).on(noticeTagEntity.tag.eq(tagInNoticeEntity))
             .where(noticeTagEntity.tag.name.eq(tagEnum))
-            .where(noticeEntity.isDeleted.eq(false), noticeEntity.isPrivate.eq(false))
+            .where(noticeEntity.isPrivate.eq(false))
             .orderBy(noticeTagEntity.notice.createdAt.desc())
             .limit(6).distinct().fetch()
     }

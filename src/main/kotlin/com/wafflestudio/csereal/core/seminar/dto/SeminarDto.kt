@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.seminar.dto
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import java.time.LocalDateTime
+import java.time.LocalDate
 
 data class SeminarDto(
     val id: Long,
@@ -24,6 +25,7 @@ data class SeminarDto(
     val modifiedAt: LocalDateTime?,
     val isPrivate: Boolean,
     val isImportant: Boolean,
+    val importantUntil: LocalDate?,
     val prevId: Long?,
     val prevTitle: String?,
     val nextId: Long?,
@@ -61,6 +63,7 @@ data class SeminarDto(
                 modifiedAt = this.modifiedAt,
                 isPrivate = this.isPrivate,
                 isImportant = this.isImportant,
+                importantUntil = this.importantUntil,
                 prevId = prevSeminar?.id,
                 prevTitle = prevSeminar?.title,
                 nextId = nextSeminar?.id,

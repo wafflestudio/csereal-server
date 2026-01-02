@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.common.config
+package com.wafflestudio.csereal.common.entity
 
 import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate

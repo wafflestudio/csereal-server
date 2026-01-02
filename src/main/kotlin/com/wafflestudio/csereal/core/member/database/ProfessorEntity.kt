@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.member.database
 
-import com.wafflestudio.csereal.common.config.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
+import com.wafflestudio.csereal.common.entity.BaseTimeEntity
+import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.StringListConverter
 import com.wafflestudio.csereal.core.member.dto.ProfessorDto
@@ -21,6 +21,7 @@ class ProfessorEntity(
     var status: ProfessorStatus,
 
     var academicRank: String,
+    var department: String,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lab_id")
@@ -48,12 +49,11 @@ class ProfessorEntity(
     var careers: MutableList<String> = mutableListOf(),
 
     @OneToOne
-    var mainImage: MainImageEntity? = null,
+    override var mainImage: MainImageEntity? = null,
 
     @OneToOne(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
     var memberSearch: MemberSearchEntity? = null
-) : BaseTimeEntity(), MainImageContentEntityType {
-    override fun bringMainImage(): MainImageEntity? = mainImage
+) : BaseTimeEntity(), MainImageAttachable {
 
     companion object {
         fun of(languageType: LanguageType, professorDto: ProfessorDto): ProfessorEntity {
@@ -62,6 +62,7 @@ class ProfessorEntity(
                 name = professorDto.name,
                 status = professorDto.status,
                 academicRank = professorDto.academicRank,
+                department = professorDto.department,
                 startDate = professorDto.startDate,
                 endDate = professorDto.endDate,
                 office = professorDto.office,

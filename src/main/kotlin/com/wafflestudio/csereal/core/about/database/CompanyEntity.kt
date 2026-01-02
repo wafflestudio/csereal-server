@@ -1,6 +1,6 @@
 package com.wafflestudio.csereal.core.about.database
 
-import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.core.about.dto.FutureCareersCompanyDto
 import jakarta.persistence.Entity
 

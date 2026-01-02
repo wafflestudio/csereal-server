@@ -1,20 +1,18 @@
 package com.wafflestudio.csereal.core.seminar.database
 
-import com.wafflestudio.csereal.common.config.BaseTimeEntity
-import com.wafflestudio.csereal.common.controller.AttachmentContentEntityType
-import com.wafflestudio.csereal.common.controller.MainImageContentEntityType
+import com.wafflestudio.csereal.common.entity.BaseTimeEntity
+import com.wafflestudio.csereal.common.entity.AttachmentAttachable
+import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import jakarta.persistence.*
 import java.time.LocalDateTime
+import java.time.LocalDate
 
 @Entity(name = "seminar")
 class SeminarEntity(
-
-    var isDeleted: Boolean = false,
-
     var title: String,
 
     @Column(columnDefinition = "text")
@@ -51,6 +49,7 @@ class SeminarEntity(
 
     var isPrivate: Boolean,
     var isImportant: Boolean,
+    var importantUntil: LocalDate? = null,
 
     @Column(columnDefinition = "text")
     var additionalNote: String?,
@@ -59,14 +58,12 @@ class SeminarEntity(
     var plainTextAdditionalNote: String?,
 
     @OneToOne
-    var mainImage: MainImageEntity? = null,
+    override var mainImage: MainImageEntity? = null,
 
     @OneToMany(mappedBy = "seminar", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attachments: MutableList<AttachmentEntity> = mutableListOf()
+    override var attachments: MutableList<AttachmentEntity> = mutableListOf()
 
-) : BaseTimeEntity(), MainImageContentEntityType, AttachmentContentEntityType {
-    override fun bringMainImage(): MainImageEntity? = mainImage
-    override fun bringAttachments() = attachments
+) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable {
 
     companion object {
         fun of(seminarDto: SeminarDto): SeminarEntity {
@@ -92,6 +89,7 @@ class SeminarEntity(
                 host = seminarDto.host,
                 isPrivate = seminarDto.isPrivate,
                 isImportant = seminarDto.isImportant,
+                importantUntil = if (seminarDto.isImportant) seminarDto.importantUntil else null,
                 additionalNote = seminarDto.additionalNote,
                 plainTextAdditionalNote = plainTextAdditionalNote
             )
@@ -128,5 +126,6 @@ class SeminarEntity(
         host = updateSeminarRequest.host
         isPrivate = updateSeminarRequest.isPrivate
         isImportant = updateSeminarRequest.isImportant
+        importantUntil = if (updateSeminarRequest.isImportant) updateSeminarRequest.importantUntil else null
     }
 }

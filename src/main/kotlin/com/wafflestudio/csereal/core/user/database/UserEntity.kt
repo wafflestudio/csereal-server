@@ -1,6 +1,6 @@
 package com.wafflestudio.csereal.core.user.database
 
-import com.wafflestudio.csereal.common.config.BaseTimeEntity
+import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import jakarta.persistence.Entity
 
 @Entity(name = "users")
