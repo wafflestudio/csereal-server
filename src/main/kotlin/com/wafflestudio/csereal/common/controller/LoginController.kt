@@ -12,7 +12,7 @@ class LoginController(
     @Value("\${login-page}")
     private val loginPage: String
 ) {
-    @GetMapping("/api/v2/login")
+    @GetMapping("/api/v1/login")
     fun redirectToLoginURL(response: HttpServletResponse) {
         val redirectUrl = "$loginPage/oauth2/authorization/idsnucse"
         response.sendRedirect(redirectUrl)
