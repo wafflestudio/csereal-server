@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.reservation.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
+import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.reservation.database.ReservationRepository
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermRepository
@@ -18,8 +20,13 @@ import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.shouldBe
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.core.oidc.OidcIdToken
+import org.springframework.security.web.context.SecurityContextRepository
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 import java.time.LocalDateTime
 
 @ActiveProfiles("test")
@@ -32,6 +39,7 @@ class ReserveTermServiceTest(
     private val reservationService: ReservationService,
     private val reserveTermRepository: ReserveTermRepository,
     private val userRepository: UserRepository,
+    private val securityContextRepository: SecurityContextRepository,
 ) : BehaviorSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
 
@@ -39,8 +47,14 @@ class ReserveTermServiceTest(
 
     beforeSpec {
         testSeminarRoom = roomRepository.save(RoomEntity("test room", "301", 20, RoomType.SEMINAR))
-        if (userRepository.findByUsername("test") == null) {
-            userRepository.save(
+    }
+
+    beforeTest {
+        reservationRepository.deleteAll()
+
+        // 스태프 권한이 없는 유저로 테스트
+        val mockUser = userRepository.findByUsername("test")
+            ?: userRepository.save(
                 UserEntity(
                     "test",
                     "test",
@@ -48,11 +62,16 @@ class ReserveTermServiceTest(
                     "0000-00000"
                 )
             )
-        }
-    }
 
-    beforeTest {
-        reservationRepository.deleteAll()
+        val issuedAt = Instant.now()
+        val expiresAt = issuedAt.plusSeconds(3600)
+        val claims = mapOf("sub" to mockUser.username)
+        val dummyIdToken = OidcIdToken("mock-token", issuedAt, expiresAt, claims)
+
+        val customOidcUser = CustomOidcUser(mockUser, emptyList(), dummyIdToken)
+        val authentication = UsernamePasswordAuthenticationToken(customOidcUser, null, emptyList())
+
+        SecurityContextHolder.getContext().authentication = authentication
     }
 
     given("Pre-Reservation is Allowed Now") {

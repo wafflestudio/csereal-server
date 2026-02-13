@@ -55,7 +55,7 @@ class ReservationServiceImpl(
         }
 
         // 세미나실은 등록된 정기예약 기간이 끝난 이후에만 예약 가능
-        if (room.type == RoomType.SEMINAR) { // TODO : 스태프는 항상 허용하게 하려면 변경하기
+        if (!isCurrentUserStaff() && room.type == RoomType.SEMINAR) {
             val totalStart = reserveRequest.startTime
             val totalEnd = reserveRequest.endTime.plusWeeks(reserveRequest.recurringWeeks.toLong() - 1)
             val currentTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"))
