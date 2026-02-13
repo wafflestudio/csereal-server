@@ -61,9 +61,9 @@ class ReservationController(
         return ResponseEntity.ok(reservationService.reserveRoom(reserveRequest))
     }
 
-    //TODO : allow lab's leader use this api
+    //TODO : allow lab's leader to use this api
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping
+    @PostMapping("/preReserve")
     fun preReserveSeminarRoom(
         @RequestBody reserveRequest: ReserveRequest
     ): ResponseEntity<List<ReservationDto>> {
