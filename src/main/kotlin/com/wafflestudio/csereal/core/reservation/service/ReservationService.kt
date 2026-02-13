@@ -118,7 +118,7 @@ class ReservationServiceImpl(
     private fun executeReservations(
         reserveRequest: ReserveRequest,
         user: UserEntity,
-        room: RoomEntity,
+        room: RoomEntity
     ): List<ReservationDto> {
         val reservations = mutableListOf<ReservationEntity>()
 

@@ -6,10 +6,9 @@ import java.time.LocalDateTime
 
 @Entity(name = "reserve_term")
 class ReserveTermEntity(
-    val applyStartTime : LocalDateTime,
-    val applyEndTime : LocalDateTime,
+    val applyStartTime: LocalDateTime,
+    val applyEndTime: LocalDateTime,
 
-    val termStartTime : LocalDateTime,
-    val termEndTime : LocalDateTime,
-) : BaseTimeEntity() {
-}
+    val termStartTime: LocalDateTime,
+    val termEndTime: LocalDateTime
+) : BaseTimeEntity()

@@ -7,22 +7,26 @@ import java.time.LocalDateTime
 
 interface ReserveTermRepository : JpaRepository<ReserveTermEntity, Long> {
 
-    @Query("""
+    @Query(
+        """
         SELECT rt FROM reserve_term rt
         WHERE rt.termStartTime <= :start AND rt.termEndTime >= :end
         """
     )
     fun findByTimeInclude(
-        @Param("start") start: LocalDateTime, @Param("end") end: LocalDateTime
+        @Param("start") start: LocalDateTime,
+        @Param("end") end: LocalDateTime
     ): List<ReserveTermEntity>
 
-    @Query("""
+    @Query(
+        """
         SELECT rt FROM reserve_term rt 
         WHERE rt.termStartTime < :end AND rt.termEndTime > :start
         """
     )
     fun findByTimeOverlap(
-        @Param("start") start: LocalDateTime, @Param("end") end: LocalDateTime
+        @Param("start") start: LocalDateTime,
+        @Param("end") end: LocalDateTime
     ): List<ReserveTermEntity>
 
     @Query("""SELECT MAX(rt.termEndTime) FROM reserve_term rt""")

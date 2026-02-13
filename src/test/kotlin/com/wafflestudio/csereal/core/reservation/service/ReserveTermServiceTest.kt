@@ -2,7 +2,6 @@ package com.wafflestudio.csereal.core.reservation.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
-import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.reservation.database.ReservationRepository
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermRepository
@@ -39,7 +38,7 @@ class ReserveTermServiceTest(
     private val reservationService: ReservationService,
     private val reserveTermRepository: ReserveTermRepository,
     private val userRepository: UserRepository,
-    private val securityContextRepository: SecurityContextRepository,
+    private val securityContextRepository: SecurityContextRepository
 ) : BehaviorSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
 
@@ -83,7 +82,7 @@ class ReserveTermServiceTest(
                 applyStartTime = LocalDateTime.now().minusDays(1),
                 applyEndTime = LocalDateTime.now().plusDays(1),
                 termStartTime = termStartTime,
-                termEndTime = termEndTime,
+                termEndTime = termEndTime
             )
         )
 
@@ -205,7 +204,7 @@ class ReserveTermServiceTest(
                     "purp",
                     startTime,
                     endTime,
-                    true,
+                    true
                 )
             val result = reservationService.reserveRoom(reserveRequest)
 
@@ -227,7 +226,7 @@ class ReserveTermServiceTest(
                     "purp",
                     startTime,
                     endTime,
-                    true,
+                    true
                 )
 
             then("cannot make reservations after registered terms") {
@@ -249,7 +248,7 @@ class ReserveTermServiceTest(
                 applyStartTime = LocalDateTime.now().minusDays(3),
                 applyEndTime = LocalDateTime.now().minusDays(1),
                 termStartTime = termStartTime,
-                termEndTime = termEndTime,
+                termEndTime = termEndTime
             )
         )
 
@@ -298,7 +297,7 @@ class ReserveTermServiceTest(
 
             val result = reservationService.reserveRoom(reserveRequest)
             then("success to make original reservations overlapping with the reservation term") {
-               result.size shouldBe 3
+                result.size shouldBe 3
             }
         }
 
@@ -315,7 +314,7 @@ class ReserveTermServiceTest(
                     "purp",
                     startTime,
                     endTime,
-                    true,
+                    true
                 )
 
             then("cannot make reservations after registered terms") {
@@ -328,4 +327,3 @@ class ReserveTermServiceTest(
         }
     }
 })
-
