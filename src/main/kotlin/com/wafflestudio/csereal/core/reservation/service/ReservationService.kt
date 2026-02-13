@@ -7,15 +7,18 @@ import com.wafflestudio.csereal.core.reservation.database.*
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
+import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.service.UserService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.*
 
 interface ReservationService {
     fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto>
+    fun preReserveSeminarRoom(reserveRequest: ReserveRequest): List<ReservationDto>
     fun getRoomReservationsBetween(roomId: Long, start: LocalDateTime, end: LocalDateTime): List<SimpleReservationDto>
     fun getReservation(reservationId: Long): ReservationDto
     fun cancelSpecific(reservationId: Long)
@@ -27,6 +30,7 @@ interface ReservationService {
 class ReservationServiceImpl(
     private val reservationRepository: ReservationRepository,
     private val roomRepository: RoomRepository,
+    private val reserveTermRepository: ReserveTermRepository,
     private val userService: UserService
 ) : ReservationService {
 
@@ -50,6 +54,72 @@ class ReservationServiceImpl(
             throw CserealException.Csereal403("예약 불가. 행정실 문의 바람")
         }
 
+        // 세미나실은 등록된 정기예약 기간이 끝난 이후에만 예약 가능
+        if (!isCurrentUserStaff() && room.type == RoomType.SEMINAR) {
+            val totalStart = reserveRequest.startTime
+            val totalEnd = reserveRequest.endTime.plusWeeks(reserveRequest.recurringWeeks.toLong() - 1)
+            val currentTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"))
+
+            val lastTermEnd = reserveTermRepository.findLastEndTime()
+            if (lastTermEnd != null && lastTermEnd < totalEnd) {
+                throw CserealException.Csereal400("아직 등록되지 않은 기간은 예약할 수 없습니다.")
+            }
+
+            val overlappingTerms = reserveTermRepository.findByTimeOverlap(totalStart, totalEnd)
+            overlappingTerms.forEach {
+                if (it.applyEndTime >= currentTime) {
+                    throw CserealException.Csereal403("정기예약 기간이 끝난 이후에 예약할 수 있습니다.")
+                }
+            }
+        }
+
+        return executeReservations(reserveRequest, user, room)
+    }
+
+    override fun preReserveSeminarRoom(reserveRequest: ReserveRequest): List<ReservationDto> {
+        if (!reserveRequest.agreed) {
+            throw CserealException.Csereal400("Policy Not Agreed")
+        }
+
+        val user = userService.getLoginUser()
+
+        val room =
+            roomRepository.findRoomById(reserveRequest.roomId) ?: throw CserealException.Csereal404("Room Not Found")
+
+        if (room.type != RoomType.SEMINAR) {
+            throw CserealException.Csereal400("Only Seminar rooms are allowed")
+        }
+
+        // 세미나실 중 교수회의실은 스태프 또는 교수만 예약 가능
+        if (!isCurrentUserStaffOrProfessor() && reserveRequest.roomId == 8L) {
+            throw CserealException.Csereal403("예약 불가. 행정실 문의 바람")
+        }
+
+        if (reserveRequest.startTime.plusHours(3) > reserveRequest.endTime) {
+            throw CserealException.Csereal400("정기예약 기간에 3시간을 초과한 예약을 진행할 수 없습니다.")
+        }
+
+        // 등록된 정기예약 기간 동안만 예약 가능
+        val totalStart = reserveRequest.startTime
+        val totalEnd = reserveRequest.endTime.plusWeeks(reserveRequest.recurringWeeks.toLong() - 1)
+        val currentTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"))
+
+        val includingTerms = reserveTermRepository.findByTimeInclude(totalStart, totalEnd)
+
+        if (includingTerms.isEmpty()) throw CserealException.Csereal400("정기예약으로 예약할 수 있는 기간이 아닙니다.")
+        val term = includingTerms.first()
+        if (term.applyEndTime < currentTime || term.applyStartTime > currentTime) {
+            throw CserealException.Csereal400("예약 신청 기간이 아닙니다.")
+        }
+
+        return executeReservations(reserveRequest, user, room)
+    }
+
+    private fun executeReservations(
+        reserveRequest: ReserveRequest,
+        user: UserEntity,
+        room: RoomEntity,
+    ): List<ReservationDto> {
         val reservations = mutableListOf<ReservationEntity>()
 
         val recurrenceId = UUID.randomUUID()

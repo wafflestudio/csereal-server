@@ -61,6 +61,15 @@ class ReservationController(
         return ResponseEntity.ok(reservationService.reserveRoom(reserveRequest))
     }
 
+    //TODO : allow lab's leader use this api
+    @PreAuthorize("hasRole('STAFF')")
+    @PostMapping
+    fun preReserveSeminarRoom(
+        @RequestBody reserveRequest: ReserveRequest
+    ): ResponseEntity<List<ReservationDto>> {
+        return ResponseEntity.ok(reservationService.preReserveSeminarRoom(reserveRequest))
+    }
+
     @PreAuthorize("hasAnyRole('STAFF','RESERVATION')")
     @DeleteMapping("/{reservationId}")
     fun cancelSpecific(@PathVariable reservationId: Long): ResponseEntity<Any> {

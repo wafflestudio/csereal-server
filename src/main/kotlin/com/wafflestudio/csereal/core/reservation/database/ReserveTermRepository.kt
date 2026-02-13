@@ -12,7 +12,7 @@ interface ReserveTermRepository : JpaRepository<ReserveTermEntity, Long> {
         WHERE rt.termStartTime <= :start AND rt.termEndTime >= :end
         """
     )
-    fun findFirstByTimeInclude(
+    fun findByTimeInclude(
         @Param("start") start: LocalDateTime, @Param("end") end: LocalDateTime
     ): List<ReserveTermEntity>
 
