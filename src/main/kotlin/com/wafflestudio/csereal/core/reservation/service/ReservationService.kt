@@ -55,7 +55,7 @@ class ReservationServiceImpl(
         }
 
         // 세미나실은 등록된 정기예약 기간이 끝난 이후에만 예약 가능
-        if (!isCurrentUserStaff() && room.type == RoomType.SEMINAR) {
+        if (room.type == RoomType.SEMINAR) { // TODO : 스태프는 항상 허용하게 하려면 변경하기
             val totalStart = reserveRequest.startTime
             val totalEnd = reserveRequest.endTime.plusWeeks(reserveRequest.recurringWeeks.toLong() - 1)
             val currentTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"))
@@ -68,7 +68,7 @@ class ReservationServiceImpl(
             val overlappingTerms = reserveTermRepository.findByTimeOverlap(totalStart, totalEnd)
             overlappingTerms.forEach {
                 if (it.applyEndTime >= currentTime) {
-                    throw CserealException.Csereal403("정기예약 기간이 끝난 이후에 예약할 수 있습니다.")
+                    throw CserealException.Csereal400("정기예약 기간이 끝난 이후에 예약할 수 있습니다.")
                 }
             }
         }
@@ -95,7 +95,7 @@ class ReservationServiceImpl(
             throw CserealException.Csereal403("예약 불가. 행정실 문의 바람")
         }
 
-        if (reserveRequest.startTime.plusHours(3) > reserveRequest.endTime) {
+        if (reserveRequest.startTime.plusHours(3) < reserveRequest.endTime) {
             throw CserealException.Csereal400("정기예약 기간에 3시간을 초과한 예약을 진행할 수 없습니다.")
         }
 
