@@ -10,12 +10,11 @@ interface ReserveTermRepository : JpaRepository<ReserveTermEntity, Long> {
     @Query(
         """
         SELECT rt FROM reserve_term rt
-        WHERE rt.termStartTime <= :start AND rt.termEndTime >= :end
+        WHERE rt.applyStartTime <= :current_time AND rt.applyEndTime >= :current_time
         """
     )
-    fun findByTimeInclude(
-        @Param("start") start: LocalDateTime,
-        @Param("end") end: LocalDateTime
+    fun findByApplyTimeInclude(
+        @Param("current_time") currentTime: LocalDateTime
     ): List<ReserveTermEntity>
 
     @Query(

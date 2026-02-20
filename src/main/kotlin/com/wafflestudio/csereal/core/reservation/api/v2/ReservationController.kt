@@ -53,21 +53,13 @@ class ReservationController(
         return ResponseEntity.ok(reservationService.getReservation(reservationId))
     }
 
+    //TODO : allow lab's leader to use this api even if they don't have reservation permissions
     @PreAuthorize("hasAnyRole('STAFF','RESERVATION')")
     @PostMapping
     fun reserveRoom(
         @RequestBody reserveRequest: ReserveRequest
     ): ResponseEntity<List<ReservationDto>> {
         return ResponseEntity.ok(reservationService.reserveRoom(reserveRequest))
-    }
-
-    //TODO : allow lab's leader to use this api
-    @PreAuthorize("hasRole('STAFF')")
-    @PostMapping("/pre")
-    fun preReserveSeminarRoom(
-        @RequestBody reserveRequest: ReserveRequest
-    ): ResponseEntity<List<ReservationDto>> {
-        return ResponseEntity.ok(reservationService.preReserveSeminarRoom(reserveRequest))
     }
 
     @PreAuthorize("hasAnyRole('STAFF','RESERVATION')")

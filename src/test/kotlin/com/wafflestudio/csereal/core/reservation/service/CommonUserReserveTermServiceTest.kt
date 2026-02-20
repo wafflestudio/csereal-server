@@ -20,7 +20,6 @@ import io.kotest.matchers.shouldBe
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.test.context.ActiveProfiles
@@ -32,7 +31,7 @@ import java.time.LocalDateTime
 @SpringBootTest
 @Transactional
 @Import(MySQLTestContainerConfig::class)
-class ReserveTermServiceTest(
+class CommonUserReserveTermServiceTest(
     private val roomRepository: RoomRepository,
     private val reservationRepository: ReservationRepository,
     private val reservationService: ReservationService,
@@ -50,7 +49,6 @@ class ReserveTermServiceTest(
     beforeTest {
         reservationRepository.deleteAll()
 
-        // 랩 대표 권한이 있는 유저로 테스트
         val mockUser = userRepository.findByUsername("test")
             ?: userRepository.save(
                 UserEntity(
@@ -61,15 +59,14 @@ class ReserveTermServiceTest(
                 )
             )
 
-        // TODO: FIX LATER
-        val authorities = listOf(SimpleGrantedAuthority("FIX_LATER"))
+        // 어떤 권한도 없는 유저로 테스트
         val issuedAt = Instant.now()
         val expiresAt = issuedAt.plusSeconds(3600)
         val claims = mapOf("sub" to mockUser.username)
         val dummyIdToken = OidcIdToken("mock-token", issuedAt, expiresAt, claims)
 
-        val customOidcUser = CustomOidcUser(mockUser, authorities, dummyIdToken)
-        val authentication = UsernamePasswordAuthenticationToken(customOidcUser, null, authorities)
+        val customOidcUser = CustomOidcUser(mockUser, emptyList(), dummyIdToken)
+        val authentication = UsernamePasswordAuthenticationToken(customOidcUser, null, emptyList())
 
         SecurityContextHolder.getContext().authentication = authentication
     }
@@ -87,31 +84,7 @@ class ReserveTermServiceTest(
             )
         )
 
-        `when`("requested reservation time fits in the term") {
-            val startTime = termStartTime.plusDays(1).withHour(10)
-            val endTime = termStartTime.plusDays(1).withHour(11)
-            val reserveRequest =
-                ReserveRequest(
-                    testSeminarRoom.id,
-                    "title",
-                    "a@a.com",
-                    "010-1234-5678",
-                    "prof",
-                    "purp",
-                    startTime,
-                    endTime,
-                    true,
-                    3
-                )
-
-            val result = reservationService.reserveRoom(reserveRequest)
-
-            then("create reservations successfully") {
-                result.size shouldBe 3
-            }
-        }
-
-        `when`("requested reservation time doesn't fit in the term") {
+        `when`("user who is not a leader tries reservation") {
             val startTime = termStartTime.minusDays(1).withHour(10)
             val endTime = termStartTime.minusDays(1).withHour(11)
             val reserveRequest =
@@ -125,38 +98,11 @@ class ReserveTermServiceTest(
                     startTime,
                     endTime,
                     true,
-                    3
+                    1
                 )
 
-            then("fail to make reservations out of the term") {
-                shouldThrow<CserealException.Csereal400> {
-                    reservationService.reserveRoom(reserveRequest)
-                }
-
-                val reservations = reservationRepository.findAll()
-                reservations.size shouldBe 0
-            }
-        }
-
-        `when`("reservation duration exceeds 3 hours") {
-            val startTime = termStartTime.plusDays(1).withHour(10)
-            val endTime = termStartTime.plusDays(1).withHour(14)
-            val reserveRequest =
-                ReserveRequest(
-                    testSeminarRoom.id,
-                    "title",
-                    "a@a.com",
-                    "010-1234-5678",
-                    "prof",
-                    "purp",
-                    startTime,
-                    endTime,
-                    true,
-                    3
-                )
-
-            then("fail to make reservations too long") {
-                shouldThrow<CserealException.Csereal400> {
+            then("fail to make reservations in the pre-reservation time") {
+                shouldThrow<CserealException.Csereal403> {
                     reservationService.reserveRoom(reserveRequest)
                 }
 
@@ -179,9 +125,9 @@ class ReserveTermServiceTest(
             )
         )
 
-        `when`("leader tries reservation") {
-            val startTime = termStartTime.plusDays(1).withHour(10)
-            val endTime = termStartTime.plusDays(1).withHour(11)
+        `when`("user who is not a leader tries reservation overlapping with the term") {
+            val startTime = termStartTime.minusDays(1).withHour(10)
+            val endTime = termStartTime.minusDays(1).withHour(11)
             val reserveRequest =
                 ReserveRequest(
                     testSeminarRoom.id,
@@ -196,14 +142,13 @@ class ReserveTermServiceTest(
                     3
                 )
 
-            then("success to reserve") {
-                reservationService.reserveRoom(reserveRequest)
-                val reservations = reservationRepository.findAll()
-                reservations.size shouldBe 3
+            val result = reservationService.reserveRoom(reserveRequest)
+            then("success to make original reservations overlapping with the reservation term") {
+                result.size shouldBe 3
             }
         }
 
-        `when`("leader tries reservation after registered terms") {
+        `when`("try reservation after registered terms") {
             val startTime = termEndTime.plusDays(7).withHour(10)
             val endTime = termEndTime.plusDays(7).withHour(11)
             val reserveRequest =
@@ -220,45 +165,6 @@ class ReserveTermServiceTest(
                 )
 
             then("cannot make reservations after registered terms") {
-                shouldThrow<CserealException.Csereal400> {
-                    reservationService.reserveRoom(reserveRequest)
-                }
-                val reservations = reservationRepository.findAll()
-                reservations.size shouldBe 0
-            }
-        }
-    }
-
-    given("Pre-Reservation apply time didn't start") {
-        val termStartTime = LocalDateTime.now().plusMonths(1)
-        val termEndTime = LocalDateTime.now().plusMonths(1).plusDays(30)
-        reserveTermRepository.deleteAll()
-        reserveTermRepository.save(
-            ReserveTermEntity(
-                applyStartTime = LocalDateTime.now().plusDays(1),
-                applyEndTime = LocalDateTime.now().plusDays(3),
-                termStartTime = termStartTime,
-                termEndTime = termEndTime
-            )
-        )
-        `when`("leader tries reservation") {
-            val startTime = termStartTime.plusDays(1).withHour(10)
-            val endTime = termStartTime.plusDays(1).withHour(11)
-            val reserveRequest =
-                ReserveRequest(
-                    testSeminarRoom.id,
-                    "title",
-                    "a@a.com",
-                    "010-1234-5678",
-                    "prof",
-                    "purp",
-                    startTime,
-                    endTime,
-                    true,
-                    3
-                )
-
-            then("cannot make reservations before apply-start-time") {
                 shouldThrow<CserealException.Csereal400> {
                     reservationService.reserveRoom(reserveRequest)
                 }
