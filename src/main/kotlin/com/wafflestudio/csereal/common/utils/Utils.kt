@@ -55,9 +55,8 @@ fun isCurrentUserStaffOrProfessor(): Boolean {
     return "ROLE_STAFF" in roles || "ROLE_PROFESSOR" in roles
 }
 
-//TODO : fix group name
 fun isCurrentUserLeader(): Boolean {
-    return "FIX_LATER" in getCurrentUserRoles()
+    return "ROLE_LABMASTER" in getCurrentUserRoles()
 }
 
 fun getCurrentUserRoles(): List<String> {
