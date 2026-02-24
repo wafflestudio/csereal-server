@@ -61,8 +61,7 @@ class ReserveTermServiceTest(
                 )
             )
 
-        // TODO: FIX LATER
-        val authorities = listOf(SimpleGrantedAuthority("FIX_LATER"))
+        val authorities = listOf(SimpleGrantedAuthority("ROLE_LABMASTER"))
         val issuedAt = Instant.now()
         val expiresAt = issuedAt.plusSeconds(3600)
         val claims = mapOf("sub" to mockUser.username)

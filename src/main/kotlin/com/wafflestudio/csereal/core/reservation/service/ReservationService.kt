@@ -79,7 +79,7 @@ class ReservationServiceImpl(
                 val overlappingTerms = reserveTermRepository.findByTimeOverlap(totalStart, totalEnd)
                 overlappingTerms.forEach {
                     if (it.applyEndTime >= currentTime) {
-                        throw CserealException.Csereal400("해당하는 정기예약 기간이 끝난 이후에 예약할 수 있습니다.")
+                        throw CserealException.Csereal400("겹치는 정기예약 기간이 끝난 이후에 예약할 수 있습니다.")
                     }
                 }
             }
