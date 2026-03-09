@@ -13,7 +13,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.*
 
 interface ReservationService {
@@ -55,7 +54,7 @@ class ReservationServiceImpl(
 
         // 세미나실은 정기예약 기간에는 랩 대표만 예약 가능
         if (!isCurrentUserStaff() && room.type == RoomType.SEMINAR) {
-            val currentTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"))
+            val currentTime = LocalDateTime.now()
             val applyingTerms = reserveTermRepository.findByApplyTimeInclude(currentTime)
             val totalStart = reserveRequest.startTime
             val totalEnd = reserveRequest.endTime.plusWeeks(reserveRequest.recurringWeeks.toLong() - 1)
