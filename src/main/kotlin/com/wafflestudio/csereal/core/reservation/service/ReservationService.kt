@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.reservation.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.utils.isCurrentUserLeader
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaffOrProfessor
 import com.wafflestudio.csereal.core.reservation.database.*
@@ -27,6 +28,7 @@ interface ReservationService {
 class ReservationServiceImpl(
     private val reservationRepository: ReservationRepository,
     private val roomRepository: RoomRepository,
+    private val reserveTermRepository: ReserveTermRepository,
     private val userService: UserService
 ) : ReservationService {
 
@@ -48,6 +50,38 @@ class ReservationServiceImpl(
         // 세미나실 중 교수회의실은 스태프 또는 교수만 예약 가능
         if (!isCurrentUserStaffOrProfessor() && reserveRequest.roomId == 8L) {
             throw CserealException.Csereal403("예약 불가. 행정실 문의 바람")
+        }
+
+        // 세미나실은 정기예약 기간에는 랩 대표만 예약 가능
+        if (!isCurrentUserStaff() && room.type == RoomType.SEMINAR) {
+            val currentTime = LocalDateTime.now()
+            val applyingTerms = reserveTermRepository.findByApplyTimeInclude(currentTime)
+            val totalStart = reserveRequest.startTime
+            val totalEnd = reserveRequest.endTime.plusWeeks(reserveRequest.recurringWeeks.toLong() - 1)
+
+            if (!applyingTerms.isEmpty()) {
+                if (!isCurrentUserLeader()) {
+                    throw CserealException.Csereal403("정기예약 기간에는 랩대표만 예약을 할 수 있습니다.")
+                }
+                if (applyingTerms.first().termStartTime > totalStart || applyingTerms.first().termEndTime < totalEnd) {
+                    throw CserealException.Csereal400("정기예약은 지정된 학기 내에서만 가능합니다.")
+                }
+                if (reserveRequest.startTime.plusHours(3) < reserveRequest.endTime) {
+                    throw CserealException.Csereal400("정기예약 기간에 3시간을 초과한 예약을 진행할 수 없습니다.")
+                }
+            } else {
+                val lastTermEnd = reserveTermRepository.findLastEndTime()
+                if (lastTermEnd != null && lastTermEnd < totalEnd) {
+                    throw CserealException.Csereal400("아직 등록되지 않은 기간은 예약할 수 없습니다.")
+                }
+
+                val overlappingTerms = reserveTermRepository.findByTimeOverlap(totalStart, totalEnd)
+                overlappingTerms.forEach {
+                    if (it.applyEndTime >= currentTime) {
+                        throw CserealException.Csereal400("겹치는 정기예약 기간이 끝난 이후에 예약할 수 있습니다.")
+                    }
+                }
+            }
         }
 
         val reservations = mutableListOf<ReservationEntity>()

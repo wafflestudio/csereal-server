@@ -57,6 +57,9 @@ class CustomOidcUserService(
         if ("student-council" in groups) {
             authorities.add(SimpleGrantedAuthority("ROLE_COUNCIL"))
         }
+        if ("labmaster" in groups) {
+            authorities.add(SimpleGrantedAuthority("ROLE_LABMASTER"))
+        }
 
         return CustomOidcUser(user, authorities, oidcUser.idToken)
     }

@@ -53,7 +53,7 @@ class ReservationController(
         return ResponseEntity.ok(reservationService.getReservation(reservationId))
     }
 
-    @PreAuthorize("hasAnyRole('STAFF','RESERVATION')")
+    @PreAuthorize("hasAnyRole('STAFF','RESERVATION','LABMASTER')")
     @PostMapping
     fun reserveRoom(
         @RequestBody reserveRequest: ReserveRequest
