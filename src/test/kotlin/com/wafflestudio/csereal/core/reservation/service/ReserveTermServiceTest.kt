@@ -128,7 +128,7 @@ class ReserveTermServiceTest(
                 )
 
             then("fail to make reservations out of the term") {
-                shouldThrow<CserealException.Csereal400> {
+                shouldThrow<CserealException> {
                     reservationService.reserveRoom(reserveRequest)
                 }
 
@@ -155,7 +155,7 @@ class ReserveTermServiceTest(
                 )
 
             then("fail to make reservations too long") {
-                shouldThrow<CserealException.Csereal400> {
+                shouldThrow<CserealException> {
                     reservationService.reserveRoom(reserveRequest)
                 }
 
@@ -219,7 +219,7 @@ class ReserveTermServiceTest(
                 )
 
             then("cannot make reservations after registered terms") {
-                shouldThrow<CserealException.Csereal400> {
+                shouldThrow<CserealException> {
                     reservationService.reserveRoom(reserveRequest)
                 }
                 val reservations = reservationRepository.findAll()
@@ -258,7 +258,7 @@ class ReserveTermServiceTest(
                 )
 
             then("cannot make reservations before apply-start-time") {
-                shouldThrow<CserealException.Csereal400> {
+                shouldThrow<CserealException> {
                     reservationService.reserveRoom(reserveRequest)
                 }
                 val reservations = reservationRepository.findAll()

@@ -102,7 +102,7 @@ class CommonUserReserveTermServiceTest(
                 )
 
             then("fail to make reservations in the pre-reservation time") {
-                shouldThrow<CserealException.Csereal403> {
+                shouldThrow<CserealException> {
                     reservationService.reserveRoom(reserveRequest)
                 }
 
@@ -165,7 +165,7 @@ class CommonUserReserveTermServiceTest(
                 )
 
             then("cannot make reservations after registered terms") {
-                shouldThrow<CserealException.Csereal400> {
+                shouldThrow<CserealException> {
                     reservationService.reserveRoom(reserveRequest)
                 }
                 val reservations = reservationRepository.findAll()

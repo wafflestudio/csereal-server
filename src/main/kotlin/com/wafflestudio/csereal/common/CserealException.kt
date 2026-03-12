@@ -5,7 +5,8 @@ import org.springframework.http.HttpStatus
 open class CserealException(
     msg: String,
     val status: HttpStatus,
-    val code : String? = null) : RuntimeException(msg) {
+    val code: String? = null
+) : RuntimeException(msg) {
 
     constructor(errorCode: ErrorCode, customMsg: String? = null) : this(
         msg = customMsg ?: errorCode.msg,

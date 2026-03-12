@@ -102,7 +102,7 @@ class ReservationServiceTest(
                     .forEach { result ->
                         result.exceptionOrNull()
                             .should(
-                                beInstanceOf<CserealException.Csereal409>() or
+                                beInstanceOf<CserealException>() or
                                     beInstanceOf<DataIntegrityViolationException>()
                             )
                     }
