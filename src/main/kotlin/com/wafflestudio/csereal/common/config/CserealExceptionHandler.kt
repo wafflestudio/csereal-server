@@ -25,7 +25,10 @@ class CserealExceptionHandler {
     // csereal 내부 규정 오류
     @ExceptionHandler(value = [CserealException::class])
     fun handle(e: CserealException): ResponseEntity<Any> {
-        return ResponseEntity(e.message, e.status)
+        if (e.code == null) return ResponseEntity(e.message, e.status)
+
+        val response = mapOf("code" to e.code, "message" to e.message)
+        return ResponseEntity(response, e.status)
     }
 
     // db에서 중복된 값 있을 때
