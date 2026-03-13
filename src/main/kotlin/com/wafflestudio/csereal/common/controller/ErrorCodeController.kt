@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.common.controller
 
 import com.wafflestudio.csereal.common.ErrorCode
+import com.wafflestudio.csereal.common.SystemErrorCode
 import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -14,6 +15,9 @@ class ErrorCodeController {
         val errors = ErrorCode.values().map {
             mapOf("status" to it.status, "code" to it.code, "msg" to it.msg)
         }
-        return ResponseEntity.ok(errors)
+        val systemErrors = SystemErrorCode.values().map {
+            mapOf("status" to it.status, "code" to it.code, "msg" to it.msg)
+        }
+        return ResponseEntity.ok(errors + systemErrors)
     }
 }

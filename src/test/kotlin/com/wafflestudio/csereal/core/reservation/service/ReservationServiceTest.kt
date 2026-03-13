@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.reservation.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.core.reservation.database.*
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.user.database.UserEntity
@@ -101,10 +102,10 @@ class ReservationServiceTest(
                 results.filter { it.isFailure }
                     .forEach { result ->
                         result.exceptionOrNull()
-                            .should(
-                                beInstanceOf<CserealException>() or
-                                    beInstanceOf<DataIntegrityViolationException>()
-                            )
+                            .should {
+                                it.should(beInstanceOf<CserealException>() or beInstanceOf<DataIntegrityViolationException>())
+                                if (it is CserealException) it shouldBe CserealException(ErrorCode.RESERVATION_OCCUPIED)
+                            }
                     }
 
                 val reservations = reservationRepository.findByRoomIdAndTimeOverlap(

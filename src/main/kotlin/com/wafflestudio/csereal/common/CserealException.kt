@@ -29,6 +29,10 @@ enum class ErrorCode(val status: HttpStatus, val code: String, val msg: String) 
     INVALID_RESERVATION_PERIOD(HttpStatus.BAD_REQUEST, "RESERVE-05", "정기예약은 지정된 학기 내에서만 가능"),
     RESERVATION_TIME_EXCEEDED(HttpStatus.BAD_REQUEST, "RESERVE-06", "정기예약 기간에 3시간을 초과한 예약 불가"),
     TERM_NOT_REGISTERED(HttpStatus.FORBIDDEN, "RESERVE-07", "아직 등록되지 않은 기간은 예약 불가"),
-    TERM_NOT_OPENED(HttpStatus.FORBIDDEN, "RESERVE-08", "겹치는 정기예약 기간이 끝난 이후에 예약 불가"),
+    TERM_NOT_OPENED(HttpStatus.FORBIDDEN, "RESERVE-08", "겹치는 정기예약 기간이 끝난 이후에 예약 가능"),
     RESERVATION_OCCUPIED(HttpStatus.CONFLICT, "RESERVE-09", "해당 시간에 이미 예약이 있습니다")
+}
+
+enum class SystemErrorCode(val status: HttpStatus, val code: String, val msg: String) {
+    DATA_DUPLICATION(HttpStatus.CONFLICT, "SYS-01", "중복된 값이 있습니다.")
 }
