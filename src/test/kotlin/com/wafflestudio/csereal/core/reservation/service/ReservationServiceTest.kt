@@ -103,7 +103,9 @@ class ReservationServiceTest(
                     .forEach { result ->
                         result.exceptionOrNull()
                             .should {
-                                it.should(beInstanceOf<CserealException>() or beInstanceOf<DataIntegrityViolationException>())
+                                it.should(
+                                    beInstanceOf<CserealException>() or beInstanceOf<DataIntegrityViolationException>()
+                                )
                                 if (it is CserealException) it shouldBe CserealException(ErrorCode.RESERVATION_OCCUPIED)
                             }
                     }
