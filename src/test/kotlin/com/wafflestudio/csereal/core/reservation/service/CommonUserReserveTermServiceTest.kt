@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.reservation.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
 import com.wafflestudio.csereal.core.reservation.database.ReservationRepository
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity
@@ -102,9 +103,9 @@ class CommonUserReserveTermServiceTest(
                 )
 
             then("fail to make reservations in the pre-reservation time") {
-                shouldThrow<CserealException.Csereal403> {
+                shouldThrow<CserealException> {
                     reservationService.reserveRoom(reserveRequest)
-                }
+                } shouldBe CserealException(ErrorCode.LABMASTER_ONLY)
 
                 val reservations = reservationRepository.findAll()
                 reservations.size shouldBe 0
@@ -165,9 +166,9 @@ class CommonUserReserveTermServiceTest(
                 )
 
             then("cannot make reservations after registered terms") {
-                shouldThrow<CserealException.Csereal400> {
+                shouldThrow<CserealException> {
                     reservationService.reserveRoom(reserveRequest)
-                }
+                } shouldBe CserealException(ErrorCode.TERM_NOT_REGISTERED)
                 val reservations = reservationRepository.findAll()
                 reservations.size shouldBe 0
             }

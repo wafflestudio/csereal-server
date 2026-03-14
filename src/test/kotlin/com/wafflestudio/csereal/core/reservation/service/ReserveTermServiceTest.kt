@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.reservation.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
 import com.wafflestudio.csereal.core.reservation.database.ReservationRepository
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity
@@ -128,9 +129,9 @@ class ReserveTermServiceTest(
                 )
 
             then("fail to make reservations out of the term") {
-                shouldThrow<CserealException.Csereal400> {
+                shouldThrow<CserealException> {
                     reservationService.reserveRoom(reserveRequest)
-                }
+                } shouldBe CserealException(ErrorCode.INVALID_RESERVATION_PERIOD)
 
                 val reservations = reservationRepository.findAll()
                 reservations.size shouldBe 0
@@ -155,9 +156,9 @@ class ReserveTermServiceTest(
                 )
 
             then("fail to make reservations too long") {
-                shouldThrow<CserealException.Csereal400> {
+                shouldThrow<CserealException> {
                     reservationService.reserveRoom(reserveRequest)
-                }
+                } shouldBe CserealException(ErrorCode.RESERVATION_TIME_EXCEEDED)
 
                 val reservations = reservationRepository.findAll()
                 reservations.size shouldBe 0
@@ -219,9 +220,9 @@ class ReserveTermServiceTest(
                 )
 
             then("cannot make reservations after registered terms") {
-                shouldThrow<CserealException.Csereal400> {
+                shouldThrow<CserealException> {
                     reservationService.reserveRoom(reserveRequest)
-                }
+                } shouldBe CserealException(ErrorCode.TERM_NOT_REGISTERED)
                 val reservations = reservationRepository.findAll()
                 reservations.size shouldBe 0
             }
@@ -258,9 +259,9 @@ class ReserveTermServiceTest(
                 )
 
             then("cannot make reservations before apply-start-time") {
-                shouldThrow<CserealException.Csereal400> {
+                shouldThrow<CserealException> {
                     reservationService.reserveRoom(reserveRequest)
-                }
+                } shouldBe CserealException(ErrorCode.TERM_NOT_OPENED)
                 val reservations = reservationRepository.findAll()
                 reservations.size shouldBe 0
             }
