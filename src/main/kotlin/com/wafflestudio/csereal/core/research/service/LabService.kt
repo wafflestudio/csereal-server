@@ -233,7 +233,10 @@ class LabServiceImpl(
 
         // update pdf
         if ((pdf != null || request.removePdf) && (labEntity.pdf != null)) {
-            attachmentService.deleteAttachment(labEntity.pdf!!)
+            val originalPdf = labEntity.pdf!!
+            labEntity.pdf = null
+            labRepository.saveAndFlush(labEntity)
+            attachmentService.deleteAttachment(originalPdf)
         }
         pdf?.let {
             attachmentService.uploadAttachmentInLabEntity(labEntity, it)
@@ -279,7 +282,11 @@ class LabServiceImpl(
             )
         )
 
-        lab.pdf?.let { attachmentService.deleteAttachment(it) }
+        lab.pdf?.let {
+            lab.pdf = null
+            labRepository.saveAndFlush(lab)
+            attachmentService.deleteAttachment(it)
+        }
 
         labRepository.delete(lab)
     }
