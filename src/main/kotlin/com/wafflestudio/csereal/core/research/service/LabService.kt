@@ -235,7 +235,6 @@ class LabServiceImpl(
         if ((pdf != null || request.removePdf) && (labEntity.pdf != null)) {
             val originalPdf = labEntity.pdf!!
             labEntity.pdf = null
-            labRepository.saveAndFlush(labEntity)
             attachmentService.deleteAttachment(originalPdf)
         }
         pdf?.let {
@@ -284,7 +283,6 @@ class LabServiceImpl(
 
         lab.pdf?.let {
             lab.pdf = null
-            labRepository.saveAndFlush(lab)
             attachmentService.deleteAttachment(it)
         }
 
