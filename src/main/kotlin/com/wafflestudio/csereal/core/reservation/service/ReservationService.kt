@@ -8,6 +8,7 @@ import com.wafflestudio.csereal.common.utils.isCurrentUserStaffOrProfessor
 import com.wafflestudio.csereal.core.reservation.database.*
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
+import com.wafflestudio.csereal.core.reservation.dto.ReserveTermDto
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
 import com.wafflestudio.csereal.core.user.service.UserService
 import org.springframework.data.repository.findByIdOrNull
@@ -20,6 +21,7 @@ interface ReservationService {
     fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto>
     fun getRoomReservationsBetween(roomId: Long, start: LocalDateTime, end: LocalDateTime): List<SimpleReservationDto>
     fun getReservation(reservationId: Long): ReservationDto
+    fun getReserveTerms(): List<ReserveTermDto>
     fun cancelSpecific(reservationId: Long)
     fun cancelRecurring(recurrenceId: UUID)
 }
@@ -122,6 +124,11 @@ class ReservationServiceImpl(
     ): List<SimpleReservationDto> {
         return reservationRepository.findByRoomIdAndStartTimeBetweenOrderByStartTimeAsc(roomId, start, end)
             .map { SimpleReservationDto.of(it) }
+    }
+
+    @Transactional(readOnly = true)
+    override fun getReserveTerms(): List<ReserveTermDto> {
+        return reserveTermRepository.findAll().map { ReserveTermDto.of(it) }
     }
 
     @Transactional(readOnly = true)
