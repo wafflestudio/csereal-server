@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.reservation.api.v2
 
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
+import com.wafflestudio.csereal.core.reservation.dto.ReserveTermDto
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
 import com.wafflestudio.csereal.core.reservation.service.ReservationService
 import org.springframework.http.ResponseEntity
@@ -46,6 +47,11 @@ class ReservationController(
         return ResponseEntity.ok(reservationService.getRoomReservationsBetween(roomId, start, end))
     }
 
+    @GetMapping("/terms")
+    fun getReserveTerms(): ResponseEntity<List<ReserveTermDto>> {
+        return ResponseEntity.ok(reservationService.getReserveTerms())
+    }
+
     @GetMapping("/{reservationId}")
     fun getReservation(
         @PathVariable reservationId: Long
@@ -53,7 +59,7 @@ class ReservationController(
         return ResponseEntity.ok(reservationService.getReservation(reservationId))
     }
 
-    @PreAuthorize("hasAnyRole('STAFF','RESERVATION')")
+    @PreAuthorize("hasAnyRole('STAFF','RESERVATION','LABMASTER')")
     @PostMapping
     fun reserveRoom(
         @RequestBody reserveRequest: ReserveRequest

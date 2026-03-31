@@ -30,12 +30,12 @@ class DevAuthController(
     fun mockLogin(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        @RequestParam(defaultValue = "ROLE_STAFF") role: String
+        @RequestParam(defaultValue = "ROLE_STAFF") role: List<String>
     ): ResponseEntity<String> {
         val mockUser = userRepository.findByUsername("devUser")
             ?: userRepository.save(UserEntity("devUser", "Mock", "mock@abc.com", "0000-00000"))
 
-        val authorities = listOf(SimpleGrantedAuthority(role))
+        val authorities = role.map { SimpleGrantedAuthority(it) }
 
         // dummy token creation
         val issuedAt = Instant.now()

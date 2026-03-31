@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.common.config
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.SystemErrorCode
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -25,14 +26,17 @@ class CserealExceptionHandler {
     // csereal 내부 규정 오류
     @ExceptionHandler(value = [CserealException::class])
     fun handle(e: CserealException): ResponseEntity<Any> {
-        return ResponseEntity(e.message, e.status)
+        val response = mapOf("code" to e.code, "message" to e.message)
+        return ResponseEntity(response, e.status)
     }
 
     // db에서 중복된 값 있을 때
     @ExceptionHandler(value = [SQLIntegrityConstraintViolationException::class])
     fun handle(e: SQLIntegrityConstraintViolationException): ResponseEntity<Any> {
         log.error(e.stackTraceToString())
-        return ResponseEntity("중복된 값이 있습니다.", HttpStatus.CONFLICT)
+        val eCode = SystemErrorCode.DATA_DUPLICATION
+        val response = mapOf("code" to eCode.code, "message" to eCode.msg)
+        return ResponseEntity(response, eCode.status)
     }
 
     // oidc provider 서버에 문제가 있을때

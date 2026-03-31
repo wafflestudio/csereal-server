@@ -55,6 +55,10 @@ fun isCurrentUserStaffOrProfessor(): Boolean {
     return "ROLE_STAFF" in roles || "ROLE_PROFESSOR" in roles
 }
 
+fun isCurrentUserLeader(): Boolean {
+    return "ROLE_LABMASTER" in getCurrentUserRoles()
+}
+
 fun getCurrentUserRoles(): List<String> {
     val authentication = SecurityContextHolder.getContext().authentication ?: /* for test */ return listOf("ROLE_STAFF")
     return authentication.authorities.map { it.authority }

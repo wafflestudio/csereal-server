@@ -1,11 +1,14 @@
 package com.wafflestudio.csereal.core.reservation.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
+import com.wafflestudio.csereal.common.utils.isCurrentUserLeader
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaffOrProfessor
 import com.wafflestudio.csereal.core.reservation.database.*
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
+import com.wafflestudio.csereal.core.reservation.dto.ReserveTermDto
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
 import com.wafflestudio.csereal.core.user.service.UserService
 import org.springframework.data.repository.findByIdOrNull
@@ -18,6 +21,7 @@ interface ReservationService {
     fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto>
     fun getRoomReservationsBetween(roomId: Long, start: LocalDateTime, end: LocalDateTime): List<SimpleReservationDto>
     fun getReservation(reservationId: Long): ReservationDto
+    fun getReserveTerms(): List<ReserveTermDto>
     fun cancelSpecific(reservationId: Long)
     fun cancelRecurring(recurrenceId: UUID)
 }
@@ -27,6 +31,7 @@ interface ReservationService {
 class ReservationServiceImpl(
     private val reservationRepository: ReservationRepository,
     private val roomRepository: RoomRepository,
+    private val reserveTermRepository: ReserveTermRepository,
     private val userService: UserService
 ) : ReservationService {
 
@@ -38,16 +43,48 @@ class ReservationServiceImpl(
         val user = userService.getLoginUser()
 
         val room =
-            roomRepository.findRoomById(reserveRequest.roomId) ?: throw CserealException.Csereal404("Room Not Found")
+            roomRepository.findRoomById(reserveRequest.roomId) ?: throw CserealException(ErrorCode.ROOM_NOT_FOUND)
 
         // 현재 일반 예약 권한으로 교수회의실 제외한 세미나실만 예약 가능 (행정실 요청)
         if (!isCurrentUserStaff() && room.type != RoomType.SEMINAR) {
-            throw CserealException.Csereal403("예약 불가. 행정실 문의 바람")
+            throw CserealException(ErrorCode.ONLY_SEMINAR_RESERVABLE)
         }
 
         // 세미나실 중 교수회의실은 스태프 또는 교수만 예약 가능
         if (!isCurrentUserStaffOrProfessor() && reserveRequest.roomId == 8L) {
-            throw CserealException.Csereal403("예약 불가. 행정실 문의 바람")
+            throw CserealException(ErrorCode.PROFESSOR_ROOM_DENIED)
+        }
+
+        // 세미나실은 정기예약 기간에는 랩 대표만 예약 가능
+        if (!isCurrentUserStaff() && room.type == RoomType.SEMINAR) {
+            val currentTime = LocalDateTime.now()
+            val applyingTerms = reserveTermRepository.findByApplyTimeInclude(currentTime)
+            val totalStart = reserveRequest.startTime
+            val totalEnd = reserveRequest.endTime.plusWeeks(reserveRequest.recurringWeeks.toLong() - 1)
+
+            if (!applyingTerms.isEmpty()) {
+                if (!isCurrentUserLeader()) {
+                    throw CserealException(ErrorCode.LABMASTER_ONLY)
+                }
+                if (applyingTerms.first().termStartTime > totalStart || applyingTerms.first().termEndTime < totalEnd) {
+                    throw CserealException(ErrorCode.INVALID_RESERVATION_PERIOD)
+                }
+                if (reserveRequest.startTime.plusHours(3) < reserveRequest.endTime) {
+                    throw CserealException(ErrorCode.RESERVATION_TIME_EXCEEDED)
+                }
+            } else {
+                val lastTermEnd = reserveTermRepository.findLastEndTime()
+                if (lastTermEnd != null && lastTermEnd < totalEnd) {
+                    throw CserealException(ErrorCode.TERM_NOT_REGISTERED)
+                }
+
+                val overlappingTerms = reserveTermRepository.findByTimeOverlap(totalStart, totalEnd)
+                overlappingTerms.forEach {
+                    if (it.applyEndTime >= currentTime) {
+                        throw CserealException(ErrorCode.TERM_NOT_OPENED)
+                    }
+                }
+            }
         }
 
         val reservations = mutableListOf<ReservationEntity>()
@@ -67,7 +104,7 @@ class ReservationServiceImpl(
                 end
             )
             if (overlappingReservations.isNotEmpty()) {
-                throw CserealException.Csereal409("${week}주차 해당 시간에 이미 예약이 있습니다.")
+                throw CserealException(ErrorCode.RESERVATION_OCCUPIED, customMsg = "${week}주차 해당 시간에 이미 예약이 있습니다.")
             }
 
             val newReservation = ReservationEntity.create(user, room, reserveRequest, start, end, recurrenceId)
@@ -87,6 +124,11 @@ class ReservationServiceImpl(
     ): List<SimpleReservationDto> {
         return reservationRepository.findByRoomIdAndStartTimeBetweenOrderByStartTimeAsc(roomId, start, end)
             .map { SimpleReservationDto.of(it) }
+    }
+
+    @Transactional(readOnly = true)
+    override fun getReserveTerms(): List<ReserveTermDto> {
+        return reserveTermRepository.findAll().map { ReserveTermDto.of(it) }
     }
 
     @Transactional(readOnly = true)
