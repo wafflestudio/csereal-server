@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.reservation.api.v2
 
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
+import com.wafflestudio.csereal.core.reservation.dto.ReserveTermDto
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
 import com.wafflestudio.csereal.core.reservation.service.ReservationService
 import org.springframework.http.ResponseEntity
@@ -44,6 +45,11 @@ class ReservationController(
         val start = LocalDateTime.of(year, month, day, 0, 0).minusHours(9)
         val end = start.plusDays(7)
         return ResponseEntity.ok(reservationService.getRoomReservationsBetween(roomId, start, end))
+    }
+
+    @GetMapping("/terms")
+    fun getReserveTerms(): ResponseEntity<List<ReserveTermDto>> {
+        return ResponseEntity.ok(reservationService.getReserveTerms())
     }
 
     @GetMapping("/{reservationId}")
