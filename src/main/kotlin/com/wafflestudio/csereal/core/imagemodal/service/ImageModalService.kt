@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.imagemodal.service
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.core.imagemodal.api.v2.req.CreateImageModalReq
+import com.wafflestudio.csereal.core.imagemodal.api.req.CreateImageModalReq
 import com.wafflestudio.csereal.core.imagemodal.database.ImageModalEntity
 import com.wafflestudio.csereal.core.imagemodal.database.ImageModalRepository
 import com.wafflestudio.csereal.core.imagemodal.dto.ImageModalDto

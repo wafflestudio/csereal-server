@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.imagemodal.api.v2.req
+package com.wafflestudio.csereal.core.imagemodal.api.req
 
 import java.time.LocalDateTime
 

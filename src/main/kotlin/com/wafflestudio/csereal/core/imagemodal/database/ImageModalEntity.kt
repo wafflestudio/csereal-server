@@ -2,7 +2,7 @@ package com.wafflestudio.csereal.core.imagemodal.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.entity.MainImageAttachable
-import com.wafflestudio.csereal.core.imagemodal.api.v2.req.CreateImageModalReq
+import com.wafflestudio.csereal.core.imagemodal.api.req.CreateImageModalReq
 import com.wafflestudio.csereal.core.imagemodal.dto.ImageModalDto
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.Entity
