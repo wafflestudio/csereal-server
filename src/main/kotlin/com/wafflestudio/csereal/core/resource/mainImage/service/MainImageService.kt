@@ -5,6 +5,7 @@ import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.council.database.CouncilEntity
+import com.wafflestudio.csereal.core.imagemodal.database.ImageModalEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
@@ -130,6 +131,10 @@ class MainImageServiceImpl(
             }
 
             is CouncilEntity -> {
+                contentEntity.mainImage = mainImage
+            }
+
+            is ImageModalEntity -> {
                 contentEntity.mainImage = mainImage
             }
 
