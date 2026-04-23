@@ -9,7 +9,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.OneToOne
 import java.time.LocalDateTime
 
-@Entity(name = "imageModal")
+@Entity(name = "image_modal")
 class ImageModalEntity (
     var titleKo: String?,
     var titleEn: String?,
