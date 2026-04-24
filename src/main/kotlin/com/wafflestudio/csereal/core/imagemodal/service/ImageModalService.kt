@@ -19,9 +19,9 @@ interface ImageModalService {
 }
 
 @Service
-class ImageModalServiceImpl (
+class ImageModalServiceImpl(
     private val imageModalRepository: ImageModalRepository,
-    private val mainImageService: MainImageService,
+    private val mainImageService: MainImageService
 ) : ImageModalService {
     @Transactional
     override fun createImageModal(
@@ -39,14 +39,15 @@ class ImageModalServiceImpl (
 
     @Transactional
     override fun updateImageModal(
-        modalId: Long, request: CreateImageModalReq,
+        modalId: Long,
+        request: CreateImageModalReq,
         newImage: MultipartFile?
     ): ImageModalDto {
         val imageModal: ImageModalEntity = getImageModalByIdOrThrow(modalId)
 
         imageModal.update(request)
 
-        if(newImage != null) {
+        if (newImage != null) {
             val originalImage = imageModal.mainImage
             mainImageService.uploadMainImage(imageModal, newImage)
             originalImage?.let { mainImageService.removeImage(it) }
@@ -80,6 +81,8 @@ class ImageModalServiceImpl (
     }
 
     private fun getImageModalByIdOrThrow(imageModalId: Long): ImageModalEntity {
-        return imageModalRepository.findByIdOrNull(imageModalId) ?: throw CserealException.Csereal404("ImageModal Not Found")
+        return imageModalRepository.findByIdOrNull(imageModalId) ?: throw CserealException.Csereal404(
+            "ImageModal Not Found"
+        )
     }
 }

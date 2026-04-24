@@ -3,14 +3,13 @@ package com.wafflestudio.csereal.core.imagemodal.database
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.core.imagemodal.api.req.CreateImageModalReq
-import com.wafflestudio.csereal.core.imagemodal.dto.ImageModalDto
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.Entity
 import jakarta.persistence.OneToOne
 import java.time.LocalDateTime
 
 @Entity(name = "image_modal")
-class ImageModalEntity (
+class ImageModalEntity(
     var titleKo: String?,
     var titleEn: String?,
     var imageAltKo: String?,
@@ -21,7 +20,7 @@ class ImageModalEntity (
     var externalLink: String?,
 
     @OneToOne
-    override var mainImage : MainImageEntity? = null
+    override var mainImage: MainImageEntity? = null
 ) : BaseTimeEntity(), MainImageAttachable {
     companion object {
         fun of(req: CreateImageModalReq): ImageModalEntity =
