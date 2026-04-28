@@ -34,9 +34,9 @@ class ImageModalController(
     fun updateImageModal(
         @PathVariable imageModalId: Long,
         @RequestPart("request") request: CreateImageModalReq,
-        @RequestPart("mainImage") mainImage: MultipartFile?
+        @RequestPart("newMainImage") newMainImage: MultipartFile?
     ): ResponseEntity<ImageModalDto> {
-        return ResponseEntity.ok(imageModalService.updateImageModal(imageModalId, request, mainImage))
+        return ResponseEntity.ok(imageModalService.updateImageModal(imageModalId, request, newMainImage))
     }
 
     @PreAuthorize("hasRole('STAFF')")

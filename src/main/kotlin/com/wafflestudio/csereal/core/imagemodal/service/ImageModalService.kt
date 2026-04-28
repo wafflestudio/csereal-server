@@ -69,7 +69,7 @@ class ImageModalServiceImpl(
         imageModalRepository.deleteById(id)
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     override fun readImageModals(): List<ImageModalDto> {
         val imageModals = imageModalRepository.findAll()
         return imageModals.map {

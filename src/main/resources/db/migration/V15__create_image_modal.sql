@@ -12,6 +12,6 @@ CREATE TABLE image_modal
     external_link   VARCHAR(255),
     main_image_id BIGINT,
 
-    CONSTRAINT fk_main_image_main_image_id
+    CONSTRAINT FK_image_modal_main_image_main_image_id
         FOREIGN KEY (main_image_id) REFERENCES main_image (id)
 );
