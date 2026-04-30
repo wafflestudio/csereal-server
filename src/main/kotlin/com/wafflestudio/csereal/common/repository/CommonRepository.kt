@@ -68,7 +68,7 @@ class CommonRepositoryImpl : CommonRepository {
         Double::class.javaObjectType,
         "function('match',{0},{1})",
         field,
-        replaceOperatorsToSpace(keyword)
+        sanitizeKeyword(keyword)
     )
 
     override fun searchFullDoubleTextTemplate(
@@ -80,7 +80,7 @@ class CommonRepositoryImpl : CommonRepository {
         "function('match2',{0},{1},{2})",
         field1,
         field2,
-        replaceOperatorsToSpace(keyword)
+        sanitizeKeyword(keyword)
     )
 
     override fun searchFullTripleTextTemplate(
@@ -94,7 +94,7 @@ class CommonRepositoryImpl : CommonRepository {
         field1,
         field2,
         field3,
-        replaceOperatorsToSpace(keyword)
+        sanitizeKeyword(keyword)
     )
 
     override fun searchFullQuadrapleTextTemplate(
@@ -110,7 +110,7 @@ class CommonRepositoryImpl : CommonRepository {
         field2,
         field3,
         field4,
-        replaceOperatorsToSpace(keyword)
+        sanitizeKeyword(keyword)
     )
 
     override fun searchFullQuintupleTextTemplate(
@@ -128,7 +128,7 @@ class CommonRepositoryImpl : CommonRepository {
         field3,
         field4,
         field5,
-        replaceOperatorsToSpace(keyword)
+        sanitizeKeyword(keyword)
     )
 
     override fun searchFullSextupleTextTemplate(
@@ -148,7 +148,7 @@ class CommonRepositoryImpl : CommonRepository {
         field4,
         field5,
         field6,
-        replaceOperatorsToSpace(keyword)
+        sanitizeKeyword(keyword)
     )
 
     override fun searchFullSeptupleTextTemplate(
@@ -170,7 +170,7 @@ class CommonRepositoryImpl : CommonRepository {
         field5,
         field6,
         field7,
-        replaceOperatorsToSpace(keyword)
+        sanitizeKeyword(keyword)
     )
 
     override fun searchFullOctupleTextTemplate(
@@ -194,8 +194,15 @@ class CommonRepositoryImpl : CommonRepository {
         field6,
         field7,
         field8,
-        replaceOperatorsToSpace(keyword)
+        sanitizeKeyword(keyword)
     )
+
+    private fun sanitizeKeyword(keyword: String): String =
+        replaceOperatorsToSpace(limitLength(keyword))
+
+    // Prevent Errors like "Too many words in a FTS phrase or proximity search"
+    private fun limitLength(keyword: String): String =
+        keyword.trim().take(50)
 
     val operatorRegex = """[+\-<>'"@()~*]""".toRegex()
 
