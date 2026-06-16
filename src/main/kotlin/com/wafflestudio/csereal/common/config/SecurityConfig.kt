@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.common.config
 
+import com.wafflestudio.csereal.common.SystemErrorCode
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.user.service.CustomOidcUserService
 import jakarta.servlet.http.HttpServletRequest
@@ -63,12 +64,29 @@ class SecurityConfig(
                     .requestMatchers("/api/v2/admin/**").hasRole("STAFF")
                     .anyRequest().permitAll()
             }
+            // 인증/인가 실패도 컨트롤러 에러와 같은 envelope({code,message})로 내보낸다.
+            // (필터 레벨에서 발생해 @RestControllerAdvice가 못 잡으므로 여기서 처리)
+            .exceptionHandling { ex ->
+                ex.authenticationEntryPoint { _, response, _ ->
+                    writeErrorEnvelope(response, SystemErrorCode.AUTHENTICATION_REQUIRED)
+                }
+                ex.accessDeniedHandler { _, response, _ ->
+                    writeErrorEnvelope(response, SystemErrorCode.ACCESS_DENIED)
+                }
+            }
             .headers { header ->
                 header.referrerPolicy {
                     it.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
                 }
             }
             .build()
+    }
+
+    private fun writeErrorEnvelope(response: HttpServletResponse, errorCode: SystemErrorCode) {
+        response.status = errorCode.status.value()
+        response.contentType = "application/json"
+        response.characterEncoding = "UTF-8"
+        response.writer.write("""{"code":"${errorCode.code}","message":"${errorCode.msg}"}""")
     }
 
     @Bean
