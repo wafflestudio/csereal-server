@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.startsWithEnglish
 import com.wafflestudio.csereal.core.member.api.req.CreateProfessorLanguagesReqBody
@@ -57,6 +58,15 @@ interface ProfessorService {
 
     fun deleteProfessor(professorId: Long)
     fun deleteProfessorLanguages(koProfessorId: Long, enProfessorId: Long)
+
+    // v3 단일-id: 하나의 id로 한/영 쌍을 해소(member_language)해 양쪽 수정/삭제
+    fun updateProfessorById(
+        id: Long,
+        req: ModifyProfessorLanguagesReqBody,
+        mainImage: MultipartFile?
+    ): ProfessorLanguagesDto
+
+    fun deleteProfessorById(id: Long)
 }
 
 @Service
@@ -340,5 +350,30 @@ class ProfessorServiceImpl(
         memberLanguageRepository.findByKoreanIdAndEnglishIdAndType(koProfessorId, enProfessorId, MemberType.PROFESSOR)
             ?.let { memberLanguageRepository.delete(it) }
             ?: throw CserealException.Csereal404("해당 교수 쌍을 찾을 수 없습니다. <$koProfessorId, $enProfessorId>")
+    }
+
+    override fun updateProfessorById(
+        id: Long,
+        req: ModifyProfessorLanguagesReqBody,
+        mainImage: MultipartFile?
+    ): ProfessorLanguagesDto {
+        val (koId, enId) = resolveProfessorPair(id)
+        return updateProfessorLanguages(koId, enId, req, mainImage)
+    }
+
+    override fun deleteProfessorById(id: Long) {
+        val (koId, enId) = resolveProfessorPair(id)
+        deleteProfessorLanguages(koId, enId)
+    }
+
+    // 단일 id(한 또는 영) → (koId, enId). findProfessorAllLanguages가 같은 멤버의 양 언어 행을 준다.
+    private fun resolveProfessorPair(id: Long): Pair<Long, Long> {
+        val byLang = professorRepository.findProfessorAllLanguages(id)
+        val koId = byLang[LanguageType.KO]?.firstOrNull()?.id
+        val enId = byLang[LanguageType.EN]?.firstOrNull()?.id
+        if (koId == null || enId == null) {
+            throw CserealException(ErrorCode.PROFESSOR_NOT_FOUND, customMsg = "해당 교수님을 찾을 수 없습니다. professorId: $id")
+        }
+        return koId to enId
     }
 }

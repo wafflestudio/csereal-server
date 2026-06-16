@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.research.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.research.api.req.*
 import com.wafflestudio.csereal.core.research.database.*
@@ -36,6 +37,15 @@ interface ResearchService {
 
     fun deleteResearchLanguage(koreanId: Long, englishId: Long)
     fun deleteResearch(researchId: Long)
+
+    // v3 단일-id: 하나의 id로 한/영 쌍을 해소(research_language)해 양쪽 수정/삭제
+    fun updateResearchLanguageById(
+        id: Long,
+        req: ModifyResearchLanguageReqBody,
+        updateImage: MultipartFile?
+    ): ResearchLanguageDto
+
+    fun deleteResearchLanguageById(id: Long)
 
     fun readResearchLanguage(id: Long): ResearchLanguageDto
     fun readAllResearch(language: LanguageType, type: ResearchType): List<ResearchSealedDto>
@@ -199,6 +209,28 @@ class ResearchServiceImpl(
         deleteResearch(koreanId)
         deleteResearch(englishId)
         researchLanguageRepository.delete(researchLanguage)
+    }
+
+    @Transactional
+    override fun updateResearchLanguageById(
+        id: Long,
+        req: ModifyResearchLanguageReqBody,
+        updateImage: MultipartFile?
+    ): ResearchLanguageDto {
+        val (koId, enId) = resolveResearchPair(id)
+        return updateResearchLanguage(koId, enId, req, updateImage)
+    }
+
+    @Transactional
+    override fun deleteResearchLanguageById(id: Long) {
+        val (koId, enId) = resolveResearchPair(id)
+        deleteResearchLanguage(koId, enId)
+    }
+
+    private fun resolveResearchPair(id: Long): Pair<Long, Long> {
+        val pair = researchLanguageRepository.findResearchPairById(id)
+            ?: throw CserealException(ErrorCode.RESEARCH_GROUP_NOT_FOUND, customMsg = "해당 Research를 찾을 수 없습니다.(id=$id)")
+        return pair[LanguageType.KO]!!.id to pair[LanguageType.EN]!!.id
     }
 
     @Transactional

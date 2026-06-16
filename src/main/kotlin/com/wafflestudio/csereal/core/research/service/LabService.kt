@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.research.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.common.utils.startsWithEnglish
@@ -42,8 +43,13 @@ interface LabService {
 
     fun updateLab(language: LanguageType, labId: Long, request: ModifyLabReqBody, pdf: MultipartFile?): LabDto
 
+    // v3 단일-id API: 클라이언트가 (koreanId, englishId) 쌍을 알 필요 없이 하나의 id로
+    // 한/영 양쪽을 수정/삭제한다. 쌍은 research_language(type=LAB)에서 서버가 해소한다.
+    fun updateLabById(id: Long, request: ModifyLabLanguageReqBody, pdf: MultipartFile?): LabLanguageDto
+
     fun deleteLabLanguage(koreanId: Long, englishId: Long)
     fun deleteLab(id: Long)
+    fun deleteLabById(id: Long)
 }
 
 @Service
@@ -142,7 +148,7 @@ class LabServiceImpl(
                     throw CserealException.Csereal404("해당 교수님들을 찾을 수 없습니다.(professorIds = ${request.professorIds})")
                 }
                 if (it.any { p -> p.lab != null }) {
-                    throw CserealException.Csereal400("이미 다른 연구실에 속한 교수님이 존재합니다.")
+                    throw CserealException(ErrorCode.LAB_PROFESSOR_OCCUPIED)
                 }
             }
 
@@ -192,6 +198,22 @@ class LabServiceImpl(
     }
 
     @Transactional
+    override fun updateLabById(
+        id: Long,
+        request: ModifyLabLanguageReqBody,
+        pdf: MultipartFile?
+    ): LabLanguageDto {
+        val pair = researchLanguageRepository.findLabPairById(id)
+            ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, customMsg = "해당 연구실을 찾을 수 없습니다.(labId=$id)")
+        return updateLabLanguage(
+            pair[LanguageType.KO]!!.id,
+            pair[LanguageType.EN]!!.id,
+            request,
+            pdf
+        )
+    }
+
+    @Transactional
     override fun updateLab(
         language: LanguageType,
         labId: Long,
@@ -215,7 +237,7 @@ class LabServiceImpl(
                 }
 
                 if (!(it.all { p -> p.lab == null || p.lab!!.id == labId })) {
-                    throw CserealException.Csereal400("이미 다른 연구실에 속한 교수님이 존재합니다.")
+                    throw CserealException(ErrorCode.LAB_PROFESSOR_OCCUPIED)
                 }
             }
 
@@ -266,6 +288,13 @@ class LabServiceImpl(
         deleteLab(koreanId)
         deleteLab(englishId)
         researchLanguageRepository.delete(labLanguage)
+    }
+
+    @Transactional
+    override fun deleteLabById(id: Long) {
+        val pair = researchLanguageRepository.findLabPairById(id)
+            ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, customMsg = "해당 연구실을 찾을 수 없습니다.(labId=$id)")
+        deleteLabLanguage(pair[LanguageType.KO]!!.id, pair[LanguageType.EN]!!.id)
     }
 
     @Transactional

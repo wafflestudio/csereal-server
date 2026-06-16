@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.api.req.CreateStaffLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.CreateStaffReqBody
@@ -45,6 +46,10 @@ interface StaffService {
 
     fun deleteStaffLanguages(koStaffId: Long, enStaffId: Long)
     fun deleteStaff(staffId: Long)
+
+    // v3 단일-id: 하나의 id로 한/영 쌍을 해소(member_language)해 양쪽 수정/삭제
+    fun updateStaffById(id: Long, req: ModifyStaffLanguagesReqBody, mainImage: MultipartFile?): StaffLanguagesDto
+    fun deleteStaffById(id: Long)
 }
 
 @Service
@@ -221,5 +226,29 @@ class StaffServiceImpl(
             }
             staffRepository.delete(staff)
         } ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. staffId: $staffId")
+    }
+
+    override fun updateStaffById(
+        id: Long,
+        req: ModifyStaffLanguagesReqBody,
+        mainImage: MultipartFile?
+    ): StaffLanguagesDto {
+        val (koId, enId) = resolveStaffPair(id)
+        return updateStaffLanguages(koId, enId, req, mainImage)
+    }
+
+    override fun deleteStaffById(id: Long) {
+        val (koId, enId) = resolveStaffPair(id)
+        deleteStaffLanguages(koId, enId)
+    }
+
+    private fun resolveStaffPair(id: Long): Pair<Long, Long> {
+        val byLang = staffRepository.findStaffAllLanguages(id)
+        val koId = byLang[LanguageType.KO]?.firstOrNull()?.id
+        val enId = byLang[LanguageType.EN]?.firstOrNull()?.id
+        if (koId == null || enId == null) {
+            throw CserealException(ErrorCode.STAFF_NOT_FOUND, customMsg = "해당 직원을 찾을 수 없습니다. staffId: $id")
+        }
+        return koId to enId
     }
 }
