@@ -5,6 +5,7 @@ import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.about.service.AboutService
 import com.wafflestudio.csereal.core.academics.service.AcademicsSearchService
 import com.wafflestudio.csereal.core.admissions.service.AdmissionsService
+import com.wafflestudio.csereal.core.main.dto.SearchV3Response
 import com.wafflestudio.csereal.core.main.dto.TotalSearchResponse
 import com.wafflestudio.csereal.core.main.database.MainRepository
 import com.wafflestudio.csereal.core.main.dto.MainImportantResponse
@@ -36,6 +37,15 @@ interface MainService {
         stringLength: Int,
         language: LanguageType
     ): TotalSearchResponse
+
+    fun searchV3(
+        keyword: String,
+        sections: Set<String>?,
+        number: Int,
+        memberNumber: Int,
+        stringLength: Int,
+        language: LanguageType
+    ): SearchV3Response
 }
 
 @Service
@@ -147,6 +157,67 @@ class MainServiceImpl(
             researchResult = researchResult,
             admissionsResult = admissionsResult,
             academicsResult = academicsResult
+        )
+    }
+
+    @Transactional(readOnly = true)
+    override fun searchV3(
+        keyword: String,
+        sections: Set<String>?,
+        number: Int,
+        memberNumber: Int,
+        stringLength: Int,
+        language: LanguageType
+    ): SearchV3Response {
+        // sections 미지정이면 전체. 지정 시 해당 섹션만 집계해 나머지는 null로 둔다.
+        fun want(section: String) = sections.isNullOrEmpty() || section in sections
+
+        return SearchV3Response(
+            about = if (want("about")) {
+                aboutService.searchTopAbout(keyword, language, number, stringLength)
+            } else {
+                null
+            },
+            notice = if (want("notice")) {
+                noticeService.searchTotalNotice(keyword, number, stringLength)
+            } else {
+                null
+            },
+            news = if (want("news")) {
+                newsService.searchTotalNews(keyword, number, stringLength)
+            } else {
+                null
+            },
+            seminar = if (want("seminar")) {
+                seminarService.searchSeminar(
+                    keyword,
+                    PageRequest.of(0, 10),
+                    usePageBtn = true,
+                    ContentSearchSortType.DATE
+                )
+            } else {
+                null
+            },
+            member = if (want("member")) {
+                memberSearchService.searchTopMember(keyword, language, memberNumber)
+            } else {
+                null
+            },
+            research = if (want("research")) {
+                researchSearchService.searchTopResearch(keyword, language, number, stringLength)
+            } else {
+                null
+            },
+            admissions = if (want("admissions")) {
+                admissionsService.searchTopAdmission(keyword, language, number, stringLength)
+            } else {
+                null
+            },
+            academics = if (want("academics")) {
+                academicsSearchService.searchTopAcademics(keyword, language, number, stringLength)
+            } else {
+                null
+            }
         )
     }
 }
