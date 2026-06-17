@@ -43,8 +43,7 @@ interface LabService {
 
     fun updateLab(language: LanguageType, labId: Long, request: ModifyLabReqBody, pdf: MultipartFile?): LabDto
 
-    // v3 단일-id API: 클라이언트가 (koreanId, englishId) 쌍을 알 필요 없이 하나의 id로
-    // 한/영 양쪽을 수정/삭제한다. 쌍은 research_language(type=LAB)에서 서버가 해소한다.
+    // v3 단일-id: 하나의 id로 한/영 쌍을 해소(research_language, type=LAB)해 양쪽 수정/삭제
     fun updateLabById(id: Long, request: ModifyLabLanguageReqBody, pdf: MultipartFile?): LabLanguageDto
 
     fun deleteLabLanguage(koreanId: Long, englishId: Long)

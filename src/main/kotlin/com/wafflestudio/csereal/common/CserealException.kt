@@ -32,19 +32,18 @@ enum class ErrorCode(val status: HttpStatus, val code: String, val msg: String) 
     TERM_NOT_OPENED(HttpStatus.FORBIDDEN, "RESERVE-08", "겹치는 정기예약 기간이 끝난 이후에 예약 가능"),
     RESERVATION_OCCUPIED(HttpStatus.CONFLICT, "RESERVE-09", "해당 시간에 이미 예약이 있습니다"),
 
-    // research/lab (v3 — 도메인별 안정 코드 시범. 기존 code:null Csereal404를 코드 보유로 전환)
+    // research/lab (v3): 기존 code:null Csereal404를 코드 보유 에러로 전환
     LAB_NOT_FOUND(HttpStatus.NOT_FOUND, "RESEARCH-01", "해당 연구실을 찾을 수 없습니다."),
     LAB_PROFESSOR_OCCUPIED(HttpStatus.BAD_REQUEST, "RESEARCH-02", "이미 다른 연구실에 속한 교수님이 존재합니다."),
     RESEARCH_GROUP_NOT_FOUND(HttpStatus.NOT_FOUND, "RESEARCH-03", "해당 연구그룹을 찾을 수 없습니다."),
     PROFESSORS_NOT_FOUND(HttpStatus.NOT_FOUND, "RESEARCH-04", "해당 교수님들을 찾을 수 없습니다."),
 
-    // member (v3 — 단일-id 확장)
+    // member (v3): 단일-id 확장
     PROFESSOR_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER-01", "해당 교수님을 찾을 수 없습니다."),
     STAFF_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER-02", "해당 직원을 찾을 수 없습니다.")
 }
 
-// 도메인 무관 횡단 에러. 모든 에러 경로(검증·인가·인증·미처리)가 동일한 envelope로 나가도록
-// 코드를 부여한다. (이전엔 @Valid·401·403·500이 envelope 밖 맨 문자열/Spring 기본이었음)
+// 도메인 무관 횡단 에러(검증·인가·인증·미처리). 모든 에러 경로를 동일 envelope로 통일하기 위한 코드.
 enum class SystemErrorCode(val status: HttpStatus, val code: String, val msg: String) {
     DATA_DUPLICATION(HttpStatus.CONFLICT, "SYS-01", "중복된 값이 있습니다."),
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "SYS-02", "요청 값이 올바르지 않습니다."),

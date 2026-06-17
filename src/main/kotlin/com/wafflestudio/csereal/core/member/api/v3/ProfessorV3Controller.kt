@@ -12,13 +12,8 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
-/**
- * v3 교수 API — 이중언어 콘텐츠를 단일 리소스로.
- *
- * v2 대비: 수정/삭제가 dual-id(`/{koProfessorId}/{enProfessorId}`)가 아니라 단일 id(쌍은
- * member_language에서 서버가 해소). 그리고 **파일 파트명을 create/update 모두 `mainImage`로 통일**
- * (v2는 create=`mainImage`, update=`newMainImage`로 갈라져 프론트가 분기해야 했다).
- */
+// v3 교수 API: 단일 id로 한/영 쌍 수정·삭제 (v2는 dual-id).
+// 쌍은 member_language에서 해소, 파일 파트명 create/update 모두 mainImage 통일(v2는 mainImage/newMainImage).
 @RequestMapping("/api/v3/professor")
 @RestController
 class ProfessorV3Controller(

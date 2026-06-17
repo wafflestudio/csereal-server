@@ -16,15 +16,8 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
-/**
- * v3 연구(연구실·연구그룹·연구센터) API — 이중언어 콘텐츠를 "단일 리소스"로 다룬다.
- *
- * v2와의 차이: 수정/삭제가 dual-id(`/{koreanId}/{englishId}`)가 아니라 단일 id다.
- * 한/영 쌍은 서버가 research_language에서 해소하므로, 클라이언트는 목록에서 얻은 아무 언어의
- * id 하나만 있으면 된다(삭제 전 상세조회로 두 id를 캐낼 필요가 없다 — v2 centers/groups의
- * 안티패턴 제거). 파일 파트명도 create·update 모두 `mainImage`로 통일.
- * 읽기/생성은 v2도 이미 단일 id·`{ko, en}` 본문이라 그대로 옮겨온다.
- */
+// v3 연구(연구실·연구그룹·연구센터) API: 단일 id로 한/영 쌍 수정·삭제 (v2는 dual-id라 삭제 전 상세조회 필요).
+// 쌍은 research_language에서 해소, 파일 파트명 mainImage 통일. 읽기/생성은 v2와 동일하고 경로만 옮김.
 @RequestMapping("/api/v3/research")
 @RestController
 class ResearchV3Controller(

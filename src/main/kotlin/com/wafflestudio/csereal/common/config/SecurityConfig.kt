@@ -64,8 +64,7 @@ class SecurityConfig(
                     .requestMatchers("/api/v2/admin/**").hasRole("STAFF")
                     .anyRequest().permitAll()
             }
-            // 인증/인가 실패도 컨트롤러 에러와 같은 envelope({code,message})로 내보낸다.
-            // (필터 레벨에서 발생해 @RestControllerAdvice가 못 잡으므로 여기서 처리)
+            // 인증/인가 실패(필터 레벨이라 advice가 못 잡음)도 같은 envelope로 내보낸다.
             .exceptionHandling { ex ->
                 ex.authenticationEntryPoint { _, response, _ ->
                     writeErrorEnvelope(response, SystemErrorCode.AUTHENTICATION_REQUIRED)

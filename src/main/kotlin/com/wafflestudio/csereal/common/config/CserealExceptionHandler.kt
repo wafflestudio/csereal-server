@@ -13,11 +13,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.client.RestClientException
 import java.sql.SQLIntegrityConstraintViolationException
 
-/**
- * 모든 에러를 단일 envelope(ErrorResponse{code, message})로 내보낸다.
- * 401/403은 Spring Security 필터에서 발생하므로 SecurityConfig의 entryPoint/accessDeniedHandler가
- * 같은 envelope로 처리한다(여기선 못 잡음).
- */
+// 모든 에러를 단일 envelope(ErrorResponse{code, message})로 통일.
+// 401/403은 필터에서 발생해 여기선 못 잡고 SecurityConfig가 같은 형태로 처리.
 @RestControllerAdvice
 class CserealExceptionHandler {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -27,7 +24,7 @@ class CserealExceptionHandler {
     fun handle(e: CserealException): ResponseEntity<ErrorResponse> =
         ResponseEntity(ErrorResponse(e.code, e.message), e.status)
 
-    // @Valid 검증 실패 — 이전엔 맨 문자열을 반환해 envelope 밖이었다. 이제 동일 envelope로.
+    // @Valid 검증 실패 (이전엔 맨 문자열 반환 → envelope로 통일)
     @ExceptionHandler(value = [MethodArgumentNotValidException::class])
     fun handle(e: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> {
         val fieldError = e.bindingResult.fieldError
@@ -59,9 +56,8 @@ class CserealExceptionHandler {
         )
     }
 
-    // @PreAuthorize 메서드 인가 거부는 컨트롤러 호출 중 발생해 advice가 잡는다(필터 핸들러 아님).
-    // AuthorizationDeniedException도 AccessDeniedException 하위라 함께 처리됨.
-    // 명시적으로 잡지 않으면 아래 generic Exception 핸들러가 500으로 삼켜버린다.
+    // @PreAuthorize 인가 거부(AuthorizationDeniedException 포함)는 컨트롤러에서 발생해 advice가 잡는다.
+    // 안 잡으면 아래 generic Exception이 500으로 처리.
     @ExceptionHandler(value = [AccessDeniedException::class])
     fun handle(e: AccessDeniedException): ResponseEntity<ErrorResponse> =
         ResponseEntity(
@@ -69,7 +65,7 @@ class CserealExceptionHandler {
             SystemErrorCode.ACCESS_DENIED.status
         )
 
-    // 미처리 예외 — 이전엔 Spring 기본(envelope 밖 + 스택 노출 위험). 이제 동일 envelope로.
+    // 미처리 예외 (이전엔 Spring 기본 → envelope로 통일)
     @ExceptionHandler(value = [Exception::class])
     fun handle(e: Exception): ResponseEntity<ErrorResponse> {
         log.error(e.stackTraceToString())

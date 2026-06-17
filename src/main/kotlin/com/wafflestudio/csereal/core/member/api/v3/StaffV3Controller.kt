@@ -11,10 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
-/**
- * v3 행정직원 API — 이중언어 단일 리소스. ProfessorV3Controller와 동일한 패턴
- * (단일-id 수정/삭제 + 파일 파트명 `mainImage` 통일 + DELETE 204).
- */
+// v3 행정직원 API: ProfessorV3Controller와 동일 패턴(단일 id 수정·삭제, mainImage 통일, DELETE 204).
 @RequestMapping("/api/v3/staff")
 @RestController
 class StaffV3Controller(
