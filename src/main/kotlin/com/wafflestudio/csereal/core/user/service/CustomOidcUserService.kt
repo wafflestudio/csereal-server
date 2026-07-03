@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -25,6 +26,8 @@ class CustomOidcUserService(
     private val userRepository: UserRepository,
     private val restTemplate: RestTemplate
 ) : OAuth2UserService<OidcUserRequest, OidcUser> {
+
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     @Transactional
     override fun loadUser(userRequest: OidcUserRequest): OidcUser {
@@ -60,6 +63,13 @@ class CustomOidcUserService(
         if ("labmaster" in groups) {
             authorities.add(SimpleGrantedAuthority("ROLE_LABMASTER"))
         }
+
+        logger.info(
+            "OIDC login username={} groups={} authorities={}",
+            username,
+            groups,
+            authorities.map { it.authority }
+        )
 
         return CustomOidcUser(user, authorities, oidcUser.idToken)
     }
