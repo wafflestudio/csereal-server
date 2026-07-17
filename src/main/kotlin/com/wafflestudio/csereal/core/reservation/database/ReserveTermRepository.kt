@@ -10,7 +10,8 @@ interface ReserveTermRepository : JpaRepository<ReserveTermEntity, Long> {
     @Query(
         """
         SELECT rt FROM reserve_term rt
-        WHERE rt.applyStartTime <= :current_time AND rt.applyEndTime >= :current_time
+        WHERE rt.applyStartTime <= :current_time AND rt.applyEndTime > :current_time
+        ORDER BY rt.applyStartTime ASC, rt.termStartTime ASC, rt.id ASC
         """
     )
     fun findByApplyTimeInclude(
@@ -19,7 +20,7 @@ interface ReserveTermRepository : JpaRepository<ReserveTermEntity, Long> {
 
     @Query(
         """
-        SELECT rt FROM reserve_term rt 
+        SELECT rt FROM reserve_term rt
         WHERE rt.termStartTime < :end AND rt.termEndTime > :start
         """
     )
@@ -27,6 +28,10 @@ interface ReserveTermRepository : JpaRepository<ReserveTermEntity, Long> {
         @Param("start") start: LocalDateTime,
         @Param("end") end: LocalDateTime
     ): List<ReserveTermEntity>
+
+    fun findByTermYearAndTermType(termYear: Int, termType: ReserveTermType): List<ReserveTermEntity>
+
+    fun findAllByOrderByApplyStartTimeAscTermStartTimeAscIdAsc(): List<ReserveTermEntity>
 
     @Query("""SELECT MAX(rt.termEndTime) FROM reserve_term rt""")
     fun findLastEndTime(): LocalDateTime?

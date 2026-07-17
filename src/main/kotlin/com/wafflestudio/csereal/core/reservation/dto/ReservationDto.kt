@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.reservation.dto
 
 import com.wafflestudio.csereal.core.reservation.database.ReservationEntity
+import com.wafflestudio.csereal.core.reservation.database.ReservationType
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -12,6 +13,7 @@ data class ReservationDto(
     val startTime: LocalDateTime,
     val endTime: LocalDateTime,
     val recurringWeeks: Int = 1,
+    val reservationType: ReservationType,
     val roomName: String?,
     val roomLocation: String,
     val userName: String? = null,
@@ -29,6 +31,7 @@ data class ReservationDto(
                 startTime = reservationEntity.startTime,
                 endTime = reservationEntity.endTime,
                 recurringWeeks = reservationEntity.recurringWeeks,
+                reservationType = reservationEntity.effectiveType(),
                 roomName = reservationEntity.room.name,
                 roomLocation = reservationEntity.room.location,
                 userName = reservationEntity.user.username,
@@ -47,6 +50,7 @@ data class ReservationDto(
                 startTime = reservationEntity.startTime,
                 endTime = reservationEntity.endTime,
                 recurringWeeks = reservationEntity.recurringWeeks,
+                reservationType = reservationEntity.effectiveType(),
                 roomName = reservationEntity.room.name,
                 roomLocation = reservationEntity.room.location,
                 professor = reservationEntity.professor

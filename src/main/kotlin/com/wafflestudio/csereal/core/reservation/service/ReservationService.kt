@@ -2,10 +2,15 @@ package com.wafflestudio.csereal.core.reservation.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
-import com.wafflestudio.csereal.common.utils.isCurrentUserLeader
+import com.wafflestudio.csereal.common.utils.getCurrentUserRoles
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaffOrProfessor
-import com.wafflestudio.csereal.core.reservation.database.*
+import com.wafflestudio.csereal.core.reservation.database.ReservationEntity
+import com.wafflestudio.csereal.core.reservation.database.ReservationRepository
+import com.wafflestudio.csereal.core.reservation.database.ReservationType
+import com.wafflestudio.csereal.core.reservation.database.RoomRepository
+import com.wafflestudio.csereal.core.reservation.database.RoomType
+import com.wafflestudio.csereal.core.reservation.database.resolveRequestReservationType
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.reservation.dto.ReserveTermDto
@@ -15,7 +20,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 interface ReservationService {
     fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto>
@@ -31,89 +36,177 @@ interface ReservationService {
 class ReservationServiceImpl(
     private val reservationRepository: ReservationRepository,
     private val roomRepository: RoomRepository,
-    private val reserveTermRepository: ReserveTermRepository,
+    private val reserveTermPolicy: ReserveTermPolicy,
+    private val reserveTermValidationService: ReserveTermValidationService,
     private val userService: UserService
 ) : ReservationService {
 
     override fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto> {
-        if (!reserveRequest.agreed) {
-            throw CserealException.Csereal400("Policy Not Agreed")
-        }
+        validateUniversalRequest(reserveRequest)
 
+        val reservationType = resolveRequestReservationType(
+            reserveRequest.reservationType,
+            reserveRequest.recurringWeeks
+        )
+        validateTypeInvariant(reservationType, reserveRequest.recurringWeeks)
+
+        val roles = getCurrentUserRoles()
+        val isStaff = "ROLE_STAFF" in roles
+        val isLeader = "ROLE_LABMASTER" in roles
+        validateTypePermission(reservationType, roles)
+
+        val room = roomRepository.findRoomById(reserveRequest.roomId)
+            ?: throw CserealException(ErrorCode.ROOM_NOT_FOUND)
         val user = userService.getLoginUser()
 
-        val room =
-            roomRepository.findRoomById(reserveRequest.roomId) ?: throw CserealException(ErrorCode.ROOM_NOT_FOUND)
-
-        // 현재 일반 예약 권한으로 교수회의실 제외한 세미나실만 예약 가능 (행정실 요청)
-        if (!isCurrentUserStaff() && room.type != RoomType.SEMINAR) {
+        if (!isStaff && room.type != RoomType.SEMINAR) {
             throw CserealException(ErrorCode.ONLY_SEMINAR_RESERVABLE)
         }
-
-        // 세미나실 중 교수회의실은 스태프 또는 교수만 예약 가능
         if (!isCurrentUserStaffOrProfessor() && reserveRequest.roomId == 8L) {
             throw CserealException(ErrorCode.PROFESSOR_ROOM_DENIED)
         }
 
-        // 세미나실은 정기예약 기간에는 랩 대표만 예약 가능
-        if (!isCurrentUserStaff() && room.type == RoomType.SEMINAR) {
-            val currentTime = LocalDateTime.now()
-            val applyingTerms = reserveTermRepository.findByApplyTimeInclude(currentTime)
-            val totalStart = reserveRequest.startTime
-            val totalEnd = reserveRequest.endTime.plusWeeks(reserveRequest.recurringWeeks.toLong() - 1)
-
-            if (!applyingTerms.isEmpty()) {
-                if (!isCurrentUserLeader()) {
+        val regularTerm = when (reservationType) {
+            ReservationType.AD_HOC -> {
+                if (
+                    !isStaff &&
+                    reserveTermPolicy.now().isBefore(
+                        reserveTermPolicy.adHocOpenTime(reserveRequest.startTime)
+                    )
+                ) {
+                    throw CserealException(ErrorCode.AD_HOC_NOT_OPENED)
+                }
+                null
+            }
+            ReservationType.REGULAR -> {
+                if (!isStaff && !isLeader) {
                     throw CserealException(ErrorCode.LABMASTER_ONLY)
                 }
-                if (applyingTerms.first().termStartTime > totalStart || applyingTerms.first().termEndTime < totalEnd) {
-                    throw CserealException(ErrorCode.INVALID_RESERVATION_PERIOD)
-                }
-                if (reserveRequest.startTime.plusHours(3) < reserveRequest.endTime) {
-                    throw CserealException(ErrorCode.RESERVATION_TIME_EXCEEDED)
-                }
-            } else {
-                val lastTermEnd = reserveTermRepository.findLastEndTime()
-                if (lastTermEnd != null && lastTermEnd < totalEnd) {
-                    throw CserealException(ErrorCode.TERM_NOT_REGISTERED)
-                }
-
-                val overlappingTerms = reserveTermRepository.findByTimeOverlap(totalStart, totalEnd)
-                overlappingTerms.forEach {
-                    if (it.applyEndTime >= currentTime) {
+                if (!isStaff) {
+                    val descriptor = reserveTermPolicy.descriptorFor(reserveRequest.startTime.toLocalDate())
+                    val term = reserveTermValidationService.findValidated(descriptor)
+                        ?: throw CserealException(ErrorCode.TERM_NOT_REGISTERED)
+                    val now = reserveTermPolicy.now()
+                    if (now.isBefore(term.applyStartTime)) {
                         throw CserealException(ErrorCode.TERM_NOT_OPENED)
                     }
+                    if (!now.isBefore(term.applyEndTime)) {
+                        throw CserealException(ErrorCode.TERM_APPLICATION_CLOSED)
+                    }
+                    if (reserveRequest.startTime.plusHours(3).isBefore(reserveRequest.endTime)) {
+                        throw CserealException(ErrorCode.RESERVATION_TIME_EXCEEDED)
+                    }
+                    term
+                } else {
+                    null
                 }
             }
         }
 
-        val reservations = mutableListOf<ReservationEntity>()
+        val requestedOccurrences = reserveRequest.recurringWeeks.toLong()
+        val supportedDateOccurrences = reserveTermPolicy.maxOccurrences(
+            reserveRequest.endTime,
+            MAX_SUPPORTED_RESERVATION_TIME
+        )
+        if (requestedOccurrences > supportedDateOccurrences) {
+            throw CserealException(ErrorCode.UNSUPPORTED_RESERVATION_DATE)
+        }
+        val maxOccurrences = if (regularTerm != null) {
+            reserveTermPolicy.maxOccurrences(reserveRequest.endTime, regularTerm.termEndTime)
+        } else if (reservationType == ReservationType.REGULAR) {
+            reserveTermPolicy.staffMaxOccurrences()
+        } else {
+            1L
+        }
+        if (requestedOccurrences > maxOccurrences) {
+            throw CserealException(ErrorCode.INVALID_RECURRING_WEEKS)
+        }
 
         val recurrenceId = UUID.randomUUID()
+        val reservations = (0L until requestedOccurrences).map { week ->
+            val start = reserveRequest.startTime.plusWeeks(week)
+            val end = reserveRequest.endTime.plusWeeks(week)
 
-        val numberOfWeeks = reserveRequest.recurringWeeks
+            if (regularTerm != null &&
+                (start.isBefore(regularTerm.termStartTime) || end.isAfter(regularTerm.termEndTime))
+            ) {
+                throw CserealException(ErrorCode.INVALID_RESERVATION_PERIOD)
+            }
 
-        for (week in 0 until numberOfWeeks) {
-            val start = reserveRequest.startTime.plusWeeks(week.toLong())
-            val end = reserveRequest.endTime.plusWeeks(week.toLong())
-
-            // 중복 예약 방지
             val overlappingReservations = reservationRepository.findByRoomIdAndTimeOverlap(
                 reserveRequest.roomId,
                 start,
                 end
             )
             if (overlappingReservations.isNotEmpty()) {
-                throw CserealException(ErrorCode.RESERVATION_OCCUPIED, customMsg = "${week}주차 해당 시간에 이미 예약이 있습니다.")
+                if (reservationType == ReservationType.REGULAR) {
+                    throw CserealException(
+                        ErrorCode.RESERVATION_OCCUPIED,
+                        customMsg = "${week + 1}주차 해당 시간에 이미 예약이 있습니다."
+                    )
+                }
+                throw CserealException(ErrorCode.RESERVATION_OCCUPIED)
             }
 
-            val newReservation = ReservationEntity.create(user, room, reserveRequest, start, end, recurrenceId)
-            reservations.add(newReservation)
+            ReservationEntity.create(
+                user = user,
+                room = room,
+                reserveRequest = reserveRequest,
+                reservationType = reservationType,
+                start = start,
+                end = end,
+                recurrenceId = recurrenceId
+            )
         }
 
         reservationRepository.saveAll(reservations)
-
         return reservations.map { ReservationDto.of(it) }
+    }
+
+    private fun validateUniversalRequest(reserveRequest: ReserveRequest) {
+        if (
+            reserveRequest.startTime.year !in SUPPORTED_RESERVATION_YEARS ||
+            reserveRequest.endTime.year !in SUPPORTED_RESERVATION_YEARS
+        ) {
+            throw CserealException(ErrorCode.UNSUPPORTED_RESERVATION_DATE)
+        }
+        if (!reserveRequest.agreed) {
+            throw CserealException.Csereal400("Policy Not Agreed")
+        }
+        if (!reserveRequest.startTime.isBefore(reserveRequest.endTime)) {
+            throw CserealException(ErrorCode.INVALID_RESERVATION_TIME)
+        }
+        if (reserveRequest.recurringWeeks < 1) {
+            throw CserealException(ErrorCode.INVALID_RECURRING_WEEKS)
+        }
+        if (!reserveTermPolicy.now().isBefore(reserveRequest.startTime)) {
+            throw CserealException(ErrorCode.PAST_RESERVATION_DENIED)
+        }
+    }
+
+    private fun validateTypeInvariant(reservationType: ReservationType, recurringWeeks: Int) {
+        if (reservationType == ReservationType.AD_HOC && recurringWeeks != 1) {
+            throw CserealException(ErrorCode.AD_HOC_RECURRING_DENIED)
+        }
+    }
+
+    private fun validateTypePermission(reservationType: ReservationType, roles: List<String>) {
+        val isStaff = "ROLE_STAFF" in roles
+        val isLeader = "ROLE_LABMASTER" in roles
+        val hasReservationRole = "ROLE_RESERVATION" in roles
+        val allowed = when (reservationType) {
+            ReservationType.AD_HOC -> isStaff || isLeader || hasReservationRole
+            ReservationType.REGULAR -> isStaff || isLeader
+        }
+        if (!allowed) {
+            throw CserealException(
+                if (reservationType == ReservationType.REGULAR) {
+                    ErrorCode.LABMASTER_ONLY
+                } else {
+                    ErrorCode.RESERVATION_PERMISSION_DENIED
+                }
+            )
+        }
     }
 
     @Transactional(readOnly = true)
@@ -128,13 +221,13 @@ class ReservationServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getReserveTerms(): List<ReserveTermDto> {
-        return reserveTermRepository.findAll().map { ReserveTermDto.of(it) }
+        return reserveTermValidationService.findAllValidated().map { ReserveTermDto.of(it) }
     }
 
     @Transactional(readOnly = true)
     override fun getReservation(reservationId: Long): ReservationDto {
-        val reservationEntity =
-            reservationRepository.findByIdOrNull(reservationId) ?: throw CserealException.Csereal404("예약을 찾을 수 없습니다.")
+        val reservationEntity = reservationRepository.findByIdOrNull(reservationId)
+            ?: throw CserealException.Csereal404("예약을 찾을 수 없습니다.")
 
         return if (isCurrentUserStaff()) {
             ReservationDto.of(reservationEntity)
@@ -161,5 +254,11 @@ class ReservationServiceImpl(
             throw CserealException.Csereal403("Cannot cancel other's reservation")
         }
         reservationRepository.deleteAllByRecurrenceId(recurrenceId)
+    }
+
+    companion object {
+        private val SUPPORTED_RESERVATION_YEARS = 1001..9998
+        private val MAX_SUPPORTED_RESERVATION_TIME =
+            LocalDateTime.of(9998, 12, 31, 23, 59, 59, 999_999_000)
     }
 }
