@@ -78,10 +78,10 @@ class ReserveTermPolicyTest : BehaviorSpec({
         val contextRunner = ApplicationContextRunner()
             .withUserConfiguration(ReservationConfig::class.java)
 
-        then("the default maximum is 15") {
+        then("the default maximum is 20") {
             contextRunner.run { context ->
                 context.startupFailure shouldBe null
-                context.getBean(ReservationProperties::class.java).maxRecurringWeeks shouldBe 15
+                context.getBean(ReservationProperties::class.java).maxRecurringWeeks shouldBe 20
             }
         }
 

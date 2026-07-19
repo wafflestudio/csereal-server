@@ -71,8 +71,8 @@ class ReservationServiceTest(
     "staff can reserve every room as UNRESTRICTED with the configured maximum" {
         authenticate(userRepository, "staff-policy", "ROLE_STAFF")
         val start = reserveTermPolicy.now().plusDays(1)
-        val result = reservationService.reserveRoom(request(lab.id, start, 15))
-        result.size shouldBe 15
+        val result = reservationService.reserveRoom(request(lab.id, start, 20))
+        result.size shouldBe 20
         result.all { it.reservationType == ReservationType.UNRESTRICTED } shouldBe true
     }
 
@@ -80,7 +80,7 @@ class ReservationServiceTest(
         authenticate(userRepository, "staff-policy", "ROLE_STAFF")
         val start = reserveTermPolicy.now().plusDays(1)
         shouldThrow<CserealException> {
-            reservationService.reserveRoom(request(lab.id, start, 16))
+            reservationService.reserveRoom(request(lab.id, start, 21))
         } shouldBe CserealException(ErrorCode.INVALID_RECURRING_WEEKS)
     }
 

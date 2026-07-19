@@ -13,7 +13,7 @@ import java.time.ZoneId
 @ConfigurationProperties("csereal.reservation")
 data class ReservationProperties(
     @field:Min(1)
-    val maxRecurringWeeks: Int = 15
+    val maxRecurringWeeks: Int = 20
 )
 
 @Configuration
