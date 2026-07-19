@@ -24,7 +24,7 @@ class ReservationPolicyMigrationTest : FunSpec({
         mysql.stop()
     }
 
-    test("V16 backfills legacy reservations and preserves unclassified reserve terms") {
+    test("V16 preserves legacy reservation types as null and preserves unclassified reserve terms") {
         val v15Flyway = Flyway.configure()
             .dataSource(mysql.jdbcUrl, mysql.username, mysql.password)
             .locations("classpath:db/migration")
@@ -77,7 +77,7 @@ class ReservationPolicyMigrationTest : FunSpec({
                     }
                 }
             }
-            reservationTypes.shouldContainExactly("AD_HOC", "REGULAR", null, null)
+            reservationTypes.shouldContainExactly(null, null, null, null)
 
             connection.createStatement().use { statement ->
                 statement.executeQuery(

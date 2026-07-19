@@ -2,21 +2,44 @@ package com.wafflestudio.csereal.core.reservation.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
-import com.wafflestudio.csereal.core.reservation.database.*
+import com.wafflestudio.csereal.common.entity.BaseTimeEntity
+import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
+import com.wafflestudio.csereal.core.reservation.config.ReservationProperties
+import com.wafflestudio.csereal.core.reservation.database.ReservationEntity
+import com.wafflestudio.csereal.core.reservation.database.ReservationRepository
+import com.wafflestudio.csereal.core.reservation.database.ReservationType
+import com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity
+import com.wafflestudio.csereal.core.reservation.database.ReserveTermRepository
+import com.wafflestudio.csereal.core.reservation.database.ReserveTermType
+import com.wafflestudio.csereal.core.reservation.database.RoomEntity
+import com.wafflestudio.csereal.core.reservation.database.RoomRepository
+import com.wafflestudio.csereal.core.reservation.database.RoomType
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
+import com.wafflestudio.csereal.core.user.service.UserService
 import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
-import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
+import io.mockk.verifyOrder
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
+import java.time.Clock
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -24,116 +47,430 @@ import java.time.LocalDateTime
 @Import(MySQLTestContainerConfig::class)
 class ReservationServiceTest(
     private val roomRepository: RoomRepository,
+    private val reservationRepository: ReservationRepository,
     private val reservationService: ReservationService,
+    private val reserveTermPolicy: ReserveTermPolicy,
     private val userRepository: UserRepository
-) : BehaviorSpec({
+) : StringSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
-
-    lateinit var dummyRoom: RoomEntity
+    lateinit var lab: RoomEntity
+    lateinit var seminar: RoomEntity
 
     beforeSpec {
-        dummyRoom = roomRepository.save(RoomEntity("test room", "301", 20, RoomType.SEMINAR))
-        if (userRepository.findByUsername("test") == null) {
-            userRepository.save(
-                UserEntity(
-                    "test",
-                    "test",
-                    "test@abc.com",
-                    "0000-00000"
-                )
-            )
+        lab = roomRepository.save(RoomEntity("staff lab", "302", 20, RoomType.LAB))
+        seminar = roomRepository.save(RoomEntity("cancellation room", "304", 20, RoomType.SEMINAR))
+    }
+    afterTest { SecurityContextHolder.clearContext() }
+
+    "creation fails closed without authentication" {
+        SecurityContextHolder.clearContext()
+        val start = reserveTermPolicy.now().plusDays(1)
+        shouldThrow<CserealException.Csereal401> { reservationService.reserveRoom(request(lab.id, start, 1)) }
+    }
+
+    "staff can reserve every room as UNRESTRICTED with the configured maximum" {
+        authenticate(userRepository, "staff-policy", "ROLE_STAFF")
+        val start = reserveTermPolicy.now().plusDays(1)
+        val result = reservationService.reserveRoom(request(lab.id, start, 15))
+        result.size shouldBe 15
+        result.all { it.reservationType == ReservationType.UNRESTRICTED } shouldBe true
+    }
+
+    "staff recurrence above the configured maximum is rejected before generation" {
+        authenticate(userRepository, "staff-policy", "ROLE_STAFF")
+        val start = reserveTermPolicy.now().plusDays(1)
+        shouldThrow<CserealException> {
+            reservationService.reserveRoom(request(lab.id, start, 16))
+        } shouldBe CserealException(ErrorCode.INVALID_RECURRING_WEEKS)
+    }
+
+    "fixed KST clocks enforce applyStart just-before and exact boundaries" {
+        val descriptor = policyAt(LocalDateTime.of(2027, 2, 1, 9, 0)).descriptor(
+            2027,
+            ReserveTermType.FIRST_SEMESTER
+        )
+        val target = descriptor.termStartTime.plusDays(10).plusHours(10)
+
+        val before = harness(descriptor.applyStartTime.minusSeconds(1))
+        unitAuthenticate("ROLE_LABMASTER")
+        shouldThrow<CserealException> { before.service.reserveRoom(request(before.room.id, target, 1)) } shouldBe
+            CserealException(ErrorCode.TERM_NOT_OPENED)
+        verify(exactly = 0) { before.reservationRepository.saveAll(any<List<ReservationEntity>>()) }
+
+        val exact = harness(descriptor.applyStartTime)
+        exact.persistCanonical(descriptor)
+        unitAuthenticate("ROLE_LABMASTER")
+        exact.service.reserveRoom(request(exact.room.id, target, 1))
+            .single().reservationType shouldBe ReservationType.REGULAR
+    }
+
+    "fixed KST clocks enforce termStart just-before and exact boundaries" {
+        val descriptor = policyAt(LocalDateTime.of(2027, 3, 1, 0, 0)).descriptor(
+            2027,
+            ReserveTermType.FIRST_SEMESTER
+        )
+        val target = descriptor.termStartTime.plusDays(10).plusHours(10)
+
+        val before = harness(descriptor.termStartTime.minusSeconds(1))
+        before.persistCanonical(descriptor)
+        unitAuthenticate("ROLE_LABMASTER")
+        before.service.reserveRoom(request(before.room.id, target, 1))
+            .single().reservationType shouldBe ReservationType.REGULAR
+
+        val exact = harness(descriptor.termStartTime)
+        unitAuthenticate("ROLE_LABMASTER")
+        exact.service.reserveRoom(request(exact.room.id, target, 1))
+            .single().reservationType shouldBe ReservationType.AD_HOC
+        exact.verifyNoTermInteraction()
+    }
+
+    "AD_HOC opening is closed just before and open exactly at the weekend-adjusted Monday" {
+        val target = LocalDateTime.of(2026, 7, 19, 14, 0)
+        val opening = LocalDateTime.of(2026, 7, 6, 9, 0)
+
+        val before = harness(opening.minusSeconds(1))
+        unitAuthenticate("ROLE_RESERVATION")
+        shouldThrow<CserealException> { before.service.reserveRoom(request(before.room.id, target, 1)) } shouldBe
+            CserealException(ErrorCode.AD_HOC_NOT_OPENED)
+
+        val exact = harness(opening)
+        unitAuthenticate("ROLE_RESERVATION")
+        exact.service.reserveRoom(request(exact.room.id, target, 1))
+            .single().reservationType shouldBe ReservationType.AD_HOC
+        exact.verifyNoTermInteraction()
+    }
+
+    "REGULAR one-occurrence and repeated requests persist exact canonical rows" {
+        val now = LocalDateTime.of(2027, 2, 1, 9, 0)
+        listOf(1, 3).forEach { weeks ->
+            val fixture = harness(now)
+            val descriptor = fixture.policy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
+            val canonical = fixture.persistCanonical(descriptor)
+            val start = descriptor.termStartTime.plusDays(10).plusHours(10)
+            unitAuthenticate("ROLE_LABMASTER")
+
+            fixture.service.reserveRoom(request(fixture.room.id, start, weeks))
+            fixture.saved.size shouldBe weeks
+            fixture.saved.forEachIndexed { index, row ->
+                row.room shouldBe fixture.room
+                row.startTime shouldBe start.plusWeeks(index.toLong())
+                row.endTime shouldBe start.plusWeeks(index.toLong()).plusHours(1)
+                row.recurringWeeks shouldBe weeks
+                row.reservationType shouldBe ReservationType.REGULAR
+            }
+            canonical.termYear shouldBe descriptor.termYear
+            canonical.termType shouldBe descriptor.termType
         }
     }
 
-    beforeTest {
-        SecurityContextHolder.clearContext()
+    "REGULAR missing and mismatched canonical rows fail closed without saving" {
+        val now = LocalDateTime.of(2027, 2, 1, 9, 0)
+        listOf("missing", "mismatch").forEach { state ->
+            val fixture = harness(now)
+            val descriptor = fixture.policy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
+            if (state == "mismatch") fixture.persistMismatch(descriptor) else fixture.persistMissing(descriptor)
+            unitAuthenticate("ROLE_LABMASTER")
+
+            shouldThrow<CserealException> {
+                fixture.service.reserveRoom(
+                    request(fixture.room.id, descriptor.termStartTime.plusDays(10).plusHours(10), 1)
+                )
+            } shouldBe CserealException(ErrorCode.TERM_NOT_REGISTERED)
+            fixture.saved shouldBe emptyList()
+        }
     }
 
-    given("Staff reservation invariants and overrides") {
-        fun request(
+    "AD_HOC ignores another term active data and never validates persisted terms" {
+        val fixture = harness(LocalDateTime.of(2027, 3, 8, 9, 0))
+        val otherDescriptor = fixture.policy.descriptor(2027, ReserveTermType.SUMMER)
+        val otherTerm = canonicalEntity(otherDescriptor)
+        every { fixture.termRepository.findByTermYearAndTermType(any(), any()) } returns listOf(otherTerm)
+        every { fixture.termRepository.findByTimeOverlap(any(), any()) } returns listOf(otherTerm)
+        unitAuthenticate("ROLE_RESERVATION")
+        val target = LocalDateTime.of(2027, 3, 20, 10, 0)
+
+        fixture.service.reserveRoom(request(fixture.room.id, target, 1)).single().reservationType shouldBe
+            ReservationType.AD_HOC
+        fixture.verifyNoTermInteraction()
+    }
+
+    "creation-role precedence and room authorization are explicit" {
+        val staff = harness(LocalDateTime.of(2027, 2, 1, 9, 0), RoomType.LAB)
+        unitAuthenticate("ROLE_STAFF", "ROLE_LABMASTER", "ROLE_RESERVATION")
+        staff.service.reserveRoom(request(staff.room.id, LocalDateTime.of(2027, 3, 10, 10, 0), 1))
+            .single().reservationType shouldBe ReservationType.UNRESTRICTED
+
+        val labmaster = harness(LocalDateTime.of(2027, 2, 1, 9, 0))
+        val descriptor = labmaster.policy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
+        labmaster.persistCanonical(descriptor)
+        unitAuthenticate("ROLE_LABMASTER", "ROLE_RESERVATION")
+        labmaster.service.reserveRoom(
+            request(labmaster.room.id, descriptor.termStartTime.plusDays(10).plusHours(10), 1)
+        ).single().reservationType shouldBe ReservationType.REGULAR
+
+        val reservationOnly = harness(LocalDateTime.of(2027, 2, 1, 9, 0))
+        unitAuthenticate("ROLE_RESERVATION")
+        shouldThrow<CserealException> {
+            reservationOnly.service.reserveRoom(
+                request(reservationOnly.room.id, LocalDateTime.of(2027, 3, 10, 10, 0), 1)
+            )
+        } shouldBe CserealException(ErrorCode.LABMASTER_ONLY)
+
+        val nonSeminar = harness(LocalDateTime.of(2027, 3, 1, 0, 0), RoomType.LECTURE)
+        unitAuthenticate("ROLE_RESERVATION")
+        shouldThrow<CserealException> {
+            nonSeminar.service.reserveRoom(
+                request(nonSeminar.room.id, LocalDateTime.of(2027, 3, 20, 10, 0), 1)
+            )
+        } shouldBe CserealException(ErrorCode.ONLY_SEMINAR_RESERVABLE)
+    }
+
+    "room 8 enforces the complete role matrix" {
+        val target = LocalDateTime.of(2027, 3, 20, 10, 0)
+        val afterOpening = LocalDateTime.of(2027, 3, 8, 9, 0)
+
+        val staff = harness(afterOpening, roomId = 8)
+        unitAuthenticate("ROLE_STAFF")
+        staff.service.reserveRoom(request(8, target, 1))
+            .single().reservationType shouldBe ReservationType.UNRESTRICTED
+
+        val professorLabmaster = harness(afterOpening, roomId = 8)
+        unitAuthenticate("ROLE_PROFESSOR", "ROLE_LABMASTER")
+        professorLabmaster.service.reserveRoom(request(8, target, 1))
+            .single().reservationType shouldBe ReservationType.AD_HOC
+        professorLabmaster.verifyNoTermInteraction()
+
+        val professorReservation = harness(afterOpening, roomId = 8)
+        unitAuthenticate("ROLE_PROFESSOR", "ROLE_RESERVATION")
+        professorReservation.service.reserveRoom(request(8, target, 1))
+            .single().reservationType shouldBe ReservationType.AD_HOC
+        professorReservation.verifyNoTermInteraction()
+
+        listOf("ROLE_LABMASTER", "ROLE_RESERVATION").forEach { role ->
+            val withoutProfessor = harness(afterOpening, roomId = 8)
+            unitAuthenticate(role)
+            shouldThrow<CserealException> {
+                withoutProfessor.service.reserveRoom(request(8, target, 1))
+            } shouldBe CserealException(ErrorCode.PROFESSOR_ROOM_DENIED)
+        }
+
+        val professorOnly = harness(afterOpening, roomId = 8)
+        unitAuthenticate("ROLE_PROFESSOR")
+        shouldThrow<CserealException> {
+            professorOnly.service.reserveRoom(request(8, target, 1))
+        } shouldBe CserealException(ErrorCode.RESERVATION_PERMISSION_DENIED)
+    }
+
+    "same-date and three-hour limits reject independently" {
+        val now = LocalDateTime.of(2027, 3, 1, 0, 0)
+        val crossDate = harness(now)
+        unitAuthenticate("ROLE_RESERVATION")
+        shouldThrow<CserealException> {
+            crossDate.service.reserveRoom(
+                request(crossDate.room.id, LocalDateTime.of(2027, 3, 20, 23, 30), 1, hours = 1)
+            )
+        } shouldBe CserealException(ErrorCode.RESERVATION_TIME_EXCEEDED)
+
+        val overThreeHours = harness(now)
+        unitAuthenticate("ROLE_RESERVATION")
+        shouldThrow<CserealException> {
+            overThreeHours.service.reserveRoom(
+                request(overThreeHours.room.id, LocalDateTime.of(2027, 3, 20, 10, 0), 1, hours = 4)
+            )
+        } shouldBe CserealException(ErrorCode.RESERVATION_TIME_EXCEEDED)
+    }
+
+    "the pessimistic room lookup occurs before the login-user query" {
+        val fixture = harness(LocalDateTime.of(2027, 3, 8, 9, 0))
+        unitAuthenticate("ROLE_RESERVATION")
+        fixture.service.reserveRoom(
+            request(fixture.room.id, LocalDateTime.of(2027, 3, 20, 10, 0), 1)
+        )
+
+        verifyOrder {
+            fixture.roomRepository.findRoomById(fixture.room.id)
+            fixture.userService.getLoginUser()
+        }
+    }
+
+    "specific cancellation preserves owner, staff, other-user, and missing behavior" {
+        val start = reserveTermPolicy.now().plusDays(1)
+        authenticate(userRepository, "reservation-owner", "ROLE_RESERVATION")
+        val owned = reservationService.reserveRoom(request(seminar.id, start, 1)).single()
+        reservationService.cancelSpecific(owned.id)
+        reservationRepository.findById(owned.id).isPresent shouldBe false
+
+        authenticate(userRepository, "reservation-owner", "ROLE_RESERVATION")
+        val cancellable = reservationService.reserveRoom(request(seminar.id, start.plusHours(2), 1)).single()
+        authenticate(userRepository, "cancelling-staff", "ROLE_STAFF")
+        reservationService.cancelSpecific(cancellable.id)
+
+        authenticate(userRepository, "reservation-owner", "ROLE_RESERVATION")
+        val forbidden = reservationService.reserveRoom(request(seminar.id, start.plusHours(4), 1)).single()
+        authenticate(userRepository, "other-user", "ROLE_RESERVATION")
+        shouldThrow<CserealException.Csereal403> {
+            reservationService.cancelSpecific(forbidden.id)
+        }.message shouldBe "Cannot cancel other's reservation"
+        shouldThrow<CserealException.Csereal404> {
+            reservationService.cancelSpecific(Long.MAX_VALUE)
+        }.message shouldBe "reservation not found"
+    }
+
+    "recurring cancellation deletes the recurrence group" {
+        authenticate(userRepository, "recurrence-owner", "ROLE_STAFF")
+        val start = reserveTermPolicy.now().plusDays(3)
+        val reservations = reservationService.reserveRoom(request(seminar.id, start, 2))
+        reservationService.cancelRecurring(reservations.first().recurrenceId)
+        reservationRepository.findFirstByRecurrenceId(reservations.first().recurrenceId) shouldBe null
+    }
+}) {
+    private class UnitHarness(
+        val service: ReservationServiceImpl,
+        val policy: ReserveTermPolicy,
+        val room: RoomEntity,
+        val reservationRepository: ReservationRepository,
+        val roomRepository: RoomRepository,
+        val termRepository: ReserveTermRepository,
+        val userService: UserService,
+        val saved: MutableList<ReservationEntity>
+    ) {
+        fun persistCanonical(descriptor: ReserveTermDescriptor): ReserveTermEntity {
+            val entity = canonicalEntity(descriptor)
+            every { termRepository.findByTermYearAndTermType(descriptor.termYear, descriptor.termType) } returns
+                listOf(entity)
+            every { termRepository.findByTimeOverlap(descriptor.termStartTime, descriptor.termEndTime) } returns
+                listOf(entity)
+            return entity
+        }
+
+        fun persistMissing(descriptor: ReserveTermDescriptor) {
+            every {
+                termRepository.findByTermYearAndTermType(descriptor.termYear, descriptor.termType)
+            } returns emptyList()
+            every {
+                termRepository.findByTimeOverlap(descriptor.termStartTime, descriptor.termEndTime)
+            } returns emptyList()
+        }
+
+        fun persistMismatch(descriptor: ReserveTermDescriptor) {
+            val entity = canonicalEntity(descriptor, descriptor.applyStartTime.plusMinutes(1))
+            every { termRepository.findByTermYearAndTermType(descriptor.termYear, descriptor.termType) } returns
+                listOf(entity)
+            every { termRepository.findByTimeOverlap(descriptor.termStartTime, descriptor.termEndTime) } returns
+                listOf(entity)
+        }
+
+        fun verifyNoTermInteraction() {
+            verify(exactly = 0) { termRepository.findByTermYearAndTermType(any(), any()) }
+            verify(exactly = 0) { termRepository.findByTimeOverlap(any(), any()) }
+        }
+    }
+
+    companion object {
+        private val SEOUL: ZoneId = ZoneId.of("Asia/Seoul")
+
+        private fun request(
+            roomId: Long,
             start: LocalDateTime,
-            end: LocalDateTime,
-            recurringWeeks: Int,
-            type: ReservationType
+            weeks: Int,
+            hours: Long = 1
         ) = ReserveRequest(
-            dummyRoom.id,
+            roomId,
             "title",
             "a@a.com",
             "010-1234-5678",
             "prof",
             "purpose",
             start,
-            end,
+            start.plusHours(hours),
             true,
-            recurringWeeks,
-            type
+            weeks
         )
 
-        `when`("staff submits a recurring ad-hoc request") {
-            then("the type invariant is still enforced") {
-                io.kotest.assertions.throwables.shouldThrow<CserealException> {
-                    val start = LocalDateTime.now().plusDays(1)
-                    reservationService.reserveRoom(request(start, start.plusHours(1), 2, ReservationType.AD_HOC))
-                } shouldBe CserealException(ErrorCode.AD_HOC_RECURRING_DENIED)
+        private fun policyAt(now: LocalDateTime) = ReserveTermPolicy(
+            Clock.fixed(now.atZone(SEOUL).toInstant(), SEOUL)
+        )
+
+        private fun harness(
+            now: LocalDateTime,
+            roomType: RoomType = RoomType.SEMINAR,
+            roomId: Long = 101
+        ): UnitHarness {
+            val reservationRepository = mockk<ReservationRepository>(relaxed = true)
+            val roomRepository = mockk<RoomRepository>()
+            val termRepository = mockk<ReserveTermRepository>(relaxed = true)
+            val userService = mockk<UserService>()
+            val policy = policyAt(now)
+            val room = RoomEntity("unit room", "unit", 20, roomType).also { setId(it, roomId) }
+            val user = UserEntity("unit-user", "unit", "unit@example.com", "0000-00000")
+            val saved = mutableListOf<ReservationEntity>()
+
+            every { roomRepository.findRoomById(roomId) } returns room
+            every { userService.getLoginUser() } returns user
+            every { reservationRepository.findByRoomIdAndTimeOverlap(any(), any(), any()) } returns emptyList()
+            every { reservationRepository.saveAll(any<List<ReservationEntity>>()) } answers {
+                firstArg<List<ReservationEntity>>().also(saved::addAll)
+            }
+
+            val validation = ReserveTermValidationService(termRepository, policy)
+            val service = ReservationServiceImpl(
+                reservationRepository,
+                roomRepository,
+                policy,
+                validation,
+                userService,
+                ReservationProperties()
+            )
+            return UnitHarness(
+                service,
+                policy,
+                room,
+                reservationRepository,
+                roomRepository,
+                termRepository,
+                userService,
+                saved
+            )
+        }
+
+        private fun canonicalEntity(
+            descriptor: ReserveTermDescriptor,
+            applyStartTime: LocalDateTime = descriptor.applyStartTime
+        ) = ReserveTermEntity(
+            applyStartTime,
+            descriptor.applyEndTime,
+            descriptor.termStartTime,
+            descriptor.termEndTime,
+            descriptor.termYear,
+            descriptor.termType
+        )
+
+        private fun setId(entity: BaseTimeEntity, id: Long) {
+            BaseTimeEntity::class.java.getDeclaredField("id").apply {
+                isAccessible = true
+                setLong(entity, id)
             }
         }
 
-        `when`("staff submits a past request") {
-            then("the universal future-time invariant is enforced") {
-                io.kotest.assertions.throwables.shouldThrow<CserealException> {
-                    val start = LocalDateTime.now().minusHours(2)
-                    reservationService.reserveRoom(request(start, start.plusHours(1), 1, ReservationType.AD_HOC))
-                } shouldBe CserealException(ErrorCode.PAST_RESERVATION_DENIED)
-            }
+        private fun unitAuthenticate(vararg roles: String) {
+            val authorities = roles.map(::SimpleGrantedAuthority)
+            SecurityContextHolder.getContext().authentication =
+                UsernamePasswordAuthenticationToken("unit-principal", null, authorities)
         }
 
-        `when`("staff submits dates outside the supported database range") {
-            then("lower and upper years fail with a stable domain error") {
-                listOf(1000, 9999).forEach { year ->
-                    val start = LocalDateTime.of(year, 1, 10, 10, 0)
-                    io.kotest.assertions.throwables.shouldThrow<CserealException> {
-                        reservationService.reserveRoom(
-                            request(start, start.plusHours(1), 1, ReservationType.AD_HOC)
-                        )
-                    } shouldBe CserealException(ErrorCode.UNSUPPORTED_RESERVATION_DATE)
-                }
-            }
-        }
-
-        `when`("staff uses the inclusive supported year boundaries") {
-            then("the lower boundary reaches the past invariant and the upper boundary is accepted") {
-                val lower = LocalDateTime.of(1001, 1, 10, 10, 0)
-                io.kotest.assertions.throwables.shouldThrow<CserealException> {
-                    reservationService.reserveRoom(
-                        request(lower, lower.plusHours(1), 1, ReservationType.AD_HOC)
-                    )
-                } shouldBe CserealException(ErrorCode.PAST_RESERVATION_DENIED)
-
-                val upper = LocalDateTime.of(9998, 12, 20, 10, 0)
-                reservationService.reserveRoom(
-                    request(upper, upper.plusHours(1), 1, ReservationType.AD_HOC)
-                ).size shouldBe 1
-            }
-        }
-
-        `when`("staff repeats a reservation across the supported upper boundary") {
-            then("the request fails before plusWeeks or persistence") {
-                val start = LocalDateTime.of(9998, 12, 28, 10, 0)
-                io.kotest.assertions.throwables.shouldThrow<CserealException> {
-                    reservationService.reserveRoom(
-                        request(start, start.plusHours(1), 2, ReservationType.REGULAR)
-                    )
-                } shouldBe CserealException(ErrorCode.UNSUPPORTED_RESERVATION_DATE)
-            }
-        }
-
-        `when`("staff submits a regular request outside a canonical term policy") {
-            val start = LocalDateTime.now().plusDays(3)
-            val result = reservationService.reserveRoom(request(start, start.plusHours(4), 2, ReservationType.REGULAR))
-
-            then("business time and term policies are bypassed") {
-                result.size shouldBe 2
-            }
+        private fun authenticate(repository: UserRepository, username: String, vararg roles: String) {
+            val user = repository.findByUsername(username) ?: repository.save(
+                UserEntity(username, username, "$username@example.com", "0000-00000")
+            )
+            val authorities = roles.map(::SimpleGrantedAuthority)
+            val issuedAt = Instant.now()
+            val principal = CustomOidcUser(
+                user,
+                authorities,
+                OidcIdToken("mock-token", issuedAt, issuedAt.plusSeconds(3600), mapOf("sub" to username))
+            )
+            SecurityContextHolder.getContext().authentication =
+                UsernamePasswordAuthenticationToken(principal, null, authorities)
         }
     }
-})
+}
