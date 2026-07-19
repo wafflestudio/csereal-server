@@ -31,21 +31,10 @@ class ReserveTermGenerationService(
             } catch (exception: DataIntegrityViolationException) {
                 verifyConcurrentInsert(descriptor, exception)
             } catch (exception: InvalidReserveTermStateException) {
-                logger.error(
-                    "event=reserve_term_reconciliation_failed termYear={} termType={} reason={} candidateIds={}",
-                    descriptor.termYear,
-                    descriptor.termType,
-                    exception.audit.reason,
-                    exception.audit.candidates.map { it.id }
-                )
+                logFailure(descriptor, exception.audit.reason, exception.audit.candidates)
                 ReserveTermGenerationOutcome(descriptor, null, exception)
             } catch (exception: Exception) {
-                logger.error(
-                    "event=reserve_term_reconciliation_failed termYear={} termType={} reason={} candidateIds=[]",
-                    descriptor.termYear,
-                    descriptor.termType,
-                    exception.javaClass.simpleName
-                )
+                logFailure(descriptor, exception.javaClass.simpleName, emptyList())
                 ReserveTermGenerationOutcome(descriptor, null, exception)
             }
         }
@@ -65,23 +54,30 @@ class ReserveTermGenerationService(
             )
             ReserveTermGenerationOutcome(descriptor, result, null)
         } catch (verificationException: InvalidReserveTermStateException) {
-            logger.error(
-                "event=reserve_term_reconciliation_failed termYear={} termType={} reason={} candidateIds={}",
-                descriptor.termYear,
-                descriptor.termType,
-                verificationException.audit.reason,
-                verificationException.audit.candidates.map { it.id }
-            )
+            logFailure(descriptor, verificationException.audit.reason, verificationException.audit.candidates)
             ReserveTermGenerationOutcome(descriptor, null, originalException)
         } catch (verificationException: Exception) {
-            logger.error(
-                "event=reserve_term_reconciliation_failed termYear={} termType={} " +
-                    "reason={} candidateIds=[]",
-                descriptor.termYear,
-                descriptor.termType,
-                verificationException.javaClass.simpleName
-            )
+            logFailure(descriptor, verificationException.javaClass.simpleName, emptyList())
             ReserveTermGenerationOutcome(descriptor, null, originalException)
         }
+    }
+
+    private fun logFailure(
+        descriptor: ReserveTermDescriptor,
+        reason: String?,
+        candidates: Collection<com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity>
+    ) {
+        val evidence = ReserveTermAuditEvidence.from(descriptor, candidates)
+        logger.error(
+            "event=reserve_term_reconciliation_failed termYear={} termType={} reason={} candidateIds={} " +
+                "expected={} actualCandidates={} action={}",
+            descriptor.termYear,
+            descriptor.termType,
+            reason,
+            candidates.map { it.id },
+            evidence.expected,
+            evidence.actualCandidates,
+            evidence.action
+        )
     }
 }

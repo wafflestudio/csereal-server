@@ -55,9 +55,7 @@ csereal:
     upload:
         path: ./files/
     reservation:
-        reserve-term-generation:
-            cron: "0 0 3 * * SAT"
-            zone: "Asia/Seoul"
+        max-recurring-weeks: 15
 
 oldFiles:
     path: ./cse-files/

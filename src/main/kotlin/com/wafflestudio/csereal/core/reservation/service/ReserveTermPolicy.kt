@@ -85,7 +85,7 @@ class ReserveTermPolicy(
             termYear = termYear,
             termType = termType,
             applyStartTime = adjustWeekend(applyStartDate.atTime(OPEN_TIME)),
-            applyEndTime = termEndTime,
+            applyEndTime = termStartTime,
             termStartTime = termStartTime,
             termEndTime = termEndTime
         )
@@ -141,13 +141,6 @@ class ReserveTermPolicy(
     fun maxOccurrences(firstEndTime: LocalDateTime, boundaryEndTime: LocalDateTime): Long {
         if (firstEndTime.isAfter(boundaryEndTime)) return 0
         return ChronoUnit.WEEKS.between(firstEndTime, boundaryEndTime) + 1
-    }
-
-    fun staffMaxOccurrences(referenceYear: Int = LocalDate.now(clock).year): Long {
-        return ReserveTermType.entries.maxOf { type ->
-            val descriptor = descriptor(referenceYear, type)
-            maxOccurrences(descriptor.termStartTime, descriptor.termEndTime)
-        }
     }
 
     private fun adjustWeekend(dateTime: LocalDateTime): LocalDateTime {

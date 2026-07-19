@@ -1,7 +1,6 @@
 package com.wafflestudio.csereal.core.reservation.database
 
 import com.wafflestudio.csereal.common.CserealException
-import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.user.database.UserEntity
@@ -57,10 +56,6 @@ class ReservationEntity(
             throw CserealException.Csereal400("종료 시각은 시작 시각 이후여야 합니다.")
         }
     }
-
-    fun effectiveType(): ReservationType =
-        resolvePersistedReservationType(reservationType, recurringWeeks)
-            ?: throw CserealException(ErrorCode.INVALID_RECURRING_WEEKS)
 
     companion object {
         fun create(

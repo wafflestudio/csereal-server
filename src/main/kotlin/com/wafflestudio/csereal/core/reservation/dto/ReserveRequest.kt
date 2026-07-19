@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.reservation.dto
 
-import com.wafflestudio.csereal.core.reservation.database.ReservationType
 import java.time.LocalDateTime
 
 data class ReserveRequest(
@@ -13,6 +12,5 @@ data class ReserveRequest(
     val startTime: LocalDateTime,
     val endTime: LocalDateTime,
     val agreed: Boolean,
-    val recurringWeeks: Int = 1,
-    val reservationType: ReservationType? = null
+    val recurringWeeks: Int = 1
 )

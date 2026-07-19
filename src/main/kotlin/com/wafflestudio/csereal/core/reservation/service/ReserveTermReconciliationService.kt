@@ -40,6 +40,7 @@ class ReserveTermReconciliationService(
         }
 
         if (audit.reason != "missing") {
+            reserveTermValidationService.logInvalid(audit)
             throw InvalidReserveTermStateException(audit)
         }
 
@@ -62,12 +63,17 @@ class ReserveTermReconciliationService(
         if (audit.validEntity != null && audit.validEntity.termYear == descriptor.termYear) {
             return ReserveTermReconciliationResult.CONCURRENTLY_CREATED
         }
+        val evidence = ReserveTermAuditEvidence.from(descriptor, audit.candidates)
         logger.error(
-            "event=reserve_term_concurrent_insert_invalid termYear={} termType={} reason={} candidateIds={}",
+            "event=reserve_term_concurrent_insert_invalid termYear={} termType={} reason={} candidateIds={} " +
+                "expected={} actualCandidates={} action={}",
             descriptor.termYear,
             descriptor.termType,
             audit.reason,
-            audit.candidates.map { it.id }
+            audit.candidates.map { it.id },
+            evidence.expected,
+            evidence.actualCandidates,
+            evidence.action
         )
         throw InvalidReserveTermStateException(audit)
     }
