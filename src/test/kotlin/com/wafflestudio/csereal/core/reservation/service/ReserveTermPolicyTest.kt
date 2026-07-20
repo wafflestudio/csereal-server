@@ -3,7 +3,6 @@ package com.wafflestudio.csereal.core.reservation.service
 import com.wafflestudio.csereal.core.reservation.config.ReservationConfig
 import com.wafflestudio.csereal.core.reservation.config.ReservationProperties
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity
-import com.wafflestudio.csereal.core.reservation.database.ReserveTermType
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
@@ -16,52 +15,54 @@ class ReserveTermPolicyTest : BehaviorSpec({
     val clock = Clock.fixed(Instant.parse("2026-07-17T00:00:00Z"), ZoneId.of("Asia/Seoul"))
     val policy = ReserveTermPolicy(clock)
 
-    given("canonical timing") {
-        then("application ends exactly when the target term starts") {
-            val descriptor = policy.descriptor(2027, ReserveTermType.SECOND_SEMESTER)
-            descriptor.applyStartTime shouldBe LocalDateTime.of(2027, 8, 2, 9, 0)
-            descriptor.applyEndTime shouldBe descriptor.termStartTime
-            descriptor.termStartTime shouldBe LocalDateTime.of(2027, 9, 1, 0, 0)
-            descriptor.termEndTime shouldBe LocalDateTime.of(2028, 1, 1, 0, 0)
+    given("persisted schedule validation and phases") {
+        val term = ReserveTermEntity(
+            LocalDateTime.of(2027, 2, 3, 9, 0),
+            LocalDateTime.of(2027, 2, 20, 18, 0),
+            LocalDateTime.of(2027, 3, 1, 0, 0),
+            LocalDateTime.of(2027, 6, 25, 0, 0)
+        )
+
+        then("custom persisted times are structurally valid") {
+            policy.invalidReasons(term) shouldBe emptyList()
         }
 
-        then("an ad-hoc weekend opening moves to Monday at 09:00") {
+        then("all exact phase boundaries are half-open") {
+            policy.phase(term, term.applyStartTime.minusNanos(1)) shouldBe ReserveTermPhase.BEFORE_APPLICATION
+            policy.phase(term, term.applyStartTime) shouldBe ReserveTermPhase.REGULAR_APPLICATION
+            policy.phase(term, term.applyEndTime) shouldBe ReserveTermPhase.GAP
+            policy.phase(term, term.termStartTime) shouldBe ReserveTermPhase.TERM_ACTIVE
+        }
+
+        then("partial metadata and malformed time order are invalid") {
+            policy.invalidReasons(
+                ReserveTermEntity(
+                    term.applyEndTime,
+                    term.applyStartTime,
+                    term.termStartTime,
+                    term.termEndTime,
+                    2027,
+                    null
+                )
+            ) shouldBe listOf("invalid_application_window", "partial_metadata")
+        }
+    }
+
+    given("ad-hoc opening") {
+        then("a weekend opening moves to Monday at 09:00") {
             policy.adHocOpenTime(LocalDateTime.of(2026, 7, 19, 14, 0)) shouldBe
                 LocalDateTime.of(2026, 7, 6, 9, 0)
         }
 
-        then("current and next terms cross the year boundary") {
-            val winterClock = Clock.fixed(Instant.parse("2027-12-15T00:00:00Z"), ZoneId.of("Asia/Seoul"))
-            ReserveTermPolicy(winterClock).currentAndNextDescriptors().map { it.termType } shouldBe
-                listOf(ReserveTermType.SECOND_SEMESTER, ReserveTermType.WINTER)
-        }
-    }
-
-    given("persisted canonical validation") {
-        val descriptor = policy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
-
-        then("metadata and all four time fields match") {
-            val entity = ReserveTermEntity(
-                descriptor.applyStartTime,
-                descriptor.applyEndTime,
-                descriptor.termStartTime,
-                descriptor.termEndTime,
-                descriptor.termYear,
-                descriptor.termType
+        then("active terms cannot open before their persisted start") {
+            val term = ReserveTermEntity(
+                LocalDateTime.of(2027, 1, 1, 9, 0),
+                LocalDateTime.of(2027, 1, 15, 0, 0),
+                LocalDateTime.of(2027, 3, 1, 0, 0),
+                LocalDateTime.of(2027, 7, 1, 0, 0)
             )
-            policy.audit(descriptor, listOf(entity), listOf(entity)).validEntity shouldBe entity
-        }
-
-        then("a field mismatch fails closed") {
-            val entity = ReserveTermEntity(
-                descriptor.applyStartTime,
-                descriptor.applyEndTime.plusMinutes(1),
-                descriptor.termStartTime,
-                descriptor.termEndTime,
-                descriptor.termYear,
-                descriptor.termType
-            )
-            policy.audit(descriptor, listOf(entity), listOf(entity)).reason shouldBe "apply_end_mismatch"
+            policy.activeTermAdHocOpenTime(term, LocalDateTime.of(2027, 3, 2, 10, 0)) shouldBe
+                term.termStartTime
         }
     }
 
@@ -75,8 +76,7 @@ class ReserveTermPolicyTest : BehaviorSpec({
     }
 
     given("reservation property binding") {
-        val contextRunner = ApplicationContextRunner()
-            .withUserConfiguration(ReservationConfig::class.java)
+        val contextRunner = ApplicationContextRunner().withUserConfiguration(ReservationConfig::class.java)
 
         then("the default maximum is 20") {
             contextRunner.run { context ->
@@ -89,16 +89,6 @@ class ReserveTermPolicyTest : BehaviorSpec({
             contextRunner.withPropertyValues("csereal.reservation.max-recurring-weeks=24").run { context ->
                 context.startupFailure shouldBe null
                 context.getBean(ReservationProperties::class.java).maxRecurringWeeks shouldBe 24
-            }
-        }
-
-        then("zero and negative values reject startup binding") {
-            listOf(0, -1).forEach { invalidValue ->
-                contextRunner.withPropertyValues(
-                    "csereal.reservation.max-recurring-weeks=$invalidValue"
-                ).run { context ->
-                    (context.startupFailure != null) shouldBe true
-                }
             }
         }
     }

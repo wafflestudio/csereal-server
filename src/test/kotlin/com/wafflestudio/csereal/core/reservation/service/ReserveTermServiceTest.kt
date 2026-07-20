@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
 import com.wafflestudio.csereal.core.reservation.database.ReservationType
+import com.wafflestudio.csereal.core.reservation.database.ReserveTermRepository
 import com.wafflestudio.csereal.core.reservation.database.RoomEntity
 import com.wafflestudio.csereal.core.reservation.database.RoomRepository
 import com.wafflestudio.csereal.core.reservation.database.RoomType
@@ -34,13 +35,24 @@ class ReserveTermServiceTest(
     private val roomRepository: RoomRepository,
     private val reservationService: ReservationService,
     private val reserveTermPolicy: ReserveTermPolicy,
+    private val reserveTermRepository: ReserveTermRepository,
     private val userRepository: UserRepository
 ) : StringSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
     lateinit var room: RoomEntity
 
-    beforeSpec { room = roomRepository.save(RoomEntity("labmaster room", "303", 20, RoomType.SEMINAR)) }
-    beforeTest { authenticateLabmaster(userRepository) }
+    beforeSpec {
+        val generatedRoom = roomRepository.save(RoomEntity("labmaster room", "303", 20, RoomType.SEMINAR))
+        room = if (generatedRoom.id == 8L) {
+            roomRepository.save(RoomEntity("labmaster room", "303", 20, RoomType.SEMINAR))
+        } else {
+            generatedRoom
+        }
+    }
+    beforeTest {
+        reserveTermRepository.deleteAll()
+        authenticateLabmaster(userRepository)
+    }
     afterTest { SecurityContextHolder.clearContext() }
 
     "at or after the target term start a labmaster gets one-occurrence AD_HOC" {

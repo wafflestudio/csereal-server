@@ -6,7 +6,6 @@ import ch.qos.logback.core.read.ListAppender
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermRepository
-import com.wafflestudio.csereal.core.reservation.database.ReserveTermType
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -15,115 +14,98 @@ import io.mockk.verify
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZoneId
 
 class ReserveTermValidationServiceTest : StringSpec({
-    "findAllValidated uses one bounded repository query regardless of term count" {
-        val repository = mockk<ReserveTermRepository>(relaxed = true)
-        val policy = ReserveTermPolicy(
-            Clock.fixed(Instant.parse("2027-04-01T00:00:00Z"), ZoneId.of("Asia/Seoul"))
-        )
-        val rows = listOf(
-            entity(policy.descriptor(2027, ReserveTermType.FIRST_SEMESTER), 1),
-            entity(policy.descriptor(2027, ReserveTermType.SUMMER), 2),
-            entity(policy.descriptor(2027, ReserveTermType.SECOND_SEMESTER), 3),
-            entity(policy.descriptor(2028, ReserveTermType.WINTER), 4)
-        )
-        every { repository.findAllByOrderByApplyStartTimeAscTermStartTimeAscIdAsc() } returns rows
+    val policy = ReserveTermPolicy(Clock.fixed(Instant.EPOCH, ZoneId.of("Asia/Seoul")))
+
+    "point resolution distinguishes missing valid invalid and multiple" {
+        val repository = mockk<ReserveTermRepository>()
         val service = ReserveTermValidationService(repository, policy)
+        val requestStart = LocalDateTime.of(2027, 3, 20, 10, 0)
+        val valid = term(1)
+        val invalid = term(2, applyEnd = LocalDateTime.of(2027, 3, 2, 0, 0))
 
-        service.findAllValidated().map { it.id } shouldBe listOf(1L, 2L, 3L, 4L)
+        every { repository.findContainingRequestStart(requestStart) } returnsMany listOf(
+            emptyList(),
+            listOf(valid),
+            listOf(invalid),
+            listOf(valid, invalid)
+        )
+
+        service.resolveTarget(requestStart) shouldBe ReserveTermResolution.Missing
+        service.resolveTarget(requestStart) shouldBe ReserveTermResolution.Valid(valid)
+        (service.resolveTarget(requestStart) as ReserveTermResolution.Invalid).reasons shouldBe
+            listOf("application_overlaps_term")
+        (service.resolveTarget(requestStart) as ReserveTermResolution.Multiple).candidates shouldBe
+            listOf(valid, invalid)
+        verify(exactly = 4) { repository.findContainingRequestStart(requestStart) }
+    }
+
+    "validated listing uses one query and hides complete overlap components" {
+        val repository = mockk<ReserveTermRepository>()
+        val first = term(11, termEnd = LocalDateTime.of(2027, 5, 1, 0, 0))
+        val overlap = term(
+            12,
+            termStart = LocalDateTime.of(2027, 4, 1, 0, 0),
+            termEnd = LocalDateTime.of(2027, 6, 1, 0, 0)
+        )
+        val touching = term(
+            13,
+            applyStart = LocalDateTime.of(2027, 5, 1, 9, 0),
+            applyEnd = LocalDateTime.of(2027, 6, 1, 0, 0),
+            termStart = LocalDateTime.of(2027, 6, 1, 0, 0),
+            termEnd = LocalDateTime.of(2027, 7, 1, 0, 0)
+        )
+        every { repository.findAllByOrderByApplyStartTimeAscTermStartTimeAscIdAsc() } returns
+            listOf(first, overlap, touching)
+
+        ReserveTermValidationService(repository, policy).findAllValidated().map { it.id } shouldBe listOf(13L)
         verify(exactly = 1) { repository.findAllByOrderByApplyStartTimeAscTermStartTimeAscIdAsc() }
-        verify(exactly = 0) { repository.findByTermYearAndTermType(any(), any()) }
-        verify(exactly = 0) { repository.findByTimeOverlap(any(), any()) }
     }
 
-    "partial metadata log exposes expected and actual values with the fail-closed action" {
+    "invalid evidence contains schedule fields but no request PII" {
         val repository = mockk<ReserveTermRepository>()
-        val policy = ReserveTermPolicy(
-            Clock.fixed(Instant.parse("2027-04-01T00:00:00Z"), ZoneId.of("Asia/Seoul"))
-        )
-        val descriptor = policy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
-        val partial = ReserveTermEntity(
-            descriptor.applyStartTime,
-            descriptor.applyEndTime,
-            descriptor.termStartTime,
-            descriptor.termEndTime,
-            descriptor.termYear,
-            null
-        ).also { setId(it, 41) }
-        every { repository.findAllByOrderByApplyStartTimeAscTermStartTimeAscIdAsc() } returns listOf(partial)
+        val invalid = term(41, termYear = 2027)
+        every { repository.findContainingRequestStart(any()) } returns listOf(invalid)
         val appender = logAppender()
 
         try {
-            ReserveTermValidationService(repository, policy).findAllValidated() shouldBe emptyList()
+            ReserveTermValidationService(repository, policy).resolveTarget(invalid.termStartTime.plusDays(1))
             val message = appender.list.single().formattedMessage
-            message.contains("reason=partial_metadata") shouldBe true
             message.contains("candidateIds=[41]") shouldBe true
-            message.contains("expected=ReserveTermDescriptor(termYear=2027") shouldBe true
-            message.contains(
-                "actualCandidates=[ReserveTermCandidateEvidence(id=41, termYear=2027, termType=null"
-            ) shouldBe true
-            message.contains("action=preserved_fail_closed") shouldBe true
-        } finally {
-            appender.stop()
-        }
-    }
-
-    "conflicting audit log exposes every candidate value with the fail-closed action" {
-        val repository = mockk<ReserveTermRepository>()
-        val policy = ReserveTermPolicy(
-            Clock.fixed(Instant.parse("2027-04-01T00:00:00Z"), ZoneId.of("Asia/Seoul"))
-        )
-        val descriptor = policy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
-        val first = entity(descriptor, 51)
-        val second = entity(descriptor, 52)
-        every { repository.findByTermYearAndTermType(descriptor.termYear, descriptor.termType) } returns
-            listOf(first, second)
-        every { repository.findByTimeOverlap(descriptor.termStartTime, descriptor.termEndTime) } returns
-            listOf(first, second)
-        val appender = logAppender()
-
-        try {
-            ReserveTermValidationService(repository, policy).apply {
-                val audit = audit(descriptor)
-                logInvalid(audit)
-            }
-            val message = appender.list.single().formattedMessage
-            message.contains("reason=multiple_or_competing_rows") shouldBe true
-            message.contains("candidateIds=[51, 52]") shouldBe true
-            message.contains("ReserveTermCandidateEvidence(id=51") shouldBe true
-            message.contains("ReserveTermCandidateEvidence(id=52") shouldBe true
-            message.contains("action=preserved_fail_closed") shouldBe true
+            message.contains("partial_metadata") shouldBe true
+            message.contains("applyStartTime=") shouldBe true
+            message.contains("contact") shouldBe false
+            message.contains("title") shouldBe false
         } finally {
             appender.stop()
         }
     }
 }) {
     companion object {
-        private fun logAppender(): ListAppender<ILoggingEvent> {
-            val appender = ListAppender<ILoggingEvent>()
-            appender.start()
-            (LoggerFactory.getLogger(ReserveTermValidationService::class.java) as Logger).addAppender(appender)
-            return appender
-        }
-
-        private fun entity(descriptor: ReserveTermDescriptor, id: Long): ReserveTermEntity {
-            return ReserveTermEntity(
-                descriptor.applyStartTime,
-                descriptor.applyEndTime,
-                descriptor.termStartTime,
-                descriptor.termEndTime,
-                descriptor.termYear,
-                descriptor.termType
-            ).also { setId(it, id) }
-        }
+        private fun term(
+            id: Long,
+            applyStart: LocalDateTime = LocalDateTime.of(2027, 2, 1, 9, 0),
+            applyEnd: LocalDateTime = LocalDateTime.of(2027, 3, 1, 0, 0),
+            termStart: LocalDateTime = LocalDateTime.of(2027, 3, 1, 0, 0),
+            termEnd: LocalDateTime = LocalDateTime.of(2027, 7, 1, 0, 0),
+            termYear: Int? = null
+        ) = ReserveTermEntity(applyStart, applyEnd, termStart, termEnd, termYear, null).also { setId(it, id) }
 
         private fun setId(entity: BaseTimeEntity, id: Long) {
             BaseTimeEntity::class.java.getDeclaredField("id").apply {
                 isAccessible = true
                 setLong(entity, id)
             }
+        }
+
+        private fun logAppender(): ListAppender<ILoggingEvent> {
+            val appender = ListAppender<ILoggingEvent>()
+            appender.start()
+            (LoggerFactory.getLogger(ReserveTermValidationService::class.java) as Logger).addAppender(appender)
+            return appender
         }
     }
 }

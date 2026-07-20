@@ -7,7 +7,6 @@ import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import org.springframework.aop.support.AopUtils
 import org.springframework.boot.test.context.SpringBootTest
@@ -27,8 +26,8 @@ import java.util.concurrent.TimeUnit
 @Import(MySQLTestContainerConfig::class)
 class ReserveTermConcurrencyIntegrationTest(
     private val reserveTermRepository: ReserveTermRepository,
-    private val reserveTermPolicy: ReserveTermPolicy,
-    private val reconciliationService: ReserveTermReconciliationService,
+    private val reserveTermDefaultPolicy: ReserveTermDefaultPolicy,
+    private val reserveTermCreationService: ReserveTermCreationService,
     private val generationService: ReserveTermGenerationService,
     transactionManager: PlatformTransactionManager
 ) : FunSpec({
@@ -37,64 +36,96 @@ class ReserveTermConcurrencyIntegrationTest(
         propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
     }
 
-    beforeTest {
-        reserveTermRepository.deleteAll()
-    }
+    beforeTest { reserveTermRepository.deleteAll() }
+    afterTest { reserveTermRepository.deleteAll() }
+    afterSpec { reserveTermRepository.deleteAll() }
 
-    test("a canonical unique race rolls back and re-audits through the proxied service") {
-        AopUtils.isAopProxy(reconciliationService) shouldBe true
-        val descriptor = reserveTermPolicy.descriptor(2040, ReserveTermType.FIRST_SEMESTER)
+    test("concurrent generation converges through the proxied creation service") {
+        AopUtils.isAopProxy(reserveTermCreationService) shouldBe true
+        val descriptors = reserveTermDefaultPolicy.currentAndNextDescriptors()
         val barrier = CountDownLatch(2)
         val executor = Executors.newFixedThreadPool(2)
-        val results = Collections.synchronizedList(mutableListOf<ReserveTermReconciliationResult>())
+        val results = Collections.synchronizedList(
+            mutableListOf<Result<List<ReserveTermGenerationOutcome>>>()
+        )
 
         repeat(2) {
             executor.submit {
-                try {
-                    transactionTemplate.executeWithoutResult {
-                        barrier.countDown()
+                barrier.countDown()
+                results.add(
+                    runCatching {
                         barrier.await()
-                        reserveTermRepository.saveAndFlush(descriptor.toEntity())
+                        generationService.ensureCurrentAndNext()
                     }
-                    results.add(ReserveTermReconciliationResult.CREATED)
-                } catch (exception: DataIntegrityViolationException) {
-                    results.add(reconciliationService.verifyAfterConcurrentInsert(descriptor))
-                }
+                )
             }
         }
         executor.shutdown()
-        executor.awaitTermination(10, TimeUnit.SECONDS) shouldBe true
+        try {
+            executor.awaitTermination(20, TimeUnit.SECONDS) shouldBe true
 
-        results.shouldContainExactlyInAnyOrder(
-            ReserveTermReconciliationResult.CREATED,
-            ReserveTermReconciliationResult.CONCURRENTLY_CREATED
-        )
-        reserveTermRepository.findByTermYearAndTermType(
-            descriptor.termYear,
-            descriptor.termType
-        ).size shouldBe 1
+            results.size shouldBe 2
+            results.all { it.isSuccess } shouldBe true
+            val outcomes = results.flatMap { it.getOrThrow() }
+            descriptors.forEach { descriptor ->
+                val matching = outcomes.filter {
+                    it.descriptor.termYear == descriptor.termYear && it.descriptor.termType == descriptor.termType
+                }
+                matching.size shouldBe 2
+                matching.count { it.result == ReserveTermGenerationResult.CREATED } shouldBe 1
+                matching.count {
+                    it.result in setOf(
+                        ReserveTermGenerationResult.CONCURRENTLY_CREATED,
+                        ReserveTermGenerationResult.EXISTING
+                    )
+                } shouldBe 1
+                reserveTermRepository.findByTermYearAndTermTypeOrderByIdAsc(
+                    descriptor.termYear,
+                    descriptor.termType
+                ).size shouldBe 1
+            }
+            reserveTermRepository.count() shouldBe descriptors.size.toLong()
+        } finally {
+            executor.shutdownNow()
+        }
     }
 
-    test("a failed current descriptor does not roll back creation of the next descriptor") {
-        val descriptors = reserveTermPolicy.currentAndNextDescriptors()
+    test("a committed duplicate is classified through a new proxied inspection transaction") {
+        AopUtils.isAopProxy(reserveTermCreationService) shouldBe true
+        val descriptor = reserveTermDefaultPolicy.descriptor(2040, ReserveTermType.FIRST_SEMESTER)
+        transactionTemplate.executeWithoutResult {
+            reserveTermRepository.saveAndFlush(descriptor.toEntity())
+        }
+
+        val exception = runCatching {
+            transactionTemplate.executeWithoutResult {
+                reserveTermRepository.saveAndFlush(descriptor.toEntity())
+            }
+        }.exceptionOrNull()
+        (exception is DataIntegrityViolationException) shouldBe true
+
+        reserveTermCreationService.inspectAfterIntegrityFailure(descriptor).result shouldBe
+            ReserveTermGenerationResult.CONCURRENTLY_CREATED
+    }
+
+    test("an invalid current keyed row is preserved while the next default is still created") {
+        val descriptors = reserveTermDefaultPolicy.currentAndNextDescriptors()
         val current = descriptors.first()
         val next = descriptors.last()
-        reserveTermRepository.saveAndFlush(
-            current.toEntity(applyStartOffsetDays = 1)
-        )
+        reserveTermRepository.saveAndFlush(current.toEntity(applyEndOffsetDays = -40))
 
         val outcomes = generationService.ensureCurrentAndNext()
 
-        (outcomes.first().error is InvalidReserveTermStateException) shouldBe true
-        outcomes.last().result shouldBe ReserveTermReconciliationResult.CREATED
-        reserveTermRepository.findByTermYearAndTermType(next.termYear, next.termType).size shouldBe 1
+        outcomes.first().result shouldBe ReserveTermGenerationResult.SKIPPED_INVALID_EXISTING
+        outcomes.last().result shouldBe ReserveTermGenerationResult.CREATED
+        reserveTermRepository.findByTermYearAndTermTypeOrderByIdAsc(next.termYear, next.termType).size shouldBe 1
     }
 }) {
     companion object {
-        private fun ReserveTermDescriptor.toEntity(applyStartOffsetDays: Long = 0): ReserveTermEntity {
+        private fun ReserveTermDescriptor.toEntity(applyEndOffsetDays: Long = 0): ReserveTermEntity {
             return ReserveTermEntity(
-                applyStartTime.plusDays(applyStartOffsetDays),
-                applyEndTime,
+                applyStartTime,
+                applyEndTime.plusDays(applyEndOffsetDays),
                 termStartTime,
                 termEndTime,
                 termYear,

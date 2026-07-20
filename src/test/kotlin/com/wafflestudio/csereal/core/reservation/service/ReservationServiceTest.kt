@@ -85,17 +85,27 @@ class ReservationServiceTest(
     }
 
     "fixed KST clocks enforce applyStart just-before and exact boundaries" {
-        val descriptor = policyAt(LocalDateTime.of(2027, 2, 1, 9, 0)).descriptor(
+        val descriptor = defaultAt(LocalDateTime.of(2027, 2, 1, 9, 0)).descriptor(
             2027,
             ReserveTermType.FIRST_SEMESTER
         )
         val target = descriptor.termStartTime.plusDays(10).plusHours(10)
 
-        val before = harness(descriptor.applyStartTime.minusSeconds(1))
-        unitAuthenticate("ROLE_LABMASTER")
-        shouldThrow<CserealException> { before.service.reserveRoom(request(before.room.id, target, 1)) } shouldBe
-            CserealException(ErrorCode.TERM_NOT_OPENED)
-        verify(exactly = 0) { before.reservationRepository.saveAll(any<List<ReservationEntity>>()) }
+        listOf(
+            listOf("ROLE_LABMASTER") to ErrorCode.TERM_NOT_OPENED,
+            listOf("ROLE_RESERVATION") to ErrorCode.LABMASTER_ONLY,
+            listOf("ROLE_LABMASTER", "ROLE_RESERVATION") to ErrorCode.TERM_NOT_OPENED
+        ).forEach { (roles, expectedError) ->
+            val before = harness(descriptor.applyStartTime.minusSeconds(1))
+            before.persistCanonical(descriptor)
+            unitAuthenticate(*roles.toTypedArray())
+
+            shouldThrow<CserealException> {
+                before.service.reserveRoom(request(before.room.id, target, 1))
+            } shouldBe CserealException(expectedError)
+            verify(exactly = 0) { before.reservationRepository.saveAll(any<List<ReservationEntity>>()) }
+            before.verifySingleTermLookup()
+        }
 
         val exact = harness(descriptor.applyStartTime)
         exact.persistCanonical(descriptor)
@@ -105,7 +115,7 @@ class ReservationServiceTest(
     }
 
     "fixed KST clocks enforce termStart just-before and exact boundaries" {
-        val descriptor = policyAt(LocalDateTime.of(2027, 3, 1, 0, 0)).descriptor(
+        val descriptor = defaultAt(LocalDateTime.of(2027, 3, 1, 0, 0)).descriptor(
             2027,
             ReserveTermType.FIRST_SEMESTER
         )
@@ -121,7 +131,44 @@ class ReservationServiceTest(
         unitAuthenticate("ROLE_LABMASTER")
         exact.service.reserveRoom(request(exact.room.id, target, 1))
             .single().reservationType shouldBe ReservationType.AD_HOC
-        exact.verifyNoTermInteraction()
+        exact.verifySingleTermLookup()
+    }
+
+    "persisted custom phases include an exact GAP and active-term end bound" {
+        val term = ReserveTermEntity(
+            LocalDateTime.of(2027, 2, 3, 9, 0),
+            LocalDateTime.of(2027, 2, 20, 18, 0),
+            LocalDateTime.of(2027, 3, 1, 0, 0),
+            LocalDateTime.of(2027, 6, 25, 12, 0)
+        )
+        val gap = harness(term.applyEndTime)
+        every { gap.termRepository.findContainingRequestStart(any()) } returns listOf(term)
+        unitAuthenticate("ROLE_LABMASTER")
+        shouldThrow<CserealException> {
+            gap.service.reserveRoom(request(gap.room.id, term.termStartTime.plusDays(1), 1))
+        } shouldBe CserealException(ErrorCode.TERM_APPLICATION_CLOSED)
+
+        val active = harness(term.termEndTime.minusDays(1))
+        every { active.termRepository.findContainingRequestStart(any()) } returns listOf(term)
+        unitAuthenticate("ROLE_RESERVATION")
+        shouldThrow<CserealException> {
+            active.service.reserveRoom(request(active.room.id, term.termEndTime.minusMinutes(30), 1))
+        } shouldBe CserealException(ErrorCode.INVALID_RESERVATION_PERIOD)
+    }
+
+    "modified persisted times drive REGULAR without canonical matching" {
+        val term = ReserveTermEntity(
+            LocalDateTime.of(2027, 2, 3, 9, 0),
+            LocalDateTime.of(2027, 2, 20, 18, 0),
+            LocalDateTime.of(2027, 3, 5, 0, 0),
+            LocalDateTime.of(2027, 6, 25, 0, 0)
+        )
+        val fixture = harness(LocalDateTime.of(2027, 2, 10, 12, 0))
+        every { fixture.termRepository.findContainingRequestStart(any()) } returns listOf(term)
+        unitAuthenticate("ROLE_LABMASTER")
+
+        fixture.service.reserveRoom(request(fixture.room.id, term.termStartTime.plusDays(1), 1))
+            .single().reservationType shouldBe ReservationType.REGULAR
     }
 
     "AD_HOC opening is closed just before and open exactly at the weekend-adjusted Monday" {
@@ -137,14 +184,14 @@ class ReservationServiceTest(
         unitAuthenticate("ROLE_RESERVATION")
         exact.service.reserveRoom(request(exact.room.id, target, 1))
             .single().reservationType shouldBe ReservationType.AD_HOC
-        exact.verifyNoTermInteraction()
+        exact.verifySingleTermLookup()
     }
 
     "REGULAR one-occurrence and repeated requests persist exact canonical rows" {
         val now = LocalDateTime.of(2027, 2, 1, 9, 0)
         listOf(1, 3).forEach { weeks ->
             val fixture = harness(now)
-            val descriptor = fixture.policy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
+            val descriptor = fixture.defaultPolicy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
             val canonical = fixture.persistCanonical(descriptor)
             val start = descriptor.termStartTime.plusDays(10).plusHours(10)
             unitAuthenticate("ROLE_LABMASTER")
@@ -163,35 +210,46 @@ class ReservationServiceTest(
         }
     }
 
-    "REGULAR missing and mismatched canonical rows fail closed without saving" {
+    "only a truly missing target enables fallback while malformed and multiple targets fail closed" {
         val now = LocalDateTime.of(2027, 2, 1, 9, 0)
-        listOf("missing", "mismatch").forEach { state ->
-            val fixture = harness(now)
-            val descriptor = fixture.policy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
-            if (state == "mismatch") fixture.persistMismatch(descriptor) else fixture.persistMissing(descriptor)
-            unitAuthenticate("ROLE_LABMASTER")
+        val missing = harness(now)
+        val descriptor = missing.defaultPolicy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
+        missing.persistMissing()
+        unitAuthenticate("ROLE_LABMASTER")
+        shouldThrow<CserealException> {
+            missing.service.reserveRoom(
+                request(missing.room.id, descriptor.termStartTime.plusDays(10).plusHours(10), 1)
+            )
+        } shouldBe CserealException(ErrorCode.AD_HOC_NOT_OPENED)
 
-            shouldThrow<CserealException> {
-                fixture.service.reserveRoom(
-                    request(fixture.room.id, descriptor.termStartTime.plusDays(10).plusHours(10), 1)
-                )
-            } shouldBe CserealException(ErrorCode.TERM_NOT_REGISTERED)
-            fixture.saved shouldBe emptyList()
-        }
+        val malformed = harness(now)
+        malformed.persistMismatch(descriptor)
+        unitAuthenticate("ROLE_LABMASTER")
+        shouldThrow<CserealException> {
+            malformed.service.reserveRoom(
+                request(malformed.room.id, descriptor.termStartTime.plusDays(10).plusHours(10), 1)
+            )
+        } shouldBe CserealException(ErrorCode.TERM_NOT_REGISTERED)
+
+        val multiple = harness(now)
+        multiple.persistMultiple(descriptor)
+        unitAuthenticate("ROLE_LABMASTER")
+        shouldThrow<CserealException> {
+            multiple.service.reserveRoom(
+                request(multiple.room.id, descriptor.termStartTime.plusDays(10).plusHours(10), 1)
+            )
+        } shouldBe CserealException(ErrorCode.TERM_NOT_REGISTERED)
     }
 
-    "AD_HOC ignores another term active data and never validates persisted terms" {
+    "a missing target is resolved once and permits one-off AD_HOC after opening" {
         val fixture = harness(LocalDateTime.of(2027, 3, 8, 9, 0))
-        val otherDescriptor = fixture.policy.descriptor(2027, ReserveTermType.SUMMER)
-        val otherTerm = canonicalEntity(otherDescriptor)
-        every { fixture.termRepository.findByTermYearAndTermType(any(), any()) } returns listOf(otherTerm)
-        every { fixture.termRepository.findByTimeOverlap(any(), any()) } returns listOf(otherTerm)
+        fixture.persistMissing()
         unitAuthenticate("ROLE_RESERVATION")
         val target = LocalDateTime.of(2027, 3, 20, 10, 0)
 
         fixture.service.reserveRoom(request(fixture.room.id, target, 1)).single().reservationType shouldBe
             ReservationType.AD_HOC
-        fixture.verifyNoTermInteraction()
+        fixture.verifySingleTermLookup()
     }
 
     "creation-role precedence and room authorization are explicit" {
@@ -201,7 +259,7 @@ class ReservationServiceTest(
             .single().reservationType shouldBe ReservationType.UNRESTRICTED
 
         val labmaster = harness(LocalDateTime.of(2027, 2, 1, 9, 0))
-        val descriptor = labmaster.policy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
+        val descriptor = labmaster.defaultPolicy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
         labmaster.persistCanonical(descriptor)
         unitAuthenticate("ROLE_LABMASTER", "ROLE_RESERVATION")
         labmaster.service.reserveRoom(
@@ -209,6 +267,7 @@ class ReservationServiceTest(
         ).single().reservationType shouldBe ReservationType.REGULAR
 
         val reservationOnly = harness(LocalDateTime.of(2027, 2, 1, 9, 0))
+        reservationOnly.persistCanonical(descriptor)
         unitAuthenticate("ROLE_RESERVATION")
         shouldThrow<CserealException> {
             reservationOnly.service.reserveRoom(
@@ -238,13 +297,13 @@ class ReservationServiceTest(
         unitAuthenticate("ROLE_PROFESSOR", "ROLE_LABMASTER")
         professorLabmaster.service.reserveRoom(request(8, target, 1))
             .single().reservationType shouldBe ReservationType.AD_HOC
-        professorLabmaster.verifyNoTermInteraction()
+        professorLabmaster.verifySingleTermLookup()
 
         val professorReservation = harness(afterOpening, roomId = 8)
         unitAuthenticate("ROLE_PROFESSOR", "ROLE_RESERVATION")
         professorReservation.service.reserveRoom(request(8, target, 1))
             .single().reservationType shouldBe ReservationType.AD_HOC
-        professorReservation.verifyNoTermInteraction()
+        professorReservation.verifySingleTermLookup()
 
         listOf("ROLE_LABMASTER", "ROLE_RESERVATION").forEach { role ->
             val withoutProfessor = harness(afterOpening, roomId = 8)
@@ -327,6 +386,7 @@ class ReservationServiceTest(
     private class UnitHarness(
         val service: ReservationServiceImpl,
         val policy: ReserveTermPolicy,
+        val defaultPolicy: ReserveTermDefaultPolicy,
         val room: RoomEntity,
         val reservationRepository: ReservationRepository,
         val roomRepository: RoomRepository,
@@ -336,33 +396,33 @@ class ReservationServiceTest(
     ) {
         fun persistCanonical(descriptor: ReserveTermDescriptor): ReserveTermEntity {
             val entity = canonicalEntity(descriptor)
-            every { termRepository.findByTermYearAndTermType(descriptor.termYear, descriptor.termType) } returns
-                listOf(entity)
-            every { termRepository.findByTimeOverlap(descriptor.termStartTime, descriptor.termEndTime) } returns
-                listOf(entity)
+            every { termRepository.findContainingRequestStart(any()) } returns listOf(entity)
             return entity
         }
 
-        fun persistMissing(descriptor: ReserveTermDescriptor) {
-            every {
-                termRepository.findByTermYearAndTermType(descriptor.termYear, descriptor.termType)
-            } returns emptyList()
-            every {
-                termRepository.findByTimeOverlap(descriptor.termStartTime, descriptor.termEndTime)
-            } returns emptyList()
+        fun persistMissing() {
+            every { termRepository.findContainingRequestStart(any()) } returns emptyList()
         }
 
         fun persistMismatch(descriptor: ReserveTermDescriptor) {
-            val entity = canonicalEntity(descriptor, descriptor.applyStartTime.plusMinutes(1))
-            every { termRepository.findByTermYearAndTermType(descriptor.termYear, descriptor.termType) } returns
-                listOf(entity)
-            every { termRepository.findByTimeOverlap(descriptor.termStartTime, descriptor.termEndTime) } returns
-                listOf(entity)
+            val entity = ReserveTermEntity(
+                descriptor.applyStartTime,
+                descriptor.applyStartTime,
+                descriptor.termStartTime,
+                descriptor.termEndTime,
+                descriptor.termYear,
+                descriptor.termType
+            )
+            every { termRepository.findContainingRequestStart(any()) } returns listOf(entity)
         }
 
-        fun verifyNoTermInteraction() {
-            verify(exactly = 0) { termRepository.findByTermYearAndTermType(any(), any()) }
-            verify(exactly = 0) { termRepository.findByTimeOverlap(any(), any()) }
+        fun persistMultiple(descriptor: ReserveTermDescriptor) {
+            every { termRepository.findContainingRequestStart(any()) } returns
+                listOf(canonicalEntity(descriptor), canonicalEntity(descriptor))
+        }
+
+        fun verifySingleTermLookup() {
+            verify(exactly = 1) { termRepository.findContainingRequestStart(any()) }
         }
     }
 
@@ -391,6 +451,10 @@ class ReservationServiceTest(
             Clock.fixed(now.atZone(SEOUL).toInstant(), SEOUL)
         )
 
+        private fun defaultAt(now: LocalDateTime) = ReserveTermDefaultPolicy(
+            Clock.fixed(now.atZone(SEOUL).toInstant(), SEOUL)
+        )
+
         private fun harness(
             now: LocalDateTime,
             roomType: RoomType = RoomType.SEMINAR,
@@ -401,12 +465,14 @@ class ReservationServiceTest(
             val termRepository = mockk<ReserveTermRepository>(relaxed = true)
             val userService = mockk<UserService>()
             val policy = policyAt(now)
+            val defaultPolicy = defaultAt(now)
             val room = RoomEntity("unit room", "unit", 20, roomType).also { setId(it, roomId) }
             val user = UserEntity("unit-user", "unit", "unit@example.com", "0000-00000")
             val saved = mutableListOf<ReservationEntity>()
 
             every { roomRepository.findRoomById(roomId) } returns room
             every { userService.getLoginUser() } returns user
+            every { termRepository.findContainingRequestStart(any()) } returns emptyList()
             every { reservationRepository.findByRoomIdAndTimeOverlap(any(), any(), any()) } returns emptyList()
             every { reservationRepository.saveAll(any<List<ReservationEntity>>()) } answers {
                 firstArg<List<ReservationEntity>>().also(saved::addAll)
@@ -424,6 +490,7 @@ class ReservationServiceTest(
             return UnitHarness(
                 service,
                 policy,
+                defaultPolicy,
                 room,
                 reservationRepository,
                 roomRepository,
