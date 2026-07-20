@@ -43,6 +43,17 @@ class ReservationServiceImpl(
     private val reservationProperties: ReservationProperties
 ) : ReservationService {
 
+    companion object {
+        private const val ROLE_STAFF = "ROLE_STAFF"
+        private const val ROLE_LABMASTER = "ROLE_LABMASTER"
+        private const val ROLE_RESERVATION = "ROLE_RESERVATION"
+        private const val ROLE_PROFESSOR = "ROLE_PROFESSOR"
+        private const val PROFESSOR_ROOM_ID = 8L
+        private val MAX_NON_STAFF_DURATION = Duration.ofHours(3)
+        private val SUPPORTED_RESERVATION_YEARS = 1001..9998
+        private val MAX_SUPPORTED_RESERVATION_TIME = LocalDateTime.of(9998, 12, 31, 23, 59, 59, 999_999_000)
+    }
+
     override fun reserveRoom(reserveRequest: ReserveRequest): List<ReservationDto> {
         validateUniversalRequest(reserveRequest)
         val roles = authenticatedCreationRoles()
@@ -74,8 +85,8 @@ class ReservationServiceImpl(
             val start = reserveRequest.startTime.plusWeeks(week)
             val end = reserveRequest.endTime.plusWeeks(week)
 
-            if (policy.regularTerm != null &&
-                (start.isBefore(policy.regularTerm.termStartTime) || end.isAfter(policy.regularTerm.termEndTime))
+            if (policy.boundedTerm != null &&
+                (start.isBefore(policy.boundedTerm.termStartTime) || end.isAfter(policy.boundedTerm.termEndTime))
             ) {
                 throw CserealException(ErrorCode.INVALID_RESERVATION_PERIOD)
             }
@@ -114,29 +125,55 @@ class ReservationServiceImpl(
         }
 
         validateNonStaffDuration(request)
-        val descriptor = reserveTermPolicy.descriptorFor(request.startTime.toLocalDate())
         val now = reserveTermPolicy.now()
 
-        if (now.isBefore(descriptor.termStartTime)) {
-            if (!isLabmaster) {
-                throw CserealException(ErrorCode.LABMASTER_ONLY)
+        return when (val resolution = reserveTermValidationService.resolveTarget(request.startTime)) {
+            ReserveTermResolution.Missing -> deriveMissingTermPolicy(request, now)
+            is ReserveTermResolution.Invalid,
+            is ReserveTermResolution.Multiple -> throw CserealException(ErrorCode.TERM_NOT_REGISTERED)
+            is ReserveTermResolution.Valid -> when (reserveTermPolicy.phase(resolution.term, now)) {
+                ReserveTermPhase.BEFORE_APPLICATION -> {
+                    val error = if (isLabmaster) ErrorCode.TERM_NOT_OPENED else ErrorCode.LABMASTER_ONLY
+                    throw CserealException(error)
+                }
+                ReserveTermPhase.REGULAR_APPLICATION -> {
+                    if (!isLabmaster) throw CserealException(ErrorCode.LABMASTER_ONLY)
+                    DerivedReservationPolicy(ReservationType.REGULAR, resolution.term)
+                }
+                ReserveTermPhase.GAP -> throw CserealException(ErrorCode.TERM_APPLICATION_CLOSED)
+                ReserveTermPhase.TERM_ACTIVE -> deriveActiveTermPolicy(request, resolution.term, now)
             }
-            if (now.isBefore(descriptor.applyStartTime)) {
-                throw CserealException(ErrorCode.TERM_NOT_OPENED)
-            }
-
-            val term = reserveTermValidationService.findValidated(descriptor)
-                ?: throw CserealException(ErrorCode.TERM_NOT_REGISTERED)
-            return DerivedReservationPolicy(ReservationType.REGULAR, term)
         }
+    }
 
+    private fun deriveMissingTermPolicy(
+        request: ReserveRequest,
+        now: LocalDateTime
+    ): DerivedReservationPolicy {
+        validateAdHocRequest(request, reserveTermPolicy.adHocOpenTime(request.startTime), now)
+        return DerivedReservationPolicy(ReservationType.AD_HOC, null)
+    }
+
+    private fun deriveActiveTermPolicy(
+        request: ReserveRequest,
+        term: com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity,
+        now: LocalDateTime
+    ): DerivedReservationPolicy {
+        validateAdHocRequest(request, reserveTermPolicy.activeTermAdHocOpenTime(term, request.startTime), now)
+        return DerivedReservationPolicy(ReservationType.AD_HOC, term)
+    }
+
+    private fun validateAdHocRequest(
+        request: ReserveRequest,
+        opening: LocalDateTime,
+        now: LocalDateTime
+    ) {
         if (request.recurringWeeks != 1) {
             throw CserealException(ErrorCode.AD_HOC_RECURRING_DENIED)
         }
-        if (now.isBefore(reserveTermPolicy.adHocOpenTime(request.startTime))) {
+        if (now.isBefore(opening)) {
             throw CserealException(ErrorCode.AD_HOC_NOT_OPENED)
         }
-        return DerivedReservationPolicy(ReservationType.AD_HOC, null)
     }
 
     private fun validateUniversalRequest(request: ReserveRequest) {
@@ -174,7 +211,7 @@ class ReservationServiceImpl(
             ReservationType.UNRESTRICTED -> reservationProperties.maxRecurringWeeks.toLong()
             ReservationType.REGULAR -> reserveTermPolicy.maxOccurrences(
                 request.endTime,
-                requireNotNull(policy.regularTerm).termEndTime
+                requireNotNull(policy.boundedTerm).termEndTime
             )
             ReservationType.AD_HOC -> 1L
         }
@@ -244,17 +281,6 @@ class ReservationServiceImpl(
 
     private data class DerivedReservationPolicy(
         val type: ReservationType,
-        val regularTerm: com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity?
+        val boundedTerm: com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity?
     )
-
-    companion object {
-        private const val ROLE_STAFF = "ROLE_STAFF"
-        private const val ROLE_LABMASTER = "ROLE_LABMASTER"
-        private const val ROLE_RESERVATION = "ROLE_RESERVATION"
-        private const val ROLE_PROFESSOR = "ROLE_PROFESSOR"
-        private const val PROFESSOR_ROOM_ID = 8L
-        private val MAX_NON_STAFF_DURATION = Duration.ofHours(3)
-        private val SUPPORTED_RESERVATION_YEARS = 1001..9998
-        private val MAX_SUPPORTED_RESERVATION_TIME = LocalDateTime.of(9998, 12, 31, 23, 59, 59, 999_999_000)
-    }
 }

@@ -15,15 +15,10 @@ class ReserveTermEntity(
     val termStartTime: LocalDateTime,
     val termEndTime: LocalDateTime,
 
-    var termYear: Int? = null,
+    @Column(updatable = false)
+    val termYear: Int? = null,
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 32)
-    var termType: ReserveTermType? = null
-) : BaseTimeEntity() {
-    fun assignCanonicalMetadata(termYear: Int, termType: ReserveTermType) {
-        require(this.termYear == null && this.termType == null) { "Reserve term metadata is already assigned" }
-        this.termYear = termYear
-        this.termType = termType
-    }
-}
+    @Column(length = 32, updatable = false)
+    val termType: ReserveTermType? = null
+) : BaseTimeEntity()

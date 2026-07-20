@@ -6,60 +6,64 @@ import org.springframework.stereotype.Service
 
 data class ReserveTermGenerationOutcome(
     val descriptor: ReserveTermDescriptor,
-    val result: ReserveTermReconciliationResult?,
-    val error: Throwable?
+    val result: ReserveTermGenerationResult,
+    val error: Throwable? = null
 )
 
 @Service
 class ReserveTermGenerationService(
-    private val reserveTermPolicy: ReserveTermPolicy,
-    private val reserveTermReconciliationService: ReserveTermReconciliationService
+    private val reserveTermDefaultPolicy: ReserveTermDefaultPolicy,
+    private val reserveTermCreationService: ReserveTermCreationService
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     fun ensureCurrentAndNext(): List<ReserveTermGenerationOutcome> {
-        return reserveTermPolicy.currentAndNextDescriptors().map { descriptor ->
-            try {
-                val result = reserveTermReconciliationService.ensureTerm(descriptor)
-                logger.info(
-                    "event=reserve_term_reconciled termYear={} termType={} result={}",
-                    descriptor.termYear,
-                    descriptor.termType,
-                    result
-                )
-                ReserveTermGenerationOutcome(descriptor, result, null)
-            } catch (exception: DataIntegrityViolationException) {
-                verifyConcurrentInsert(descriptor, exception)
-            } catch (exception: InvalidReserveTermStateException) {
-                logFailure(descriptor, exception.audit.reason, exception.audit.candidates)
-                ReserveTermGenerationOutcome(descriptor, null, exception)
-            } catch (exception: Exception) {
-                logFailure(descriptor, exception.javaClass.simpleName, emptyList())
-                ReserveTermGenerationOutcome(descriptor, null, exception)
+        return reserveTermDefaultPolicy.currentAndNextDescriptors().map(::ensureDefault)
+    }
+
+    private fun ensureDefault(descriptor: ReserveTermDescriptor): ReserveTermGenerationOutcome {
+        return try {
+            outcome(descriptor, reserveTermCreationService.createDefault(descriptor))
+        } catch (exception: DataIntegrityViolationException) {
+            // Inspection starts only after the failed create transaction has rolled back.
+            val decision = try {
+                reserveTermCreationService.inspectAfterIntegrityFailure(descriptor)
+            } catch (inspectionException: Exception) {
+                logFailure(descriptor, inspectionException.javaClass.simpleName, emptyList())
+                return ReserveTermGenerationOutcome(descriptor, ReserveTermGenerationResult.FAILED, exception)
             }
+            outcome(descriptor, decision, exception)
+        } catch (exception: Exception) {
+            logFailure(descriptor, exception.javaClass.simpleName, emptyList())
+            ReserveTermGenerationOutcome(descriptor, ReserveTermGenerationResult.FAILED, exception)
         }
     }
 
-    private fun verifyConcurrentInsert(
+    private fun outcome(
         descriptor: ReserveTermDescriptor,
-        originalException: DataIntegrityViolationException
+        decision: ReserveTermCreationDecision,
+        integrityException: DataIntegrityViolationException? = null
     ): ReserveTermGenerationOutcome {
-        return try {
-            val result = reserveTermReconciliationService.verifyAfterConcurrentInsert(descriptor)
+        val failed = decision.result in setOf(
+            ReserveTermGenerationResult.SKIPPED_INVALID_EXISTING,
+            ReserveTermGenerationResult.FAILED_INVALID_STATE,
+            ReserveTermGenerationResult.FAILED
+        )
+        if (failed) {
+            logFailure(descriptor, decision.reason, decision.candidates)
+        } else {
             logger.info(
-                "event=reserve_term_reconciled termYear={} termType={} result={}",
+                "event=reserve_term_generation termYear={} termType={} result={}",
                 descriptor.termYear,
                 descriptor.termType,
-                result
+                decision.result
             )
-            ReserveTermGenerationOutcome(descriptor, result, null)
-        } catch (verificationException: InvalidReserveTermStateException) {
-            logFailure(descriptor, verificationException.audit.reason, verificationException.audit.candidates)
-            ReserveTermGenerationOutcome(descriptor, null, originalException)
-        } catch (verificationException: Exception) {
-            logFailure(descriptor, verificationException.javaClass.simpleName, emptyList())
-            ReserveTermGenerationOutcome(descriptor, null, originalException)
         }
+        return ReserveTermGenerationOutcome(
+            descriptor,
+            decision.result,
+            integrityException?.takeIf { failed }
+        )
     }
 
     private fun logFailure(
@@ -67,17 +71,15 @@ class ReserveTermGenerationService(
         reason: String?,
         candidates: Collection<com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity>
     ) {
-        val evidence = ReserveTermAuditEvidence.from(descriptor, candidates)
         logger.error(
-            "event=reserve_term_reconciliation_failed termYear={} termType={} reason={} candidateIds={} " +
-                "expected={} actualCandidates={} action={}",
+            "event=reserve_term_generation_failed termYear={} termType={} reason={} candidateIds={} " +
+                "actualCandidates={} action={}",
             descriptor.termYear,
             descriptor.termType,
             reason,
             candidates.map { it.id },
-            evidence.expected,
-            evidence.actualCandidates,
-            evidence.action
+            candidates.map(ReserveTermCandidateEvidence::from),
+            "preserved_create_only"
         )
     }
 }
