@@ -29,10 +29,11 @@ flowchart LR
 Runtime source of truth는 `reserve_term`에 저장된 다음 네 시각입니다.
 
 ```text
-applyStartTime < applyEndTime <= termStartTime < termEndTime
+applyStartTime < applyEndTime <= termEndTime
+termStartTime < termEndTime
 ```
 
-`termYear`와 `termType`은 scheduler가 만든 기본 행을 식별하는 선택적이고 불변인 metadata입니다. 둘 다 `NULL`이거나 둘 다 값이 있어야 합니다. `NULL/NULL` custom 행도 정상 schedule이며, runtime authorization은 metadata나 기본 calendar와 저장 시각을 비교하지 않습니다.
+Application window는 term 시작과 겹치거나 term 내부에서 시작할 수 있습니다. 단, application 종료는 term 종료를 넘을 수 없습니다. `termYear`와 `termType`은 scheduler가 만든 기본 행을 식별하는 선택적이고 불변인 metadata입니다. 둘 다 `NULL`이거나 둘 다 값이 있어야 합니다. `NULL/NULL` custom 행도 정상 schedule이며, runtime authorization은 metadata나 기본 calendar와 저장 시각을 비교하지 않습니다.
 
 요청 시작 시각 `requestStart`의 target query는 반열린 조건을 사용합니다.
 
@@ -55,16 +56,16 @@ termStartTime <= requestStart < termEndTime
 
 Staff는 term과 독립적으로 `UNRESTRICTED`이며 설정된 반복 상한(기본 `20`)을 사용합니다. Non-staff는 세미나실, room ID 8의 professor gate, 생성 역할, 같은 날짜 및 최대 3시간 규칙을 먼저 통과해야 합니다.
 
-Valid target의 phase/error table은 다음과 같습니다.
+Valid target의 phase는 아래 표 순서대로 판정합니다. Application window가 열려 있으면 term 활성 여부보다 `REGULAR_APPLICATION`이 우선하며, 그 밖의 활성 term은 `TERM_ACTIVE`입니다.
 
-| Phase | Exact boundary | `ROLE_LABMASTER` | `ROLE_RESERVATION` |
-|---|---|---|---|
-| BEFORE_APPLICATION | `now < applyStartTime` | `RESERVE-08 TERM_NOT_OPENED` | `RESERVE-04 LABMASTER_ONLY` |
-| REGULAR_APPLICATION | `applyStartTime <= now < applyEndTime` | `REGULAR` | `RESERVE-04 LABMASTER_ONLY` |
-| GAP | `applyEndTime <= now < termStartTime` | `RESERVE-14 TERM_APPLICATION_CLOSED` | 동일 |
-| TERM_ACTIVE | `termStartTime <= now` | one-off `AD_HOC` 검사 | 동일 |
+| Priority | Phase | Exact boundary | `ROLE_LABMASTER` | `ROLE_RESERVATION` |
+|---:|---|---|---|---|
+| 1 | REGULAR_APPLICATION | `applyStartTime <= now < applyEndTime` | `REGULAR` | `RESERVE-04 LABMASTER_ONLY` |
+| 2 | TERM_ACTIVE | application window 밖이고 `termStartTime <= now` | one-off `AD_HOC` 검사 | 동일 |
+| 3 | BEFORE_APPLICATION | `now < applyStartTime`이고 `now < termStartTime` | `RESERVE-08 TERM_NOT_OPENED` | `RESERVE-04 LABMASTER_ONLY` |
+| 4 | GAP | `applyEndTime <= now < termStartTime` | `RESERVE-14 TERM_APPLICATION_CLOSED` | 동일 |
 
-`applyEndTime == termStartTime`이면 GAP은 비어 있습니다. Valid active AD_HOC opening은 다음 두 시각 중 늦은 값입니다.
+따라서 term 내부 application은 `TERM_ACTIVE -> REGULAR_APPLICATION -> TERM_ACTIVE`로 전환됩니다. `applyEndTime == termStartTime`이면 GAP은 비어 있습니다. Valid active AD_HOC opening은 다음 두 시각 중 늦은 값입니다.
 
 ```text
 max(termStartTime, adjustWeekend(requestStart.date - 2 weeks at 09:00 Asia/Seoul))

@@ -47,10 +47,11 @@ interface Reservation {
 `GET /api/v2/reservation/terms`는 다음 schedule invariant를 만족하고 다른 valid term window와 겹치지 않는 행만 반환합니다.
 
 ```text
-applyStartTime < applyEndTime <= termStartTime < termEndTime
+applyStartTime < applyEndTime <= termEndTime
+termStartTime < termEndTime
 ```
 
-`termYear`/`termType` metadata는 API에 노출되지 않으며 runtime authorization 기준이 아닙니다. Operator가 수정한 custom persisted time과 metadata가 `NULL/NULL`인 valid row도 응답될 수 있습니다. 배열이 비거나 선택 날짜의 term이 없을 수 있으며, 클라이언트가 default calendar로 term을 만들어 대체하면 안 됩니다.
+Application window는 term 시작과 겹치거나 term 내부에서 시작할 수 있지만 term 종료를 넘을 수 없습니다. `termYear`/`termType` metadata는 API에 노출되지 않으며 runtime authorization 기준이 아닙니다. Operator가 수정한 custom persisted time과 metadata가 `NULL/NULL`인 valid row도 응답될 수 있습니다. 배열이 비거나 선택 날짜의 term이 없을 수 있으며, 클라이언트가 default calendar로 term을 만들어 대체하면 안 됩니다.
 
 요청 시작 시각을 포함하는 persisted row가 없을 때 서버는 **Missing-only fallback**으로 2주 one-off `AD_HOC`을 검사합니다. 반대로 포함하는 행이 malformed이거나 여러 개이면 `RESERVE-07`로 fail closed합니다. 따라서 `/terms`에 행이 없다는 이유만으로 클라이언트가 성공/실패를 확정하지 말고 서버 응답을 최종 기준으로 사용합니다.
 
@@ -67,6 +68,8 @@ applyStartTime < applyEndTime <= termStartTime < termEndTime
 | Valid TERM_ACTIVE phase | one-off `AD_HOC` | 반복을 1로 제한 |
 | Missing target | 2주 opening 이후 one-off `AD_HOC` | term 누락을 임의 schedule로 보충하지 않음 |
 | Invalid/Multiple target | `RESERVE-07` | 운영 확인이 필요한 fail-closed 상태 안내 |
+
+Phase는 application window를 먼저 판정합니다. 따라서 term이 활성 상태여도 `applyStartTime <= now < applyEndTime`이면 REGULAR이며, term 내부 application 전후에는 TERM_ACTIVE입니다.
 
 Non-staff는 각 occurrence가 같은 KST 날짜이고 3시간 이하여야 합니다. Room ID 8에는 `ROLE_PROFESSOR`가 추가로 필요하지만 professor 역할만으로 생성 권한이 생기지는 않습니다.
 
