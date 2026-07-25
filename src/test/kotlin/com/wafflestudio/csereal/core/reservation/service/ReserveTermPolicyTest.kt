@@ -23,15 +23,51 @@ class ReserveTermPolicyTest : BehaviorSpec({
             LocalDateTime.of(2027, 6, 25, 0, 0)
         )
 
-        then("custom persisted times are structurally valid") {
+        then("a non-overlapping application window is valid with half-open boundaries") {
             policy.invalidReasons(term) shouldBe emptyList()
-        }
-
-        then("all exact phase boundaries are half-open") {
             policy.phase(term, term.applyStartTime.minusNanos(1)) shouldBe ReserveTermPhase.BEFORE_APPLICATION
             policy.phase(term, term.applyStartTime) shouldBe ReserveTermPhase.REGULAR_APPLICATION
             policy.phase(term, term.applyEndTime) shouldBe ReserveTermPhase.GAP
             policy.phase(term, term.termStartTime) shouldBe ReserveTermPhase.TERM_ACTIVE
+        }
+
+        then("an application window may overlap the start of its term") {
+            val overlapping = ReserveTermEntity(
+                term.applyStartTime,
+                term.termStartTime.plusDays(2),
+                term.termStartTime,
+                term.termEndTime
+            )
+
+            policy.invalidReasons(overlapping) shouldBe emptyList()
+            policy.phase(overlapping, overlapping.termStartTime) shouldBe ReserveTermPhase.REGULAR_APPLICATION
+            policy.phase(overlapping, overlapping.applyEndTime) shouldBe ReserveTermPhase.TERM_ACTIVE
+        }
+
+        then("a term-internal application window takes priority only while open") {
+            val internal = ReserveTermEntity(
+                term.termStartTime.plusDays(2),
+                term.termStartTime.plusDays(5),
+                term.termStartTime,
+                term.termEndTime
+            )
+
+            policy.invalidReasons(internal) shouldBe emptyList()
+            policy.phase(internal, internal.applyStartTime.minusNanos(1)) shouldBe ReserveTermPhase.TERM_ACTIVE
+            policy.phase(internal, internal.applyStartTime) shouldBe ReserveTermPhase.REGULAR_APPLICATION
+            policy.phase(internal, internal.applyEndTime.minusNanos(1)) shouldBe ReserveTermPhase.REGULAR_APPLICATION
+            policy.phase(internal, internal.applyEndTime) shouldBe ReserveTermPhase.TERM_ACTIVE
+        }
+
+        then("an application window cannot end after its term") {
+            policy.invalidReasons(
+                ReserveTermEntity(
+                    term.applyStartTime,
+                    term.termEndTime.plusNanos(1),
+                    term.termStartTime,
+                    term.termEndTime
+                )
+            ) shouldBe listOf("application_ends_after_term")
         }
 
         then("partial metadata and malformed time order are invalid") {

@@ -25,7 +25,7 @@ class ReserveTermValidationServiceTest : StringSpec({
         val service = ReserveTermValidationService(repository, policy)
         val requestStart = LocalDateTime.of(2027, 3, 20, 10, 0)
         val valid = term(1)
-        val invalid = term(2, applyEnd = LocalDateTime.of(2027, 3, 2, 0, 0))
+        val invalid = term(2, applyEnd = LocalDateTime.of(2027, 7, 2, 0, 0))
 
         every { repository.findContainingRequestStart(requestStart) } returnsMany listOf(
             emptyList(),
@@ -37,7 +37,7 @@ class ReserveTermValidationServiceTest : StringSpec({
         service.resolveTarget(requestStart) shouldBe ReserveTermResolution.Missing
         service.resolveTarget(requestStart) shouldBe ReserveTermResolution.Valid(valid)
         (service.resolveTarget(requestStart) as ReserveTermResolution.Invalid).reasons shouldBe
-            listOf("application_overlaps_term")
+            listOf("application_ends_after_term")
         (service.resolveTarget(requestStart) as ReserveTermResolution.Multiple).candidates shouldBe
             listOf(valid, invalid)
         verify(exactly = 4) { repository.findContainingRequestStart(requestStart) }

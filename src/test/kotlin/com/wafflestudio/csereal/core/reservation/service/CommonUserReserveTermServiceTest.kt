@@ -4,6 +4,8 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
 import com.wafflestudio.csereal.core.reservation.database.ReservationType
+import com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity
+import com.wafflestudio.csereal.core.reservation.database.ReserveTermRepository
 import com.wafflestudio.csereal.core.reservation.database.RoomEntity
 import com.wafflestudio.csereal.core.reservation.database.RoomRepository
 import com.wafflestudio.csereal.core.reservation.database.RoomType
@@ -34,6 +36,7 @@ class CommonUserReserveTermServiceTest(
     private val roomRepository: RoomRepository,
     private val reservationService: ReservationService,
     private val reserveTermPolicy: ReserveTermPolicy,
+    private val reserveTermRepository: ReserveTermRepository,
     private val userRepository: UserRepository
 ) : StringSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
@@ -43,17 +46,22 @@ class CommonUserReserveTermServiceTest(
         room = roomRepository.save(RoomEntity("common room", "301", 20, RoomType.SEMINAR))
     }
     beforeTest {
+        val now = reserveTermPolicy.now()
+        reserveTermRepository.deleteAll()
+        reserveTermRepository.save(
+            ReserveTermEntity(now.minusDays(2), now.minusDays(1), now.minusDays(3), now.plusYears(1))
+        )
         authenticate(userRepository, "common-user", "ROLE_RESERVATION")
     }
     afterTest { SecurityContextHolder.clearContext() }
 
     "a reservation user receives a server-derived AD_HOC type after the adjusted opening" {
-        val start = reserveTermPolicy.now().plusDays(1)
+        val start = reserveTermPolicy.now().toLocalDate().plusDays(1).atTime(10, 0)
         reservationService.reserveRoom(request(room.id, start)).single().reservationType shouldBe ReservationType.AD_HOC
     }
 
     "a reservation user cannot create a recurring non-staff reservation" {
-        val start = reserveTermPolicy.now().plusDays(1)
+        val start = reserveTermPolicy.now().toLocalDate().plusDays(1).atTime(10, 0)
         shouldThrow<CserealException> {
             reservationService.reserveRoom(request(room.id, start, recurringWeeks = 2))
         } shouldBe CserealException(ErrorCode.AD_HOC_RECURRING_DENIED)

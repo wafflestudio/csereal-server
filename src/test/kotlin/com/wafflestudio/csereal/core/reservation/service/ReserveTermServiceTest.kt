@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
 import com.wafflestudio.csereal.core.reservation.database.ReservationType
+import com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermRepository
 import com.wafflestudio.csereal.core.reservation.database.RoomEntity
 import com.wafflestudio.csereal.core.reservation.database.RoomRepository
@@ -50,19 +51,23 @@ class ReserveTermServiceTest(
         }
     }
     beforeTest {
+        val now = reserveTermPolicy.now()
         reserveTermRepository.deleteAll()
+        reserveTermRepository.save(
+            ReserveTermEntity(now.minusDays(2), now.minusDays(1), now.minusDays(3), now.plusYears(1))
+        )
         authenticateLabmaster(userRepository)
     }
     afterTest { SecurityContextHolder.clearContext() }
 
     "at or after the target term start a labmaster gets one-occurrence AD_HOC" {
-        val start = reserveTermPolicy.now().plusDays(1)
+        val start = reserveTermPolicy.now().toLocalDate().plusDays(1).atTime(10, 0)
         reservationService.reserveRoom(request(room.id, start, 1))
             .single().reservationType shouldBe ReservationType.AD_HOC
     }
 
     "at or after target term start a labmaster cannot recur" {
-        val start = reserveTermPolicy.now().plusDays(1)
+        val start = reserveTermPolicy.now().toLocalDate().plusDays(1).atTime(10, 0)
         shouldThrow<CserealException> {
             reservationService.reserveRoom(request(room.id, start, 2))
         } shouldBe CserealException(ErrorCode.AD_HOC_RECURRING_DENIED)

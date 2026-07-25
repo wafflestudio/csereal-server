@@ -50,6 +50,7 @@ class ReservationServiceTest(
     private val reservationRepository: ReservationRepository,
     private val reservationService: ReservationService,
     private val reserveTermPolicy: ReserveTermPolicy,
+    private val reserveTermRepository: ReserveTermRepository,
     private val userRepository: UserRepository
 ) : StringSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
@@ -353,7 +354,12 @@ class ReservationServiceTest(
     }
 
     "specific cancellation preserves owner, staff, other-user, and missing behavior" {
-        val start = reserveTermPolicy.now().plusDays(1)
+        val now = reserveTermPolicy.now()
+        val start = now.toLocalDate().plusDays(1).atTime(10, 0)
+        reserveTermRepository.deleteAll()
+        reserveTermRepository.save(
+            ReserveTermEntity(now.minusDays(2), now.minusDays(1), now.minusDays(3), now.plusYears(1))
+        )
         authenticate(userRepository, "reservation-owner", "ROLE_RESERVATION")
         val owned = reservationService.reserveRoom(request(seminar.id, start, 1)).single()
         reservationService.cancelSpecific(owned.id)
