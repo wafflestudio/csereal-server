@@ -23,16 +23,17 @@ class ReserveTermPolicy(
 
     fun invalidReasons(entity: ReserveTermEntity): List<String> = buildList {
         if (!entity.applyStartTime.isBefore(entity.applyEndTime)) add("invalid_application_window")
-        if (entity.applyEndTime.isAfter(entity.termStartTime)) add("application_overlaps_term")
+        if (entity.applyEndTime.isAfter(entity.termEndTime)) add("application_ends_after_term")
         if (!entity.termStartTime.isBefore(entity.termEndTime)) add("invalid_term_window")
         if ((entity.termYear == null) != (entity.termType == null)) add("partial_metadata")
     }
 
     fun phase(entity: ReserveTermEntity, now: LocalDateTime = now()): ReserveTermPhase = when {
+        !now.isBefore(entity.applyStartTime) && now.isBefore(entity.applyEndTime) ->
+            ReserveTermPhase.REGULAR_APPLICATION
+        !now.isBefore(entity.termStartTime) -> ReserveTermPhase.TERM_ACTIVE
         now.isBefore(entity.applyStartTime) -> ReserveTermPhase.BEFORE_APPLICATION
-        now.isBefore(entity.applyEndTime) -> ReserveTermPhase.REGULAR_APPLICATION
-        now.isBefore(entity.termStartTime) -> ReserveTermPhase.GAP
-        else -> ReserveTermPhase.TERM_ACTIVE
+        else -> ReserveTermPhase.GAP
     }
 
     fun adHocOpenTime(reservationStart: LocalDateTime): LocalDateTime {
