@@ -36,12 +36,12 @@ class ReserveTermPolicy(
         else -> ReserveTermPhase.GAP
     }
 
-    fun adHocOpenTime(reservationStart: LocalDateTime): LocalDateTime {
+    fun oneTimeReservationOpenTime(reservationStart: LocalDateTime): LocalDateTime {
         return adjustWeekend(reservationStart.toLocalDate().minusWeeks(2).atTime(OPEN_TIME))
     }
 
-    fun activeTermAdHocOpenTime(term: ReserveTermEntity, reservationStart: LocalDateTime): LocalDateTime {
-        return maxOf(term.termStartTime, adHocOpenTime(reservationStart))
+    fun activeTermOneTimeReservationOpenTime(term: ReserveTermEntity, reservationStart: LocalDateTime): LocalDateTime {
+        return maxOf(term.termStartTime, oneTimeReservationOpenTime(reservationStart))
     }
 
     fun maxOccurrences(firstEndTime: LocalDateTime, boundaryEndTime: LocalDateTime): Long {

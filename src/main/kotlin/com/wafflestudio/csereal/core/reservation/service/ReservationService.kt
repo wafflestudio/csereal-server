@@ -150,8 +150,8 @@ class ReservationServiceImpl(
         request: ReserveRequest,
         now: LocalDateTime
     ): DerivedReservationPolicy {
-        validateAdHocRequest(request, reserveTermPolicy.adHocOpenTime(request.startTime), now)
-        return DerivedReservationPolicy(ReservationType.AD_HOC, null)
+        validateOneTimeRequest(request, reserveTermPolicy.oneTimeReservationOpenTime(request.startTime), now)
+        return DerivedReservationPolicy(ReservationType.ONE_TIME, null)
     }
 
     private fun deriveActiveTermPolicy(
@@ -159,20 +159,24 @@ class ReservationServiceImpl(
         term: com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity,
         now: LocalDateTime
     ): DerivedReservationPolicy {
-        validateAdHocRequest(request, reserveTermPolicy.activeTermAdHocOpenTime(term, request.startTime), now)
-        return DerivedReservationPolicy(ReservationType.AD_HOC, term)
+        validateOneTimeRequest(
+            request,
+            reserveTermPolicy.activeTermOneTimeReservationOpenTime(term, request.startTime),
+            now
+        )
+        return DerivedReservationPolicy(ReservationType.ONE_TIME, term)
     }
 
-    private fun validateAdHocRequest(
+    private fun validateOneTimeRequest(
         request: ReserveRequest,
         opening: LocalDateTime,
         now: LocalDateTime
     ) {
         if (request.recurringWeeks != 1) {
-            throw CserealException(ErrorCode.AD_HOC_RECURRING_DENIED)
+            throw CserealException(ErrorCode.ONE_TIME_RECURRING_DENIED)
         }
         if (now.isBefore(opening)) {
-            throw CserealException(ErrorCode.AD_HOC_NOT_OPENED)
+            throw CserealException(ErrorCode.ONE_TIME_NOT_OPENED)
         }
     }
 
@@ -213,7 +217,7 @@ class ReservationServiceImpl(
                 request.endTime,
                 requireNotNull(policy.boundedTerm).termEndTime
             )
-            ReservationType.AD_HOC -> 1L
+            ReservationType.ONE_TIME -> 1L
         }
         if (requested > supported) {
             throw CserealException(ErrorCode.UNSUPPORTED_RESERVATION_DATE)

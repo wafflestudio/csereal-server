@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.reservation.database
 
 enum class ReservationType {
-    AD_HOC,
+    ONE_TIME,
     REGULAR,
     UNRESTRICTED
 }
