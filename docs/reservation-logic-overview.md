@@ -1,6 +1,6 @@
 # 예약 로직 개요
 
-예약 생성에서 서버는 역할, 방, DB에 저장된 예약 학기, 현재 KST를 조합해 `UNRESTRICTED`, `REGULAR`, `AD_HOC` 중 하나를 결정합니다. 클라이언트는 예약 유형을 보내지 않습니다. 클라이언트 계약은 [예약 정책 전환 안내](reservation-client-handoff.md), 운영 복구는 [ReserveTerm 복구 Runbook](reserve-term-recovery-runbook.md)을 참고합니다.
+예약 생성에서 서버는 역할, 방, DB에 저장된 예약 학기, 현재 KST를 조합해 `UNRESTRICTED`, `REGULAR`, `ONE_TIME` 중 하나를 결정합니다. 클라이언트는 예약 유형을 보내지 않습니다. 클라이언트 계약은 [예약 정책 전환 안내](reservation-client-handoff.md), 운영 복구는 [ReserveTerm 복구 Runbook](reserve-term-recovery-runbook.md)을 참고합니다.
 
 ## 1. 구성 요소
 
@@ -16,7 +16,7 @@ flowchart LR
     Creation --> TermRepository
 ```
 
-- `ReserveTermPolicy`: KST clock, persisted time invariant, phase, AD_HOC opening, recurrence bound를 소유합니다.
+- `ReserveTermPolicy`: KST clock, persisted time invariant, phase, ONE_TIME opening, recurrence bound를 소유합니다.
 - `ReserveTermDefaultPolicy`: scheduler 전용 current/next key와 기본 네 시각을 계산합니다. runtime 예약 판정에는 사용되지 않습니다.
 - `ReserveTermValidationService`: 요청 시작 시각을 포함하는 행을 `Missing`, `Valid`, `Invalid`, `Multiple`로 분류합니다.
 - `ReserveTermCreationService`: 기본 행 하나의 create-only transaction과 insert 실패 후 inspection transaction을 소유합니다.
@@ -61,24 +61,24 @@ Valid target의 phase는 아래 표 순서대로 판정합니다. Application wi
 | Priority | Phase | Exact boundary | `ROLE_LABMASTER` | `ROLE_RESERVATION` |
 |---:|---|---|---|---|
 | 1 | REGULAR_APPLICATION | `applyStartTime <= now < applyEndTime` | `REGULAR` | `RESERVE-04 LABMASTER_ONLY` |
-| 2 | TERM_ACTIVE | application window 밖이고 `termStartTime <= now` | one-off `AD_HOC` 검사 | 동일 |
+| 2 | TERM_ACTIVE | application window 밖이고 `termStartTime <= now` | `ONE_TIME` 검사 | 동일 |
 | 3 | BEFORE_APPLICATION | `now < applyStartTime`이고 `now < termStartTime` | `RESERVE-08 TERM_NOT_OPENED` | `RESERVE-04 LABMASTER_ONLY` |
 | 4 | GAP | `applyEndTime <= now < termStartTime` | `RESERVE-14 TERM_APPLICATION_CLOSED` | 동일 |
 
-따라서 term 내부 application은 `TERM_ACTIVE -> REGULAR_APPLICATION -> TERM_ACTIVE`로 전환됩니다. `applyEndTime == termStartTime`이면 GAP은 비어 있습니다. Valid active AD_HOC opening은 다음 두 시각 중 늦은 값입니다.
+따라서 term 내부 application은 `TERM_ACTIVE -> REGULAR_APPLICATION -> TERM_ACTIVE`로 전환됩니다. `applyEndTime == termStartTime`이면 GAP은 비어 있습니다. Valid active ONE_TIME opening은 다음 두 시각 중 늦은 값입니다.
 
 ```text
 max(termStartTime, adjustWeekend(requestStart.date - 2 weeks at 09:00 Asia/Seoul))
 ```
 
-`Missing` fallback에는 term start가 없으므로 weekend-adjusted 2주 opening만 사용합니다. 두 AD_HOC 경로 모두 `recurringWeeks == 1`이어야 하며, opening 전에는 `RESERVE-12`, 반복이면 `RESERVE-11`입니다. 공휴일 보정은 하지 않습니다.
+`Missing` fallback에는 term start가 없으므로 weekend-adjusted 2주 opening만 사용합니다. 두 ONE_TIME 경로 모두 `recurringWeeks == 1`이어야 하며, opening 전에는 `RESERVE-12`, 반복이면 `RESERVE-11`입니다. 공휴일 보정은 하지 않습니다.
 
 ## 4. Occurrence와 충돌
 
 - `UNRESTRICTED`: 설정 상한과 지원 가능한 날짜 산술 범위 안에서 반복합니다.
 - `REGULAR`: 모든 occurrence가 `termStartTime <= start < end <= termEndTime`이어야 합니다.
-- Valid-term `AD_HOC`: 정확히 한 번이며 `end <= termEndTime`이어야 합니다.
-- Missing `AD_HOC`: 정확히 한 번이며 term-end bound가 없습니다.
+- Valid-term `ONE_TIME`: 정확히 한 번이며 `end <= termEndTime`이어야 합니다.
+- Missing `ONE_TIME`: 정확히 한 번이며 term-end bound가 없습니다.
 
 방 조회의 `PESSIMISTIC_WRITE` lock, occurrence별 overlap 검사, `saveAll`은 같은 transaction 안에 있습니다. 인증, room/role gate, cancellation 소유권 검사도 기존 동작을 유지합니다.
 

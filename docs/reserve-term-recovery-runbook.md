@@ -64,7 +64,7 @@ WHERE term_start_time <= :request_start
 ORDER BY id;
 ```
 
-- 0개: `Missing`; 2주 one-off AD_HOC fallback이 가능합니다.
+- 0개: `Missing`; 2주 ONE_TIME fallback이 가능합니다.
 - 1개 valid: persisted phase가 적용됩니다.
 - 1개 malformed: `Invalid`; `RESERVE-07`로 fail closed합니다.
 - 2개 이상: `Multiple`; `RESERVE-07`로 fail closed합니다.
