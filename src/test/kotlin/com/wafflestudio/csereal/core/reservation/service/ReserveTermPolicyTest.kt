@@ -84,9 +84,9 @@ class ReserveTermPolicyTest : BehaviorSpec({
         }
     }
 
-    given("ad-hoc opening") {
+    given("one-time opening") {
         then("a weekend opening moves to Monday at 09:00") {
-            policy.adHocOpenTime(LocalDateTime.of(2026, 7, 19, 14, 0)) shouldBe
+            policy.oneTimeReservationOpenTime(LocalDateTime.of(2026, 7, 19, 14, 0)) shouldBe
                 LocalDateTime.of(2026, 7, 6, 9, 0)
         }
 
@@ -97,7 +97,7 @@ class ReserveTermPolicyTest : BehaviorSpec({
                 LocalDateTime.of(2027, 3, 1, 0, 0),
                 LocalDateTime.of(2027, 7, 1, 0, 0)
             )
-            policy.activeTermAdHocOpenTime(term, LocalDateTime.of(2027, 3, 2, 10, 0)) shouldBe
+            policy.activeTermOneTimeReservationOpenTime(term, LocalDateTime.of(2027, 3, 2, 10, 0)) shouldBe
                 term.termStartTime
         }
     }

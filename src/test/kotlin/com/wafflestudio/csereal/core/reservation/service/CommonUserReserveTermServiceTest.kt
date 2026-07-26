@@ -55,16 +55,17 @@ class CommonUserReserveTermServiceTest(
     }
     afterTest { SecurityContextHolder.clearContext() }
 
-    "a reservation user receives a server-derived AD_HOC type after the adjusted opening" {
+    "a reservation user receives a server-derived ONE_TIME type after the adjusted opening" {
         val start = reserveTermPolicy.now().toLocalDate().plusDays(1).atTime(10, 0)
-        reservationService.reserveRoom(request(room.id, start)).single().reservationType shouldBe ReservationType.AD_HOC
+        reservationService.reserveRoom(request(room.id, start))
+            .single().reservationType shouldBe ReservationType.ONE_TIME
     }
 
     "a reservation user cannot create a recurring non-staff reservation" {
         val start = reserveTermPolicy.now().toLocalDate().plusDays(1).atTime(10, 0)
         shouldThrow<CserealException> {
             reservationService.reserveRoom(request(room.id, start, recurringWeeks = 2))
-        } shouldBe CserealException(ErrorCode.AD_HOC_RECURRING_DENIED)
+        } shouldBe CserealException(ErrorCode.ONE_TIME_RECURRING_DENIED)
     }
 
     "every non-staff occurrence must be at most three hours and on one KST date" {

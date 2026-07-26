@@ -27,7 +27,7 @@ class ReservationTypeTest : StringSpec({
 
         ReservationDto.of(entity).reservationType shouldBe null
         ReservationType.entries shouldBe listOf(
-            ReservationType.AD_HOC,
+            ReservationType.ONE_TIME,
             ReservationType.REGULAR,
             ReservationType.UNRESTRICTED
         )

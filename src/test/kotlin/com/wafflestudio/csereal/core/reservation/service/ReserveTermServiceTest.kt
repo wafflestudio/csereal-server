@@ -60,17 +60,17 @@ class ReserveTermServiceTest(
     }
     afterTest { SecurityContextHolder.clearContext() }
 
-    "at or after the target term start a labmaster gets one-occurrence AD_HOC" {
+    "at or after the target term start a labmaster gets a ONE_TIME reservation" {
         val start = reserveTermPolicy.now().toLocalDate().plusDays(1).atTime(10, 0)
         reservationService.reserveRoom(request(room.id, start, 1))
-            .single().reservationType shouldBe ReservationType.AD_HOC
+            .single().reservationType shouldBe ReservationType.ONE_TIME
     }
 
     "at or after target term start a labmaster cannot recur" {
         val start = reserveTermPolicy.now().toLocalDate().plusDays(1).atTime(10, 0)
         shouldThrow<CserealException> {
             reservationService.reserveRoom(request(room.id, start, 2))
-        } shouldBe CserealException(ErrorCode.AD_HOC_RECURRING_DENIED)
+        } shouldBe CserealException(ErrorCode.ONE_TIME_RECURRING_DENIED)
     }
 }) {
     companion object {

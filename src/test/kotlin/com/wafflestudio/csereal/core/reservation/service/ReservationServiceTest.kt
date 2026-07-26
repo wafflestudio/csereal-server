@@ -131,7 +131,7 @@ class ReservationServiceTest(
         val exact = harness(descriptor.termStartTime)
         unitAuthenticate("ROLE_LABMASTER")
         exact.service.reserveRoom(request(exact.room.id, target, 1))
-            .single().reservationType shouldBe ReservationType.AD_HOC
+            .single().reservationType shouldBe ReservationType.ONE_TIME
         exact.verifySingleTermLookup()
     }
 
@@ -172,19 +172,19 @@ class ReservationServiceTest(
             .single().reservationType shouldBe ReservationType.REGULAR
     }
 
-    "AD_HOC opening is closed just before and open exactly at the weekend-adjusted Monday" {
+    "ONE_TIME opening is closed just before and open exactly at the weekend-adjusted Monday" {
         val target = LocalDateTime.of(2026, 7, 19, 14, 0)
         val opening = LocalDateTime.of(2026, 7, 6, 9, 0)
 
         val before = harness(opening.minusSeconds(1))
         unitAuthenticate("ROLE_RESERVATION")
         shouldThrow<CserealException> { before.service.reserveRoom(request(before.room.id, target, 1)) } shouldBe
-            CserealException(ErrorCode.AD_HOC_NOT_OPENED)
+            CserealException(ErrorCode.ONE_TIME_NOT_OPENED)
 
         val exact = harness(opening)
         unitAuthenticate("ROLE_RESERVATION")
         exact.service.reserveRoom(request(exact.room.id, target, 1))
-            .single().reservationType shouldBe ReservationType.AD_HOC
+            .single().reservationType shouldBe ReservationType.ONE_TIME
         exact.verifySingleTermLookup()
     }
 
@@ -221,7 +221,7 @@ class ReservationServiceTest(
             missing.service.reserveRoom(
                 request(missing.room.id, descriptor.termStartTime.plusDays(10).plusHours(10), 1)
             )
-        } shouldBe CserealException(ErrorCode.AD_HOC_NOT_OPENED)
+        } shouldBe CserealException(ErrorCode.ONE_TIME_NOT_OPENED)
 
         val malformed = harness(now)
         malformed.persistMismatch(descriptor)
@@ -242,14 +242,14 @@ class ReservationServiceTest(
         } shouldBe CserealException(ErrorCode.TERM_NOT_REGISTERED)
     }
 
-    "a missing target is resolved once and permits one-off AD_HOC after opening" {
+    "a missing target is resolved once and permits ONE_TIME after opening" {
         val fixture = harness(LocalDateTime.of(2027, 3, 8, 9, 0))
         fixture.persistMissing()
         unitAuthenticate("ROLE_RESERVATION")
         val target = LocalDateTime.of(2027, 3, 20, 10, 0)
 
         fixture.service.reserveRoom(request(fixture.room.id, target, 1)).single().reservationType shouldBe
-            ReservationType.AD_HOC
+            ReservationType.ONE_TIME
         fixture.verifySingleTermLookup()
     }
 
@@ -297,13 +297,13 @@ class ReservationServiceTest(
         val professorLabmaster = harness(afterOpening, roomId = 8)
         unitAuthenticate("ROLE_PROFESSOR", "ROLE_LABMASTER")
         professorLabmaster.service.reserveRoom(request(8, target, 1))
-            .single().reservationType shouldBe ReservationType.AD_HOC
+            .single().reservationType shouldBe ReservationType.ONE_TIME
         professorLabmaster.verifySingleTermLookup()
 
         val professorReservation = harness(afterOpening, roomId = 8)
         unitAuthenticate("ROLE_PROFESSOR", "ROLE_RESERVATION")
         professorReservation.service.reserveRoom(request(8, target, 1))
-            .single().reservationType shouldBe ReservationType.AD_HOC
+            .single().reservationType shouldBe ReservationType.ONE_TIME
         professorReservation.verifySingleTermLookup()
 
         listOf("ROLE_LABMASTER", "ROLE_RESERVATION").forEach { role ->
