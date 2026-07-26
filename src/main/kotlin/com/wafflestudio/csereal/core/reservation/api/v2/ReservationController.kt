@@ -1,10 +1,15 @@
 package com.wafflestudio.csereal.core.reservation.api.v2
 
+import com.wafflestudio.csereal.core.reservation.dto.CreateCustomReserveTermRequest
 import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.reservation.dto.ReserveTermDto
+import com.wafflestudio.csereal.core.reservation.dto.ReserveTermGenerationOutcomeDto
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
 import com.wafflestudio.csereal.core.reservation.service.ReservationService
+import com.wafflestudio.csereal.core.reservation.service.ReserveTermGenerationService
+import com.wafflestudio.csereal.core.reservation.service.ReserveTermManualCreationService
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -21,7 +26,9 @@ import java.util.UUID
 @RequestMapping("/api/v2/reservation")
 @RestController
 class ReservationController(
-    private val reservationService: ReservationService
+    private val reservationService: ReservationService,
+    private val reserveTermManualCreationService: ReserveTermManualCreationService,
+    private val reserveTermGenerationService: ReserveTermGenerationService
 ) {
 
     @GetMapping("/month")
@@ -50,6 +57,21 @@ class ReservationController(
     @GetMapping("/terms")
     fun getReserveTerms(): ResponseEntity<List<ReserveTermDto>> {
         return ResponseEntity.ok(reservationService.getReserveTerms())
+    }
+
+    @PostMapping("/terms/custom")
+    fun createCustomReserveTerm(
+        @RequestBody request: CreateCustomReserveTermRequest
+    ): ResponseEntity<ReserveTermDto> {
+        val created = reserveTermManualCreationService.createCustom(request)
+        return ResponseEntity.status(HttpStatus.CREATED).body(ReserveTermDto.of(created))
+    }
+
+    @PostMapping("/terms/defaults")
+    fun ensureDefaultReserveTerms(): ResponseEntity<List<ReserveTermGenerationOutcomeDto>> {
+        val outcomes = reserveTermGenerationService.ensureCurrentAndNext()
+            .map(ReserveTermGenerationOutcomeDto::of)
+        return ResponseEntity.ok(outcomes)
     }
 
     @GetMapping("/{reservationId}")
