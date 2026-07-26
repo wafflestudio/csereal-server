@@ -10,11 +10,36 @@ flowchart TD
     Read --> Classify{"invalid / multiple / overlap / race"}
     Classify --> Preserve["기존 행 보존"]
     Preserve --> Approve["백업 및 운영 승인"]
-    Approve --> Repair["승인된 SQL로 복구"]
-    Repair --> Verify["실행 시 판정 및 /terms 재확인"]
+    Approve --> Maintenance["local maintenance API 또는<br/>승인된 SQL"]
+    Maintenance --> Verify["실행 시 판정 및 /terms 재확인"]
 ```
 
-## 2. 모니터링 event
+## 2. Local maintenance API
+
+운영 Caddy는 다음 두 exact path에 대해 `remote_ip == {$LOCAL_IP}`인 요청만 허용합니다. 이 조건은 Caddy가 관찰한 source IP가 설정값과 정확히 같은지를 뜻하며, 애플리케이션 인증이나 사설망 전체 허용을 뜻하지 않습니다. Backend `:8080` 포트의 직접 노출 차단은 repository 밖의 firewall 및 deployment 설정 책임입니다. 공개 조회인 `GET /api/v2/reservation/terms`에는 이 제한을 적용하지 않습니다.
+
+### Custom term 생성
+
+`POST /api/v2/reservation/terms/custom`은 네 개의 KST wall-clock 시각만 받고 `termYear=NULL`, `termType=NULL`인 행을 생성합니다.
+
+```json
+{
+  "applyStartTime": "2027-02-01T09:00:00",
+  "applyEndTime": "2027-03-01T00:00:00",
+  "termStartTime": "2027-03-01T00:00:00",
+  "termEndTime": "2027-07-01T00:00:00"
+}
+```
+
+유효하지 않은 일정은 `400`, 기존 term 구간과 겹치면 `409`, 생성 성공은 `201`입니다. Term 구간은 반열린 구간이므로 경계만 맞닿으면 생성할 수 있습니다. Overlap 조회와 insert는 순차적인 check-only 처리입니다. 동시에 들어온 custom 생성 사이의 interval race를 DB 제약으로 막지 못하는 잔여 위험이 있으므로 호출을 직렬화하고 생성 후 전체 term overlap을 확인해야 합니다.
+
+### Current/next default backfill
+
+Body 없이 `POST /api/v2/reservation/terms/defaults`를 호출하면 current와 next를 create-only 방식으로 각각 처리하고 항상 두 결과를 `200`으로 반환합니다. 한쪽 실패가 다른 쪽 처리를 막지 않습니다. 응답 항목은 `termYear`, `termType`, `result`, 안전하게 정규화한 `reason`만 포함하며 exception, stack trace, candidate 행은 노출하지 않습니다. `CREATED`, `EXISTING`, `CONCURRENTLY_CREATED`의 `reason`은 `null`입니다.
+
+호출 뒤 event와 `GET /api/v2/reservation/terms`를 함께 확인합니다. 이 API는 기존 행을 update, delete 또는 repair하지 않습니다.
+
+## 3. 모니터링 event
 
 | Event | 의미 | 주요 필드 |
 |---|---|---|
@@ -36,7 +61,7 @@ Generation 결과는 다음과 같습니다.
 
 Current 처리에 실패해도 next는 계속 처리합니다. 모든 integrity exception을 race 성공으로 간주하지 않습니다.
 
-## 3. DB 상태 확인
+## 4. DB 상태 확인
 
 실행 시 적용하는 일정 조건은 다음과 같습니다.
 
@@ -87,7 +112,7 @@ ORDER BY id;
 
 기존 `reservation.reservation_type IS NULL`은 정상이며 값을 채우지 않습니다.
 
-## 4. 복구 절차
+## 5. 복구 절차
 
 1. Event의 candidate ID와 current/next key를 기록합니다.
 2. 대상 행과 관련 예약을 백업하고 담당자 승인을 받습니다.
@@ -96,11 +121,11 @@ ORDER BY id;
 5. 원인이 분명하고 승인을 받은 경우에만 SQL로 값을 수정하거나 충돌 행을 제거합니다. Scheduler는 기존 행을 update 또는 delete하거나 metadata를 바꾸지 않습니다.
 6. Commit한 뒤 같은 쿼리로 유효한 대상이 정확히 하나인지 다시 확인합니다.
 7. `/api/v2/reservation/terms`에 겹치지 않는 유효한 행만 보이는지 확인합니다.
-8. Current와 next를 각각 확인합니다. 다음 토요일 전에 수동 generation이 필요하면 별도의 운영 승인을 받습니다.
+8. Current와 next를 각각 확인합니다. 다음 토요일 전에 수동 generation이 필요하면 운영 승인을 받은 뒤 local defaults API를 호출합니다.
 
 DB 변경이 안전하지 않거나 원인을 알 수 없으면 행을 보존하고 운영 장애 대응 절차로 넘깁니다.
 
-## 5. V16과 시간 처리
+## 6. V16과 시간 처리
 
 V16은 기존 `reservation_type = NULL`과 `reserve_term`의 `NULL/NULL` metadata를 유지하며 metadata pair CHECK를 추가합니다. 다른 checksum의 V16이 이미 배포된 증거가 있다면 파일이나 migration history를 임의로 고치지 말고 forward migration을 설계해야 합니다.
 
