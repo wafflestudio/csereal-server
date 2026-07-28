@@ -100,6 +100,40 @@ class ReservationPolicyMigrationTest : FunSpec({
             connection.createStatement().use { statement ->
                 statement.executeQuery(
                     """
+                    SELECT data_type, column_type, is_nullable
+                    FROM information_schema.columns
+                    WHERE table_schema = DATABASE()
+                      AND table_name = 'reservation'
+                      AND column_name = 'reservation_type'
+                    """.trimIndent()
+                ).use { resultSet ->
+                    resultSet.next() shouldBe true
+                    resultSet.getString("data_type") shouldBe "enum"
+                    resultSet.getString("column_type") shouldBe
+                        "enum('ONE_TIME','REGULAR','UNRESTRICTED')"
+                    resultSet.getString("is_nullable") shouldBe "YES"
+                }
+
+                statement.executeQuery(
+                    """
+                    SELECT data_type, column_type, is_nullable
+                    FROM information_schema.columns
+                    WHERE table_schema = DATABASE()
+                      AND table_name = 'reserve_term'
+                      AND column_name = 'term_type'
+                    """.trimIndent()
+                ).use { resultSet ->
+                    resultSet.next() shouldBe true
+                    resultSet.getString("data_type") shouldBe "enum"
+                    resultSet.getString("column_type") shouldBe
+                        "enum('WINTER','FIRST_SEMESTER','SUMMER','SECOND_SEMESTER')"
+                    resultSet.getString("is_nullable") shouldBe "YES"
+                }
+            }
+
+            connection.createStatement().use { statement ->
+                statement.executeQuery(
+                    """
                     SELECT COUNT(*) AS unclassified_count
                     FROM reserve_term
                     WHERE term_year IS NULL AND term_type IS NULL
