@@ -3,7 +3,7 @@ package com.wafflestudio.csereal.core.reservation.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
-import com.wafflestudio.csereal.core.reservation.database.ReservationRepository
+import com.wafflestudio.csereal.core.reservation.database.ReservationType
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermRepository
 import com.wafflestudio.csereal.core.reservation.database.RoomEntity
@@ -14,7 +14,7 @@ import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.shouldBe
@@ -27,7 +27,6 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
-import java.time.LocalDateTime
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -35,236 +34,67 @@ import java.time.LocalDateTime
 @Import(MySQLTestContainerConfig::class)
 class ReserveTermServiceTest(
     private val roomRepository: RoomRepository,
-    private val reservationRepository: ReservationRepository,
     private val reservationService: ReservationService,
+    private val reserveTermPolicy: ReserveTermPolicy,
     private val reserveTermRepository: ReserveTermRepository,
     private val userRepository: UserRepository
-) : BehaviorSpec({
+) : StringSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
-
-    lateinit var testSeminarRoom: RoomEntity
+    lateinit var room: RoomEntity
 
     beforeSpec {
-        testSeminarRoom = roomRepository.save(RoomEntity("test room", "301", 20, RoomType.SEMINAR))
+        val generatedRoom = roomRepository.save(RoomEntity("labmaster room", "303", 20, RoomType.SEMINAR))
+        room = if (generatedRoom.id == 8L) {
+            roomRepository.delete(generatedRoom)
+            roomRepository.flush()
+            roomRepository.save(RoomEntity("labmaster room", "303", 20, RoomType.SEMINAR))
+        } else {
+            generatedRoom
+        }
     }
-
     beforeTest {
-        reservationRepository.deleteAll()
-
-        // 랩 대표 권한이 있는 유저로 테스트
-        val mockUser = userRepository.findByUsername("test")
-            ?: userRepository.save(
-                UserEntity(
-                    "test",
-                    "test",
-                    "test@abc.com",
-                    "0000-00000"
-                )
-            )
-
-        val authorities = listOf(SimpleGrantedAuthority("ROLE_LABMASTER"))
-        val issuedAt = Instant.now()
-        val expiresAt = issuedAt.plusSeconds(3600)
-        val claims = mapOf("sub" to mockUser.username)
-        val dummyIdToken = OidcIdToken("mock-token", issuedAt, expiresAt, claims)
-
-        val customOidcUser = CustomOidcUser(mockUser, authorities, dummyIdToken)
-        val authentication = UsernamePasswordAuthenticationToken(customOidcUser, null, authorities)
-
-        SecurityContextHolder.getContext().authentication = authentication
-    }
-
-    given("Pre-Reservation is Allowed Now") {
-        val termStartTime = LocalDateTime.now().plusMonths(1)
-        val termEndTime = LocalDateTime.now().plusMonths(1).plusDays(30)
+        val now = reserveTermPolicy.now()
         reserveTermRepository.deleteAll()
         reserveTermRepository.save(
-            ReserveTermEntity(
-                applyStartTime = LocalDateTime.now().minusDays(1),
-                applyEndTime = LocalDateTime.now().plusDays(1),
-                termStartTime = termStartTime,
-                termEndTime = termEndTime
-            )
+            ReserveTermEntity(now.minusDays(2), now.minusDays(1), now.minusDays(3), now.plusYears(1))
         )
+        authenticateLabmaster(userRepository)
+    }
+    afterTest { SecurityContextHolder.clearContext() }
 
-        `when`("requested reservation time fits in the term") {
-            val startTime = termStartTime.plusDays(1).withHour(10)
-            val endTime = termStartTime.plusDays(1).withHour(11)
-            val reserveRequest =
-                ReserveRequest(
-                    testSeminarRoom.id,
-                    "title",
-                    "a@a.com",
-                    "010-1234-5678",
-                    "prof",
-                    "purp",
-                    startTime,
-                    endTime,
-                    true,
-                    3
-                )
-
-            val result = reservationService.reserveRoom(reserveRequest)
-
-            then("create reservations successfully") {
-                result.size shouldBe 3
-            }
-        }
-
-        `when`("requested reservation time doesn't fit in the term") {
-            val startTime = termStartTime.minusDays(1).withHour(10)
-            val endTime = termStartTime.minusDays(1).withHour(11)
-            val reserveRequest =
-                ReserveRequest(
-                    testSeminarRoom.id,
-                    "title",
-                    "a@a.com",
-                    "010-1234-5678",
-                    "prof",
-                    "purp",
-                    startTime,
-                    endTime,
-                    true,
-                    3
-                )
-
-            then("fail to make reservations out of the term") {
-                shouldThrow<CserealException> {
-                    reservationService.reserveRoom(reserveRequest)
-                } shouldBe CserealException(ErrorCode.INVALID_RESERVATION_PERIOD)
-
-                val reservations = reservationRepository.findAll()
-                reservations.size shouldBe 0
-            }
-        }
-
-        `when`("reservation duration exceeds 3 hours") {
-            val startTime = termStartTime.plusDays(1).withHour(10)
-            val endTime = termStartTime.plusDays(1).withHour(14)
-            val reserveRequest =
-                ReserveRequest(
-                    testSeminarRoom.id,
-                    "title",
-                    "a@a.com",
-                    "010-1234-5678",
-                    "prof",
-                    "purp",
-                    startTime,
-                    endTime,
-                    true,
-                    3
-                )
-
-            then("fail to make reservations too long") {
-                shouldThrow<CserealException> {
-                    reservationService.reserveRoom(reserveRequest)
-                } shouldBe CserealException(ErrorCode.RESERVATION_TIME_EXCEEDED)
-
-                val reservations = reservationRepository.findAll()
-                reservations.size shouldBe 0
-            }
-        }
+    "at or after the target term start a labmaster gets a ONE_TIME reservation" {
+        val start = reserveTermPolicy.now().toLocalDate().plusDays(1).atTime(10, 0)
+        reservationService.reserveRoom(request(room.id, start, 1))
+            .single().reservationType shouldBe ReservationType.ONE_TIME
     }
 
-    given("Pre-Reservation apply time passed") {
-        val termStartTime = LocalDateTime.now().plusMonths(1)
-        val termEndTime = LocalDateTime.now().plusMonths(1).plusDays(30)
-        reserveTermRepository.deleteAll()
-        reserveTermRepository.save(
-            ReserveTermEntity(
-                applyStartTime = LocalDateTime.now().minusDays(3),
-                applyEndTime = LocalDateTime.now().minusDays(1),
-                termStartTime = termStartTime,
-                termEndTime = termEndTime
-            )
+    "at or after target term start a labmaster cannot recur" {
+        val start = reserveTermPolicy.now().toLocalDate().plusDays(1).atTime(10, 0)
+        shouldThrow<CserealException> {
+            reservationService.reserveRoom(request(room.id, start, 2))
+        } shouldBe CserealException(ErrorCode.ONE_TIME_RECURRING_DENIED)
+    }
+}) {
+    companion object {
+        private fun request(roomId: Long, start: java.time.LocalDateTime, weeks: Int) = ReserveRequest(
+            roomId, "title", "a@a.com", "010-1234-5678", "prof", "purpose",
+            start, start.plusHours(1), true, weeks
         )
 
-        `when`("leader tries reservation") {
-            val startTime = termStartTime.plusDays(1).withHour(10)
-            val endTime = termStartTime.plusDays(1).withHour(11)
-            val reserveRequest =
-                ReserveRequest(
-                    testSeminarRoom.id,
-                    "title",
-                    "a@a.com",
-                    "010-1234-5678",
-                    "prof",
-                    "purp",
-                    startTime,
-                    endTime,
-                    true,
-                    3
-                )
-
-            then("success to reserve") {
-                reservationService.reserveRoom(reserveRequest)
-                val reservations = reservationRepository.findAll()
-                reservations.size shouldBe 3
-            }
-        }
-
-        `when`("leader tries reservation after registered terms") {
-            val startTime = termEndTime.plusDays(7).withHour(10)
-            val endTime = termEndTime.plusDays(7).withHour(11)
-            val reserveRequest =
-                ReserveRequest(
-                    testSeminarRoom.id,
-                    "title",
-                    "a@a.com",
-                    "010-1234-5678",
-                    "prof",
-                    "purp",
-                    startTime,
-                    endTime,
-                    true
-                )
-
-            then("cannot make reservations after registered terms") {
-                shouldThrow<CserealException> {
-                    reservationService.reserveRoom(reserveRequest)
-                } shouldBe CserealException(ErrorCode.TERM_NOT_REGISTERED)
-                val reservations = reservationRepository.findAll()
-                reservations.size shouldBe 0
-            }
-        }
-    }
-
-    given("Pre-Reservation apply time didn't start") {
-        val termStartTime = LocalDateTime.now().plusMonths(1)
-        val termEndTime = LocalDateTime.now().plusMonths(1).plusDays(30)
-        reserveTermRepository.deleteAll()
-        reserveTermRepository.save(
-            ReserveTermEntity(
-                applyStartTime = LocalDateTime.now().plusDays(1),
-                applyEndTime = LocalDateTime.now().plusDays(3),
-                termStartTime = termStartTime,
-                termEndTime = termEndTime
+        private fun authenticateLabmaster(repository: UserRepository) {
+            val username = "labmaster-policy"
+            val user = repository.findByUsername(username) ?: repository.save(
+                UserEntity(username, username, "$username@example.com", "0000-00000")
             )
-        )
-        `when`("leader tries reservation") {
-            val startTime = termStartTime.plusDays(1).withHour(10)
-            val endTime = termStartTime.plusDays(1).withHour(11)
-            val reserveRequest =
-                ReserveRequest(
-                    testSeminarRoom.id,
-                    "title",
-                    "a@a.com",
-                    "010-1234-5678",
-                    "prof",
-                    "purp",
-                    startTime,
-                    endTime,
-                    true,
-                    3
-                )
-
-            then("cannot make reservations before apply-start-time") {
-                shouldThrow<CserealException> {
-                    reservationService.reserveRoom(reserveRequest)
-                } shouldBe CserealException(ErrorCode.TERM_NOT_OPENED)
-                val reservations = reservationRepository.findAll()
-                reservations.size shouldBe 0
-            }
+            val authorities = listOf(SimpleGrantedAuthority("ROLE_LABMASTER"))
+            val issuedAt = Instant.now()
+            val principal = CustomOidcUser(
+                user,
+                authorities,
+                OidcIdToken("mock-token", issuedAt, issuedAt.plusSeconds(3600), mapOf("sub" to username))
+            )
+            SecurityContextHolder.getContext().authentication =
+                UsernamePasswordAuthenticationToken(principal, null, authorities)
         }
     }
-})
+}

@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.reservation.dto
 
 import com.wafflestudio.csereal.core.reservation.database.ReservationEntity
+import com.wafflestudio.csereal.core.reservation.database.ReservationType
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -12,6 +13,7 @@ data class ReservationDto(
     val startTime: LocalDateTime,
     val endTime: LocalDateTime,
     val recurringWeeks: Int = 1,
+    val reservationType: ReservationType?,
     val roomName: String?,
     val roomLocation: String,
     val userName: String? = null,
@@ -20,36 +22,26 @@ data class ReservationDto(
     val professor: String
 ) {
     companion object {
-        fun of(reservationEntity: ReservationEntity): ReservationDto {
-            return ReservationDto(
-                id = reservationEntity.id,
-                recurrenceId = reservationEntity.recurrenceId,
-                title = reservationEntity.title,
-                purpose = reservationEntity.purpose,
-                startTime = reservationEntity.startTime,
-                endTime = reservationEntity.endTime,
-                recurringWeeks = reservationEntity.recurringWeeks,
-                roomName = reservationEntity.room.name,
-                roomLocation = reservationEntity.room.location,
-                userName = reservationEntity.user.username,
-                contactEmail = reservationEntity.contactEmail,
-                contactPhone = reservationEntity.contactPhone,
-                professor = reservationEntity.professor
-            )
-        }
+        fun of(entity: ReservationEntity): ReservationDto = from(entity, includeContact = true)
 
-        fun forNormalUser(reservationEntity: ReservationEntity): ReservationDto {
+        fun forNormalUser(entity: ReservationEntity): ReservationDto = from(entity, includeContact = false)
+
+        private fun from(entity: ReservationEntity, includeContact: Boolean): ReservationDto {
             return ReservationDto(
-                id = reservationEntity.id,
-                recurrenceId = reservationEntity.recurrenceId,
-                title = reservationEntity.title,
-                purpose = reservationEntity.purpose,
-                startTime = reservationEntity.startTime,
-                endTime = reservationEntity.endTime,
-                recurringWeeks = reservationEntity.recurringWeeks,
-                roomName = reservationEntity.room.name,
-                roomLocation = reservationEntity.room.location,
-                professor = reservationEntity.professor
+                id = entity.id,
+                recurrenceId = entity.recurrenceId,
+                title = entity.title,
+                purpose = entity.purpose,
+                startTime = entity.startTime,
+                endTime = entity.endTime,
+                recurringWeeks = entity.recurringWeeks,
+                reservationType = entity.reservationType,
+                roomName = entity.room.name,
+                roomLocation = entity.room.location,
+                userName = entity.user.username.takeIf { includeContact },
+                contactEmail = entity.contactEmail.takeIf { includeContact },
+                contactPhone = entity.contactPhone.takeIf { includeContact },
+                professor = entity.professor
             )
         }
     }
