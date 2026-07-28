@@ -45,6 +45,8 @@ class ReserveTermServiceTest(
     beforeSpec {
         val generatedRoom = roomRepository.save(RoomEntity("labmaster room", "303", 20, RoomType.SEMINAR))
         room = if (generatedRoom.id == 8L) {
+            roomRepository.delete(generatedRoom)
+            roomRepository.flush()
             roomRepository.save(RoomEntity("labmaster room", "303", 20, RoomType.SEMINAR))
         } else {
             generatedRoom
