@@ -40,6 +40,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -85,8 +86,18 @@ class ReservationServiceTest(
         } shouldBe CserealException(ErrorCode.INVALID_RECURRING_WEEKS)
     }
 
-    "fixed KST clocks enforce applyStart just-before and exact boundaries" {
-        val descriptor = defaultAt(LocalDateTime.of(2027, 2, 1, 9, 0)).descriptor(
+    "a request at the fixed UTC now is rejected as past" {
+        val nowUtc = LocalDateTime.of(2027, 3, 10, 10, 0)
+        val fixture = harness(nowUtc)
+        unitAuthenticate("ROLE_STAFF")
+
+        shouldThrow<CserealException> {
+            fixture.service.reserveRoom(request(fixture.room.id, nowUtc, 1))
+        } shouldBe CserealException(ErrorCode.PAST_RESERVATION_DENIED)
+    }
+
+    "fixed clocks enforce UTC applyStart just-before and exact boundaries" {
+        val descriptor = defaultAt(LocalDateTime.of(2027, 2, 1, 0, 0)).descriptor(
             2027,
             ReserveTermType.FIRST_SEMESTER
         )
@@ -115,8 +126,8 @@ class ReservationServiceTest(
             .single().reservationType shouldBe ReservationType.REGULAR
     }
 
-    "fixed KST clocks enforce termStart just-before and exact boundaries" {
-        val descriptor = defaultAt(LocalDateTime.of(2027, 3, 1, 0, 0)).descriptor(
+    "fixed clocks enforce UTC termStart just-before and exact boundaries" {
+        val descriptor = defaultAt(LocalDateTime.of(2027, 2, 28, 15, 0)).descriptor(
             2027,
             ReserveTermType.FIRST_SEMESTER
         )
@@ -135,12 +146,12 @@ class ReservationServiceTest(
         exact.verifySingleTermLookup()
     }
 
-    "persisted custom phases include an exact GAP and active-term end bound" {
+    "persisted UTC custom phases include an exact GAP and active-term end bound" {
         val term = ReserveTermEntity(
-            LocalDateTime.of(2027, 2, 3, 9, 0),
-            LocalDateTime.of(2027, 2, 20, 18, 0),
-            LocalDateTime.of(2027, 3, 1, 0, 0),
-            LocalDateTime.of(2027, 6, 25, 12, 0)
+            LocalDateTime.of(2027, 2, 3, 0, 0),
+            LocalDateTime.of(2027, 2, 20, 9, 0),
+            LocalDateTime.of(2027, 2, 28, 15, 0),
+            LocalDateTime.of(2027, 6, 25, 3, 0)
         )
         val gap = harness(term.applyEndTime)
         every { gap.termRepository.findContainingRequestStart(any()) } returns listOf(term)
@@ -150,21 +161,22 @@ class ReservationServiceTest(
         } shouldBe CserealException(ErrorCode.TERM_APPLICATION_CLOSED)
 
         val active = harness(term.termEndTime.minusDays(1))
+        val requestStartUtc = term.termEndTime.minusMinutes(30)
         every { active.termRepository.findContainingRequestStart(any()) } returns listOf(term)
         unitAuthenticate("ROLE_RESERVATION")
         shouldThrow<CserealException> {
-            active.service.reserveRoom(request(active.room.id, term.termEndTime.minusMinutes(30), 1))
+            active.service.reserveRoom(request(active.room.id, requestStartUtc, 1))
         } shouldBe CserealException(ErrorCode.INVALID_RESERVATION_PERIOD)
     }
 
     "modified persisted times drive REGULAR without canonical matching" {
         val term = ReserveTermEntity(
-            LocalDateTime.of(2027, 2, 3, 9, 0),
-            LocalDateTime.of(2027, 2, 20, 18, 0),
-            LocalDateTime.of(2027, 3, 5, 0, 0),
-            LocalDateTime.of(2027, 6, 25, 0, 0)
+            LocalDateTime.of(2027, 2, 3, 0, 0),
+            LocalDateTime.of(2027, 2, 20, 9, 0),
+            LocalDateTime.of(2027, 3, 4, 15, 0),
+            LocalDateTime.of(2027, 6, 24, 15, 0)
         )
-        val fixture = harness(LocalDateTime.of(2027, 2, 10, 12, 0))
+        val fixture = harness(LocalDateTime.of(2027, 2, 10, 3, 0))
         every { fixture.termRepository.findContainingRequestStart(any()) } returns listOf(term)
         unitAuthenticate("ROLE_LABMASTER")
 
@@ -172,24 +184,26 @@ class ReservationServiceTest(
             .single().reservationType shouldBe ReservationType.REGULAR
     }
 
-    "ONE_TIME opening is closed just before and open exactly at the weekend-adjusted Monday" {
-        val target = LocalDateTime.of(2026, 7, 19, 14, 0)
-        val opening = LocalDateTime.of(2026, 7, 6, 9, 0)
+    "a UTC ONE_TIME request opens at the weekend-adjusted Monday derived in Seoul" {
+        val reservationStartUtc = LocalDateTime.of(2026, 7, 19, 14, 0)
+        val openingUtc = LocalDateTime.of(2026, 7, 6, 0, 0)
 
-        val before = harness(opening.minusSeconds(1))
+        val before = harness(openingUtc.minusSeconds(1))
         unitAuthenticate("ROLE_RESERVATION")
-        shouldThrow<CserealException> { before.service.reserveRoom(request(before.room.id, target, 1)) } shouldBe
+        shouldThrow<CserealException> {
+            before.service.reserveRoom(request(before.room.id, reservationStartUtc, 1))
+        } shouldBe
             CserealException(ErrorCode.ONE_TIME_NOT_OPENED)
 
-        val exact = harness(opening)
+        val exact = harness(openingUtc)
         unitAuthenticate("ROLE_RESERVATION")
-        exact.service.reserveRoom(request(exact.room.id, target, 1))
+        exact.service.reserveRoom(request(exact.room.id, reservationStartUtc, 1))
             .single().reservationType shouldBe ReservationType.ONE_TIME
         exact.verifySingleTermLookup()
     }
 
     "REGULAR one-occurrence and repeated requests persist exact canonical rows" {
-        val now = LocalDateTime.of(2027, 2, 1, 9, 0)
+        val now = LocalDateTime.of(2027, 2, 1, 0, 0)
         listOf(1, 3).forEach { weeks ->
             val fixture = harness(now)
             val descriptor = fixture.defaultPolicy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
@@ -212,7 +226,7 @@ class ReservationServiceTest(
     }
 
     "only a truly missing target enables fallback while malformed and multiple targets fail closed" {
-        val now = LocalDateTime.of(2027, 2, 1, 9, 0)
+        val now = LocalDateTime.of(2027, 2, 1, 0, 0)
         val missing = harness(now)
         val descriptor = missing.defaultPolicy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
         missing.persistMissing()
@@ -243,7 +257,7 @@ class ReservationServiceTest(
     }
 
     "a missing target is resolved once and permits ONE_TIME after opening" {
-        val fixture = harness(LocalDateTime.of(2027, 3, 8, 9, 0))
+        val fixture = harness(LocalDateTime.of(2027, 3, 8, 0, 0))
         fixture.persistMissing()
         unitAuthenticate("ROLE_RESERVATION")
         val target = LocalDateTime.of(2027, 3, 20, 10, 0)
@@ -254,12 +268,12 @@ class ReservationServiceTest(
     }
 
     "creation-role precedence and room authorization are explicit" {
-        val staff = harness(LocalDateTime.of(2027, 2, 1, 9, 0), RoomType.LAB)
+        val staff = harness(LocalDateTime.of(2027, 2, 1, 0, 0), RoomType.LAB)
         unitAuthenticate("ROLE_STAFF", "ROLE_LABMASTER", "ROLE_RESERVATION")
         staff.service.reserveRoom(request(staff.room.id, LocalDateTime.of(2027, 3, 10, 10, 0), 1))
             .single().reservationType shouldBe ReservationType.UNRESTRICTED
 
-        val labmaster = harness(LocalDateTime.of(2027, 2, 1, 9, 0))
+        val labmaster = harness(LocalDateTime.of(2027, 2, 1, 0, 0))
         val descriptor = labmaster.defaultPolicy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
         labmaster.persistCanonical(descriptor)
         unitAuthenticate("ROLE_LABMASTER", "ROLE_RESERVATION")
@@ -267,7 +281,7 @@ class ReservationServiceTest(
             request(labmaster.room.id, descriptor.termStartTime.plusDays(10).plusHours(10), 1)
         ).single().reservationType shouldBe ReservationType.REGULAR
 
-        val reservationOnly = harness(LocalDateTime.of(2027, 2, 1, 9, 0))
+        val reservationOnly = harness(LocalDateTime.of(2027, 2, 1, 0, 0))
         reservationOnly.persistCanonical(descriptor)
         unitAuthenticate("ROLE_RESERVATION")
         shouldThrow<CserealException> {
@@ -276,7 +290,7 @@ class ReservationServiceTest(
             )
         } shouldBe CserealException(ErrorCode.LABMASTER_ONLY)
 
-        val nonSeminar = harness(LocalDateTime.of(2027, 3, 1, 0, 0), RoomType.LECTURE)
+        val nonSeminar = harness(LocalDateTime.of(2027, 2, 28, 15, 0), RoomType.LECTURE)
         unitAuthenticate("ROLE_RESERVATION")
         shouldThrow<CserealException> {
             nonSeminar.service.reserveRoom(
@@ -287,7 +301,7 @@ class ReservationServiceTest(
 
     "room 8 enforces the complete role matrix" {
         val target = LocalDateTime.of(2027, 3, 20, 10, 0)
-        val afterOpening = LocalDateTime.of(2027, 3, 8, 9, 0)
+        val afterOpening = LocalDateTime.of(2027, 3, 8, 0, 0)
 
         val staff = harness(afterOpening, roomId = 8)
         unitAuthenticate("ROLE_STAFF")
@@ -341,7 +355,7 @@ class ReservationServiceTest(
     }
 
     "the pessimistic room lookup occurs before the login-user query" {
-        val fixture = harness(LocalDateTime.of(2027, 3, 8, 9, 0))
+        val fixture = harness(LocalDateTime.of(2027, 3, 8, 0, 0))
         unitAuthenticate("ROLE_RESERVATION")
         fixture.service.reserveRoom(
             request(fixture.room.id, LocalDateTime.of(2027, 3, 20, 10, 0), 1)
@@ -454,11 +468,11 @@ class ReservationServiceTest(
         )
 
         private fun policyAt(now: LocalDateTime) = ReserveTermPolicy(
-            Clock.fixed(now.atZone(SEOUL).toInstant(), SEOUL)
+            Clock.fixed(now.toInstant(ZoneOffset.UTC), SEOUL)
         )
 
         private fun defaultAt(now: LocalDateTime) = ReserveTermDefaultPolicy(
-            Clock.fixed(now.atZone(SEOUL).toInstant(), SEOUL)
+            Clock.fixed(now.toInstant(ZoneOffset.UTC), SEOUL)
         )
 
         private fun harness(

@@ -6,6 +6,8 @@ import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
 enum class ReserveTermPhase {
@@ -19,7 +21,7 @@ enum class ReserveTermPhase {
 class ReserveTermPolicy(
     val clock: Clock
 ) {
-    fun now(): LocalDateTime = LocalDateTime.now(clock)
+    fun now(): LocalDateTime = LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC)
 
     fun invalidReasons(entity: ReserveTermEntity): List<String> = buildList {
         if (!entity.applyStartTime.isBefore(entity.applyEndTime)) add("invalid_application_window")
@@ -37,7 +39,11 @@ class ReserveTermPolicy(
     }
 
     fun oneTimeReservationOpenTime(reservationStart: LocalDateTime): LocalDateTime {
-        return adjustWeekend(reservationStart.toLocalDate().minusWeeks(2).atTime(OPEN_TIME))
+        val reservationDate = reservationStart.toInstant(ZoneOffset.UTC).atZone(SEOUL_ZONE).toLocalDate()
+        return adjustWeekend(reservationDate.minusWeeks(2).atTime(OPEN_TIME))
+            .atZone(SEOUL_ZONE)
+            .withZoneSameInstant(ZoneOffset.UTC)
+            .toLocalDateTime()
     }
 
     fun activeTermOneTimeReservationOpenTime(term: ReserveTermEntity, reservationStart: LocalDateTime): LocalDateTime {
@@ -58,6 +64,7 @@ class ReserveTermPolicy(
     }
 
     companion object {
+        private val SEOUL_ZONE: ZoneId = ZoneId.of("Asia/Seoul")
         private val OPEN_TIME: LocalTime = LocalTime.of(9, 0)
     }
 }
