@@ -4,7 +4,10 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.user.database.UserEntity
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
@@ -13,7 +16,7 @@ import jakarta.persistence.PrePersist
 import jakarta.persistence.PreUpdate
 import jakarta.persistence.Table
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity(name = "reservation")
 @Table(indexes = [Index(columnList = "room_id,start_time,end_time", unique = true)])
@@ -38,14 +41,18 @@ class ReservationEntity(
 
     val recurrenceId: UUID,
 
-    val agreed: Boolean
+    val agreed: Boolean,
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    val reservationType: ReservationType? = null
 
 ) : BaseTimeEntity() {
 
     @PrePersist
     @PreUpdate
     fun validateDates() {
-        if (startTime.isAfter(endTime) || startTime.isEqual(endTime)) {
+        if (!startTime.isBefore(endTime)) {
             throw CserealException.Csereal400("종료 시각은 시작 시각 이후여야 합니다.")
         }
     }
@@ -55,6 +62,7 @@ class ReservationEntity(
             user: UserEntity,
             room: RoomEntity,
             reserveRequest: ReserveRequest,
+            reservationType: ReservationType,
             start: LocalDateTime,
             end: LocalDateTime,
             recurrenceId: UUID
@@ -71,7 +79,8 @@ class ReservationEntity(
                 professor = reserveRequest.professor,
                 recurringWeeks = reserveRequest.recurringWeeks,
                 recurrenceId = recurrenceId,
-                agreed = reserveRequest.agreed
+                agreed = reserveRequest.agreed,
+                reservationType = reservationType
             )
         }
     }

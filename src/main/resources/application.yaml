@@ -54,6 +54,8 @@ springdoc:
 csereal:
     upload:
         path: ./files/
+    reservation:
+        max-recurring-weeks: 20
 
 oldFiles:
     path: ./cse-files/

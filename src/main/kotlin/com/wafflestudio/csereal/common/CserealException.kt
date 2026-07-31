@@ -27,10 +27,22 @@ enum class ErrorCode(val status: HttpStatus, val code: String, val msg: String) 
     PROFESSOR_ROOM_DENIED(HttpStatus.FORBIDDEN, "RESERVE-03", "교수회의실은 스태프 또는 교수만 예약 가능"),
     LABMASTER_ONLY(HttpStatus.FORBIDDEN, "RESERVE-04", "정기예약 기간에는 랩대표만 예약을 가능"),
     INVALID_RESERVATION_PERIOD(HttpStatus.BAD_REQUEST, "RESERVE-05", "정기예약은 지정된 학기 내에서만 가능"),
-    RESERVATION_TIME_EXCEEDED(HttpStatus.BAD_REQUEST, "RESERVE-06", "정기예약 기간에 3시간을 초과한 예약 불가"),
+    RESERVATION_TIME_EXCEEDED(
+        HttpStatus.BAD_REQUEST,
+        "RESERVE-06",
+        "Staff가 아닌 예약은 KST 기준 같은 날짜 내에서 회차당 최대 3시간까지 가능"
+    ),
     TERM_NOT_REGISTERED(HttpStatus.FORBIDDEN, "RESERVE-07", "아직 등록되지 않은 기간은 예약 불가"),
-    TERM_NOT_OPENED(HttpStatus.FORBIDDEN, "RESERVE-08", "겹치는 정기예약 기간이 끝난 이후에 예약 가능"),
-    RESERVATION_OCCUPIED(HttpStatus.CONFLICT, "RESERVE-09", "해당 시간에 이미 예약이 있습니다")
+    TERM_NOT_OPENED(HttpStatus.FORBIDDEN, "RESERVE-08", "정기예약 신청 기간이 아직 시작되지 않음"),
+    RESERVATION_OCCUPIED(HttpStatus.CONFLICT, "RESERVE-09", "해당 시간에 이미 예약이 있습니다"),
+    INVALID_RECURRING_WEEKS(HttpStatus.BAD_REQUEST, "RESERVE-10", "반복 예약 횟수가 유효하지 않음"),
+    ONE_TIME_RECURRING_DENIED(HttpStatus.BAD_REQUEST, "RESERVE-11", "수시 예약은 반복할 수 없음"),
+    ONE_TIME_NOT_OPENED(HttpStatus.FORBIDDEN, "RESERVE-12", "수시 예약 가능 기간이 아직 시작되지 않음"),
+    PAST_RESERVATION_DENIED(HttpStatus.BAD_REQUEST, "RESERVE-13", "과거 시각은 예약할 수 없음"),
+    TERM_APPLICATION_CLOSED(HttpStatus.FORBIDDEN, "RESERVE-14", "정기예약 신청 기간이 종료됨"),
+    INVALID_RESERVATION_TIME(HttpStatus.BAD_REQUEST, "RESERVE-15", "예약 종료 시각은 시작 시각 이후여야 함"),
+    RESERVATION_PERMISSION_DENIED(HttpStatus.FORBIDDEN, "RESERVE-16", "예약 권한이 없음"),
+    UNSUPPORTED_RESERVATION_DATE(HttpStatus.BAD_REQUEST, "RESERVE-17", "지원하지 않는 예약 날짜 범위")
 }
 
 enum class SystemErrorCode(val status: HttpStatus, val code: String, val msg: String) {
