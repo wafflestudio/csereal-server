@@ -75,7 +75,7 @@ termStartTime < termEndTime
 
 Phase는 신청 기간을 먼저 확인합니다. Term이 활성 상태여도 `applyStartTime <= now < applyEndTime`이면 `REGULAR_APPLICATION`입니다. Term 안에서 신청 기간이 열리기 전과 닫힌 뒤에는 `TERM_ACTIVE`입니다.
 
-Non-staff 예약은 각 회차가 UTC 구성요소 기준으로 같은 날짜 안에 끝나야 하며 3시간을 넘을 수 없습니다. Room ID 8은 `ROLE_PROFESSOR`가 추가로 필요하지만, professor 역할만으로 예약 생성 권한이 생기지는 않습니다.
+Non-staff 예약은 각 회차가 `Asia/Seoul` 기준 같은 날짜 안에 끝나야 하며 3시간을 넘을 수 없습니다. 반복 예약의 시간은 회차별로 검사하며 합산하지 않습니다. Room ID 8은 `ROLE_PROFESSOR`가 추가로 필요하지만, professor 역할만으로 예약 생성 권한이 생기지는 않습니다.
 
 `ONE_TIME` 예약은 요청 날짜 2주 전 09:00 `Asia/Seoul`에 열립니다. 그날이 토요일이나 일요일이면 다음 월요일 09:00로 미룹니다. 유효한 활성 term에서는 `termStartTime`보다 먼저 열리지 않으며, 공휴일은 따로 보정하지 않습니다.
 
@@ -84,6 +84,7 @@ Non-staff 예약은 각 회차가 UTC 구성요소 기준으로 같은 날짜 �
 | Code | 의미 |
 |---|---|
 | `RESERVE-04` | Reservation-only 사용자가 유효한 BEFORE 또는 REGULAR phase에서 요청함 |
+| `RESERVE-06` | Non-staff 회차가 KST 날짜 경계를 넘거나 3시간을 초과함 |
 | `RESERVE-07` | 대상 행이 Invalid 또는 Multiple임 |
 | `RESERVE-08` | Labmaster가 application 시작 전에 요청함 |
 | `RESERVE-10` | 반복 횟수 정책 위반 |
@@ -124,7 +125,7 @@ screen:  2027-03-20 10:00 KST
 - `/terms`의 빈 배열, 운영자가 수정한 시각, 누락된 대상 term을 안전하게 처리합니다.
 - `REGULAR_APPLICATION` 구간은 `applyStartTime <= now < applyEndTime`입니다.
 - 유효한 GAP과 `Missing` 대체 규칙을 다르게 안내합니다.
-- Non-staff `ONE_TIME` 요청은 `recurringWeeks = 1`이고, 각 회차가 같은 날 3시간 안에 끝납니다.
+- 모든 Non-staff 요청은 각 회차가 KST 기준 같은 날 3시간 안에 끝나며, `ONE_TIME` 요청은 `recurringWeeks = 1`입니다.
 - 예약과 `/terms` 응답을 실제 UTC instant로 파싱해 사용자 timezone으로 표시합니다.
 
 클라이언트 소스 변경은 이 서버 작업 범위에 포함되지 않습니다.

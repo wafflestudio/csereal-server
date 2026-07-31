@@ -58,7 +58,7 @@ termStartTime <= requestStart < termEndTime
 
 ## 3. 역할과 phase
 
-Staff는 term과 관계없이 `UNRESTRICTED`이며, 설정된 반복 상한을 적용합니다. 기본값은 `20`입니다. Non-staff는 먼저 세미나실 여부, room ID 8의 `ROLE_PROFESSOR` 조건, 생성 역할, 같은 날짜 및 최대 3시간 규칙을 통과해야 합니다.
+Staff는 term과 관계없이 `UNRESTRICTED`이며, 설정된 반복 상한을 적용합니다. 기본값은 `20`입니다. Non-staff는 먼저 세미나실 여부, room ID 8의 `ROLE_PROFESSOR` 조건, 생성 역할, 회차별 KST 기준 같은 날짜 및 최대 3시간 규칙을 통과해야 합니다. 반복 예약의 시간은 회차 간 합산하지 않습니다.
 
 유효한 대상 term의 phase는 다음 순서로 판정합니다. 신청 기간이 열려 있으면 term 활성 여부와 관계없이 `REGULAR_APPLICATION`이 우선합니다. 신청 기간 밖의 활성 term은 `TERM_ACTIVE`입니다.
 
