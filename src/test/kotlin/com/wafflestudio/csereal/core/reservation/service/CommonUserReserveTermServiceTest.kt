@@ -68,7 +68,7 @@ class CommonUserReserveTermServiceTest(
         } shouldBe CserealException(ErrorCode.ONE_TIME_RECURRING_DENIED)
     }
 
-    "every non-staff occurrence must be at most three hours and on one UTC component date" {
+    "every non-staff occurrence must be at most three hours and on one Seoul date" {
         val start = reserveTermPolicy.now().plusDays(1).withHour(22)
         shouldThrow<CserealException> {
             reservationService.reserveRoom(request(room.id, start, end = start.plusHours(3).plusMinutes(1)))

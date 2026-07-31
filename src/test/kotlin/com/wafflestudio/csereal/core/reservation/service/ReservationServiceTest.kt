@@ -37,6 +37,7 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -185,7 +186,7 @@ class ReservationServiceTest(
     }
 
     "a UTC ONE_TIME request opens at the weekend-adjusted Monday derived in Seoul" {
-        val reservationStartUtc = LocalDateTime.of(2026, 7, 19, 14, 0)
+        val reservationStartUtc = LocalDateTime.of(2026, 7, 19, 13, 0)
         val openingUtc = LocalDateTime.of(2026, 7, 6, 0, 0)
 
         val before = harness(openingUtc.minusSeconds(1))
@@ -223,6 +224,24 @@ class ReservationServiceTest(
             canonical.termYear shouldBe descriptor.termYear
             canonical.termType shouldBe descriptor.termType
         }
+    }
+
+    "REGULAR recurring reservations apply the three-hour limit per occurrence" {
+        val fixture = harness(LocalDateTime.of(2027, 2, 1, 0, 0))
+        val descriptor = fixture.defaultPolicy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
+        fixture.persistCanonical(descriptor)
+        val start = descriptor.termStartTime.plusDays(10).plusHours(10)
+        unitAuthenticate("ROLE_LABMASTER")
+
+        fixture.service.reserveRoom(request(fixture.room.id, start, weeks = 2, hours = 3))
+
+        fixture.saved.size shouldBe 2
+        fixture.saved.forEachIndexed { index, reservation ->
+            reservation.startTime shouldBe start.plusWeeks(index.toLong())
+            reservation.endTime shouldBe start.plusWeeks(index.toLong()).plusHours(3)
+            reservation.reservationType shouldBe ReservationType.REGULAR
+        }
+        fixture.saved.sumOf { Duration.between(it.startTime, it.endTime).toMinutes() } shouldBe 360L
     }
 
     "only a truly missing target enables fallback while malformed and multiple targets fail closed" {
@@ -335,23 +354,45 @@ class ReservationServiceTest(
         } shouldBe CserealException(ErrorCode.RESERVATION_PERMISSION_DENIED)
     }
 
-    "same-date and three-hour limits reject independently" {
-        val now = LocalDateTime.of(2027, 3, 1, 0, 0)
-        val crossDate = harness(now)
+    "a UTC midnight boundary within one Seoul date is allowed for non-staff" {
+        val fixture = harness(LocalDateTime.of(2027, 3, 8, 0, 0))
         unitAuthenticate("ROLE_RESERVATION")
-        shouldThrow<CserealException> {
-            crossDate.service.reserveRoom(
-                request(crossDate.room.id, LocalDateTime.of(2027, 3, 20, 23, 30), 1, hours = 1)
-            )
-        } shouldBe CserealException(ErrorCode.RESERVATION_TIME_EXCEEDED)
 
-        val overThreeHours = harness(now)
+        fixture.service.reserveRoom(
+            request(fixture.room.id, LocalDateTime.of(2027, 3, 20, 23, 30), 1, hours = 1)
+        ).single().reservationType shouldBe ReservationType.ONE_TIME
+    }
+
+    "a Seoul midnight boundary is rejected for non-staff even within three hours" {
+        val fixture = harness(LocalDateTime.of(2027, 3, 8, 0, 0))
         unitAuthenticate("ROLE_RESERVATION")
+
         shouldThrow<CserealException> {
-            overThreeHours.service.reserveRoom(
-                request(overThreeHours.room.id, LocalDateTime.of(2027, 3, 20, 10, 0), 1, hours = 4)
+            fixture.service.reserveRoom(
+                request(fixture.room.id, LocalDateTime.of(2027, 3, 20, 14, 30), 1, hours = 1)
             )
         } shouldBe CserealException(ErrorCode.RESERVATION_TIME_EXCEEDED)
+    }
+
+    "an over-three-hour occurrence is rejected for non-staff" {
+        val fixture = harness(LocalDateTime.of(2027, 3, 8, 0, 0))
+        val start = LocalDateTime.of(2027, 3, 20, 1, 0)
+        unitAuthenticate("ROLE_RESERVATION")
+
+        shouldThrow<CserealException> {
+            fixture.service.reserveRoom(
+                request(fixture.room.id, start, 1).copy(endTime = start.plusHours(3).plusMinutes(1))
+            )
+        } shouldBe CserealException(ErrorCode.RESERVATION_TIME_EXCEEDED)
+    }
+
+    "staff are exempt from both Seoul date and three-hour limits" {
+        val fixture = harness(LocalDateTime.of(2027, 3, 1, 0, 0))
+        unitAuthenticate("ROLE_STAFF")
+
+        fixture.service.reserveRoom(
+            request(fixture.room.id, LocalDateTime.of(2027, 3, 20, 13, 0), 1, hours = 4)
+        ).single().reservationType shouldBe ReservationType.UNRESTRICTED
     }
 
     "the pessimistic room lookup occurs before the login-user query" {
@@ -369,7 +410,7 @@ class ReservationServiceTest(
 
     "specific cancellation preserves owner, staff, other-user, and missing behavior" {
         val now = reserveTermPolicy.now()
-        val start = now.toLocalDate().plusDays(1).atTime(10, 0)
+        val start = now.toLocalDate().plusDays(1).atTime(9, 0)
         reserveTermRepository.deleteAll()
         reserveTermRepository.save(
             ReserveTermEntity(now.minusDays(2), now.minusDays(1), now.minusDays(3), now.plusYears(1))

@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 import java.util.UUID
 
 interface ReservationService {
@@ -50,6 +52,7 @@ class ReservationServiceImpl(
         private const val ROLE_PROFESSOR = "ROLE_PROFESSOR"
         private const val PROFESSOR_ROOM_ID = 8L
         private val MAX_NON_STAFF_DURATION = Duration.ofHours(3)
+        private val SEOUL_ZONE: ZoneId = ZoneId.of("Asia/Seoul")
         private val SUPPORTED_RESERVATION_YEARS = 1001..9998
         private val MAX_SUPPORTED_RESERVATION_TIME = LocalDateTime.of(9998, 12, 31, 23, 59, 59, 999_999_000)
     }
@@ -201,7 +204,10 @@ class ReservationServiceImpl(
     }
 
     private fun validateNonStaffDuration(request: ReserveRequest) {
-        if (request.startTime.toLocalDate() != request.endTime.toLocalDate() ||
+        val startDateInSeoul = request.startTime.toInstant(ZoneOffset.UTC).atZone(SEOUL_ZONE).toLocalDate()
+        val endDateInSeoul = request.endTime.toInstant(ZoneOffset.UTC).atZone(SEOUL_ZONE).toLocalDate()
+
+        if (startDateInSeoul != endDateInSeoul ||
             Duration.between(request.startTime, request.endTime) > MAX_NON_STAFF_DURATION
         ) {
             throw CserealException(ErrorCode.RESERVATION_TIME_EXCEEDED)
