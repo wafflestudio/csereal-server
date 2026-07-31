@@ -1,6 +1,6 @@
 # 예약 로직 개요
 
-서버는 예약을 생성할 때 역할, 방, DB에 저장된 예약 학기와 현재 KST를 조합해 `UNRESTRICTED`, `REGULAR`, `ONE_TIME` 중 하나를 결정합니다. 클라이언트는 예약 유형을 보내지 않습니다. API 계약은 [클라이언트 안내](reservation-client-handoff.md), 운영 복구 절차는 [ReserveTerm 복구 런북](reserve-term-recovery-runbook.md)을 참고하세요.
+서버는 예약을 생성할 때 역할, 방, DB에 저장된 예약 학기와 현재 UTC-component 시각을 조합해 `UNRESTRICTED`, `REGULAR`, `ONE_TIME` 중 하나를 결정합니다. 클라이언트는 예약 유형을 보내지 않습니다. API 계약은 [클라이언트 안내](reservation-client-handoff.md), 운영 복구 절차는 [ReserveTerm 복구 런북](reserve-term-recovery-runbook.md)을 참고하세요.
 
 ## 1. 구성 요소
 
@@ -16,8 +16,8 @@ flowchart LR
     Creation --> TermRepository
 ```
 
-- `ReserveTermPolicy`는 KST 기준 시각, 저장된 시각의 조건, phase, `ONE_TIME` 오픈 시각과 반복 범위를 계산합니다.
-- `ReserveTermDefaultPolicy`는 scheduler에서만 쓰는 current/next key와 기본 네 시각을 계산합니다. 예약 요청을 판정할 때는 사용하지 않습니다.
+- `ReserveTermPolicy`는 UTC-component 현재 시각, 저장된 시각의 조건, phase, `ONE_TIME` 오픈 시각과 반복 범위를 계산합니다. 달력 규칙이 필요한 경우에만 `Asia/Seoul` 날짜로 변환합니다.
+- `ReserveTermDefaultPolicy`는 scheduler에서만 쓰는 current/next key와 기본 네 시각을 `Asia/Seoul` 일정 규칙으로 계산한 뒤 UTC components로 변환합니다. 예약 요청을 판정할 때는 사용하지 않습니다.
 - `ReserveTermValidationService`는 요청 시작 시각을 포함하는 행을 `Missing`, `Valid`, `Invalid`, `Multiple`로 나눕니다.
 - `ReserveTermCreationService`는 기본 행 하나를 생성하는 create-only transaction과 insert 실패 뒤 상태를 확인하는 transaction을 관리합니다.
 - `ReserveTermGenerationService`는 current와 next를 서로 독립적으로 처리합니다.
@@ -27,6 +27,8 @@ flowchart LR
 ## 2. 저장 일정 계약
 
 예약 정책은 `reserve_term`에 저장된 다음 네 시각을 유일한 기준으로 사용합니다.
+
+애플리케이션 내부의 네 시각과 `/terms` 응답은 UTC components입니다. 예를 들어 기본 신청 시작 09:00 `Asia/Seoul`은 `00:00Z`, term 경계의 KST 자정은 전날 `15:00Z`입니다. 기존 JDBC 변환을 거쳐 DB에서 조회되는 값은 의도한 `Asia/Seoul` wall-clock 구성요소입니다.
 
 ```text
 applyStartTime < applyEndTime <= termEndTime
@@ -72,7 +74,7 @@ Term 안에서 신청 기간이 열리면 phase는 `TERM_ACTIVE -> REGULAR_APPLI
 유효한 활성 term에서 `ONE_TIME` 예약이 열리는 시각은 다음 두 값 중 늦은 값입니다.
 
 ```text
-max(termStartTime, adjustWeekend(requestStart.date - 2 weeks at 09:00 Asia/Seoul))
+max(termStartTime UTC, toUtc(adjustWeekend(toSeoulDate(requestStart UTC) - 2 weeks at 09:00 Asia/Seoul)))
 ```
 
 `Missing` 대체 규칙에는 term 시작 시각이 없으므로 주말을 보정한 2주 전 오픈 시각만 사용합니다. 두 `ONE_TIME` 경로 모두 `recurringWeeks == 1`이어야 합니다. 오픈 전에는 `RESERVE-12`, 반복 요청에는 `RESERVE-11`을 반환합니다. 공휴일은 보정하지 않습니다.
@@ -104,12 +106,14 @@ Scheduler는 기존 행을 update하거나 delete하지 않으며 metadata도 �
 
 V16은 기존 `reservation.reservation_type = NULL`과 `reserve_term`의 `NULL/NULL` metadata를 채우지 않습니다. Metadata pair CHECK와 값이 모두 있는 pair의 unique index만 추가합니다.
 
-요청 `LocalDateTime`은 offset이 없는 KST wall-clock 구성요소입니다. 응답은 기존 serializer와의 호환을 위해 날짜·시각 구성요소를 유지한 채 끝에 `Z`를 붙입니다. 실제 UTC instant로 변환하지 않습니다.
+예약 요청과 응답의 `LocalDateTime` 숫자 구성요소는 UTC입니다. 요청은 `Z`가 붙은 형식과 기존 offset 없는 형식을 모두 역직렬화하지만, 두 형식 모두 같은 UTC 구성요소로 정책에 전달됩니다. 응답의 `Z`는 실제 UTC instant를 뜻합니다.
 
 ```text
-stored:  2027-03-20T10:00
-wire:    2027-03-20T10:00:00Z
+request: 2027-03-20T01:00:00Z
+wire:    2027-03-20T01:00:00Z
 display: 2027-03-20 10:00 KST
 ```
 
-클라이언트가 이를 일반 UTC instant로 변환하면 19:00으로 잘못 표시됩니다. 날짜·시각 구성요소를 그대로 해석하는 component-preserving parser를 사용해야 합니다.
+클라이언트는 표준 instant parser로 응답을 해석한 뒤 사용자 timezone으로 표시합니다. offset 없는 요청을 사용하는 기존 클라이언트도 숫자 구성요소를 UTC로 보내야 합니다.
+
+ReserveTerm의 내부 값과 `GET /api/v2/reservation/terms` 응답도 실제 UTC components입니다. 기본 일정은 `Asia/Seoul` 달력 규칙으로 계산한 뒤 UTC로 변환하므로 `2027-02-01T00:00:00Z`는 `2027-02-01 09:00 Asia/Seoul`을 뜻합니다. Custom term POST는 기존 offset 없는 `LocalDateTime` JSON shape을 유지하며 입력한 UTC 숫자 구성요소를 그대로 전달합니다.
