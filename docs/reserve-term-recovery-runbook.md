@@ -20,7 +20,7 @@ flowchart TD
 
 ### Custom term 생성
 
-`POST /api/v2/reservation/terms/custom`은 네 개의 UTC-component 시각을 기존 offset 없는 `LocalDateTime` JSON shape으로 받고 그대로 전달하여 `termYear=NULL`, `termType=NULL`인 행을 생성합니다. 기존 JDBC 변환 후 DB에는 대응하는 `Asia/Seoul` wall-clock 구성요소가 저장됩니다.
+`POST /api/v2/reservation/terms/custom`은 네 개의 UTC-component 시각을 기존 offset 없는 `LocalDateTime` JSON shape으로 받고 그대로 전달하여 `termYear=NULL`, `termType=NULL`인 행을 생성합니다. `reserve_term` 컬럼은 MySQL `DATETIME(6)`이므로 DB에는 전달된 `LocalDateTime` 구성요소가 그대로 저장됩니다.
 
 ```json
 {
