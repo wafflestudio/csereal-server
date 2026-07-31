@@ -7,6 +7,8 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 
 data class ReserveTermDescriptor(
     val termYear: Int,
@@ -22,8 +24,9 @@ class ReserveTermDefaultPolicy(
     private val clock: Clock
 ) {
     fun currentAndNextDescriptors(): List<ReserveTermDescriptor> {
-        val current = descriptorFor(LocalDate.now(clock))
-        return listOf(current, descriptorFor(current.termEndTime.toLocalDate()))
+        val current = descriptorFor(LocalDate.now(clock.withZone(SEOUL_ZONE)))
+        val nextDate = current.termEndTime.toInstant(ZoneOffset.UTC).atZone(SEOUL_ZONE).toLocalDate()
+        return listOf(current, descriptorFor(nextDate))
     }
 
     fun descriptorFor(date: LocalDate): ReserveTermDescriptor {
@@ -68,12 +71,15 @@ class ReserveTermDefaultPolicy(
         return ReserveTermDescriptor(
             termYear = termYear,
             termType = termType,
-            applyStartTime = adjustWeekend(applyStartDate.atTime(OPEN_TIME)),
-            applyEndTime = termStartTime,
-            termStartTime = termStartTime,
-            termEndTime = termEndDate.atStartOfDay()
+            applyStartTime = adjustWeekend(applyStartDate.atTime(OPEN_TIME)).toUtcComponents(),
+            applyEndTime = termStartTime.toUtcComponents(),
+            termStartTime = termStartTime.toUtcComponents(),
+            termEndTime = termEndDate.atStartOfDay().toUtcComponents()
         )
     }
+
+    private fun LocalDateTime.toUtcComponents(): LocalDateTime =
+        atZone(SEOUL_ZONE).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime()
 
     private fun adjustWeekend(dateTime: LocalDateTime): LocalDateTime = when (dateTime.dayOfWeek) {
         DayOfWeek.SATURDAY -> dateTime.plusDays(2)
@@ -82,6 +88,7 @@ class ReserveTermDefaultPolicy(
     }
 
     companion object {
+        private val SEOUL_ZONE: ZoneId = ZoneId.of("Asia/Seoul")
         private val OPEN_TIME: LocalTime = LocalTime.of(9, 0)
     }
 }

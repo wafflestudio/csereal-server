@@ -8,6 +8,7 @@ import com.wafflestudio.csereal.common.config.CserealExceptionHandler
 import com.wafflestudio.csereal.common.config.LocalDateTimeSerializer
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermType
+import com.wafflestudio.csereal.core.reservation.dto.CreateCustomReserveTermRequest
 import com.wafflestudio.csereal.core.reservation.dto.ReserveTermDto
 import com.wafflestudio.csereal.core.reservation.service.ReservationService
 import com.wafflestudio.csereal.core.reservation.service.ReserveTermDescriptor
@@ -16,9 +17,11 @@ import com.wafflestudio.csereal.core.reservation.service.ReserveTermGenerationRe
 import com.wafflestudio.csereal.core.reservation.service.ReserveTermGenerationService
 import com.wafflestudio.csereal.core.reservation.service.ReserveTermManualCreationService
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import org.springframework.http.MediaType
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
@@ -54,7 +57,8 @@ class ReservationControllerTest : StringSpec({
     }
 
     "POST custom returns 201 through the JSON boundary" {
-        every { manualCreationService.createCustom(any()) } returns customEntity()
+        val requestSlot = slot<CreateCustomReserveTermRequest>()
+        every { manualCreationService.createCustom(capture(requestSlot)) } returns customEntity()
 
         mockMvc.perform(
             post(CUSTOM_PATH)
@@ -63,23 +67,24 @@ class ReservationControllerTest : StringSpec({
         )
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").value(0))
-            .andExpect(jsonPath("$.applyStartTime").value("2027-02-01T09:00:00Z"))
-            .andExpect(jsonPath("$.applyEndTime").value("2027-03-01T00:00:00Z"))
-            .andExpect(jsonPath("$.termStartTime").value("2027-03-01T00:00:00Z"))
-            .andExpect(jsonPath("$.termEndTime").value("2027-07-01T00:00:00Z"))
+            .andExpect(jsonPath("$.applyStartTime").value("2027-02-01T00:00:00Z"))
+            .andExpect(jsonPath("$.applyEndTime").value("2027-02-28T15:00:00Z"))
+            .andExpect(jsonPath("$.termStartTime").value("2027-02-28T15:00:00Z"))
+            .andExpect(jsonPath("$.termEndTime").value("2027-06-30T15:00:00Z"))
 
         verify(exactly = 1) { manualCreationService.createCustom(any()) }
+        requestSlot.captured shouldBe customRequest
     }
 
     listOf(
         "no body" to null,
-        "a missing field" to validRequestJson.replace(",\"termEndTime\":\"2027-07-01T00:00:00\"", ""),
+        "a missing field" to validRequestJson.replace(",\"termEndTime\":\"2027-06-30T15:00:00\"", ""),
         "a null field" to validRequestJson.replace(
-            "\"termEndTime\":\"2027-07-01T00:00:00\"",
+            "\"termEndTime\":\"2027-06-30T15:00:00\"",
             "\"termEndTime\":null"
         ),
         "malformed JSON" to "{",
-        "a malformed date-time" to validRequestJson.replace("2027-02-01T09:00:00", "not-a-date")
+        "a malformed date-time" to validRequestJson.replace("2027-02-01T00:00:00", "not-a-date")
     ).forEach { (case, body) ->
         "POST custom rejects $case before service invocation" {
             val request = post(CUSTOM_PATH).contentType(MediaType.APPLICATION_JSON)
@@ -151,20 +156,20 @@ class ReservationControllerTest : StringSpec({
     "GET terms keeps the existing public response boundary" {
         val term = ReserveTermDto(
             id = 17,
-            applyStartTime = LocalDateTime.of(2027, 2, 1, 9, 0),
-            applyEndTime = LocalDateTime.of(2027, 3, 1, 0, 0),
-            termStartTime = LocalDateTime.of(2027, 3, 1, 0, 0),
-            termEndTime = LocalDateTime.of(2027, 7, 1, 0, 0)
+            applyStartTime = customRequest.applyStartTime,
+            applyEndTime = customRequest.applyEndTime,
+            termStartTime = customRequest.termStartTime,
+            termEndTime = customRequest.termEndTime
         )
         every { reservationService.getReserveTerms() } returns listOf(term)
 
         mockMvc.perform(get("/api/v2/reservation/terms"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$[0].id").value(17))
-            .andExpect(jsonPath("$[0].applyStartTime").value("2027-02-01T09:00:00Z"))
-            .andExpect(jsonPath("$[0].applyEndTime").value("2027-03-01T00:00:00Z"))
-            .andExpect(jsonPath("$[0].termStartTime").value("2027-03-01T00:00:00Z"))
-            .andExpect(jsonPath("$[0].termEndTime").value("2027-07-01T00:00:00Z"))
+            .andExpect(jsonPath("$[0].applyStartTime").value("2027-02-01T00:00:00Z"))
+            .andExpect(jsonPath("$[0].applyEndTime").value("2027-02-28T15:00:00Z"))
+            .andExpect(jsonPath("$[0].termStartTime").value("2027-02-28T15:00:00Z"))
+            .andExpect(jsonPath("$[0].termEndTime").value("2027-06-30T15:00:00Z"))
 
         verify(exactly = 1) { reservationService.getReserveTerms() }
     }
@@ -173,27 +178,34 @@ class ReservationControllerTest : StringSpec({
         private const val CUSTOM_PATH = "/api/v2/reservation/terms/custom"
         private const val DEFAULTS_PATH = "/api/v2/reservation/terms/defaults"
         private val validRequestJson = """{
-            "applyStartTime":"2027-02-01T09:00:00",
-            "applyEndTime":"2027-03-01T00:00:00",
-            "termStartTime":"2027-03-01T00:00:00",
-            "termEndTime":"2027-07-01T00:00:00"
+            "applyStartTime":"2027-02-01T00:00:00",
+            "applyEndTime":"2027-02-28T15:00:00",
+            "termStartTime":"2027-02-28T15:00:00",
+            "termEndTime":"2027-06-30T15:00:00"
         }
         """.trimIndent().replace("\n", "").replace(" ", "")
 
+        private val customRequest = CreateCustomReserveTermRequest(
+            LocalDateTime.of(2027, 2, 1, 0, 0),
+            LocalDateTime.of(2027, 2, 28, 15, 0),
+            LocalDateTime.of(2027, 2, 28, 15, 0),
+            LocalDateTime.of(2027, 6, 30, 15, 0)
+        )
+
         private fun customEntity() = ReserveTermEntity(
-            LocalDateTime.of(2027, 2, 1, 9, 0),
-            LocalDateTime.of(2027, 3, 1, 0, 0),
-            LocalDateTime.of(2027, 3, 1, 0, 0),
-            LocalDateTime.of(2027, 7, 1, 0, 0)
+            customRequest.applyStartTime,
+            customRequest.applyEndTime,
+            customRequest.termStartTime,
+            customRequest.termEndTime
         )
 
         private fun descriptor(year: Int, type: ReserveTermType) = ReserveTermDescriptor(
             year,
             type,
-            LocalDateTime.of(year, 1, 1, 9, 0),
-            LocalDateTime.of(year, 1, 15, 0, 0),
-            LocalDateTime.of(year, 2, 1, 0, 0),
-            LocalDateTime.of(year, 3, 1, 0, 0)
+            LocalDateTime.of(year, 1, 1, 0, 0),
+            LocalDateTime.of(year, 1, 14, 15, 0),
+            LocalDateTime.of(year, 1, 31, 15, 0),
+            LocalDateTime.of(year, 2, 28, 15, 0)
         )
     }
 }

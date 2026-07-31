@@ -20,14 +20,14 @@ flowchart TD
 
 ### Custom term 생성
 
-`POST /api/v2/reservation/terms/custom`은 네 개의 KST wall-clock 시각만 받고 `termYear=NULL`, `termType=NULL`인 행을 생성합니다.
+`POST /api/v2/reservation/terms/custom`은 네 개의 UTC-component 시각을 기존 offset 없는 `LocalDateTime` JSON shape으로 받고 그대로 전달하여 `termYear=NULL`, `termType=NULL`인 행을 생성합니다. `reserve_term` 컬럼은 MySQL `DATETIME(6)`이므로 DB에는 전달된 `LocalDateTime` 구성요소가 그대로 저장됩니다.
 
 ```json
 {
-  "applyStartTime": "2027-02-01T09:00:00",
-  "applyEndTime": "2027-03-01T00:00:00",
-  "termStartTime": "2027-03-01T00:00:00",
-  "termEndTime": "2027-07-01T00:00:00"
+  "applyStartTime": "2027-02-01T00:00:00",
+  "applyEndTime": "2027-02-28T15:00:00",
+  "termStartTime": "2027-02-28T15:00:00",
+  "termEndTime": "2027-06-30T15:00:00"
 }
 ```
 
@@ -83,6 +83,8 @@ ORDER BY term_start_time, id;
 
 특정 요청 시작 시각의 대상 후보는 다음 반열린 조건으로 찾습니다.
 
+아래 직접 SQL의 `:request_start`, `:default_term_start`, `:default_term_end`는 raw MySQL `DATETIME`과 비교되므로 API의 UTC components가 아니라 DB에 저장되는 `Asia/Seoul` wall-clock 구성요소로 바인딩해야 합니다. 예를 들어 API의 `2027-03-20T01:00:00Z`는 직접 SQL에서 `2027-03-20 10:00:00`으로 바인딩합니다. 애플리케이션/JPA 실행은 기존 JDBC representation path를 거치지만, 운영자가 raw SQL을 실행할 때는 이 변환을 직접 적용해야 합니다.
+
 ```sql
 SELECT id, term_year, term_type,
        apply_start_time, apply_end_time, term_start_time, term_end_time
@@ -129,4 +131,6 @@ DB 변경이 안전하지 않거나 원인을 알 수 없으면 행을 보존하
 
 V16은 기존 `reservation_type = NULL`과 `reserve_term`의 `NULL/NULL` metadata를 유지하며 metadata pair CHECK를 추가합니다. 다른 checksum의 V16이 이미 배포된 증거가 있다면 파일이나 migration history를 임의로 고치지 말고 forward migration을 설계해야 합니다.
 
-API 응답 시각은 `LocalDateTime`의 날짜·시각 구성요소를 유지한 채 끝에 `Z`를 붙이는 기존 형식입니다. 이 API에서 `2027-03-20T10:00:00Z`는 실제 UTC instant가 아니라 `10:00 KST` wall-clock을 뜻합니다. 운영 확인 도구도 날짜·시각 구성요소를 유지해 표시해야 합니다. 이 방식을 component-preserving 처리라고 부릅니다.
+ReserveTerm 내부 값과 `GET /api/v2/reservation/terms`의 네 시각은 실제 UTC components입니다. 기본 일정의 09:00 `Asia/Seoul`은 API에서 `00:00Z`, KST 자정은 전날 `15:00Z`로 보입니다. 운영 확인 도구는 `/terms` 응답을 표준 UTC instant로 해석하고, DB를 직접 조회할 때는 기존 JDBC 변환으로 저장된 `Asia/Seoul` wall-clock 구성요소와 같은 시각인지 확인해야 합니다.
+
+예약 API의 시간 계약은 바뀌지 않습니다. 예약 요청과 응답의 `LocalDateTime` 숫자 구성요소 및 응답의 `Z`는 실제 UTC를 뜻하며, 운영 확인 도구는 표준 instant로 처리합니다. Custom term POST는 offset 없는 기존 JSON shape을 유지하지만 숫자 구성요소는 UTC로 해석하며, 입력한 네 값을 애플리케이션에서 변환하지 않습니다.

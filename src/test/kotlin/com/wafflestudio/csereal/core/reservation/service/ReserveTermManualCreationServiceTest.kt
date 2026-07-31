@@ -45,7 +45,10 @@ class ReserveTermManualCreationServiceTest(
         reserveTermRepository.findById(existing.id).orElseThrow().snapshot() shouldBe snapshot
         created.termYear shouldBe null
         created.termType shouldBe null
+        created.applyStartTime shouldBe request.applyStartTime
+        created.applyEndTime shouldBe request.applyEndTime
         created.termStartTime shouldBe request.termStartTime
+        created.termEndTime shouldBe request.termEndTime
     }
 
     test("existing term start equal to candidate end is persisted without changing the existing row") {
@@ -88,10 +91,10 @@ class ReserveTermManualCreationServiceTest(
 }) {
     companion object {
         private fun validRequest() = CreateCustomReserveTermRequest(
-            applyStartTime = LocalDateTime.of(2027, 2, 1, 9, 0),
-            applyEndTime = LocalDateTime.of(2027, 3, 1, 0, 0),
-            termStartTime = LocalDateTime.of(2027, 3, 1, 0, 0),
-            termEndTime = LocalDateTime.of(2027, 7, 1, 0, 0)
+            applyStartTime = LocalDateTime.of(2027, 2, 1, 0, 0),
+            applyEndTime = LocalDateTime.of(2027, 2, 28, 15, 0),
+            termStartTime = LocalDateTime.of(2027, 2, 28, 15, 0),
+            termEndTime = LocalDateTime.of(2027, 6, 30, 15, 0)
         )
 
         private fun existingTerm(
