@@ -28,7 +28,7 @@ flowchart LR
 
 예약 정책은 `reserve_term`에 저장된 다음 네 시각을 유일한 기준으로 사용합니다.
 
-애플리케이션 내부의 네 시각과 `/terms` 응답은 UTC components입니다. 예를 들어 기본 신청 시작 09:00 `Asia/Seoul`은 `00:00Z`, term 경계의 KST 자정은 전날 `15:00Z`입니다. 기존 JDBC 변환을 거쳐 DB에서 조회되는 값은 의도한 `Asia/Seoul` wall-clock 구성요소입니다.
+애플리케이션 내부의 네 시각과 `/terms` 응답은 UTC components입니다. 예를 들어 기본 신청 시작 09:00 `Asia/Seoul`은 `00:00Z`, term 경계의 KST 자정은 전날 `15:00Z`입니다. `reserve_term`의 MySQL `DATETIME(6)`에는 이 `LocalDateTime` 구성요소가 그대로 저장됩니다.
 
 ```text
 applyStartTime < applyEndTime <= termEndTime
