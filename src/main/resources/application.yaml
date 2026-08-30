@@ -46,8 +46,6 @@ server:
 springdoc:
     paths-to-match:
         - /api/**
-    swagger-ui:
-        path: index.html
     api-docs:
         path: /api-docs/json
 
