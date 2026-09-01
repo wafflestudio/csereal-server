@@ -12,7 +12,6 @@ services:
       - ./caddy/certs:/certs
     environment:
       URL: ${URL}
-      LOCAL_IP: ${LOCAL_IP}
       CERTIFICATE: ${CERTIFICATE}
       PRIVATE_KEY: ${PRIVATE_KEY}
     extra_hosts:

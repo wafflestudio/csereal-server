@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.common.config
 
 import com.wafflestudio.csereal.common.interceptor.ClientInfoInterceptor
+import com.wafflestudio.csereal.common.interceptor.InternalOnlyInterceptor
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
@@ -12,7 +13,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 @EnableConfigurationProperties(EndpointProperties::class)
 class WebConfig(
     private val endpointProperties: EndpointProperties,
-    private val clientInfoInterceptor: ClientInfoInterceptor
+    private val clientInfoInterceptor: ClientInfoInterceptor,
+    private val internalOnlyInterceptor: InternalOnlyInterceptor
 ) : WebMvcConfigurer {
 
     override fun addCorsMappings(registry: CorsRegistry) {
@@ -26,5 +28,6 @@ class WebConfig(
 
     override fun addInterceptors(registry: InterceptorRegistry) {
         registry.addInterceptor(clientInfoInterceptor)
+        registry.addInterceptor(internalOnlyInterceptor)
     }
 }

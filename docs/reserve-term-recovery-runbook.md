@@ -16,7 +16,18 @@ flowchart TD
 
 ## 2. Local maintenance API
 
-운영 Caddy는 다음 두 exact path에 대해 `remote_ip == {$LOCAL_IP}`인 요청만 허용합니다. 이 조건은 Caddy가 관찰한 source IP가 설정값과 정확히 같은지를 뜻하며, 애플리케이션 인증이나 사설망 전체 허용을 뜻하지 않습니다. Backend `:8080` 포트의 직접 노출 차단은 repository 밖의 firewall 및 deployment 설정 책임입니다. 공개 조회인 `GET /api/v2/reservation/terms`에는 이 제한을 적용하지 않습니다.
+아래 두 유지보수 엔드포인트는 **컨테이너 내부(loopback) 호출만** 허용합니다(백엔드 `requireLoopback`). 학외에서는 OAuth 로그인이 안 돼 세션 인증을 붙이면 운영자가 못 쓰므로, IP·인증이 아니라 loopback으로 막습니다. 따라서 운영에서는 SSH로 호스트에 들어가 컨테이너 안에서 호출합니다.
+
+```bash
+ssh <prod-host>
+docker exec <backend-container> \
+  curl -s -X POST http://localhost:8080/api/v2/reservation/terms/custom \
+  -H 'Content-Type: application/json' -d @- <<'JSON'
+{ ... }
+JSON
+```
+
+외부(도메인·IP 직결·프록시 경유)에서 호출하면 `403`입니다. 공개 조회인 `GET /api/v2/reservation/terms`에는 이 제한을 적용하지 않습니다. 예전에는 Caddy가 `remote_ip == {$LOCAL_IP}`로 막았으나, 사설 IP가 이관마다 바뀌고 IP 직결 우회가 열려 백엔드 loopback으로 옮겼습니다.
 
 ### Custom term 생성
 

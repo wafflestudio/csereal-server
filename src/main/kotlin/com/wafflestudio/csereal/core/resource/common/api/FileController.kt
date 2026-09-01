@@ -54,6 +54,7 @@ class FileController(
         }
     }
 
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/upload")
     fun uploadFiles(@RequestParam files: Map<String, MultipartFile>): ResponseEntity<FileUploadResponse> {
         return try {
