@@ -53,7 +53,7 @@ class MainImageServiceImpl(
     ): MainImageDto {
         Files.createDirectories(Paths.get(path))
 
-        val extension = FilenameUtils.getExtension(requestImage.originalFilename)
+        val extension = FilenameUtils.getExtension(requestImage.originalFilename)?.lowercase()
 
         if (!listOf("jpg", "jpeg", "png").contains(extension)) {
             throw CserealException.Csereal400("파일의 형식은 jpg, jpeg, png 중 하나여야 합니다.")
