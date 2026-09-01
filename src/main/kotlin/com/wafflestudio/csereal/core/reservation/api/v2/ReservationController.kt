@@ -84,7 +84,7 @@ class ReservationController(
         return ResponseEntity.ok(reservationService.getReservation(reservationId))
     }
 
-    @PreAuthorize("hasAnyRole('STAFF','RESERVATION','LABMASTER')")
+    @PreAuthorize("hasAnyRole('STAFF','RESERVE','LABMASTER')")
     @PostMapping
     fun reserveRoom(
         @RequestBody reserveRequest: ReserveRequest
@@ -92,13 +92,13 @@ class ReservationController(
         return ResponseEntity.ok(reservationService.reserveRoom(reserveRequest))
     }
 
-    @PreAuthorize("hasAnyRole('STAFF','RESERVATION','LABMASTER')")
+    @PreAuthorize("hasAnyRole('STAFF','RESERVE','LABMASTER')")
     @DeleteMapping("/{reservationId}")
     fun cancelSpecific(@PathVariable reservationId: Long): ResponseEntity<Any> {
         return ResponseEntity.ok(reservationService.cancelSpecific(reservationId))
     }
 
-    @PreAuthorize("hasAnyRole('STAFF','RESERVATION','LABMASTER')")
+    @PreAuthorize("hasAnyRole('STAFF','RESERVE','LABMASTER')")
     @DeleteMapping("/recurring/{recurrenceId}")
     fun cancelRecurring(@PathVariable recurrenceId: UUID): ResponseEntity<Any> {
         return ResponseEntity.ok(reservationService.cancelRecurring(recurrenceId))

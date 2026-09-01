@@ -51,7 +51,7 @@ class CommonUserReserveTermServiceTest(
         reserveTermRepository.save(
             ReserveTermEntity(now.minusDays(2), now.minusDays(1), now.minusDays(3), now.plusYears(1))
         )
-        authenticate(userRepository, "common-user", "ROLE_RESERVATION")
+        authenticate(userRepository, "common-user", "ROLE_RESERVE")
     }
     afterTest { SecurityContextHolder.clearContext() }
 

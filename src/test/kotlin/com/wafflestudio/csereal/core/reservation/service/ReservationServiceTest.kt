@@ -106,8 +106,8 @@ class ReservationServiceTest(
 
         listOf(
             listOf("ROLE_LABMASTER") to ErrorCode.TERM_NOT_OPENED,
-            listOf("ROLE_RESERVATION") to ErrorCode.LABMASTER_ONLY,
-            listOf("ROLE_LABMASTER", "ROLE_RESERVATION") to ErrorCode.TERM_NOT_OPENED
+            listOf("ROLE_RESERVE") to ErrorCode.LABMASTER_ONLY,
+            listOf("ROLE_LABMASTER", "ROLE_RESERVE") to ErrorCode.TERM_NOT_OPENED
         ).forEach { (roles, expectedError) ->
             val before = harness(descriptor.applyStartTime.minusSeconds(1))
             before.persistCanonical(descriptor)
@@ -164,7 +164,7 @@ class ReservationServiceTest(
         val active = harness(term.termEndTime.minusDays(1))
         val requestStartUtc = term.termEndTime.minusMinutes(30)
         every { active.termRepository.findContainingRequestStart(any()) } returns listOf(term)
-        unitAuthenticate("ROLE_RESERVATION")
+        unitAuthenticate("ROLE_RESERVE")
         shouldThrow<CserealException> {
             active.service.reserveRoom(request(active.room.id, requestStartUtc, 1))
         } shouldBe CserealException(ErrorCode.INVALID_RESERVATION_PERIOD)
@@ -190,14 +190,14 @@ class ReservationServiceTest(
         val openingUtc = LocalDateTime.of(2026, 7, 6, 0, 0)
 
         val before = harness(openingUtc.minusSeconds(1))
-        unitAuthenticate("ROLE_RESERVATION")
+        unitAuthenticate("ROLE_RESERVE")
         shouldThrow<CserealException> {
             before.service.reserveRoom(request(before.room.id, reservationStartUtc, 1))
         } shouldBe
             CserealException(ErrorCode.ONE_TIME_NOT_OPENED)
 
         val exact = harness(openingUtc)
-        unitAuthenticate("ROLE_RESERVATION")
+        unitAuthenticate("ROLE_RESERVE")
         exact.service.reserveRoom(request(exact.room.id, reservationStartUtc, 1))
             .single().reservationType shouldBe ReservationType.ONE_TIME
         exact.verifySingleTermLookup()
@@ -278,7 +278,7 @@ class ReservationServiceTest(
     "a missing target is resolved once and permits ONE_TIME after opening" {
         val fixture = harness(LocalDateTime.of(2027, 3, 8, 0, 0))
         fixture.persistMissing()
-        unitAuthenticate("ROLE_RESERVATION")
+        unitAuthenticate("ROLE_RESERVE")
         val target = LocalDateTime.of(2027, 3, 20, 10, 0)
 
         fixture.service.reserveRoom(request(fixture.room.id, target, 1)).single().reservationType shouldBe
@@ -288,21 +288,21 @@ class ReservationServiceTest(
 
     "creation-role precedence and room authorization are explicit" {
         val staff = harness(LocalDateTime.of(2027, 2, 1, 0, 0), RoomType.LAB)
-        unitAuthenticate("ROLE_STAFF", "ROLE_LABMASTER", "ROLE_RESERVATION")
+        unitAuthenticate("ROLE_STAFF", "ROLE_LABMASTER", "ROLE_RESERVE")
         staff.service.reserveRoom(request(staff.room.id, LocalDateTime.of(2027, 3, 10, 10, 0), 1))
             .single().reservationType shouldBe ReservationType.UNRESTRICTED
 
         val labmaster = harness(LocalDateTime.of(2027, 2, 1, 0, 0))
         val descriptor = labmaster.defaultPolicy.descriptor(2027, ReserveTermType.FIRST_SEMESTER)
         labmaster.persistCanonical(descriptor)
-        unitAuthenticate("ROLE_LABMASTER", "ROLE_RESERVATION")
+        unitAuthenticate("ROLE_LABMASTER", "ROLE_RESERVE")
         labmaster.service.reserveRoom(
             request(labmaster.room.id, descriptor.termStartTime.plusDays(10).plusHours(10), 1)
         ).single().reservationType shouldBe ReservationType.REGULAR
 
         val reservationOnly = harness(LocalDateTime.of(2027, 2, 1, 0, 0))
         reservationOnly.persistCanonical(descriptor)
-        unitAuthenticate("ROLE_RESERVATION")
+        unitAuthenticate("ROLE_RESERVE")
         shouldThrow<CserealException> {
             reservationOnly.service.reserveRoom(
                 request(reservationOnly.room.id, LocalDateTime.of(2027, 3, 10, 10, 0), 1)
@@ -310,7 +310,7 @@ class ReservationServiceTest(
         } shouldBe CserealException(ErrorCode.LABMASTER_ONLY)
 
         val nonSeminar = harness(LocalDateTime.of(2027, 2, 28, 15, 0), RoomType.LECTURE)
-        unitAuthenticate("ROLE_RESERVATION")
+        unitAuthenticate("ROLE_RESERVE")
         shouldThrow<CserealException> {
             nonSeminar.service.reserveRoom(
                 request(nonSeminar.room.id, LocalDateTime.of(2027, 3, 20, 10, 0), 1)
@@ -328,18 +328,18 @@ class ReservationServiceTest(
             .single().reservationType shouldBe ReservationType.UNRESTRICTED
 
         val professorLabmaster = harness(afterOpening, roomId = 8)
-        unitAuthenticate("ROLE_PROFESSOR", "ROLE_LABMASTER")
+        unitAuthenticate("ROLE_RESERVE_PROFESSOR_ROOM", "ROLE_LABMASTER")
         professorLabmaster.service.reserveRoom(request(8, target, 1))
             .single().reservationType shouldBe ReservationType.ONE_TIME
         professorLabmaster.verifySingleTermLookup()
 
         val professorReservation = harness(afterOpening, roomId = 8)
-        unitAuthenticate("ROLE_PROFESSOR", "ROLE_RESERVATION")
+        unitAuthenticate("ROLE_RESERVE_PROFESSOR_ROOM", "ROLE_RESERVE")
         professorReservation.service.reserveRoom(request(8, target, 1))
             .single().reservationType shouldBe ReservationType.ONE_TIME
         professorReservation.verifySingleTermLookup()
 
-        listOf("ROLE_LABMASTER", "ROLE_RESERVATION").forEach { role ->
+        listOf("ROLE_LABMASTER", "ROLE_RESERVE").forEach { role ->
             val withoutProfessor = harness(afterOpening, roomId = 8)
             unitAuthenticate(role)
             shouldThrow<CserealException> {
@@ -348,7 +348,7 @@ class ReservationServiceTest(
         }
 
         val professorOnly = harness(afterOpening, roomId = 8)
-        unitAuthenticate("ROLE_PROFESSOR")
+        unitAuthenticate("ROLE_RESERVE_PROFESSOR_ROOM")
         shouldThrow<CserealException> {
             professorOnly.service.reserveRoom(request(8, target, 1))
         } shouldBe CserealException(ErrorCode.RESERVATION_PERMISSION_DENIED)
@@ -356,7 +356,7 @@ class ReservationServiceTest(
 
     "a UTC midnight boundary within one Seoul date is allowed for non-staff" {
         val fixture = harness(LocalDateTime.of(2027, 3, 8, 0, 0))
-        unitAuthenticate("ROLE_RESERVATION")
+        unitAuthenticate("ROLE_RESERVE")
 
         fixture.service.reserveRoom(
             request(fixture.room.id, LocalDateTime.of(2027, 3, 20, 23, 30), 1, hours = 1)
@@ -365,7 +365,7 @@ class ReservationServiceTest(
 
     "a Seoul midnight boundary is rejected for non-staff even within three hours" {
         val fixture = harness(LocalDateTime.of(2027, 3, 8, 0, 0))
-        unitAuthenticate("ROLE_RESERVATION")
+        unitAuthenticate("ROLE_RESERVE")
 
         shouldThrow<CserealException> {
             fixture.service.reserveRoom(
@@ -377,7 +377,7 @@ class ReservationServiceTest(
     "an over-three-hour occurrence is rejected for non-staff" {
         val fixture = harness(LocalDateTime.of(2027, 3, 8, 0, 0))
         val start = LocalDateTime.of(2027, 3, 20, 1, 0)
-        unitAuthenticate("ROLE_RESERVATION")
+        unitAuthenticate("ROLE_RESERVE")
 
         shouldThrow<CserealException> {
             fixture.service.reserveRoom(
@@ -397,7 +397,7 @@ class ReservationServiceTest(
 
     "the pessimistic room lookup occurs before the login-user query" {
         val fixture = harness(LocalDateTime.of(2027, 3, 8, 0, 0))
-        unitAuthenticate("ROLE_RESERVATION")
+        unitAuthenticate("ROLE_RESERVE")
         fixture.service.reserveRoom(
             request(fixture.room.id, LocalDateTime.of(2027, 3, 20, 10, 0), 1)
         )
@@ -415,19 +415,19 @@ class ReservationServiceTest(
         reserveTermRepository.save(
             ReserveTermEntity(now.minusDays(2), now.minusDays(1), now.minusDays(3), now.plusYears(1))
         )
-        authenticate(userRepository, "reservation-owner", "ROLE_RESERVATION")
+        authenticate(userRepository, "reservation-owner", "ROLE_RESERVE")
         val owned = reservationService.reserveRoom(request(seminar.id, start, 1)).single()
         reservationService.cancelSpecific(owned.id)
         reservationRepository.findById(owned.id).isPresent shouldBe false
 
-        authenticate(userRepository, "reservation-owner", "ROLE_RESERVATION")
+        authenticate(userRepository, "reservation-owner", "ROLE_RESERVE")
         val cancellable = reservationService.reserveRoom(request(seminar.id, start.plusHours(2), 1)).single()
         authenticate(userRepository, "cancelling-staff", "ROLE_STAFF")
         reservationService.cancelSpecific(cancellable.id)
 
-        authenticate(userRepository, "reservation-owner", "ROLE_RESERVATION")
+        authenticate(userRepository, "reservation-owner", "ROLE_RESERVE")
         val forbidden = reservationService.reserveRoom(request(seminar.id, start.plusHours(4), 1)).single()
-        authenticate(userRepository, "other-user", "ROLE_RESERVATION")
+        authenticate(userRepository, "other-user", "ROLE_RESERVE")
         shouldThrow<CserealException.Csereal403> {
             reservationService.cancelSpecific(forbidden.id)
         }.message shouldBe "Cannot cancel other's reservation"

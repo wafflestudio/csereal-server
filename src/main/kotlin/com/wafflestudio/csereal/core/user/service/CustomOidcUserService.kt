@@ -9,6 +9,7 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
+import com.wafflestudio.csereal.core.user.RoleType
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest
@@ -49,19 +50,19 @@ class CustomOidcUserService(
 
         val groups = oidcUser.idToken.getClaim<List<String>>("groups") ?: emptyList()
         if ("staff" in groups) {
-            authorities.add(SimpleGrantedAuthority("ROLE_STAFF"))
+            authorities.add(SimpleGrantedAuthority(RoleType.STAFF.authority))
         }
         if ("professor" in groups || "graduate" in groups) {
-            authorities.add(SimpleGrantedAuthority("ROLE_RESERVATION"))
+            authorities.add(SimpleGrantedAuthority(RoleType.RESERVE.authority))
         }
         if ("professor" in groups) {
-            authorities.add(SimpleGrantedAuthority("ROLE_PROFESSOR"))
+            authorities.add(SimpleGrantedAuthority(RoleType.RESERVE_PROFESSOR_ROOM.authority))
         }
         if ("student-council" in groups) {
-            authorities.add(SimpleGrantedAuthority("ROLE_COUNCIL"))
+            authorities.add(SimpleGrantedAuthority(RoleType.COUNCIL.authority))
         }
         if ("labmaster" in groups) {
-            authorities.add(SimpleGrantedAuthority("ROLE_LABMASTER"))
+            authorities.add(SimpleGrantedAuthority(RoleType.LABMASTER.authority))
         }
 
         logger.info(

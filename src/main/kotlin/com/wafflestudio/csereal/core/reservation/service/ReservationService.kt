@@ -13,6 +13,7 @@ import com.wafflestudio.csereal.core.reservation.dto.ReservationDto
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.reservation.dto.ReserveTermDto
 import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
+import com.wafflestudio.csereal.core.user.RoleType
 import com.wafflestudio.csereal.core.user.service.UserService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.authentication.AnonymousAuthenticationToken
@@ -46,10 +47,6 @@ class ReservationServiceImpl(
 ) : ReservationService {
 
     companion object {
-        private const val ROLE_STAFF = "ROLE_STAFF"
-        private const val ROLE_LABMASTER = "ROLE_LABMASTER"
-        private const val ROLE_RESERVATION = "ROLE_RESERVATION"
-        private const val ROLE_PROFESSOR = "ROLE_PROFESSOR"
         private const val PROFESSOR_ROOM_ID = 8L
         private val MAX_NON_STAFF_DURATION = Duration.ofHours(3)
         private val SEOUL_ZONE: ZoneId = ZoneId.of("Asia/Seoul")
@@ -65,14 +62,15 @@ class ReservationServiceImpl(
             ?: throw CserealException(ErrorCode.ROOM_NOT_FOUND)
         val user = userService.getLoginUser()
 
-        val isStaff = ROLE_STAFF in roles
-        val isLabmaster = ROLE_LABMASTER in roles
-        val hasReservationRole = ROLE_RESERVATION in roles
+        val isStaff = RoleType.STAFF.authority in roles
+        val isLabmaster = RoleType.LABMASTER.authority in roles
+        val hasReservationRole = RoleType.RESERVE.authority in roles
 
         if (!isStaff && room.type != RoomType.SEMINAR) {
             throw CserealException(ErrorCode.ONLY_SEMINAR_RESERVABLE)
         }
-        if (!isStaff && reserveRequest.roomId == PROFESSOR_ROOM_ID && ROLE_PROFESSOR !in roles) {
+        val canReserveProfessorRoom = RoleType.RESERVE_PROFESSOR_ROOM.authority in roles
+        if (!isStaff && reserveRequest.roomId == PROFESSOR_ROOM_ID && !canReserveProfessorRoom) {
             throw CserealException(ErrorCode.PROFESSOR_ROOM_DENIED)
         }
 
