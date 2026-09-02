@@ -21,7 +21,7 @@ class ImageModalController(
     private val imageModalService: ImageModalService
 ) {
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping
+    @PostMapping(consumes = ["multipart/form-data"])
     fun createImageModal(
         @RequestPart("request") request: CreateImageModalReq,
         @RequestPart("mainImage") mainImage: MultipartFile
@@ -30,7 +30,7 @@ class ImageModalController(
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PatchMapping("/{imageModalId}")
+    @PatchMapping("/{imageModalId}", consumes = ["multipart/form-data"])
     fun updateImageModal(
         @PathVariable imageModalId: Long,
         @RequestPart("request") request: CreateImageModalReq,

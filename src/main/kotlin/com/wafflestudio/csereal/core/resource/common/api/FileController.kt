@@ -55,7 +55,7 @@ class FileController(
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping("/upload")
+    @PostMapping("/upload", consumes = ["multipart/form-data"])
     fun uploadFiles(@RequestParam files: Map<String, MultipartFile>): ResponseEntity<FileUploadResponse> {
         return try {
             Files.createDirectories(Paths.get(uploadPath))

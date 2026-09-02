@@ -31,7 +31,7 @@ class SeminarController(
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping
+    @PostMapping(consumes = ["multipart/form-data"])
     fun createSeminar(
         @Valid
         @RequestPart("request")
@@ -50,7 +50,7 @@ class SeminarController(
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PatchMapping("/{seminarId}")
+    @PatchMapping("/{seminarId}", consumes = ["multipart/form-data"])
     fun updateSeminar(
         @PathVariable seminarId: Long,
         @Valid
