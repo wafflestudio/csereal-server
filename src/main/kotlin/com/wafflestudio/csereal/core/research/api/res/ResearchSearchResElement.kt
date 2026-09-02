@@ -12,8 +12,8 @@ data class ResearchSearchResElement(
     val name: String,
     val researchType: ResearchRelatedType,
     val partialDescription: String,
-    val boldStartIdx: Int,
-    val boldEndIdx: Int
+    val boldStartIndex: Int,
+    val boldEndIndex: Int
 ) {
     companion object {
         fun of(
@@ -37,8 +37,8 @@ data class ResearchSearchResElement(
                         language = it.language.let { ln -> LanguageType.makeLowercase(ln) },
                         researchType = it.postType.ofResearchRelatedType(),
                         partialDescription = partialDesc,
-                        boldStartIdx = startIdx ?: 0,
-                        boldEndIdx = startIdx?.plus(keyword.length) ?: 0
+                        boldStartIndex = startIdx ?: 0,
+                        boldEndIndex = startIdx?.plus(keyword.length) ?: 0
                     )
                 }
 
@@ -57,8 +57,8 @@ data class ResearchSearchResElement(
                         language = it.language.let { ln -> LanguageType.makeLowercase(ln) },
                         researchType = ResearchRelatedType.LAB,
                         partialDescription = partialDesc,
-                        boldStartIdx = startIdx ?: 0,
-                        boldEndIdx = startIdx?.plus(keyword.length) ?: 0
+                        boldStartIndex = startIdx ?: 0,
+                        boldEndIndex = startIdx?.plus(keyword.length) ?: 0
                     )
                 }
 
@@ -77,8 +77,8 @@ data class ResearchSearchResElement(
                         language = it.language.let { ln -> LanguageType.makeLowercase(ln) },
                         researchType = ResearchRelatedType.CONFERENCE,
                         partialDescription = partialDesc,
-                        boldStartIdx = startIdx ?: 0,
-                        boldEndIdx = startIdx?.plus(keyword.length) ?: 0
+                        boldStartIndex = startIdx ?: 0,
+                        boldEndIndex = startIdx?.plus(keyword.length) ?: 0
                     )
                 }
 

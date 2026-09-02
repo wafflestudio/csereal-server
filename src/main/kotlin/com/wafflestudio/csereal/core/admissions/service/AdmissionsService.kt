@@ -132,7 +132,7 @@ class AdmissionsServiceImpl(
         val (admissions, total) = admissionsRepository.searchAdmissions(keyword, language, number, 1)
         return AdmissionSearchResBody(
             total = total,
-            admissions = admissions.map {
+            results = admissions.map {
                 AdmissionSearchResElem.of(it, keyword, amount)
             }
         )
@@ -170,7 +170,7 @@ class AdmissionsServiceImpl(
         val (admissions, total) = admissionsRepository.searchAdmissions(keyword, language, pageSize, pageNum)
         return AdmissionSearchResBody(
             total = total,
-            admissions = admissions.map {
+            results = admissions.map {
                 AdmissionSearchResElem.of(it, keyword, amount)
             }
         )
