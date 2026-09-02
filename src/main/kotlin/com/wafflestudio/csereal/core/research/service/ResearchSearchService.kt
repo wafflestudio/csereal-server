@@ -12,13 +12,6 @@ import org.springframework.transaction.annotation.Transactional
 
 interface ResearchSearchService {
     fun searchTopResearch(keyword: String, language: LanguageType, number: Int, amount: Int): ResearchSearchResBody
-    fun searchResearch(
-        keyword: String,
-        language: LanguageType,
-        pageSize: Int,
-        pageNum: Int,
-        amount: Int
-    ): ResearchSearchResBody
     fun deleteResearchSearch(researchSearchEntity: ResearchSearchEntity)
 }
 
@@ -37,23 +30,6 @@ class ResearchSearchServiceImpl(
         amount: Int
     ): ResearchSearchResBody =
         researchSearchRepository.searchResearch(keyword, language, number, 1).let {
-            ResearchSearchResBody.of(
-                researches = it.first,
-                keyword = keyword,
-                amount = amount,
-                total = it.second
-            )
-        }
-
-    @Transactional(readOnly = true)
-    override fun searchResearch(
-        keyword: String,
-        language: LanguageType,
-        pageSize: Int,
-        pageNum: Int,
-        amount: Int
-    ): ResearchSearchResBody =
-        researchSearchRepository.searchResearch(keyword, language, pageSize, pageNum).let {
             ResearchSearchResBody.of(
                 researches = it.first,
                 keyword = keyword,

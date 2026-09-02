@@ -54,14 +54,6 @@ interface AboutService {
         number: Int,
         amount: Int
     ): AboutSearchResBody
-
-    fun searchPageAbout(
-        keyword: String,
-        language: LanguageType,
-        pageSize: Int,
-        pageNum: Int,
-        amount: Int
-    ): AboutSearchResBody
 }
 
 @Service
@@ -505,28 +497,6 @@ class AboutServiceImpl(
     ): AboutSearchResBody {
         val (searchEntities, searchCnt) =
             aboutRepository.searchAbouts(keyword, language, number, 1)
-        return AboutSearchResBody(
-            searchCnt,
-            searchEntities.map {
-                AboutSearchElementDto.of(it, keyword, amount)
-            }
-        )
-    }
-
-    @Transactional(readOnly = true)
-    override fun searchPageAbout(
-        keyword: String,
-        language: LanguageType,
-        pageSize: Int,
-        pageNum: Int,
-        amount: Int
-    ): AboutSearchResBody {
-        val (searchEntities, searchCnt) = aboutRepository.searchAbouts(
-            keyword,
-            language,
-            pageSize,
-            pageNum
-        )
         return AboutSearchResBody(
             searchCnt,
             searchEntities.map {

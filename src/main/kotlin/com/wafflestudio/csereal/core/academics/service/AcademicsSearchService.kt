@@ -16,13 +16,6 @@ interface AcademicsSearchService {
         number: Int,
         amount: Int
     ): AcademicsSearchResBody
-    fun searchAcademics(
-        keyword: String,
-        language: LanguageType,
-        pageSize: Int,
-        pageNum: Int,
-        amount: Int
-    ): AcademicsSearchResBody
 
     fun syncCourseSearch(course: CourseEntity)
     fun syncScholarshipSearch(scholarship: ScholarshipEntity)
@@ -52,28 +45,6 @@ class AcademicsSearchServiceImpl(
             AcademicsSearchResBody.of(
                 total = total,
                 academics = acds,
-                keyword = keyword,
-                amount = amount
-            )
-        }
-
-    @Transactional(readOnly = true)
-    override fun searchAcademics(
-        keyword: String,
-        language: LanguageType,
-        pageSize: Int,
-        pageNum: Int,
-        amount: Int
-    ) =
-        academicsSearchRepository.searchAcademics(
-            keyword = keyword,
-            language = language,
-            pageSize = pageSize,
-            pageNum = pageNum
-        ).let {
-            AcademicsSearchResBody.of(
-                academics = it.first,
-                total = it.second,
                 keyword = keyword,
                 amount = amount
             )
