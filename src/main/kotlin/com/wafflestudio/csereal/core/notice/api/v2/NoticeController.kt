@@ -54,7 +54,7 @@ class NoticeController(
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping
+    @PostMapping(consumes = ["multipart/form-data"])
     fun createNotice(
         @Valid
         @RequestPart("request")
@@ -65,7 +65,7 @@ class NoticeController(
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PatchMapping("/{noticeId}")
+    @PatchMapping("/{noticeId}", consumes = ["multipart/form-data"])
     fun updateNotice(
         @PathVariable noticeId: Long,
         @Valid

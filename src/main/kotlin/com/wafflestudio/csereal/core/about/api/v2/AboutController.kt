@@ -37,14 +37,14 @@ class AboutController(
     fun readAllClubs(): List<GroupedClubDto> = aboutService.readAllGroupedClubs()
 
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping("/student-clubs")
+    @PostMapping("/student-clubs", consumes = ["multipart/form-data"])
     fun createClub(
         @RequestPart request: CreateClubReq,
         @RequestPart mainImage: MultipartFile?
     ) = aboutService.createClub(request, mainImage)
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/student-clubs")
+    @PutMapping("/student-clubs", consumes = ["multipart/form-data"])
     fun updateClub(
         @RequestPart request: UpdateClubReq,
         @RequestPart newMainImage: MultipartFile?
@@ -55,7 +55,7 @@ class AboutController(
     fun deleteClub(@PathVariable id: Long) = aboutService.deleteClub(id)
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/{postType}")
+    @PutMapping("/{postType}", consumes = ["multipart/form-data"])
     fun updateAbout(
         @PathVariable postType: AboutPostType,
         @RequestPart request: UpdateAboutReq,
@@ -64,7 +64,7 @@ class AboutController(
     ) = aboutService.updateAbout(postType, request, newMainImage, newAttachments)
 
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping("/facilities")
+    @PostMapping("/facilities", consumes = ["multipart/form-data"])
     fun createFacilities(@RequestPart request: CreateFacReq, @RequestPart mainImage: MultipartFile?) =
         aboutService.createFacilities(request, mainImage)
 
@@ -72,7 +72,7 @@ class AboutController(
     fun readAllGroupedFacilities() = aboutService.readAllGroupedFacilities()
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/facilities/{id}")
+    @PutMapping("/facilities/{id}", consumes = ["multipart/form-data"])
     fun updateFacility(
         @PathVariable id: Long,
         @RequestPart request: UpdateFacReq,

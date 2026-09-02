@@ -56,7 +56,7 @@ class NewsController(
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping
+    @PostMapping(consumes = ["multipart/form-data"])
     fun createNews(
         @Valid
         @RequestPart("request")
@@ -68,7 +68,7 @@ class NewsController(
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PatchMapping("/{newsId}")
+    @PatchMapping("/{newsId}", consumes = ["multipart/form-data"])
     fun updateNews(
         @PathVariable newsId: Long,
         @Valid

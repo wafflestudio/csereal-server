@@ -81,7 +81,7 @@ class AcademicsController(
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/{studentType}/guide")
+    @PutMapping("/{studentType}/guide", consumes = ["multipart/form-data"])
     fun updateGuide(
         @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
         @PathVariable studentType: AcademicsStudentType,
@@ -101,7 +101,7 @@ class AcademicsController(
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping("/{studentType}/{postType}")
+    @PostMapping("/{studentType}/{postType}", consumes = ["multipart/form-data"])
     fun createAcademicsYearResponse(
         @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
         @PathVariable studentType: AcademicsStudentType,
@@ -111,7 +111,7 @@ class AcademicsController(
     ) = academicsService.createAcademicsYearResponse(language, studentType, postType, request, attachments)
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/{studentType}/{postType}/{year}")
+    @PutMapping("/{studentType}/{postType}/{year}", consumes = ["multipart/form-data"])
     fun updateAcademicsYearResponse(
         @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
         @PathVariable studentType: AcademicsStudentType,
@@ -129,7 +129,7 @@ class AcademicsController(
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/undergraduate/degree-requirements")
+    @PutMapping("/undergraduate/degree-requirements", consumes = ["multipart/form-data"])
     fun updateDegreeRequirements(
         @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
         @RequestPart request: UpdateSingleReq,
