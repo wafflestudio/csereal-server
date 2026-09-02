@@ -48,8 +48,8 @@ class AdmissionsServiceTest(
 
             Then("주어진 정보와 일치하는 AdmissionDto가 반환된다.") {
                 result.name shouldBe req.name
-                result.mainType shouldBe mainType.toJsonValue()
-                result.postType shouldBe postType.toJsonValue()
+                result.mainType shouldBe mainType.toValue()
+                result.postType shouldBe postType.toValue()
                 result.language shouldBe req.language
                 result.description shouldBe req.description
             }
@@ -114,8 +114,8 @@ class AdmissionsServiceTest(
             Then("주어진 정보와 일치하는 AdmissionDto가 반환된다.") {
                 result.let {
                     it.name shouldBe admission.name
-                    it.mainType shouldBe admission.mainType.toJsonValue()
-                    it.postType shouldBe admission.postType.toJsonValue()
+                    it.mainType shouldBe admission.mainType.toValue()
+                    it.postType shouldBe admission.postType.toValue()
                     it.language shouldBe LanguageType.makeLowercase(admission.language)
                     it.description shouldBe admission.description
                 }

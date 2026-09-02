@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.admissions.type
 
-import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.LanguageType
 
 enum class AdmissionsMainType(
@@ -16,15 +15,6 @@ enum class AdmissionsMainType(
         LanguageType.EN -> this.en
     }
 
-    fun toJsonValue() = this.name.lowercase()
-
-    companion object {
-        fun fromJsonValue(field: String) = try {
-            field
-                .uppercase()
-                .let { AdmissionsMainType.valueOf(it) }
-        } catch (e: IllegalArgumentException) {
-            throw CserealException.Csereal400("존재하지 않는 Admission Main Type입니다.")
-        }
-    }
+    @com.fasterxml.jackson.annotation.JsonValue
+    fun toValue() = name.lowercase().replace('_', '-')
 }

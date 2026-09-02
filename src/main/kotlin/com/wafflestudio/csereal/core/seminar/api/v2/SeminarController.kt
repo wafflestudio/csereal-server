@@ -21,15 +21,13 @@ class SeminarController(
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
         @RequestParam(required = false, defaultValue = "10") pageSize: Int,
-        @RequestParam(required = false, defaultValue = "DATE") sortBy: String
+        @RequestParam(required = false, defaultValue = "DATE") sortBy: ContentSearchSortType
     ): ResponseEntity<SeminarSearchResponse> {
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
 
-        val sortType = ContentSearchSortType.fromJsonValue(sortBy)
-
-        return ResponseEntity.ok(seminarService.searchSeminar(keyword, pageRequest, usePageBtn, sortType))
+        return ResponseEntity.ok(seminarService.searchSeminar(keyword, pageRequest, usePageBtn, sortBy))
     }
 
     @PreAuthorize("hasRole('STAFF')")

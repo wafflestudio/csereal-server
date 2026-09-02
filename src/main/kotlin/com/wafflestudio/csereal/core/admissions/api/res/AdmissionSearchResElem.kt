@@ -29,8 +29,8 @@ data class AdmissionSearchResElem private constructor(
             AdmissionSearchResElem(
                 id = it.id,
                 name = it.name,
-                mainType = it.mainType.toJsonValue(),
-                postType = it.postType.toJsonValue(),
+                mainType = it.mainType.toValue(),
+                postType = it.postType.toValue(),
                 language = LanguageType.makeLowercase(it.language),
                 partialDescription = partialDescription.replace('\n', ' '),
                 boldStartIndex = boldStartIdx ?: 0,

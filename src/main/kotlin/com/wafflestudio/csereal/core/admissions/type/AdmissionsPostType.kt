@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.admissions.type
 
-import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.LanguageType
 
 enum class AdmissionsPostType(
@@ -22,16 +21,6 @@ enum class AdmissionsPostType(
         LanguageType.EN -> this.en
     }
 
-    fun toJsonValue() = this.name.lowercase()
-
-    companion object {
-        fun fromJsonValue(field: String) =
-            try {
-                field.replace('-', '_')
-                    .uppercase()
-                    .let { AdmissionsPostType.valueOf(it) }
-            } catch (e: IllegalArgumentException) {
-                throw CserealException.Csereal400("잘못된 Admission Post Type이 주어졌습니다.")
-            }
-    }
+    @com.fasterxml.jackson.annotation.JsonValue
+    fun toValue() = name.lowercase().replace('_', '-')
 }

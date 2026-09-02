@@ -25,7 +25,7 @@ import org.springframework.web.multipart.MultipartFile
 interface StaffService {
     fun getStaffLanguages(staffId: Long): StaffLanguagesDto
     fun getStaff(staffId: Long): StaffDto
-    fun getAllStaff(language: String): List<SimpleStaffDto>
+    fun getAllStaff(language: LanguageType): List<SimpleStaffDto>
 
     fun createStaffLanguages(
         createStaffLanguagesReqBody: CreateStaffLanguagesReqBody,
@@ -138,10 +138,8 @@ class StaffServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun getAllStaff(language: String): List<SimpleStaffDto> {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
-
-        val sortedStaff = staffRepository.findAllByLanguage(enumLanguageType).map {
+    override fun getAllStaff(language: LanguageType): List<SimpleStaffDto> {
+        val sortedStaff = staffRepository.findAllByLanguage(language).map {
             val imageURL = mainImageService.createImageURL(it.mainImage)
             SimpleStaffDto.of(it, imageURL)
         }.sortedBy { it.name }.toMutableList()

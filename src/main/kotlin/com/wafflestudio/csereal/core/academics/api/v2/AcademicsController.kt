@@ -1,5 +1,7 @@
 package com.wafflestudio.csereal.core.academics.api.v2
 
+import com.wafflestudio.csereal.core.academics.database.AcademicsStudentType
+import com.wafflestudio.csereal.core.academics.database.AcademicsPostType
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.api.req.*
 import com.wafflestudio.csereal.core.academics.dto.*
@@ -28,7 +30,7 @@ class AcademicsController(
 
     @GetMapping("/courses")
     fun readAllGroupedCourses(
-        @RequestParam studentType: String,
+        @RequestParam studentType: AcademicsStudentType,
         @RequestParam(required = false, defaultValue = "ko") sort: String
     ): List<GroupedCourseDto> =
         academicsService.readAllGroupedCourses(studentType, sort)
@@ -44,7 +46,7 @@ class AcademicsController(
     @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/{studentType}/scholarship")
     fun createScholarship(
-        @PathVariable studentType: String,
+        @PathVariable studentType: AcademicsStudentType,
         @Valid @RequestBody
         request: CreateScholarshipReq
     ) = academicsService.createScholarship(studentType, request)
@@ -65,15 +67,15 @@ class AcademicsController(
     @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{studentType}/scholarship")
     fun updateScholarshipPage(
-        @RequestParam(required = false, defaultValue = "ko") language: String,
-        @PathVariable studentType: String,
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
+        @PathVariable studentType: AcademicsStudentType,
         @RequestBody request: UpdateScholarshipPageReq
     ) = academicsService.updateScholarshipPage(language, studentType, request)
 
     @GetMapping("/{studentType}/guide")
     fun readGuide(
-        @RequestParam(required = false, defaultValue = "ko") language: String,
-        @PathVariable studentType: String
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
+        @PathVariable studentType: AcademicsStudentType
     ): ResponseEntity<GuidePageResponse> {
         return ResponseEntity.ok(academicsService.readGuide(language, studentType))
     }
@@ -81,17 +83,17 @@ class AcademicsController(
     @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{studentType}/guide")
     fun updateGuide(
-        @RequestParam(required = false, defaultValue = "ko") language: String,
-        @PathVariable studentType: String,
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
+        @PathVariable studentType: AcademicsStudentType,
         @RequestPart request: UpdateSingleReq,
         @RequestPart newAttachments: List<MultipartFile>?
     ) = academicsService.updateGuide(language, studentType, request, newAttachments)
 
     @GetMapping("/{studentType}/{postType}")
     fun readAcademicsYearResponses(
-        @RequestParam(required = false, defaultValue = "ko") language: String,
-        @PathVariable studentType: String,
-        @PathVariable postType: String
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
+        @PathVariable studentType: AcademicsStudentType,
+        @PathVariable postType: AcademicsPostType
     ): ResponseEntity<List<AcademicsYearResponse>> {
         return ResponseEntity.ok(
             academicsService.readAcademicsYearResponses(language, studentType, postType)
@@ -101,9 +103,9 @@ class AcademicsController(
     @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/{studentType}/{postType}")
     fun createAcademicsYearResponse(
-        @RequestParam(required = false, defaultValue = "ko") language: String,
-        @PathVariable studentType: String,
-        @PathVariable postType: String,
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
+        @PathVariable studentType: AcademicsStudentType,
+        @PathVariable postType: AcademicsPostType,
         @RequestPart request: CreateYearReq,
         @RequestPart attachments: List<MultipartFile>?
     ) = academicsService.createAcademicsYearResponse(language, studentType, postType, request, attachments)
@@ -111,9 +113,9 @@ class AcademicsController(
     @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{studentType}/{postType}/{year}")
     fun updateAcademicsYearResponse(
-        @RequestParam(required = false, defaultValue = "ko") language: String,
-        @PathVariable studentType: String,
-        @PathVariable postType: String,
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
+        @PathVariable studentType: AcademicsStudentType,
+        @PathVariable postType: AcademicsPostType,
         @PathVariable year: Int,
         @RequestPart request: UpdateYearReq,
         @RequestPart newAttachments: List<MultipartFile>?
@@ -121,7 +123,7 @@ class AcademicsController(
 
     @GetMapping("/undergraduate/degree-requirements")
     fun readDegreeRequirements(
-        @RequestParam(required = false, defaultValue = "ko") language: String
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType
     ): ResponseEntity<DegreeRequirementsPageResponse> {
         return ResponseEntity.ok(academicsService.readDegreeRequirements(language))
     }
@@ -129,15 +131,15 @@ class AcademicsController(
     @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/undergraduate/degree-requirements")
     fun updateDegreeRequirements(
-        @RequestParam(required = false, defaultValue = "ko") language: String,
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
         @RequestPart request: UpdateSingleReq,
         @RequestPart newAttachments: List<MultipartFile>?
     ) = academicsService.updateDegreeRequirements(language, request, newAttachments)
 
     @GetMapping("/{studentType}/scholarship")
     fun readAllScholarship(
-        @RequestParam(required = false, defaultValue = "ko") language: String,
-        @PathVariable studentType: String
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
+        @PathVariable studentType: AcademicsStudentType
     ): ResponseEntity<ScholarshipPageResponse> {
         return ResponseEntity.ok(academicsService.readAllScholarship(language, studentType))
     }
@@ -145,9 +147,9 @@ class AcademicsController(
     @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/{studentType}/{postType}/{year}")
     fun deleteAcademicsYearResponse(
-        @RequestParam(required = false, defaultValue = "ko") language: String,
-        @PathVariable studentType: String,
-        @PathVariable postType: String,
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
+        @PathVariable studentType: AcademicsStudentType,
+        @PathVariable postType: AcademicsPostType,
         @PathVariable year: Int
     ) = academicsService.deleteAcademicsYearResponse(language, studentType, postType, year)
 
@@ -155,11 +157,11 @@ class AcademicsController(
     fun searchTop(
         @RequestParam(required = true) keyword: String,
         @RequestParam(required = true) @Valid @Positive number: Int,
-        @RequestParam(required = true, defaultValue = "ko") language: String,
+        @RequestParam(required = true, defaultValue = "ko") language: LanguageType,
         @RequestParam(required = false, defaultValue = "30") amount: Int
     ) = academicsSearchService.searchTopAcademics(
         keyword = keyword,
-        language = LanguageType.makeStringToLanguageType(language),
+        language = language,
         number = number,
         amount = amount
     )
@@ -169,11 +171,11 @@ class AcademicsController(
         @RequestParam(required = true) keyword: String,
         @RequestParam(required = true) @Valid @Positive pageSize: Int,
         @RequestParam(required = true) @Valid @Positive pageNum: Int,
-        @RequestParam(required = true, defaultValue = "ko") language: String,
+        @RequestParam(required = true, defaultValue = "ko") language: LanguageType,
         @RequestParam(required = false, defaultValue = "30") amount: Int
     ) = academicsSearchService.searchAcademics(
         keyword = keyword,
-        language = LanguageType.makeStringToLanguageType(language),
+        language = language,
         pageSize = pageSize,
         pageNum = pageNum,
         amount = amount

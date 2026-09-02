@@ -19,4 +19,7 @@ enum class LanguageType {
         // dto로 통신할 때 소문자로 return
         fun makeLowercase(languageType: LanguageType): String = languageType.toString().lowercase()
     }
+
+    @com.fasterxml.jackson.annotation.JsonValue
+    fun toValue() = name.lowercase().replace('_', '-')
 }

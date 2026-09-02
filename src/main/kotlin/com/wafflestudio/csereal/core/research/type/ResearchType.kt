@@ -1,7 +1,5 @@
 package com.wafflestudio.csereal.core.research.type
 
-import com.wafflestudio.csereal.common.CserealException
-
 enum class ResearchRelatedType {
     RESEARCH_GROUP,
     RESEARCH_CENTER,
@@ -13,6 +11,9 @@ enum class ResearchRelatedType {
         RESEARCH_CENTER -> ResearchType.CENTERS
         else -> throw IllegalArgumentException("ResearchRelatedType $this does not have corresponding ResearchType")
     }
+
+    @com.fasterxml.jackson.annotation.JsonValue
+    fun toValue() = name.lowercase().replace('_', '-')
 }
 
 enum class ResearchType(
@@ -26,13 +27,6 @@ enum class ResearchType(
         CENTERS -> ResearchRelatedType.RESEARCH_CENTER
     }
 
-    companion object {
-        fun fromJsonValue(value: String) = try {
-            ResearchType.valueOf(
-                value.uppercase().replace('-', '_')
-            )
-        } catch (e: Exception) {
-            throw CserealException.Csereal404("잘못된 Research Type이 주어졌습니다.")
-        }
-    }
+    @com.fasterxml.jackson.annotation.JsonValue
+    fun toValue() = name.lowercase().replace('_', '-')
 }
