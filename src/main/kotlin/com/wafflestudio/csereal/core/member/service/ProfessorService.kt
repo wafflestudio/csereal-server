@@ -28,8 +28,8 @@ import org.springframework.web.multipart.MultipartFile
 interface ProfessorService {
     fun getProfessor(professorId: Long): ProfessorDto
     fun getProfessorLanguages(professorId: Long): ProfessorLanguagesDto
-    fun getActiveProfessors(language: String): ProfessorPageDto
-    fun getInactiveProfessors(language: String): List<SimpleProfessorDto>
+    fun getActiveProfessors(language: LanguageType): ProfessorPageDto
+    fun getInactiveProfessors(language: LanguageType): List<SimpleProfessorDto>
 
     fun createProfessor(
         language: LanguageType,
@@ -107,9 +107,7 @@ class ProfessorServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun getActiveProfessors(language: String): ProfessorPageDto {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
-
+    override fun getActiveProfessors(language: LanguageType): ProfessorPageDto {
         // TODO: Refactor to save in database
         val description =
             "컴퓨터공학부는 35명의 훌륭한 교수진과 최신 시설을 갖추고 400여 명의 학부생과 " +
@@ -122,7 +120,7 @@ class ProfessorServiceImpl(
                 "학부 내 외국인 구성원의 화합과 생활의 불편함을 최소화하는 등 학부 차원에서 최선을 다하고 있다."
 
         val professors = professorRepository.findByLanguageAndStatusNot(
-            enumLanguageType,
+            language,
             ProfessorStatus.INACTIVE
         ).map {
             val imageURL = mainImageService.createImageURL(it.mainImage)
@@ -130,7 +128,7 @@ class ProfessorServiceImpl(
         }.sortedWith { a, b ->
 
             when {
-                enumLanguageType == LanguageType.EN -> {
+                language == LanguageType.EN -> {
                     val lastNameA = a.name.split(" ").last()
                     val lastNameB = b.name.split(" ").last()
                     lastNameA.compareTo(lastNameB)
@@ -146,17 +144,16 @@ class ProfessorServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun getInactiveProfessors(language: String): List<SimpleProfessorDto> {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
+    override fun getInactiveProfessors(language: LanguageType): List<SimpleProfessorDto> {
         return professorRepository.findByLanguageAndStatus(
-            enumLanguageType,
+            language,
             ProfessorStatus.INACTIVE
         ).map {
             val imageURL = mainImageService.createImageURL(it.mainImage)
             SimpleProfessorDto.of(it, imageURL)
         }.sortedWith { a, b ->
             when {
-                enumLanguageType == LanguageType.EN -> {
+                language == LanguageType.EN -> {
                     val lastNameA = a.name.split(" ").last()
                     val lastNameB = b.name.split(" ").last()
                     lastNameA.compareTo(lastNameB)

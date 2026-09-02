@@ -1,5 +1,7 @@
 package com.wafflestudio.csereal.core.main.service
 
+import com.wafflestudio.csereal.core.academics.database.AcademicsStudentType
+import com.wafflestudio.csereal.core.academics.database.AcademicsPostType
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.util.CleanUp
@@ -289,9 +291,9 @@ class TotalSearchTest(
         )
 
         academicsService.createAcademicsYearResponse(
-            language = "ko",
-            studentType = "undergraduate",
-            postType = "CURRICULUM",
+            language = LanguageType.KO,
+            studentType = AcademicsStudentType.UNDERGRADUATE,
+            postType = AcademicsPostType.CURRICULUM,
             request = CreateYearReq(
                 name = "name",
                 year = 2000,
@@ -301,7 +303,7 @@ class TotalSearchTest(
         )
 
         academicsService.createScholarship(
-            studentType = "undergraduate",
+            studentType = AcademicsStudentType.UNDERGRADUATE,
             request = CreateScholarshipReq(
                 koName = "name",
                 koDescription = "<p>$keyword</p>",

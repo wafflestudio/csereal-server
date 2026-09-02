@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.member.api.v2
 
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.api.req.CreateProfessorLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorLanguagesReqBody
 import com.wafflestudio.csereal.core.member.dto.ProfessorLanguagesDto
@@ -27,14 +28,14 @@ class ProfessorController(
 
     @GetMapping("/active")
     fun getActiveProfessors(
-        @RequestParam(required = false, defaultValue = "ko") language: String
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType
     ): ResponseEntity<ProfessorPageDto> {
         return ResponseEntity.ok(professorService.getActiveProfessors(language))
     }
 
     @GetMapping("/inactive")
     fun getInactiveProfessors(
-        @RequestParam(required = false, defaultValue = "ko") language: String
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType
     ): ResponseEntity<List<SimpleProfessorDto>> {
         return ResponseEntity.ok(professorService.getInactiveProfessors(language))
     }

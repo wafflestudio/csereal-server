@@ -70,8 +70,8 @@ class ConferenceServiceImpl(
         val conferencePage = ConferencePageEntity.of(user)
         conferencePageRepository.save(conferencePage)
         for (request in requestList) {
-            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-            val conference = ConferenceEntity.of(enumLanguageType, request, conferencePage)
+            val language = LanguageType.makeStringToLanguageType(request.language)
+            val conference = ConferenceEntity.of(language, request, conferencePage)
 
             conferenceRepository.save(conference)
 
@@ -89,9 +89,9 @@ class ConferenceServiceImpl(
         conferenceDto: ConferenceDto,
         conferencePage: ConferencePageEntity
     ): ConferenceEntity {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(conferenceDto.language)
+        val language = LanguageType.makeStringToLanguageType(conferenceDto.language)
         val newConference = ConferenceEntity.of(
-            enumLanguageType,
+            language,
             conferenceDto,
             conferencePage
         )

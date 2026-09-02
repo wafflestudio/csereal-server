@@ -40,8 +40,8 @@ interface ResearchService {
     fun readResearchLanguage(id: Long): ResearchLanguageDto
     fun readAllResearch(language: LanguageType, type: ResearchType): List<ResearchSealedDto>
 
-    fun readAllResearchGroupsDeprecated(language: String): ResearchGroupResponse
-    fun readAllResearchCentersDeprecated(language: String): List<ResearchDto>
+    fun readAllResearchGroupsDeprecated(language: LanguageType): ResearchGroupResponse
+    fun readAllResearchCentersDeprecated(language: LanguageType): List<ResearchDto>
 }
 
 @Service
@@ -242,7 +242,7 @@ class ResearchServiceImpl(
             .map { ResearchSealedDto.of(it, mainImageService.createImageURL(it.mainImage)) }
 
     @Transactional(readOnly = true)
-    override fun readAllResearchGroupsDeprecated(language: String): ResearchGroupResponse {
+    override fun readAllResearchGroupsDeprecated(language: LanguageType): ResearchGroupResponse {
         // Todo: description 수정 필요
         val description = "세계가 주목하는 컴퓨터공학부의 많은 교수들은 ACM, IEEE 등 " +
             "세계적인 컴퓨터관련 주요 학회에서 국제학술지 편집위원, 국제학술회의 위원장, " +
@@ -250,11 +250,10 @@ class ResearchServiceImpl(
             "연구과제 등도 성공적으로 수행, 우수한 성과들을 내놓고 있으며, 오늘도 인류가 " +
             "꿈꾸는 행복하고 편리한 세상을 위해 변화와 혁신, 연구와 도전을 계속하고 있습니다."
 
-        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
         val researchGroups =
             researchRepository.findAllByPostTypeAndLanguageOrderByName(
                 ResearchType.GROUPS,
-                enumLanguageType
+                language
             ).map {
                 val imageURL = mainImageService.createImageURL(it.mainImage)
                 ResearchDto.of(it, imageURL, emptyList())
@@ -264,12 +263,11 @@ class ResearchServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllResearchCentersDeprecated(language: String): List<ResearchDto> {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
+    override fun readAllResearchCentersDeprecated(language: LanguageType): List<ResearchDto> {
         val researchCenters =
             researchRepository.findAllByPostTypeAndLanguageOrderByName(
                 ResearchType.CENTERS,
-                enumLanguageType
+                language
             ).map {
                 val imageURL = mainImageService.createImageURL(it.mainImage)
                 ResearchDto.of(it, imageURL, emptyList())

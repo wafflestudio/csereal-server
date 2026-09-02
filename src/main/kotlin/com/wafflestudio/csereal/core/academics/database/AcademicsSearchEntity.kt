@@ -130,5 +130,8 @@ class AcademicsSearchEntity(
 enum class AcademicsSearchType {
     ACADEMICS,
     COURSE,
-    SCHOLARSHIP
+    SCHOLARSHIP;
+
+    @com.fasterxml.jackson.annotation.JsonValue
+    fun toValue() = name.lowercase().replace('_', '-')
 }

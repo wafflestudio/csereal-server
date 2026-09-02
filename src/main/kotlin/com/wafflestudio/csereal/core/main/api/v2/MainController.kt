@@ -41,14 +41,14 @@ class MainController(
         @RequestParam(required = false, defaultValue = "3") @Positive number: Int,
         @RequestParam(required = false, defaultValue = "10") @Positive memberNumber: Int,
         @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int,
-        @RequestParam(required = false, defaultValue = "ko") language: String
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType
     ): TotalSearchResponse {
         return mainService.totalSearch(
             keyword,
             number,
             memberNumber,
             stringLength,
-            LanguageType.makeStringToLanguageType(language)
+            language
         )
     }
 }

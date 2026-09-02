@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.member.api.v2
 
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.api.req.CreateStaffLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyStaffLanguagesReqBody
 import com.wafflestudio.csereal.core.member.dto.SimpleStaffDto
@@ -33,7 +34,7 @@ class StaffController(
 
     @GetMapping
     fun getAllStaff(
-        @RequestParam(required = false, defaultValue = "ko") language: String
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType
     ): ResponseEntity<List<SimpleStaffDto>> {
         return ResponseEntity.ok(staffService.getAllStaff(language))
     }

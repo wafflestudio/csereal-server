@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.about.api.v2
 
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.about.database.AboutPostType
 import com.wafflestudio.csereal.core.about.api.req.*
 import com.wafflestudio.csereal.core.about.api.res.AboutSearchResBody
 import com.wafflestudio.csereal.core.about.dto.AboutDto
@@ -26,8 +27,8 @@ class AboutController(
     // TODO: Remove if not needed (controller returns language pair should be preferred)
     @GetMapping("/{postType}")
     fun readAbout(
-        @RequestParam(required = false, defaultValue = "ko") language: String,
-        @PathVariable postType: String
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
+        @PathVariable postType: AboutPostType
     ): ResponseEntity<AboutDto> {
         return ResponseEntity.ok(aboutService.readAbout(language, postType))
     }
@@ -56,7 +57,7 @@ class AboutController(
     @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{postType}")
     fun updateAbout(
-        @PathVariable postType: String,
+        @PathVariable postType: AboutPostType,
         @RequestPart request: UpdateAboutReq,
         @RequestPart newMainImage: MultipartFile?,
         @RequestPart newAttachments: List<MultipartFile>?
@@ -118,7 +119,7 @@ class AboutController(
 
     @GetMapping("/future-careers")
     fun readFutureCareers(
-        @RequestParam(required = false, defaultValue = "ko") language: String
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType
     ): ResponseEntity<FutureCareersPage> {
         return ResponseEntity.ok(aboutService.readFutureCareers(language))
     }
@@ -127,11 +128,11 @@ class AboutController(
     fun searchTopAbout(
         @RequestParam(required = true) keyword: String,
         @RequestParam(required = true) @Valid @Positive number: Int,
-        @RequestParam(required = true, defaultValue = "ko") language: String,
+        @RequestParam(required = true, defaultValue = "ko") language: LanguageType,
         @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
     ): AboutSearchResBody = aboutService.searchTopAbout(
         keyword,
-        LanguageType.makeStringToLanguageType(language),
+        language,
         number,
         amount
     )
@@ -141,11 +142,11 @@ class AboutController(
         @RequestParam(required = true) keyword: String,
         @RequestParam(required = true) @Valid @Positive pageNum: Int,
         @RequestParam(required = true) @Valid @Positive pageSize: Int,
-        @RequestParam(required = true, defaultValue = "ko") language: String,
+        @RequestParam(required = true, defaultValue = "ko") language: LanguageType,
         @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
     ): AboutSearchResBody = aboutService.searchPageAbout(
         keyword,
-        LanguageType.makeStringToLanguageType(language),
+        language,
         pageSize,
         pageNum,
         amount

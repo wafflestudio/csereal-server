@@ -19,18 +19,18 @@ class MemberSearchController(
     fun searchTop(
         @RequestParam(required = true) keyword: String,
         @RequestParam(required = true) @Valid @Positive number: Int,
-        @RequestParam(required = true, defaultValue = "ko") language: String
-    ) = LanguageType.makeStringToLanguageType(language).let {
+        @RequestParam(required = true, defaultValue = "ko") language: LanguageType
+    ) = language.let {
         memberSearchService.searchTopMember(keyword, it, number)
     }
 
     @GetMapping
     fun searchPage(
         @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true, defaultValue = "ko") language: String,
+        @RequestParam(required = true, defaultValue = "ko") language: LanguageType,
         @RequestParam(required = true) @Valid @Positive pageSize: Int,
         @RequestParam(required = true) @Valid @Positive pageNum: Int
-    ) = LanguageType.makeStringToLanguageType(language).let {
+    ) = language.let {
         memberSearchService.searchMember(keyword, it, pageSize, pageNum)
     }
 }

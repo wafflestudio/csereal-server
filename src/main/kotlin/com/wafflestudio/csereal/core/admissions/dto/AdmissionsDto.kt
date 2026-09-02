@@ -19,8 +19,8 @@ data class AdmissionsDto(
             AdmissionsDto(
                 id = this.id,
                 name = this.name,
-                mainType = this.mainType.toJsonValue(),
-                postType = this.postType.toJsonValue(),
+                mainType = this.mainType.toValue(),
+                postType = this.postType.toValue(),
                 language = LanguageType.makeLowercase(this.language),
                 description = this.description,
                 createdAt = this.createdAt!!,

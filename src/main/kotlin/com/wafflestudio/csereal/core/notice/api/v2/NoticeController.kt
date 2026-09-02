@@ -25,15 +25,13 @@ class NoticeController(
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) @Positive pageNum: Int?,
         @RequestParam(required = false, defaultValue = "20") @Positive pageSize: Int,
-        @RequestParam(required = false, defaultValue = "DATE") sortBy: String
+        @RequestParam(required = false, defaultValue = "DATE") sortBy: ContentSearchSortType
     ): ResponseEntity<NoticeSearchResponse> {
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
 
-        val sortType = ContentSearchSortType.fromJsonValue(sortBy)
-
-        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, sortType))
+        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, sortBy))
     }
 
     @GetMapping("/totalSearch")
