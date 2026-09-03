@@ -8,7 +8,6 @@ import com.wafflestudio.csereal.core.academics.dto.*
 import com.wafflestudio.csereal.core.academics.service.AcademicsSearchService
 import com.wafflestudio.csereal.core.academics.service.AcademicsService
 import jakarta.validation.Valid
-import jakarta.validation.constraints.Positive
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -152,32 +151,4 @@ class AcademicsController(
         @PathVariable postType: AcademicsPostType,
         @PathVariable year: Int
     ) = academicsService.deleteAcademicsYearResponse(language, studentType, postType, year)
-
-    @GetMapping("/search/top")
-    fun searchTop(
-        @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true) @Valid @Positive number: Int,
-        @RequestParam(required = true, defaultValue = "ko") language: LanguageType,
-        @RequestParam(required = false, defaultValue = "30") amount: Int
-    ) = academicsSearchService.searchTopAcademics(
-        keyword = keyword,
-        language = language,
-        number = number,
-        amount = amount
-    )
-
-    @GetMapping("/search")
-    fun searchAcademics(
-        @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true) @Valid @Positive pageSize: Int,
-        @RequestParam(required = true) @Valid @Positive pageNum: Int,
-        @RequestParam(required = true, defaultValue = "ko") language: LanguageType,
-        @RequestParam(required = false, defaultValue = "30") amount: Int
-    ) = academicsSearchService.searchAcademics(
-        keyword = keyword,
-        language = language,
-        pageSize = pageSize,
-        pageNum = pageNum,
-        amount = amount
-    )
 }

@@ -3,13 +3,10 @@ package com.wafflestudio.csereal.core.about.api.v2
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.about.database.AboutPostType
 import com.wafflestudio.csereal.core.about.api.req.*
-import com.wafflestudio.csereal.core.about.api.res.AboutSearchResBody
 import com.wafflestudio.csereal.core.about.dto.AboutDto
 import com.wafflestudio.csereal.core.about.dto.FutureCareersPage
 import com.wafflestudio.csereal.core.about.dto.GroupedClubDto
 import com.wafflestudio.csereal.core.about.service.AboutService
-import jakarta.validation.Valid
-import jakarta.validation.constraints.Positive
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -123,32 +120,4 @@ class AboutController(
     ): ResponseEntity<FutureCareersPage> {
         return ResponseEntity.ok(aboutService.readFutureCareers(language))
     }
-
-    @GetMapping("/search/top")
-    fun searchTopAbout(
-        @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true) @Valid @Positive number: Int,
-        @RequestParam(required = true, defaultValue = "ko") language: LanguageType,
-        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
-    ): AboutSearchResBody = aboutService.searchTopAbout(
-        keyword,
-        language,
-        number,
-        amount
-    )
-
-    @GetMapping("/search")
-    fun searchPageAbout(
-        @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true) @Valid @Positive pageNum: Int,
-        @RequestParam(required = true) @Valid @Positive pageSize: Int,
-        @RequestParam(required = true, defaultValue = "ko") language: LanguageType,
-        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
-    ): AboutSearchResBody = aboutService.searchPageAbout(
-        keyword,
-        language,
-        pageSize,
-        pageNum,
-        amount
-    )
 }

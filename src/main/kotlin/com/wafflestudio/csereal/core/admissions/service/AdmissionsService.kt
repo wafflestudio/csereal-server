@@ -42,14 +42,6 @@ interface AdmissionsService {
         updateAdmissionReq: UpdateAdmissionReq
     )
 
-    fun searchPageAdmission(
-        keyword: String,
-        language: LanguageType,
-        pageSize: Int,
-        pageNum: Int,
-        amount: Int
-    ): AdmissionSearchResBody
-
     fun searchTopAdmission(keyword: String, language: LanguageType, number: Int, amount: Int): AdmissionSearchResBody
 }
 
@@ -157,22 +149,5 @@ class AdmissionsServiceImpl(
                 description
             )
         }
-    }
-
-    @Transactional(readOnly = true)
-    override fun searchPageAdmission(
-        keyword: String,
-        language: LanguageType,
-        pageSize: Int,
-        pageNum: Int,
-        amount: Int
-    ): AdmissionSearchResBody {
-        val (admissions, total) = admissionsRepository.searchAdmissions(keyword, language, pageSize, pageNum)
-        return AdmissionSearchResBody(
-            total = total,
-            results = admissions.map {
-                AdmissionSearchResElem.of(it, keyword, amount)
-            }
-        )
     }
 }

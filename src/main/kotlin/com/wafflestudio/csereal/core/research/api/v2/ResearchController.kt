@@ -123,34 +123,4 @@ class ResearchController(
     ) {
         labService.deleteLabLanguage(koreanLabId, englishLabId)
     }
-
-    // Search APIs
-
-    @GetMapping("/search/top")
-    fun searchTop(
-        @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true) @Valid @Positive number: Int,
-        @RequestParam(required = true, defaultValue = "ko") language: LanguageType,
-        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
-    ) = researchSearchService.searchTopResearch(
-        keyword,
-        language,
-        number,
-        amount
-    )
-
-    @GetMapping("/search")
-    fun searchPage(
-        @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true) pageSize: Int,
-        @RequestParam(required = true) pageNum: Int,
-        @RequestParam(required = true, defaultValue = "ko") language: LanguageType,
-        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
-    ) = researchSearchService.searchResearch(
-        keyword,
-        language,
-        pageSize,
-        pageNum,
-        amount
-    )
 }
