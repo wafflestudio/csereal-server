@@ -4,6 +4,7 @@ import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.user.service.CustomOidcUserService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -13,6 +14,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.core.Authentication
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler
@@ -29,16 +31,15 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 class SecurityConfig(
     private val customOidcUserService: CustomOidcUserService,
     private val endpointProperties: EndpointProperties,
+    private val clientRegistrationRepository: ObjectProvider<ClientRegistrationRepository>,
     @Value("\${login-page}")
     private val loginPage: String
 ) {
 
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        return http
-            .cors { }
-            .csrf { it.disable() }
-            .oauth2Login { oauth2 ->
+        clientRegistrationRepository.ifAvailable?.let {
+            http.oauth2Login { oauth2 ->
                 oauth2
                     .loginPage("$loginPage/oauth2/authorization/idsnucse")
                     .redirectionEndpoint { redirect ->
@@ -49,6 +50,11 @@ class SecurityConfig(
                     }
                     .successHandler(CustomAuthenticationSuccessHandler(endpointProperties.frontend))
             }
+        }
+
+        return http
+            .cors { }
+            .csrf { it.disable() }
             .logout { logout ->
                 logout
                     .logoutUrl("/api/v1/logout")

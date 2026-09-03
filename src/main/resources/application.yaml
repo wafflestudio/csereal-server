@@ -92,20 +92,6 @@ spring:
         password: password
     jpa:
         open-in-view: false
-    security:
-        oauth2:
-            client:
-                registration:
-                    idsnucse:
-                        client-id: cse-waffle-dev
-                        client-secret: ${OIDC_CLIENT_SECRET_DEV}
-                        authorization-grant-type: authorization_code
-                        scope: openid, profile, email
-                        redirect-uri: http://localhost:8080/api/v1/login/oauth2/code/idsnucse
-                provider:
-                    idsnucse:
-                        issuer-uri: https://id.snucse.org/o
-                        jwk-set-uri: https://id.snucse.org/o/jwks
 
 customlog:
     file:
@@ -157,20 +143,6 @@ spring:
     config.activate.on-profile: dev
     jpa:
         open-in-view: false
-    security:
-        oauth2:
-            client:
-                registration:
-                    idsnucse:
-                        client-id: cse-waffle-dev
-                        client-secret: ${OIDC_CLIENT_SECRET_DEV}
-                        authorization-grant-type: authorization_code
-                        scope: openid, profile, email
-                        redirect-uri: https://${URL}/api/v1/login/oauth2/code/idsnucse
-                provider:
-                    idsnucse:
-                        issuer-uri: https://id.snucse.org/o
-                        jwk-set-uri: https://id.snucse.org/o/jwks
 
 csereal:
     upload:
