@@ -1,7 +1,9 @@
 package com.wafflestudio.csereal.core.seminar.api.v2
 
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
-import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
+import com.wafflestudio.csereal.core.seminar.api.req.CreateSeminarReq
+import com.wafflestudio.csereal.core.seminar.api.req.UpdateSeminarReq
+import com.wafflestudio.csereal.core.seminar.dto.SeminarResponse
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
 import com.wafflestudio.csereal.core.seminar.service.SeminarService
 import jakarta.validation.Valid
@@ -35,17 +37,17 @@ class SeminarController(
     fun createSeminar(
         @Valid
         @RequestPart("request")
-        request: SeminarDto,
+        request: CreateSeminarReq,
         @RequestPart("mainImage") mainImage: MultipartFile?,
         @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<SeminarDto> {
+    ): ResponseEntity<SeminarResponse> {
         return ResponseEntity.ok(seminarService.createSeminar(request, mainImage, attachments))
     }
 
     @GetMapping("/{seminarId}")
     fun readSeminar(
         @PathVariable seminarId: Long
-    ): ResponseEntity<SeminarDto> {
+    ): ResponseEntity<SeminarResponse> {
         return ResponseEntity.ok(seminarService.readSeminar(seminarId))
     }
 
@@ -55,10 +57,10 @@ class SeminarController(
         @PathVariable seminarId: Long,
         @Valid
         @RequestPart("request")
-        request: SeminarDto,
+        request: UpdateSeminarReq,
         @RequestPart("newMainImage") newMainImage: MultipartFile?,
         @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<SeminarDto> {
+    ): ResponseEntity<SeminarResponse> {
         return ResponseEntity.ok(
             seminarService.updateSeminar(
                 seminarId,

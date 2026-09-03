@@ -6,7 +6,7 @@ import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
-import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
+import com.wafflestudio.csereal.core.seminar.api.req.SeminarReqBody
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.time.LocalDate
@@ -66,7 +66,7 @@ class SeminarEntity(
 ) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable {
 
     companion object {
-        fun of(seminarDto: SeminarDto): SeminarEntity {
+        fun of(seminarDto: SeminarReqBody): SeminarEntity {
             val plainTextDescription = cleanTextFromHtml(seminarDto.description)
             val plainTextIntroduction = cleanTextFromHtml(seminarDto.introduction)
             val plainTextAdditionalNote = seminarDto.additionalNote?.let { cleanTextFromHtml(it) }
@@ -96,7 +96,7 @@ class SeminarEntity(
         }
     }
 
-    fun update(updateSeminarRequest: SeminarDto) {
+    fun update(updateSeminarRequest: SeminarReqBody) {
         if (updateSeminarRequest.description != description) {
             description = updateSeminarRequest.description
             plainTextDescription = cleanTextFromHtml(updateSeminarRequest.description)

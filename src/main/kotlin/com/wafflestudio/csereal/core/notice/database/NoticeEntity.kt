@@ -3,7 +3,7 @@ package com.wafflestudio.csereal.core.notice.database
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.entity.AttachmentAttachable
-import com.wafflestudio.csereal.core.notice.dto.NoticeDto
+import com.wafflestudio.csereal.core.notice.api.req.NoticeReqBody
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import jakarta.persistence.*
@@ -42,7 +42,22 @@ class NoticeEntity(
 
 ) : BaseTimeEntity(), AttachmentAttachable {
 
-    fun update(updateNoticeRequest: NoticeDto) {
+    companion object {
+        fun of(req: NoticeReqBody, author: UserEntity) = NoticeEntity(
+            title = req.title,
+            titleForMain = req.titleForMain,
+            description = req.description,
+            plainTextDescription = cleanTextFromHtml(req.description),
+            isPrivate = req.isPrivate,
+            isPinned = req.isPinned,
+            pinnedUntil = if (req.isPinned) req.pinnedUntil else null,
+            isImportant = req.isImportant,
+            importantUntil = if (req.isImportant) req.importantUntil else null,
+            author = author
+        )
+    }
+
+    fun update(updateNoticeRequest: NoticeReqBody) {
         // Update plainTextDescription if description is changed
         if (updateNoticeRequest.description != this.description) {
             this.plainTextDescription = cleanTextFromHtml(updateNoticeRequest.description)

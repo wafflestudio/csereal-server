@@ -1,7 +1,9 @@
 package com.wafflestudio.csereal.core.news.api.v2
 
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
-import com.wafflestudio.csereal.core.news.dto.NewsDto
+import com.wafflestudio.csereal.core.news.api.req.CreateNewsReq
+import com.wafflestudio.csereal.core.news.api.req.UpdateNewsReq
+import com.wafflestudio.csereal.core.news.dto.NewsResponse
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
 import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchDto
 import com.wafflestudio.csereal.core.news.service.NewsService
@@ -51,7 +53,7 @@ class NewsController(
     @GetMapping("/{newsId}")
     fun readNews(
         @PathVariable newsId: Long
-    ): ResponseEntity<NewsDto> {
+    ): ResponseEntity<NewsResponse> {
         return ResponseEntity.ok(newsService.readNews(newsId))
     }
 
@@ -60,10 +62,10 @@ class NewsController(
     fun createNews(
         @Valid
         @RequestPart("request")
-        request: NewsDto,
+        request: CreateNewsReq,
         @RequestPart("mainImage") mainImage: MultipartFile?,
         @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<NewsDto> {
+    ): ResponseEntity<NewsResponse> {
         return ResponseEntity.ok(newsService.createNews(request, mainImage, attachments))
     }
 
@@ -73,10 +75,10 @@ class NewsController(
         @PathVariable newsId: Long,
         @Valid
         @RequestPart("request")
-        request: NewsDto,
+        request: UpdateNewsReq,
         @RequestPart("newMainImage") newMainImage: MultipartFile?,
         @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<NewsDto> {
+    ): ResponseEntity<NewsResponse> {
         return ResponseEntity.ok(newsService.updateNews(newsId, request, newMainImage, attachments))
     }
 

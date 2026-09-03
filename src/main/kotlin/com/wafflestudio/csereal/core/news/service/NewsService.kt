@@ -5,7 +5,9 @@ import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.admin.dto.AdminSlidesResponse
 import com.wafflestudio.csereal.core.news.database.*
-import com.wafflestudio.csereal.core.news.dto.NewsDto
+import com.wafflestudio.csereal.core.news.api.req.CreateNewsReq
+import com.wafflestudio.csereal.core.news.api.req.UpdateNewsReq
+import com.wafflestudio.csereal.core.news.dto.NewsResponse
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
 import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchDto
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
@@ -25,14 +27,14 @@ interface NewsService {
         sortBy: ContentSearchSortType
     ): NewsSearchResponse
 
-    fun readNews(newsId: Long): NewsDto
-    fun createNews(request: NewsDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): NewsDto
+    fun readNews(newsId: Long): NewsResponse
+    fun createNews(request: CreateNewsReq, mainImage: MultipartFile?, attachments: List<MultipartFile>?): NewsResponse
     fun updateNews(
         newsId: Long,
-        request: NewsDto,
+        request: UpdateNewsReq,
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?
-    ): NewsDto
+    ): NewsResponse
 
     fun deleteNews(newsId: Long)
     fun enrollTag(tagName: String)
@@ -75,7 +77,7 @@ class NewsServiceImpl(
     )
 
     @Transactional(readOnly = true)
-    override fun readNews(newsId: Long): NewsDto {
+    override fun readNews(newsId: Long): NewsResponse {
         val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
             ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다.(newsId: $newsId)")
 
@@ -93,11 +95,15 @@ class NewsServiceImpl(
                 news.createdAt!!
             )
 
-        return NewsDto.of(news, imageURL, attachmentResponses, prevNews, nextNews)
+        return NewsResponse.of(news, imageURL, attachmentResponses, prevNews, nextNews)
     }
 
     @Transactional
-    override fun createNews(request: NewsDto, mainImage: MultipartFile?, attachments: List<MultipartFile>?): NewsDto {
+    override fun createNews(
+        request: CreateNewsReq,
+        mainImage: MultipartFile?,
+        attachments: List<MultipartFile>?
+    ): NewsResponse {
         val newNews = NewsEntity.of(request)
 
         for (tag in request.tags) {
@@ -119,23 +125,26 @@ class NewsServiceImpl(
         val imageURL = mainImageService.createImageURL(newNews.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(newNews.attachments)
 
-        return NewsDto.of(newNews, imageURL, attachmentResponses)
+        return NewsResponse.of(newNews, imageURL, attachmentResponses)
     }
 
     @Transactional
     override fun updateNews(
         newsId: Long,
-        request: NewsDto,
+        request: UpdateNewsReq,
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?
-    ): NewsDto {
+    ): NewsResponse {
         val news: NewsEntity = getNewsEntityByIdOrThrow(newsId)
 
         news.update(request)
 
         if (newMainImage != null) {
-            news.mainImage?.isDeleted = true
+            news.mainImage?.let { mainImageService.removeImage(it) }
             mainImageService.uploadMainImage(news, newMainImage)
+        } else if (request.removeImage) {
+            news.mainImage?.let { mainImageService.removeImage(it) }
+            news.mainImage = null
         }
 
         attachmentService.syncAttachments(news, request.attachmentIds, newAttachments)
@@ -159,7 +168,7 @@ class NewsServiceImpl(
         val imageURL = mainImageService.createImageURL(news.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(news.attachments)
 
-        return NewsDto.of(news, imageURL, attachmentResponses)
+        return NewsResponse.of(news, imageURL, attachmentResponses)
     }
 
     @Transactional
