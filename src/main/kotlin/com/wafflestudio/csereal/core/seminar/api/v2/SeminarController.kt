@@ -57,14 +57,14 @@ class SeminarController(
         @RequestPart("request")
         request: SeminarDto,
         @RequestPart("newMainImage") newMainImage: MultipartFile?,
-        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<SeminarDto> {
         return ResponseEntity.ok(
             seminarService.updateSeminar(
                 seminarId,
                 request,
                 newMainImage,
-                newAttachments
+                attachments
             )
         )
     }

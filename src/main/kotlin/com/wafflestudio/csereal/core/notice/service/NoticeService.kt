@@ -133,11 +133,7 @@ class NoticeServiceImpl(
 
         notice.update(request)
 
-        attachmentService.deleteAttachmentsDeprecated(request.deleteIds)
-
-        if (newAttachments != null) {
-            attachmentService.uploadAllAttachments(notice, newAttachments)
-        }
+        attachmentService.syncAttachments(notice, request.attachmentIds, newAttachments)
 
         val oldTags = notice.noticeTags.map { it.tag.name }
 

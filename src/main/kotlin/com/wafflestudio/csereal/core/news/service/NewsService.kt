@@ -138,11 +138,7 @@ class NewsServiceImpl(
             mainImageService.uploadMainImage(news, newMainImage)
         }
 
-        attachmentService.deleteAttachmentsDeprecated(request.deleteIds)
-
-        if (newAttachments != null) {
-            attachmentService.uploadAllAttachments(news, newAttachments)
-        }
+        attachmentService.syncAttachments(news, request.attachmentIds, newAttachments)
 
         val oldTags = news.newsTags.map { it.tag.name }
 

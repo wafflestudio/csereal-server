@@ -114,11 +114,7 @@ class SeminarServiceImpl(
             mainImageService.uploadMainImage(seminar, newMainImage)
         }
 
-        attachmentService.deleteAttachmentsDeprecated(request.deleteIds)
-
-        if (newAttachments != null) {
-            attachmentService.uploadAllAttachments(seminar, newAttachments)
-        }
+        attachmentService.syncAttachments(seminar, request.attachmentIds, newAttachments)
 
         val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
 

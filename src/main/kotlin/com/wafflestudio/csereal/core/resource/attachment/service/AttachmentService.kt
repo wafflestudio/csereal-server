@@ -40,8 +40,17 @@ interface AttachmentService {
 
     fun deleteAttachment(attachment: AttachmentEntity)
     fun deleteAttachments(ids: List<Long>?)
-    fun deleteAttachmentsDeprecated(ids: List<Long>?)
-    fun deleteAttachmentDeprecated(attachment: AttachmentEntity)
+
+    /**
+     * 첨부를 요청의 최종 상태에 맞춘다.
+     * [attachmentIds]에 없는 기존 첨부를 지운다(빈 목록 = 전부 삭제, null = 건드리지 않음).
+     * 그 뒤 [newFiles]를 올린다.
+     */
+    fun syncAttachments(
+        owner: AttachmentAttachable,
+        attachmentIds: List<Long>?,
+        newFiles: List<MultipartFile>?
+    )
 }
 
 @Service
@@ -153,19 +162,22 @@ class AttachmentServiceImpl(
     }
 
     @Transactional
-    override fun deleteAttachmentsDeprecated(ids: List<Long>?) {
-        if (ids != null) {
-            for (id in ids) {
-                val attachment = attachmentRepository.findByIdOrNull(id)
-                    ?: throw CserealException.Csereal404("id:${id}인 첨부파일을 찾을 수 없습니다.")
-                attachment.isDeleted = true
-            }
+    override fun syncAttachments(
+        owner: AttachmentAttachable,
+        attachmentIds: List<Long>?,
+        newFiles: List<MultipartFile>?
+    ) {
+        // null이면(만들기 등 기존 첨부를 건드리지 않는 요청) 아무것도 지우지 않는다.
+        val toDelete = if (attachmentIds == null) emptyList() else owner.attachments.filter { it.id !in attachmentIds }
+        // repository.delete 대신 owner 컬렉션에서 뺀다 — orphanRemoval이 행을 지우고, 컬렉션에
+        // 지운 엔티티가 남지 않아 이어지는 flush·응답 생성이 안전하다. 파일은 커밋 후 지운다.
+        toDelete.forEach {
+            owner.attachments.remove(it)
+            eventPublisher.publishEvent(FileDeleteEvent(path + it.filename))
         }
-    }
-
-    @Transactional
-    override fun deleteAttachmentDeprecated(attachment: AttachmentEntity) {
-        attachment.isDeleted = true
+        if (newFiles != null) {
+            uploadAllAttachments(owner, newFiles)
+        }
     }
 
     @Transactional
