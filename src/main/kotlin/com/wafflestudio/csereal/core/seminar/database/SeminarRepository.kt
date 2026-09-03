@@ -30,9 +30,6 @@ interface SeminarRepository : JpaRepository<SeminarEntity, Long>, CustomSeminarR
         timestamp: LocalDateTime
     ): SeminarEntity?
 
-    @Query("SELECT s.id FROM seminar s")
-    fun findAllIds(): List<Long>
-
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(
         "UPDATE seminar s SET s.isImportant = false, s.importantUntil = NULL " +

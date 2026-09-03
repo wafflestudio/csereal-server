@@ -25,7 +25,6 @@ interface AcademicsService {
     fun updateDegreeRequirements(language: LanguageType, request: UpdateSingleReq, newAttachments: List<MultipartFile>?)
     fun createCourse(request: GroupedCourseDto)
 
-    fun readAllCourses(language: LanguageType, studentType: AcademicsStudentType): List<CourseDto>
     fun readAllGroupedCourses(studentType: AcademicsStudentType, sortType: String): List<GroupedCourseDto>
     fun updateCourse(updateRequest: GroupedCourseDto)
     fun deleteCourse(code: String)
@@ -41,7 +40,6 @@ interface AcademicsService {
         request: CreateScholarshipReq
     )
 
-    fun readScholarship(scholarshipId: Long): ScholarshipDto
     fun readScholarshipV2(scholarshipId: Long): Pair<ScholarshipDto, ScholarshipDto>
     fun updateScholarship(request: UpdateScholarshipReq)
     fun deleteScholarship(scholarshipId: Long)
@@ -282,18 +280,6 @@ class AcademicsServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllCourses(language: LanguageType, studentType: AcademicsStudentType): List<CourseDto> {
-        val courseDtoList =
-            courseRepository.findAllByLanguageAndStudentTypeOrderByNameAsc(
-                language,
-                studentType
-            ).map {
-                CourseDto.of(it)
-            }
-        return courseDtoList
-    }
-
-    @Transactional(readOnly = true)
     override fun readAllGroupedCourses(studentType: AcademicsStudentType, sortType: String): List<GroupedCourseDto> {
         val sort = LanguageType.makeStringToLanguageType(sortType)
         return courseRepository.findGroupedCourses(studentType)
@@ -390,13 +376,6 @@ class AcademicsServiceImpl(
         scholarshipRepository.save(koScholarship)
         scholarshipRepository.save(enScholarship)
         scholarshipLanguageRepository.save(ScholarshipLanguageEntity(koScholarship, enScholarship))
-    }
-
-    @Transactional(readOnly = true)
-    override fun readScholarship(scholarshipId: Long): ScholarshipDto {
-        val scholarship = scholarshipRepository.findByIdOrNull(scholarshipId)
-            ?: throw CserealException.Csereal404("해당하는 장학제도를 찾을 수 없습니다")
-        return ScholarshipDto.of(scholarship)
     }
 
     @Transactional(readOnly = true)

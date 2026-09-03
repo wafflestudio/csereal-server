@@ -41,7 +41,6 @@ interface NewsService {
     fun searchTotalNews(keyword: String, number: Int, amount: Int): NewsTotalSearchDto
     fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse
     fun unSlideManyNews(request: List<Long>)
-    fun getAllIds(): List<Long>
 }
 
 @Service
@@ -195,11 +194,6 @@ class NewsServiceImpl(
             val news = getNewsEntityByIdOrThrow(newsId)
             news.isSlide = false
         }
-    }
-
-    @Transactional(readOnly = true)
-    override fun getAllIds(): List<Long> {
-        return newsRepository.findAllIds()
     }
 
     fun getNewsEntityByIdOrThrow(newsId: Long): NewsEntity {
