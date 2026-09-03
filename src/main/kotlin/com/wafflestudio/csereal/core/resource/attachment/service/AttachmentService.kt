@@ -5,7 +5,6 @@ import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
-import com.wafflestudio.csereal.core.council.database.CouncilFileEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
 import com.wafflestudio.csereal.core.research.database.LabEntity
@@ -73,7 +72,6 @@ class AttachmentServiceImpl(
 
         val attachment = AttachmentEntity(
             filename = filename,
-            attachmentsOrder = 1,
             size = requestAttachment.size
         )
 
@@ -82,7 +80,6 @@ class AttachmentServiceImpl(
 
         return AttachmentDto(
             filename = filename,
-            attachmentsOrder = 1,
             size = requestAttachment.size
         )
     }
@@ -106,18 +103,15 @@ class AttachmentServiceImpl(
 
             val attachment = AttachmentEntity(
                 filename = filename,
-                attachmentsOrder = index + 1,
                 size = requestAttachment.size
             )
 
             connectAttachmentToEntity(contentEntityType, attachment)
-            //Todo: update에서도 uploadAllAttachments 사용, 이에 따른 attachmentsOrder에 대한 조정 필요
             attachmentRepository.save(attachment)
 
             attachmentsList.add(
                 AttachmentDto(
                     filename = filename,
-                    attachmentsOrder = index + 1,
                     size = requestAttachment.size
                 )
             )
@@ -129,14 +123,12 @@ class AttachmentServiceImpl(
     override fun createOneAttachmentResponse(attachment: AttachmentEntity?): AttachmentResponse? {
         var attachmentDto: AttachmentResponse? = null
         if (attachment != null) {
-            if (attachment.isDeleted == false) {
-                attachmentDto = AttachmentResponse(
-                    id = attachment.id,
-                    name = attachment.filename.substringAfter("_"),
-                    url = "${endpointProperties.backend}/v1/file/${attachment.filename}",
-                    bytes = attachment.size
-                )
-            }
+            attachmentDto = AttachmentResponse(
+                id = attachment.id,
+                name = attachment.filename.substringAfter("_"),
+                url = "${endpointProperties.backend}/v1/file/${attachment.filename}",
+                bytes = attachment.size
+            )
         }
 
         return attachmentDto
@@ -147,15 +139,13 @@ class AttachmentServiceImpl(
         val list = mutableListOf<AttachmentResponse>()
         if (attachments != null) {
             for (attachment in attachments) {
-                if (attachment.isDeleted == false) {
-                    val attachmentDto = AttachmentResponse(
-                        id = attachment.id,
-                        name = attachment.filename.substringAfter("_"),
-                        url = "${endpointProperties.backend}/v1/file/${attachment.filename}",
-                        bytes = attachment.size
-                    )
-                    list.add(attachmentDto)
-                }
+                val attachmentDto = AttachmentResponse(
+                    id = attachment.id,
+                    name = attachment.filename.substringAfter("_"),
+                    url = "${endpointProperties.backend}/v1/file/${attachment.filename}",
+                    bytes = attachment.size
+                )
+                list.add(attachmentDto)
             }
         }
         return list
@@ -223,11 +213,6 @@ class AttachmentServiceImpl(
             is AcademicsEntity -> {
                 contentEntity.attachments.add(attachment)
                 attachment.academics = contentEntity
-            }
-
-            is CouncilFileEntity -> {
-                contentEntity.attachments.add(attachment)
-                attachment.councilFile = contentEntity
             }
         }
     }

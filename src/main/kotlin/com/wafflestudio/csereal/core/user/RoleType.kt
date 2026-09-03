@@ -7,7 +7,6 @@ enum class RoleType(@get:JsonValue val authority: String) {
     STAFF("ROLE_STAFF"),
     RESERVE("ROLE_RESERVE"),
     RESERVE_PROFESSOR_ROOM("ROLE_RESERVE_PROFESSOR_ROOM"),
-    COUNCIL("ROLE_COUNCIL"),
     LABMASTER("ROLE_LABMASTER");
 
     companion object {
