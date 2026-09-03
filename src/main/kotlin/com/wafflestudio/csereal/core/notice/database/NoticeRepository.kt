@@ -32,9 +32,6 @@ interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepo
         timestamp: LocalDateTime
     ): NoticeEntity?
 
-    @Query("SELECT n.id FROM notice n")
-    fun findAllIds(): List<Long>
-
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(
         """

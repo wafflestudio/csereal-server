@@ -38,7 +38,6 @@ interface NoticeService {
     fun unpinManyNotices(idList: List<Long>)
     fun deleteManyNotices(idList: List<Long>)
     fun enrollTag(tagName: String)
-    fun getAllIds(): List<Long>
 }
 
 @Service
@@ -175,10 +174,5 @@ class NoticeServiceImpl(
             name = TagInNoticeEnum.getTagEnum(tagName)
         )
         tagInNoticeRepository.save(newTag)
-    }
-
-    @Transactional(readOnly = true)
-    override fun getAllIds(): List<Long> {
-        return noticeRepository.findAllIds()
     }
 }

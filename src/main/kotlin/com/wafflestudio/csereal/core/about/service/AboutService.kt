@@ -35,9 +35,7 @@ interface AboutService {
     fun createFacilities(request: CreateFacReq, mainImage: MultipartFile?)
     fun updateFacility(id: Long, request: UpdateFacReq, newMainImage: MultipartFile?)
     fun deleteFacility(id: Long)
-    fun readAllFacilities(language: LanguageType): List<AboutDto>
     fun readAllGroupedFacilities(): List<GroupedFacDto>
-    fun readAllDirections(language: LanguageType): List<AboutDto>
     fun readAllGroupedDirections(): List<GroupedDirectionDto>
     fun updateDirection(id: Long, request: UpdateDescriptionReq)
     fun updateFutureCareersPage(request: UpdateDescriptionReq)
@@ -300,22 +298,6 @@ class AboutServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllFacilities(language: LanguageType): List<AboutDto> {
-        val facilities =
-            aboutRepository.findAllByLanguageAndPostTypeOrderByName(
-                language,
-                AboutPostType.FACILITIES
-            ).map {
-                val imageURL = mainImageService.createImageURL(it.mainImage)
-                val attachmentResponses =
-                    attachmentService.createAttachmentResponses(it.attachments)
-                AboutDto.of(it, imageURL, attachmentResponses)
-            }
-
-        return facilities
-    }
-
-    @Transactional(readOnly = true)
     override fun readAllGroupedFacilities(): List<GroupedFacDto> {
         val facilities =
             aboutLanguageRepository.findAllByKoAboutPostType(AboutPostType.FACILITIES).sortedBy { it.koAbout.name }
@@ -324,21 +306,6 @@ class AboutServiceImpl(
             val enImageURL = mainImageService.createImageURL(it.enAbout.mainImage)
             GroupedFacDto(ko = FacDto.of(it.koAbout, koImageURL), en = FacDto.of(it.enAbout, enImageURL))
         }
-    }
-
-    @Transactional(readOnly = true)
-    override fun readAllDirections(language: LanguageType): List<AboutDto> {
-        val directions =
-            aboutRepository.findAllByLanguageAndPostTypeOrderByName(
-                language,
-                AboutPostType.DIRECTIONS
-            ).map {
-                val imageURL = mainImageService.createImageURL(it.mainImage)
-                val attachments = attachmentService.createAttachmentResponses(it.attachments)
-                AboutDto.of(it, imageURL, attachments)
-            }
-
-        return directions
     }
 
     @Transactional(readOnly = true)
