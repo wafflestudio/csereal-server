@@ -122,7 +122,7 @@ class SeminarRepositoryImpl(
             var isYearLast = false
             if (i == 0) {
                 isYearLast = true
-            } else if (seminarEntityList[i].startDate?.year != seminarEntityList[i - 1].startDate?.year) {
+            } else if (seminarEntityList[i].startDate.year != seminarEntityList[i - 1].startDate.year) {
                 isYearLast = true
             }
 

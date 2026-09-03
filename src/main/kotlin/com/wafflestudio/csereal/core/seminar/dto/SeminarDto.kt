@@ -16,7 +16,7 @@ data class SeminarDto(
     val speakerTitle: String?,
     val affiliation: String,
     val affiliationURL: String?,
-    val startDate: LocalDateTime?,
+    val startDate: LocalDateTime,
     val endDate: LocalDateTime?,
     val location: String,
     val host: String?,
