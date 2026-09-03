@@ -36,8 +36,8 @@ import com.wafflestudio.csereal.core.research.service.ResearchSearchService
 import com.wafflestudio.csereal.core.research.service.ResearchService
 import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
 import com.wafflestudio.csereal.core.seminar.service.SeminarService
-import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
+import com.wafflestudio.csereal.global.authenticateAs
 import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -69,16 +69,7 @@ class TotalSearchTest(
 ) : BehaviorSpec({
 
     beforeSpec {
-        if (userRepository.findByUsername("test") == null) {
-            userRepository.save(
-                UserEntity(
-                    "test",
-                    "test",
-                    "test@abc.com",
-                    "0000-00000"
-                )
-            )
-        }
+        authenticateAs(userRepository, "test")
     }
 
     afterContainer {

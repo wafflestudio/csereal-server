@@ -10,11 +10,13 @@ import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDateTime
 
+@ActiveProfiles("test")
 @SpringBootTest
 @Import(MySQLTestContainerConfig::class)
 class NewsServiceTest(

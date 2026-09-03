@@ -57,6 +57,6 @@ fun isCurrentUserLeader(): Boolean {
 
 fun getCurrentUserRoles(): Set<RoleType> {
     val authentication = SecurityContextHolder.getContext().authentication
-        ?: /* for test */ return setOf(RoleType.STAFF)
+        ?: return emptySet()
     return authentication.authorities.mapNotNull { RoleType.fromAuthority(it.authority) }.toSet()
 }
