@@ -9,7 +9,7 @@ data class SeminarSearchDto @QueryProjection constructor(
     val description: String,
     val name: String,
     val affiliation: String,
-    val startDate: LocalDateTime?,
+    val startDate: LocalDateTime,
     val location: String,
     val imageURL: String?,
     val isYearLast: Boolean,

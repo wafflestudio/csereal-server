@@ -9,6 +9,7 @@ import com.wafflestudio.csereal.core.reservation.dto.SimpleReservationDto
 import com.wafflestudio.csereal.core.reservation.service.ReservationService
 import com.wafflestudio.csereal.core.reservation.service.ReserveTermGenerationService
 import com.wafflestudio.csereal.core.reservation.service.ReserveTermManualCreationService
+import com.wafflestudio.csereal.common.interceptor.InternalOnly
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -59,6 +60,7 @@ class ReservationController(
         return ResponseEntity.ok(reservationService.getReserveTerms())
     }
 
+    @InternalOnly
     @PostMapping("/terms/custom")
     fun createCustomReserveTerm(
         @RequestBody request: CreateCustomReserveTermRequest
@@ -67,6 +69,7 @@ class ReservationController(
         return ResponseEntity.status(HttpStatus.CREATED).body(ReserveTermDto.of(created))
     }
 
+    @InternalOnly
     @PostMapping("/terms/defaults")
     fun ensureDefaultReserveTerms(): ResponseEntity<List<ReserveTermGenerationOutcomeDto>> {
         val outcomes = reserveTermGenerationService.ensureCurrentAndNext()
@@ -81,7 +84,7 @@ class ReservationController(
         return ResponseEntity.ok(reservationService.getReservation(reservationId))
     }
 
-    @PreAuthorize("hasAnyRole('STAFF','RESERVATION','LABMASTER')")
+    @PreAuthorize("hasAnyRole('STAFF','RESERVE','LABMASTER')")
     @PostMapping
     fun reserveRoom(
         @RequestBody reserveRequest: ReserveRequest
@@ -89,13 +92,13 @@ class ReservationController(
         return ResponseEntity.ok(reservationService.reserveRoom(reserveRequest))
     }
 
-    @PreAuthorize("hasAnyRole('STAFF','RESERVATION','LABMASTER')")
+    @PreAuthorize("hasAnyRole('STAFF','RESERVE','LABMASTER')")
     @DeleteMapping("/{reservationId}")
     fun cancelSpecific(@PathVariable reservationId: Long): ResponseEntity<Any> {
         return ResponseEntity.ok(reservationService.cancelSpecific(reservationId))
     }
 
-    @PreAuthorize("hasAnyRole('STAFF','RESERVATION','LABMASTER')")
+    @PreAuthorize("hasAnyRole('STAFF','RESERVE','LABMASTER')")
     @DeleteMapping("/recurring/{recurrenceId}")
     fun cancelRecurring(@PathVariable recurrenceId: UUID): ResponseEntity<Any> {
         return ResponseEntity.ok(reservationService.cancelRecurring(recurrenceId))

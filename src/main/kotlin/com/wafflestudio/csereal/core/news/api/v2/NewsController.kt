@@ -1,7 +1,9 @@
 package com.wafflestudio.csereal.core.news.api.v2
 
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
-import com.wafflestudio.csereal.core.news.dto.NewsDto
+import com.wafflestudio.csereal.core.news.api.req.CreateNewsReq
+import com.wafflestudio.csereal.core.news.api.req.UpdateNewsReq
+import com.wafflestudio.csereal.core.news.dto.NewsResponse
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
 import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchDto
 import com.wafflestudio.csereal.core.news.service.NewsService
@@ -27,15 +29,13 @@ class NewsController(
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
         @RequestParam(required = false, defaultValue = "10") pageSize: Int,
-        @RequestParam(required = false, defaultValue = "DATE") sortBy: String
+        @RequestParam(required = false, defaultValue = "DATE") sortBy: ContentSearchSortType
     ): ResponseEntity<NewsSearchResponse> {
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
 
-        val sortType = ContentSearchSortType.fromJsonValue(sortBy)
-
-        return ResponseEntity.ok(newsService.searchNews(tag, keyword, pageRequest, usePageBtn, sortType))
+        return ResponseEntity.ok(newsService.searchNews(tag, keyword, pageRequest, usePageBtn, sortBy))
     }
 
     @GetMapping("/totalSearch")
@@ -53,33 +53,33 @@ class NewsController(
     @GetMapping("/{newsId}")
     fun readNews(
         @PathVariable newsId: Long
-    ): ResponseEntity<NewsDto> {
+    ): ResponseEntity<NewsResponse> {
         return ResponseEntity.ok(newsService.readNews(newsId))
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping
+    @PostMapping(consumes = ["multipart/form-data"])
     fun createNews(
         @Valid
         @RequestPart("request")
-        request: NewsDto,
+        request: CreateNewsReq,
         @RequestPart("mainImage") mainImage: MultipartFile?,
         @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<NewsDto> {
+    ): ResponseEntity<NewsResponse> {
         return ResponseEntity.ok(newsService.createNews(request, mainImage, attachments))
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PatchMapping("/{newsId}")
+    @PatchMapping("/{newsId}", consumes = ["multipart/form-data"])
     fun updateNews(
         @PathVariable newsId: Long,
         @Valid
         @RequestPart("request")
-        request: NewsDto,
+        request: UpdateNewsReq,
         @RequestPart("newMainImage") newMainImage: MultipartFile?,
-        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?
-    ): ResponseEntity<NewsDto> {
-        return ResponseEntity.ok(newsService.updateNews(newsId, request, newMainImage, newAttachments))
+        @RequestPart("attachments") attachments: List<MultipartFile>?
+    ): ResponseEntity<NewsResponse> {
+        return ResponseEntity.ok(newsService.updateNews(newsId, request, newMainImage, attachments))
     }
 
     @PreAuthorize("hasRole('STAFF')")
@@ -97,10 +97,5 @@ class NewsController(
     ): ResponseEntity<String> {
         newsService.enrollTag(tagName["name"]!!)
         return ResponseEntity<String>("등록되었습니다. (tagName: ${tagName["name"]})", HttpStatus.OK)
-    }
-
-    @GetMapping("/ids")
-    fun getAllIds(): ResponseEntity<List<Long>> {
-        return ResponseEntity.ok(newsService.getAllIds())
     }
 }

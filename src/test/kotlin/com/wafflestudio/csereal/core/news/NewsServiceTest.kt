@@ -2,7 +2,8 @@ package com.wafflestudio.csereal.core.notice.news
 
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.news.database.NewsRepository
-import com.wafflestudio.csereal.core.news.dto.NewsDto
+import com.wafflestudio.csereal.core.news.api.req.CreateNewsReq
+import com.wafflestudio.csereal.core.news.api.req.UpdateNewsReq
 import com.wafflestudio.csereal.core.news.service.NewsService
 import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
@@ -10,11 +11,13 @@ import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDateTime
 
+@ActiveProfiles("test")
 @SpringBootTest
 @Import(MySQLTestContainerConfig::class)
 class NewsServiceTest(
@@ -29,8 +32,7 @@ class NewsServiceTest(
         }
 
         Given("뉴스를 생성하려고 할 때 간단한 뉴스가 주어지면") {
-            val newsDTO = NewsDto(
-                id = -1,
+            val newsDTO = CreateNewsReq(
                 title = "title",
                 titleForMain = null,
                 description = """
@@ -38,20 +40,12 @@ class NewsServiceTest(
                         <p>This is news description.</p>
                         <h3>Goodbye, World!</h3>
                 """.trimIndent(),
-                tags = emptyList(),
-                createdAt = null,
-                modifiedAt = null,
                 date = LocalDateTime.now(),
                 isPrivate = false,
                 isSlide = false,
                 isImportant = false,
                 importantUntil = null,
-                prevId = null,
-                prevTitle = null,
-                nextId = null,
-                nextTitle = null,
-                imageURL = null,
-                attachments = null
+                tags = emptyList()
             )
 
             When("DTO를 이용하여 뉴스를 생성하면") {
@@ -92,15 +86,24 @@ class NewsServiceTest(
             When("저장된 뉴스의 Description을 수정하면") {
                 newsService.updateNews(
                     newsEntity.id,
-                    NewsDto.of(newsEntity, null, emptyList(), null)
-                        .copy(
-                            description = """
+                    UpdateNewsReq(
+                        title = newsEntity.title,
+                        titleForMain = newsEntity.titleForMain,
+                        description = """
                             <h1>Hello, World!</h1>
                             <p>This is modified news description.</p>
                             <h3>Goodbye, World!</h3>
                             <p>This is additional description.</p>
-                            """.trimIndent()
-                        ),
+                        """.trimIndent(),
+                        date = newsEntity.date,
+                        isPrivate = false,
+                        isSlide = false,
+                        isImportant = false,
+                        importantUntil = null,
+                        tags = emptyList(),
+                        attachmentIds = emptyList(),
+                        removeImage = false
+                    ),
                     null,
                     null
                 )

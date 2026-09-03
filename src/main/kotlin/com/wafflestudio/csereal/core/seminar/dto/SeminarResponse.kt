@@ -5,7 +5,7 @@ import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import java.time.LocalDateTime
 import java.time.LocalDate
 
-data class SeminarDto(
+data class SeminarResponse(
     val id: Long,
     val title: String,
     val titleForMain: String?,
@@ -16,7 +16,7 @@ data class SeminarDto(
     val speakerTitle: String?,
     val affiliation: String,
     val affiliationURL: String?,
-    val startDate: LocalDateTime?,
+    val startDate: LocalDateTime,
     val endDate: LocalDateTime?,
     val location: String,
     val host: String?,
@@ -31,8 +31,7 @@ data class SeminarDto(
     val nextId: Long?,
     val nextTitle: String?,
     val imageURL: String?,
-    val attachments: List<AttachmentResponse>?,
-    val deleteIds: List<Long>? = null
+    val attachments: List<AttachmentResponse>?
 ) {
 
     companion object {
@@ -42,8 +41,8 @@ data class SeminarDto(
             attachmentResponses: List<AttachmentResponse>,
             prevSeminar: SeminarEntity? = null,
             nextSeminar: SeminarEntity? = null
-        ): SeminarDto = entity.run {
-            SeminarDto(
+        ): SeminarResponse = entity.run {
+            SeminarResponse(
                 id = this.id,
                 title = this.title,
                 titleForMain = this.titleForMain,

@@ -18,9 +18,9 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface AboutService {
-    fun readAbout(language: String, postType: String): AboutDto
+    fun readAbout(language: LanguageType, postType: AboutPostType): AboutDto
     fun updateAbout(
-        postType: String,
+        postType: AboutPostType,
         request: UpdateAboutReq,
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?
@@ -30,20 +30,18 @@ interface AboutService {
     fun updateClub(request: UpdateClubReq, newMainImage: MultipartFile?)
     fun deleteClub(id: Long)
 
-    fun readAllClubs(language: String): List<StudentClubDto>
+    fun readAllClubs(language: LanguageType): List<StudentClubDto>
     fun readAllGroupedClubs(): List<GroupedClubDto>
     fun createFacilities(request: CreateFacReq, mainImage: MultipartFile?)
     fun updateFacility(id: Long, request: UpdateFacReq, newMainImage: MultipartFile?)
     fun deleteFacility(id: Long)
-    fun readAllFacilities(language: String): List<AboutDto>
     fun readAllGroupedFacilities(): List<GroupedFacDto>
-    fun readAllDirections(language: String): List<AboutDto>
     fun readAllGroupedDirections(): List<GroupedDirectionDto>
     fun updateDirection(id: Long, request: UpdateDescriptionReq)
     fun updateFutureCareersPage(request: UpdateDescriptionReq)
     fun createFutureCareersStat(request: CreateStatReq)
     fun updateFutureCareersStat(request: CreateStatReq)
-    fun readFutureCareers(language: String): FutureCareersPage
+    fun readFutureCareers(language: LanguageType): FutureCareersPage
     fun createCompany(request: CreateCompanyReq)
     fun updateCompany(id: Long, request: CreateCompanyReq)
     fun deleteCompany(id: Long)
@@ -52,14 +50,6 @@ interface AboutService {
         keyword: String,
         language: LanguageType,
         number: Int,
-        amount: Int
-    ): AboutSearchResBody
-
-    fun searchPageAbout(
-        keyword: String,
-        language: LanguageType,
-        pageSize: Int,
-        pageNum: Int,
         amount: Int
     ): AboutSearchResBody
 }
@@ -75,10 +65,8 @@ class AboutServiceImpl(
 ) : AboutService {
 
     @Transactional(readOnly = true)
-    override fun readAbout(language: String, postType: String): AboutDto {
-        val languageType = LanguageType.makeStringToLanguageType(language)
-        val enumPostType = makeStringToEnum(postType)
-        val about = aboutRepository.findByLanguageAndPostType(languageType, enumPostType)
+    override fun readAbout(language: LanguageType, postType: AboutPostType): AboutDto {
+        val about = aboutRepository.findByLanguageAndPostType(language, postType)
         val imageURL = mainImageService.createImageURL(about.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(about.attachments)
 
@@ -87,15 +75,14 @@ class AboutServiceImpl(
 
     @Transactional
     override fun updateAbout(
-        postType: String,
+        postType: AboutPostType,
         request: UpdateAboutReq,
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?
     ) {
-        val enumPostType = makeStringToEnum(postType)
         val languages = listOf(LanguageType.KO, LanguageType.EN)
         val abouts = languages.map { lang ->
-            aboutRepository.findByLanguageAndPostType(lang, enumPostType).apply {
+            aboutRepository.findByLanguageAndPostType(lang, postType).apply {
                 description = if (lang == LanguageType.KO) request.ko.description else request.en.description
             }
         }
@@ -114,11 +101,9 @@ class AboutServiceImpl(
             }
         }
 
-        attachmentService.deleteAttachments(request.ko.deleteIds + request.en.deleteIds)
-
-        if (newAttachments != null) {
-            abouts.forEach { attachmentService.uploadAllAttachments(it, newAttachments) }
-        }
+        val (koAbout, enAbout) = abouts
+        attachmentService.syncAttachments(koAbout, request.ko.attachmentIds, newAttachments)
+        attachmentService.syncAttachments(enAbout, request.en.attachmentIds, newAttachments)
     }
 
     @Transactional
@@ -198,11 +183,10 @@ class AboutServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllClubs(language: String): List<StudentClubDto> {
-        val languageType = LanguageType.makeStringToLanguageType(language)
+    override fun readAllClubs(language: LanguageType): List<StudentClubDto> {
         val clubs =
             aboutRepository.findAllByLanguageAndPostTypeOrderByName(
-                languageType,
+                language,
                 AboutPostType.STUDENT_CLUBS
             ).map {
                 val name = it.name!!.split("(")[0]
@@ -314,23 +298,6 @@ class AboutServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllFacilities(language: String): List<AboutDto> {
-        val languageType = LanguageType.makeStringToLanguageType(language)
-        val facilities =
-            aboutRepository.findAllByLanguageAndPostTypeOrderByName(
-                languageType,
-                AboutPostType.FACILITIES
-            ).map {
-                val imageURL = mainImageService.createImageURL(it.mainImage)
-                val attachmentResponses =
-                    attachmentService.createAttachmentResponses(it.attachments)
-                AboutDto.of(it, imageURL, attachmentResponses)
-            }
-
-        return facilities
-    }
-
-    @Transactional(readOnly = true)
     override fun readAllGroupedFacilities(): List<GroupedFacDto> {
         val facilities =
             aboutLanguageRepository.findAllByKoAboutPostType(AboutPostType.FACILITIES).sortedBy { it.koAbout.name }
@@ -339,22 +306,6 @@ class AboutServiceImpl(
             val enImageURL = mainImageService.createImageURL(it.enAbout.mainImage)
             GroupedFacDto(ko = FacDto.of(it.koAbout, koImageURL), en = FacDto.of(it.enAbout, enImageURL))
         }
-    }
-
-    @Transactional(readOnly = true)
-    override fun readAllDirections(language: String): List<AboutDto> {
-        val languageType = LanguageType.makeStringToLanguageType(language)
-        val directions =
-            aboutRepository.findAllByLanguageAndPostTypeOrderByName(
-                languageType,
-                AboutPostType.DIRECTIONS
-            ).map {
-                val imageURL = mainImageService.createImageURL(it.mainImage)
-                val attachments = attachmentService.createAttachmentResponses(it.attachments)
-                AboutDto.of(it, imageURL, attachments)
-            }
-
-        return directions
     }
 
     @Transactional(readOnly = true)
@@ -435,11 +386,10 @@ class AboutServiceImpl(
     }
 
     @Transactional
-    override fun readFutureCareers(language: String): FutureCareersPage {
-        val languageType = LanguageType.makeStringToLanguageType(language)
+    override fun readFutureCareers(language: LanguageType): FutureCareersPage {
         val description =
             aboutRepository.findByLanguageAndPostType(
-                languageType,
+                language,
                 AboutPostType.FUTURE_CAREERS
             ).description
 
@@ -518,36 +468,5 @@ class AboutServiceImpl(
                 AboutSearchElementDto.of(it, keyword, amount)
             }
         )
-    }
-
-    @Transactional(readOnly = true)
-    override fun searchPageAbout(
-        keyword: String,
-        language: LanguageType,
-        pageSize: Int,
-        pageNum: Int,
-        amount: Int
-    ): AboutSearchResBody {
-        val (searchEntities, searchCnt) = aboutRepository.searchAbouts(
-            keyword,
-            language,
-            pageSize,
-            pageNum
-        )
-        return AboutSearchResBody(
-            searchCnt,
-            searchEntities.map {
-                AboutSearchElementDto.of(it, keyword, amount)
-            }
-        )
-    }
-
-    private fun makeStringToEnum(postType: String): AboutPostType {
-        try {
-            val upperPostType = postType.replace("-", "_").uppercase()
-            return AboutPostType.valueOf(upperPostType)
-        } catch (e: IllegalArgumentException) {
-            throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
-        }
     }
 }

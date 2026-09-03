@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.main.api.v2
 
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.common.interceptor.InternalOnly
 import com.wafflestudio.csereal.core.main.dto.TotalSearchResponse
 import com.wafflestudio.csereal.core.main.dto.MainResponse
 import com.wafflestudio.csereal.core.main.service.MainService
@@ -25,6 +26,7 @@ class MainController(
     ): MainResponse =
         mainService.readMain(importantCnt)
 
+    @InternalOnly
     @GetMapping("/search/refresh")
     fun refreshSearches() {
         mainService.refreshSearch()
@@ -39,14 +41,14 @@ class MainController(
         @RequestParam(required = false, defaultValue = "3") @Positive number: Int,
         @RequestParam(required = false, defaultValue = "10") @Positive memberNumber: Int,
         @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int,
-        @RequestParam(required = false, defaultValue = "ko") language: String
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType
     ): TotalSearchResponse {
         return mainService.totalSearch(
             keyword,
             number,
             memberNumber,
             stringLength,
-            LanguageType.makeStringToLanguageType(language)
+            language
         )
     }
 }

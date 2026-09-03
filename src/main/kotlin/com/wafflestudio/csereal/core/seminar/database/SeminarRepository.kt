@@ -30,9 +30,6 @@ interface SeminarRepository : JpaRepository<SeminarEntity, Long>, CustomSeminarR
         timestamp: LocalDateTime
     ): SeminarEntity?
 
-    @Query("SELECT s.id FROM seminar s")
-    fun findAllIds(): List<Long>
-
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(
         "UPDATE seminar s SET s.isImportant = false, s.importantUntil = NULL " +
@@ -122,7 +119,7 @@ class SeminarRepositoryImpl(
             var isYearLast = false
             if (i == 0) {
                 isYearLast = true
-            } else if (seminarEntityList[i].startDate?.year != seminarEntityList[i - 1].startDate?.year) {
+            } else if (seminarEntityList[i].startDate.year != seminarEntityList[i - 1].startDate.year) {
                 isYearLast = true
             }
 

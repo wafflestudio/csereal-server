@@ -38,9 +38,6 @@ interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository
         timestamp: LocalDateTime
     ): NewsEntity?
 
-    @Query("SELECT n.id FROM news n")
-    fun findAllIds(): List<Long>
-
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(
         "UPDATE news n SET n.isImportant = false, n.importantUntil = NULL " +

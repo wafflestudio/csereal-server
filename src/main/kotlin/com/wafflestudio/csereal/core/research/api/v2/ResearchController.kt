@@ -37,12 +37,10 @@ class ResearchController(
 
     @GetMapping("/{researchType:[a-z A-Z]+}")
     fun readAllResearch(
-        @PathVariable(required = true) researchType: String,
-        @RequestParam(required = false, defaultValue = "ko") language: String
+        @PathVariable(required = true) researchType: ResearchType,
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType
     ): List<ResearchSealedDto> {
-        val researchTypeEnum = ResearchType.fromJsonValue(researchType)
-        val languageEnum = LanguageType.makeStringToLanguageType(language)
-        return researchService.readAllResearch(languageEnum, researchTypeEnum)
+        return researchService.readAllResearch(language, researchType)
     }
 
     @PreAuthorize("hasRole('STAFF')")
@@ -83,7 +81,7 @@ class ResearchController(
 
     @GetMapping("/lab")
     fun readAllLabs(
-        @RequestParam(required = false, defaultValue = "ko") language: String
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType
     ): List<LabDto> = labService.readAllLabs(language)
 
     // TODO: Change to Language Unified API
@@ -125,34 +123,4 @@ class ResearchController(
     ) {
         labService.deleteLabLanguage(koreanLabId, englishLabId)
     }
-
-    // Search APIs
-
-    @GetMapping("/search/top")
-    fun searchTop(
-        @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true) @Valid @Positive number: Int,
-        @RequestParam(required = true, defaultValue = "ko") language: String,
-        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
-    ) = researchSearchService.searchTopResearch(
-        keyword,
-        LanguageType.makeStringToLanguageType(language),
-        number,
-        amount
-    )
-
-    @GetMapping("/search")
-    fun searchPage(
-        @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true) pageSize: Int,
-        @RequestParam(required = true) pageNum: Int,
-        @RequestParam(required = true, defaultValue = "ko") language: String,
-        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
-    ) = researchSearchService.searchResearch(
-        keyword,
-        LanguageType.makeStringToLanguageType(language),
-        pageSize,
-        pageNum,
-        amount
-    )
 }

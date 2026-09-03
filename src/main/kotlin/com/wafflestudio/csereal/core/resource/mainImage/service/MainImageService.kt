@@ -4,7 +4,6 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
-import com.wafflestudio.csereal.core.council.database.CouncilEntity
 import com.wafflestudio.csereal.core.imagemodal.database.ImageModalEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
@@ -53,7 +52,7 @@ class MainImageServiceImpl(
     ): MainImageDto {
         Files.createDirectories(Paths.get(path))
 
-        val extension = FilenameUtils.getExtension(requestImage.originalFilename)
+        val extension = FilenameUtils.getExtension(requestImage.originalFilename)?.lowercase()
 
         if (!listOf("jpg", "jpeg", "png").contains(extension)) {
             throw CserealException.Csereal400("파일의 형식은 jpg, jpeg, png 중 하나여야 합니다.")
@@ -127,10 +126,6 @@ class MainImageServiceImpl(
             }
 
             is RecruitEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is CouncilEntity -> {
                 contentEntity.mainImage = mainImage
             }
 

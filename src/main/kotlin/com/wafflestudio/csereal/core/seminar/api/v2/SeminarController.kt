@@ -1,7 +1,9 @@
 package com.wafflestudio.csereal.core.seminar.api.v2
 
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
-import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
+import com.wafflestudio.csereal.core.seminar.api.req.CreateSeminarReq
+import com.wafflestudio.csereal.core.seminar.api.req.UpdateSeminarReq
+import com.wafflestudio.csereal.core.seminar.dto.SeminarResponse
 import com.wafflestudio.csereal.core.seminar.dto.SeminarSearchResponse
 import com.wafflestudio.csereal.core.seminar.service.SeminarService
 import jakarta.validation.Valid
@@ -21,52 +23,50 @@ class SeminarController(
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
         @RequestParam(required = false, defaultValue = "10") pageSize: Int,
-        @RequestParam(required = false, defaultValue = "DATE") sortBy: String
+        @RequestParam(required = false, defaultValue = "DATE") sortBy: ContentSearchSortType
     ): ResponseEntity<SeminarSearchResponse> {
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
 
-        val sortType = ContentSearchSortType.fromJsonValue(sortBy)
-
-        return ResponseEntity.ok(seminarService.searchSeminar(keyword, pageRequest, usePageBtn, sortType))
+        return ResponseEntity.ok(seminarService.searchSeminar(keyword, pageRequest, usePageBtn, sortBy))
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping
+    @PostMapping(consumes = ["multipart/form-data"])
     fun createSeminar(
         @Valid
         @RequestPart("request")
-        request: SeminarDto,
+        request: CreateSeminarReq,
         @RequestPart("mainImage") mainImage: MultipartFile?,
         @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<SeminarDto> {
+    ): ResponseEntity<SeminarResponse> {
         return ResponseEntity.ok(seminarService.createSeminar(request, mainImage, attachments))
     }
 
     @GetMapping("/{seminarId}")
     fun readSeminar(
         @PathVariable seminarId: Long
-    ): ResponseEntity<SeminarDto> {
+    ): ResponseEntity<SeminarResponse> {
         return ResponseEntity.ok(seminarService.readSeminar(seminarId))
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PatchMapping("/{seminarId}")
+    @PatchMapping("/{seminarId}", consumes = ["multipart/form-data"])
     fun updateSeminar(
         @PathVariable seminarId: Long,
         @Valid
         @RequestPart("request")
-        request: SeminarDto,
+        request: UpdateSeminarReq,
         @RequestPart("newMainImage") newMainImage: MultipartFile?,
-        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?
-    ): ResponseEntity<SeminarDto> {
+        @RequestPart("attachments") attachments: List<MultipartFile>?
+    ): ResponseEntity<SeminarResponse> {
         return ResponseEntity.ok(
             seminarService.updateSeminar(
                 seminarId,
                 request,
                 newMainImage,
-                newAttachments
+                attachments
             )
         )
     }
@@ -77,10 +77,5 @@ class SeminarController(
         @PathVariable seminarId: Long
     ) {
         seminarService.deleteSeminar(seminarId)
-    }
-
-    @GetMapping("/ids")
-    fun getAllIds(): ResponseEntity<List<Long>> {
-        return ResponseEntity.ok(seminarService.getAllIds())
     }
 }

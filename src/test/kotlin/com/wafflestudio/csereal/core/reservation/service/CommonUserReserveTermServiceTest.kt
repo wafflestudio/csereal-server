@@ -2,7 +2,6 @@ package com.wafflestudio.csereal.core.reservation.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
-import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
 import com.wafflestudio.csereal.core.reservation.database.ReservationType
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermRepository
@@ -10,8 +9,8 @@ import com.wafflestudio.csereal.core.reservation.database.RoomEntity
 import com.wafflestudio.csereal.core.reservation.database.RoomRepository
 import com.wafflestudio.csereal.core.reservation.database.RoomType
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
-import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
+import com.wafflestudio.csereal.global.authenticateAs
 import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
@@ -20,13 +19,9 @@ import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.shouldBe
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -51,7 +46,7 @@ class CommonUserReserveTermServiceTest(
         reserveTermRepository.save(
             ReserveTermEntity(now.minusDays(2), now.minusDays(1), now.minusDays(3), now.plusYears(1))
         )
-        authenticate(userRepository, "common-user", "ROLE_RESERVATION")
+        authenticateAs(userRepository, "common-user", "ROLE_RESERVE")
     }
     afterTest { SecurityContextHolder.clearContext() }
 
@@ -85,17 +80,5 @@ class CommonUserReserveTermServiceTest(
             roomId, "title", "a@a.com", "010-1234-5678", "prof", "purpose",
             start, end, true, recurringWeeks
         )
-
-        private fun authenticate(repository: UserRepository, username: String, role: String) {
-            val user = repository.findByUsername(username) ?: repository.save(
-                UserEntity(username, username, "$username@example.com", "0000-00000")
-            )
-            val authorities = listOf(SimpleGrantedAuthority(role))
-            val issuedAt = Instant.now()
-            val token = OidcIdToken("mock-token", issuedAt, issuedAt.plusSeconds(3600), mapOf("sub" to username))
-            val principal = CustomOidcUser(user, authorities, token)
-            SecurityContextHolder.getContext().authentication =
-                UsernamePasswordAuthenticationToken(principal, null, authorities)
-        }
     }
 }

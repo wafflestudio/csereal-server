@@ -14,54 +14,61 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface AcademicsService {
-    fun readGuide(language: String, studentType: String): GuidePageResponse
+    fun readGuide(language: LanguageType, studentType: AcademicsStudentType): GuidePageResponse
     fun readAcademicsYearResponses(
-        language: String,
-        studentType: String,
-        postType: String
+        language: LanguageType,
+        studentType: AcademicsStudentType,
+        postType: AcademicsPostType
     ): List<AcademicsYearResponse>
 
-    fun readDegreeRequirements(language: String): DegreeRequirementsPageResponse
-    fun updateDegreeRequirements(language: String, request: UpdateSingleReq, newAttachments: List<MultipartFile>?)
+    fun readDegreeRequirements(language: LanguageType): DegreeRequirementsPageResponse
+    fun updateDegreeRequirements(language: LanguageType, request: UpdateSingleReq, newAttachments: List<MultipartFile>?)
     fun createCourse(request: GroupedCourseDto)
 
-    fun readAllCourses(language: String, studentType: String): List<CourseDto>
-    fun readAllGroupedCourses(studentType: String, sortType: String): List<GroupedCourseDto>
+    fun readAllGroupedCourses(studentType: AcademicsStudentType, sortType: String): List<GroupedCourseDto>
     fun updateCourse(updateRequest: GroupedCourseDto)
     fun deleteCourse(code: String)
-    fun updateScholarshipPage(language: String, studentType: String, request: UpdateScholarshipPageReq)
+    fun updateScholarshipPage(
+        language: LanguageType,
+        studentType: AcademicsStudentType,
+        request: UpdateScholarshipPageReq
+    )
 
-    fun readAllScholarship(language: String, studentType: String): ScholarshipPageResponse
+    fun readAllScholarship(language: LanguageType, studentType: AcademicsStudentType): ScholarshipPageResponse
     fun createScholarship(
-        studentType: String,
+        studentType: AcademicsStudentType,
         request: CreateScholarshipReq
     )
 
-    fun readScholarship(scholarshipId: Long): ScholarshipDto
     fun readScholarshipV2(scholarshipId: Long): Pair<ScholarshipDto, ScholarshipDto>
     fun updateScholarship(request: UpdateScholarshipReq)
     fun deleteScholarship(scholarshipId: Long)
     fun updateGuide(
-        language: String,
-        studentType: String,
+        language: LanguageType,
+        studentType: AcademicsStudentType,
         request: UpdateSingleReq,
         newAttachments: List<MultipartFile>?
     )
 
     fun updateAcademicsYearResponse(
-        language: String,
-        studentType: String,
-        postType: String,
+        language: LanguageType,
+        studentType: AcademicsStudentType,
+        postType: AcademicsPostType,
         year: Int,
         request: UpdateYearReq,
         newAttachments: List<MultipartFile>?
     )
 
-    fun deleteAcademicsYearResponse(language: String, studentType: String, postType: String, year: Int)
+    fun deleteAcademicsYearResponse(
+        language: LanguageType,
+        studentType: AcademicsStudentType,
+        postType: AcademicsPostType,
+        year: Int
+    )
     fun createAcademicsYearResponse(
-        language: String,
-        studentType: String,
-        postType: String,
+        language: LanguageType,
+        studentType: AcademicsStudentType,
+        postType: AcademicsPostType,
         request: CreateYearReq,
         attachments: List<MultipartFile>?
     )
@@ -81,14 +88,11 @@ class AcademicsServiceImpl(
 ) : AcademicsService {
 
     @Transactional(readOnly = true)
-    override fun readGuide(language: String, studentType: String): GuidePageResponse {
-        val languageType = LanguageType.makeStringToLanguageType(language)
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-
+    override fun readGuide(language: LanguageType, studentType: AcademicsStudentType): GuidePageResponse {
         val academicsEntity =
             academicsRepository.findByLanguageAndStudentTypeAndPostType(
-                languageType,
-                enumStudentType,
+                language,
+                studentType,
                 AcademicsPostType.GUIDE
             ) ?: throw CserealException.Csereal404("Guide Not Found")
         val attachmentResponses =
@@ -98,18 +102,15 @@ class AcademicsServiceImpl(
 
     @Transactional
     override fun updateGuide(
-        language: String,
-        studentType: String,
+        language: LanguageType,
+        studentType: AcademicsStudentType,
         request: UpdateSingleReq,
         newAttachments: List<MultipartFile>?
     ) {
-        val languageType = LanguageType.makeStringToLanguageType(language)
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-
         val academicsEntity =
             academicsRepository.findByLanguageAndStudentTypeAndPostType(
-                languageType,
-                enumStudentType,
+                language,
+                studentType,
                 AcademicsPostType.GUIDE
             ) ?: throw CserealException.Csereal404("Guide Not Found")
 
@@ -118,29 +119,22 @@ class AcademicsServiceImpl(
             academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
         }
 
-        attachmentService.deleteAttachments(request.deleteIds)
-        if (newAttachments != null) {
-            attachmentService.uploadAllAttachments(academicsEntity, newAttachments)
-        }
+        attachmentService.syncAttachments(academicsEntity, request.attachmentIds, newAttachments)
     }
 
     @Transactional
     override fun updateAcademicsYearResponse(
-        language: String,
-        studentType: String,
-        postType: String,
+        language: LanguageType,
+        studentType: AcademicsStudentType,
+        postType: AcademicsPostType,
         year: Int,
         request: UpdateYearReq,
         newAttachments: List<MultipartFile>?
     ) {
-        val languageType = LanguageType.makeStringToLanguageType(language)
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val enumPostType = makeStringToAcademicsPostType(postType)
-
         val academicsEntity = academicsRepository.findByLanguageAndStudentTypeAndPostTypeAndYear(
-            languageType,
-            enumStudentType,
-            enumPostType,
+            language,
+            studentType,
+            postType,
             year
         ) ?: throw CserealException.Csereal404("AcademicsEntity Not Found")
 
@@ -149,23 +143,20 @@ class AcademicsServiceImpl(
             academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
         }
 
-        attachmentService.deleteAttachments(request.deleteIds)
-
-        if (newAttachments != null) {
-            attachmentService.uploadAllAttachments(academicsEntity, newAttachments)
-        }
+        attachmentService.syncAttachments(academicsEntity, request.attachmentIds, newAttachments)
     }
 
     @Transactional
-    override fun deleteAcademicsYearResponse(language: String, studentType: String, postType: String, year: Int) {
-        val languageType = LanguageType.makeStringToLanguageType(language)
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val enumPostType = makeStringToAcademicsPostType(postType)
-
+    override fun deleteAcademicsYearResponse(
+        language: LanguageType,
+        studentType: AcademicsStudentType,
+        postType: AcademicsPostType,
+        year: Int
+    ) {
         val academicsEntity = academicsRepository.findByLanguageAndStudentTypeAndPostTypeAndYear(
-            languageType,
-            enumStudentType,
-            enumPostType,
+            language,
+            studentType,
+            postType,
             year
         ) ?: throw CserealException.Csereal404("AcademicsEntity Not Found")
 
@@ -175,27 +166,23 @@ class AcademicsServiceImpl(
 
     @Transactional
     override fun createAcademicsYearResponse(
-        language: String,
-        studentType: String,
-        postType: String,
+        language: LanguageType,
+        studentType: AcademicsStudentType,
+        postType: AcademicsPostType,
         request: CreateYearReq,
         attachments: List<MultipartFile>?
     ) {
-        val languageType = LanguageType.makeStringToLanguageType(language)
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val enumPostType = makeStringToAcademicsPostType(postType)
-
         academicsRepository.findByLanguageAndStudentTypeAndPostTypeAndYear(
-            languageType,
-            enumStudentType,
-            enumPostType,
+            language,
+            studentType,
+            postType,
             request.year
         )?.let {
             throw CserealException.Csereal409("Year Response Already Exist")
         }
 
         val newAcademics =
-            AcademicsEntity.createYearResponse(enumStudentType, enumPostType, languageType, request)
+            AcademicsEntity.createYearResponse(studentType, postType, language, request)
 
         newAcademics.apply {
             academicsSearch = AcademicsSearchEntity.create(this)
@@ -210,19 +197,15 @@ class AcademicsServiceImpl(
 
     @Transactional(readOnly = true)
     override fun readAcademicsYearResponses(
-        language: String,
-        studentType: String,
-        postType: String
+        language: LanguageType,
+        studentType: AcademicsStudentType,
+        postType: AcademicsPostType
     ): List<AcademicsYearResponse> {
-        val languageType = LanguageType.makeStringToLanguageType(language)
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val enumPostType = makeStringToAcademicsPostType(postType)
-
         val academicsEntityList =
             academicsRepository.findAllByLanguageAndStudentTypeAndPostTypeOrderByYearDesc(
-                languageType,
-                enumStudentType,
-                enumPostType
+                language,
+                studentType,
+                postType
             )
 
         val academicsYearResponses = academicsEntityList.map {
@@ -234,12 +217,10 @@ class AcademicsServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readDegreeRequirements(language: String): DegreeRequirementsPageResponse {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
-
+    override fun readDegreeRequirements(language: LanguageType): DegreeRequirementsPageResponse {
         val academicsEntity =
             academicsRepository.findByLanguageAndStudentTypeAndPostType(
-                enumLanguageType,
+                language,
                 AcademicsStudentType.UNDERGRADUATE,
                 AcademicsPostType.DEGREE_REQUIREMENTS
             ) ?: throw CserealException.Csereal404("Degree Requirements Not Found")
@@ -250,15 +231,13 @@ class AcademicsServiceImpl(
 
     @Transactional
     override fun updateDegreeRequirements(
-        language: String,
+        language: LanguageType,
         request: UpdateSingleReq,
         newAttachments: List<MultipartFile>?
     ) {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
-
         val academicsEntity =
             academicsRepository.findByLanguageAndStudentTypeAndPostType(
-                enumLanguageType,
+                language,
                 AcademicsStudentType.UNDERGRADUATE,
                 AcademicsPostType.DEGREE_REQUIREMENTS
             ) ?: throw CserealException.Csereal404("Degree Requirements Not Found")
@@ -268,10 +247,7 @@ class AcademicsServiceImpl(
             academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
         }
 
-        attachmentService.deleteAttachments(request.deleteIds)
-        if (newAttachments != null) {
-            attachmentService.uploadAllAttachments(academicsEntity, newAttachments)
-        }
+        attachmentService.syncAttachments(academicsEntity, request.attachmentIds, newAttachments)
     }
 
     @Transactional
@@ -280,14 +256,14 @@ class AcademicsServiceImpl(
             throw CserealException.Csereal409("해당 교과목 번호를 가지고 있는 엔티티가 이미 있습니다")
         }
 
-        val enumStudentType = makeStringToAcademicsStudentType(request.studentType)
+        val studentType = makeStringToAcademicsStudentType(request.studentType)
 
         val courses = listOf(
             LanguageType.KO to request.ko,
             LanguageType.EN to request.en
         ).map { (language, langSpecificData) ->
             CourseEntity.of(
-                enumStudentType,
+                studentType,
                 language,
                 langSpecificData.classification,
                 request.code,
@@ -304,24 +280,9 @@ class AcademicsServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllCourses(language: String, studentType: String): List<CourseDto> {
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
-        val courseDtoList =
-            courseRepository.findAllByLanguageAndStudentTypeOrderByNameAsc(
-                enumLanguageType,
-                enumStudentType
-            ).map {
-                CourseDto.of(it)
-            }
-        return courseDtoList
-    }
-
-    @Transactional(readOnly = true)
-    override fun readAllGroupedCourses(studentType: String, sortType: String): List<GroupedCourseDto> {
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+    override fun readAllGroupedCourses(studentType: AcademicsStudentType, sortType: String): List<GroupedCourseDto> {
         val sort = LanguageType.makeStringToLanguageType(sortType)
-        return courseRepository.findGroupedCourses(enumStudentType)
+        return courseRepository.findGroupedCourses(studentType)
             .map(CourseMapper::toGroupedCourseDTO)
             .sortedBy { course ->
                 when (sort) {
@@ -363,12 +324,14 @@ class AcademicsServiceImpl(
     }
 
     @Transactional
-    override fun updateScholarshipPage(language: String, studentType: String, request: UpdateScholarshipPageReq) {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+    override fun updateScholarshipPage(
+        language: LanguageType,
+        studentType: AcademicsStudentType,
+        request: UpdateScholarshipPageReq
+    ) {
         val scholarshipPage = academicsRepository.findByLanguageAndStudentTypeAndPostType(
-            enumLanguageType,
-            enumStudentType,
+            language,
+            studentType,
             AcademicsPostType.SCHOLARSHIP
         ) ?: throw CserealException.Csereal404("scholarship page not found")
 
@@ -379,29 +342,28 @@ class AcademicsServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun readAllScholarship(language: String, studentType: String): ScholarshipPageResponse {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
-
+    override fun readAllScholarship(
+        language: LanguageType,
+        studentType: AcademicsStudentType
+    ): ScholarshipPageResponse {
         val academicsEntity =
             academicsRepository.findByLanguageAndStudentTypeAndPostType(
-                enumLanguageType,
-                enumStudentType,
+                language,
+                studentType,
                 AcademicsPostType.SCHOLARSHIP
             ) ?: throw CserealException.Csereal404("Scholarship Entity Not Found")
         val scholarshipEntityList =
-            scholarshipRepository.findAllByStudentTypeAndLanguage(enumStudentType, enumLanguageType)
+            scholarshipRepository.findAllByStudentTypeAndLanguage(studentType, language)
 
         return ScholarshipPageResponse.of(academicsEntity, scholarshipEntityList)
     }
 
     @Transactional
-    override fun createScholarship(studentType: String, request: CreateScholarshipReq) {
-        val enumStudentType = makeStringToAcademicsStudentType(studentType)
+    override fun createScholarship(studentType: AcademicsStudentType, request: CreateScholarshipReq) {
         val koScholarship =
-            ScholarshipEntity.of(LanguageType.KO, enumStudentType, request.koName, request.koDescription)
+            ScholarshipEntity.of(LanguageType.KO, studentType, request.koName, request.koDescription)
         val enScholarship =
-            ScholarshipEntity.of(LanguageType.EN, enumStudentType, request.enName, request.enDescription)
+            ScholarshipEntity.of(LanguageType.EN, studentType, request.enName, request.enDescription)
 
         // create search data
         koScholarship.apply {
@@ -414,13 +376,6 @@ class AcademicsServiceImpl(
         scholarshipRepository.save(koScholarship)
         scholarshipRepository.save(enScholarship)
         scholarshipLanguageRepository.save(ScholarshipLanguageEntity(koScholarship, enScholarship))
-    }
-
-    @Transactional(readOnly = true)
-    override fun readScholarship(scholarshipId: Long): ScholarshipDto {
-        val scholarship = scholarshipRepository.findByIdOrNull(scholarshipId)
-            ?: throw CserealException.Csereal404("해당하는 장학제도를 찾을 수 없습니다")
-        return ScholarshipDto.of(scholarship)
     }
 
     @Transactional(readOnly = true)
@@ -471,19 +426,10 @@ class AcademicsServiceImpl(
         scholarshipRepository.delete(scholarshipLanguage.enScholarship)
     }
 
-    private fun makeStringToAcademicsStudentType(postType: String): AcademicsStudentType {
+    // JSON 바디의 studentType 필드용(문자열). URL 파라미터는 컨버터가 처리한다.
+    private fun makeStringToAcademicsStudentType(value: String): AcademicsStudentType {
         try {
-            val upperPostType = postType.replace("-", "_").uppercase()
-            return AcademicsStudentType.valueOf(upperPostType)
-        } catch (e: IllegalArgumentException) {
-            throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
-        }
-    }
-
-    private fun makeStringToAcademicsPostType(postType: String): AcademicsPostType {
-        try {
-            val upperPostType = postType.replace("-", "_").uppercase()
-            return AcademicsPostType.valueOf(upperPostType)
+            return AcademicsStudentType.valueOf(value.replace("-", "_").uppercase())
         } catch (e: IllegalArgumentException) {
             throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
         }

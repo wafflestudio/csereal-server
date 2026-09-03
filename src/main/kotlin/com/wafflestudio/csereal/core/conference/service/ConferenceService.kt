@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional
 interface ConferenceService {
     fun getConferencePage(): ConferencePage
     fun modifyConferences(conferenceModifyRequest: ConferenceModifyRequest): ConferencePage
-    fun migrateConferences(requestList: List<ConferenceDto>): List<ConferenceDto>
 }
 
 @Service
@@ -63,35 +62,13 @@ class ConferenceServiceImpl(
     }
 
     @Transactional
-    override fun migrateConferences(requestList: List<ConferenceDto>): List<ConferenceDto> {
-        val user = userService.getLoginUser()
-
-        val list = mutableListOf<ConferenceDto>()
-        val conferencePage = ConferencePageEntity.of(user)
-        conferencePageRepository.save(conferencePage)
-        for (request in requestList) {
-            val enumLanguageType = LanguageType.makeStringToLanguageType(request.language)
-            val conference = ConferenceEntity.of(enumLanguageType, request, conferencePage)
-
-            conferenceRepository.save(conference)
-
-            conferencePage.conferences.add(conference)
-
-            conference.researchSearch = ResearchSearchEntity.create(conference)
-            list.add(ConferenceDto.of(conference))
-        }
-
-        return list
-    }
-
-    @Transactional
     fun createConferenceWithoutSave(
         conferenceDto: ConferenceDto,
         conferencePage: ConferencePageEntity
     ): ConferenceEntity {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(conferenceDto.language)
+        val language = LanguageType.makeStringToLanguageType(conferenceDto.language)
         val newConference = ConferenceEntity.of(
-            enumLanguageType,
+            language,
             conferenceDto,
             conferencePage
         )

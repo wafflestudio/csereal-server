@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.common.utils
 
+import com.wafflestudio.csereal.core.user.RoleType
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import org.jsoup.safety.Safelist
@@ -47,19 +48,15 @@ fun startsWithEnglish(name: String): Boolean {
 }
 
 fun isCurrentUserStaff(): Boolean {
-    return "ROLE_STAFF" in getCurrentUserRoles()
-}
-
-fun isCurrentUserStaffOrProfessor(): Boolean {
-    val roles = getCurrentUserRoles()
-    return "ROLE_STAFF" in roles || "ROLE_PROFESSOR" in roles
+    return RoleType.STAFF in getCurrentUserRoles()
 }
 
 fun isCurrentUserLeader(): Boolean {
-    return "ROLE_LABMASTER" in getCurrentUserRoles()
+    return RoleType.LABMASTER in getCurrentUserRoles()
 }
 
-fun getCurrentUserRoles(): List<String> {
-    val authentication = SecurityContextHolder.getContext().authentication ?: /* for test */ return listOf("ROLE_STAFF")
-    return authentication.authorities.map { it.authority }
+fun getCurrentUserRoles(): Set<RoleType> {
+    val authentication = SecurityContextHolder.getContext().authentication
+        ?: return emptySet()
+    return authentication.authorities.mapNotNull { RoleType.fromAuthority(it.authority) }.toSet()
 }

@@ -1,13 +1,10 @@
 package com.wafflestudio.csereal.core.admissions.api.v2
 
-import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.admissions.api.req.UpdateAdmissionReq
 import com.wafflestudio.csereal.core.admissions.api.res.GroupedAdmission
 import com.wafflestudio.csereal.core.admissions.service.AdmissionsService
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsMainType
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsPostType
-import jakarta.validation.Valid
-import jakarta.validation.constraints.Positive
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
@@ -16,55 +13,23 @@ import org.springframework.web.bind.annotation.*
 class AdmissionsController(
     private val admissionsService: AdmissionsService
 ) {
-    @GetMapping("/{mainTypeStr}/{postTypeStr}")
+    @GetMapping("/{mainType}/{postType}")
     fun readAdmission(
-        @PathVariable(required = true) mainTypeStr: String,
-        @PathVariable(required = true) postTypeStr: String
+        @PathVariable(required = true) mainType: AdmissionsMainType,
+        @PathVariable(required = true) postType: AdmissionsPostType
     ): GroupedAdmission {
-        val mainType = AdmissionsMainType.fromJsonValue(mainTypeStr)
-        val postType = AdmissionsPostType.fromJsonValue(postTypeStr)
         return admissionsService.readGroupedAdmission(mainType, postType)
     }
 
     // TODO: Add Create, Delete Admission Pair API if needed
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/{mainTypeStr}/{postTypeStr}")
+    @PutMapping("/{mainType}/{postType}")
     fun updateAdmission(
-        @PathVariable(required = true) mainTypeStr: String,
-        @PathVariable(required = true) postTypeStr: String,
+        @PathVariable(required = true) mainType: AdmissionsMainType,
+        @PathVariable(required = true) postType: AdmissionsPostType,
         @RequestBody updateAdmissionReq: UpdateAdmissionReq
     ) {
-        val mainType = AdmissionsMainType.fromJsonValue(mainTypeStr)
-        val postType = AdmissionsPostType.fromJsonValue(postTypeStr)
         admissionsService.updateGroupedAdmission(mainType, postType, updateAdmissionReq)
     }
-
-    @GetMapping("/search/top")
-    fun searchTopAdmissions(
-        @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true, defaultValue = "ko") language: String,
-        @RequestParam(required = true) @Valid @Positive number: Int,
-        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
-    ) = admissionsService.searchTopAdmission(
-        keyword,
-        LanguageType.makeStringToLanguageType(language),
-        number,
-        amount
-    )
-
-    @GetMapping("/search")
-    fun searchPageAdmissions(
-        @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true, defaultValue = "ko") language: String,
-        @RequestParam(required = true) @Valid @Positive pageSize: Int,
-        @RequestParam(required = true) @Valid @Positive pageNum: Int,
-        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
-    ) = admissionsService.searchPageAdmission(
-        keyword,
-        LanguageType.makeStringToLanguageType(language),
-        pageSize,
-        pageNum,
-        amount
-    )
 }

@@ -5,8 +5,7 @@ import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
 import java.time.LocalDate
 
-// TODO: split between dto, response, request data classes
-data class NoticeDto(
+data class NoticeResponse(
     val id: Long,
     val title: String,
     val titleForMain: String?,
@@ -24,8 +23,7 @@ data class NoticeDto(
     val prevTitle: String?,
     val nextId: Long?,
     val nextTitle: String?,
-    val attachments: List<AttachmentResponse>?,
-    val deleteIds: List<Long>? = null
+    val attachments: List<AttachmentResponse>?
 ) {
 
     companion object {
@@ -34,8 +32,8 @@ data class NoticeDto(
             attachmentResponses: List<AttachmentResponse>,
             prevNotice: NoticeEntity? = null,
             nextNotice: NoticeEntity? = null
-        ): NoticeDto = entity.run {
-            NoticeDto(
+        ): NoticeResponse = entity.run {
+            NoticeResponse(
                 id = this.id,
                 title = this.title,
                 titleForMain = this.titleForMain,

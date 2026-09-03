@@ -28,7 +28,7 @@ import org.springframework.web.multipart.MultipartFile
 interface LabService {
     fun readLabLanguage(labId: Long): LabLanguageDto
     fun readLab(labId: Long): LabDto
-    fun readAllLabs(language: String): List<LabDto>
+    fun readAllLabs(language: LanguageType): List<LabDto>
 
     fun createLab(language: LanguageType, request: CreateLabReqBody, pdf: MultipartFile?): LabDto
     fun createLabLanguage(request: CreateLabLanguageReqBody, pdf: MultipartFile?): LabLanguageDto
@@ -59,9 +59,8 @@ class LabServiceImpl(
 ) : LabService {
     // TODO: Solve N+1 Problem
     @Transactional(readOnly = true)
-    override fun readAllLabs(language: String): List<LabDto> {
-        val enumLanguageType = LanguageType.makeStringToLanguageType(language)
-        val labs = labRepository.findAllByLanguageOrderByName(enumLanguageType).map {
+    override fun readAllLabs(language: LanguageType): List<LabDto> {
+        val labs = labRepository.findAllByLanguageOrderByName(language).map {
             val attachmentResponse =
                 attachmentService.createOneAttachmentResponse(it.pdf)
             LabDto.of(it, attachmentResponse)

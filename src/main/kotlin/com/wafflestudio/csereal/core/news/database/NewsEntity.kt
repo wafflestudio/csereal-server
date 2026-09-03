@@ -4,7 +4,7 @@ import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
-import com.wafflestudio.csereal.core.news.dto.NewsDto
+import com.wafflestudio.csereal.core.news.api.req.NewsReqBody
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.*
@@ -42,7 +42,7 @@ class NewsEntity(
 ) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable {
 
     companion object {
-        fun of(newsDto: NewsDto): NewsEntity {
+        fun of(newsDto: NewsReqBody): NewsEntity {
             return NewsEntity(
                 title = newsDto.title,
                 titleForMain = newsDto.titleForMain,
@@ -57,7 +57,7 @@ class NewsEntity(
         }
     }
 
-    fun update(updateNewsRequest: NewsDto) {
+    fun update(updateNewsRequest: NewsReqBody) {
         if (updateNewsRequest.description != this.description) {
             this.description = updateNewsRequest.description
             this.plainTextDescription = cleanTextFromHtml(updateNewsRequest.description)

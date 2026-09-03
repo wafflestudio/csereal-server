@@ -2,19 +2,22 @@ package com.wafflestudio.csereal.core.notice.service
 
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
 import com.wafflestudio.csereal.core.notice.database.NoticeRepository
-import com.wafflestudio.csereal.core.notice.dto.NoticeDto
-import com.wafflestudio.csereal.core.user.database.UserEntity
+import com.wafflestudio.csereal.core.notice.api.req.CreateNoticeReq
+import com.wafflestudio.csereal.core.notice.api.req.UpdateNoticeReq
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import com.wafflestudio.csereal.core.user.service.UserService
+import com.wafflestudio.csereal.global.authenticateAs
 import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
 
+@ActiveProfiles("test")
 @SpringBootTest
 @Transactional
 @Import(MySQLTestContainerConfig::class)
@@ -26,16 +29,7 @@ class NoticeServiceTest(
 ) : BehaviorSpec() {
     init {
         beforeSpec {
-            if (userRepository.findByUsername("test") == null) {
-                userRepository.save(
-                    UserEntity(
-                        "test",
-                        "test",
-                        "test@abc.com",
-                        "0000-00000"
-                    )
-                )
-            }
+            authenticateAs(userRepository, "test")
         }
 
         afterSpec {
@@ -44,8 +38,7 @@ class NoticeServiceTest(
         }
 
         Given("간단한 공지사항을 생성하려고 할 때") {
-            val noticeDto = NoticeDto(
-                id = -1,
+            val noticeDto = CreateNoticeReq(
                 title = "title",
                 titleForMain = null,
                 description = """
@@ -53,20 +46,12 @@ class NoticeServiceTest(
                             <p>This is a test notice.</p>
                             <h3>Goodbye, World!</h3>
                 """.trimIndent(),
-                author = "username",
                 tags = emptyList(),
-                createdAt = null,
-                modifiedAt = null,
                 isPrivate = false,
                 isPinned = false,
                 pinnedUntil = null,
                 isImportant = false,
-                importantUntil = null,
-                prevId = null,
-                prevTitle = null,
-                nextId = null,
-                nextTitle = null,
-                attachments = null
+                importantUntil = null
             )
 
             When("공지사항을 생성하면") {
@@ -100,22 +85,27 @@ class NoticeServiceTest(
                     author = userService.getLoginUser()
                 )
             )
-            val modifiedRequest = NoticeDto.of(
-                noticeEntity,
-                emptyList(),
-                null
-            ).copy(
+            val modifiedRequest = UpdateNoticeReq(
+                title = noticeEntity.title,
+                titleForMain = noticeEntity.titleForMain,
                 description = """
                             <h1>Hello, World!</h1>
                             <p>This is a modified test notice.</p>
                             <h3>Goodbye, World!</h3>
                             <p>And this is a new line.</p>
-                """.trimIndent()
+                """.trimIndent(),
+                isPrivate = false,
+                isPinned = false,
+                pinnedUntil = null,
+                isImportant = false,
+                importantUntil = null,
+                tags = emptyList(),
+                attachmentIds = emptyList()
             )
 
             When("수정된 DTO를 이용하여 수정하면") {
                 val modifiedNoticeDto = noticeService.updateNotice(
-                    modifiedRequest.id,
+                    noticeEntity.id,
                     modifiedRequest,
                     null
                 )

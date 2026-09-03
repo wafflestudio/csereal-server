@@ -1,14 +1,12 @@
 package com.wafflestudio.csereal.core.about.api.v2
 
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.about.database.AboutPostType
 import com.wafflestudio.csereal.core.about.api.req.*
-import com.wafflestudio.csereal.core.about.api.res.AboutSearchResBody
 import com.wafflestudio.csereal.core.about.dto.AboutDto
 import com.wafflestudio.csereal.core.about.dto.FutureCareersPage
 import com.wafflestudio.csereal.core.about.dto.GroupedClubDto
 import com.wafflestudio.csereal.core.about.service.AboutService
-import jakarta.validation.Valid
-import jakarta.validation.constraints.Positive
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -26,8 +24,8 @@ class AboutController(
     // TODO: Remove if not needed (controller returns language pair should be preferred)
     @GetMapping("/{postType}")
     fun readAbout(
-        @RequestParam(required = false, defaultValue = "ko") language: String,
-        @PathVariable postType: String
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
+        @PathVariable postType: AboutPostType
     ): ResponseEntity<AboutDto> {
         return ResponseEntity.ok(aboutService.readAbout(language, postType))
     }
@@ -36,14 +34,14 @@ class AboutController(
     fun readAllClubs(): List<GroupedClubDto> = aboutService.readAllGroupedClubs()
 
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping("/student-clubs")
+    @PostMapping("/student-clubs", consumes = ["multipart/form-data"])
     fun createClub(
         @RequestPart request: CreateClubReq,
         @RequestPart mainImage: MultipartFile?
     ) = aboutService.createClub(request, mainImage)
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/student-clubs")
+    @PutMapping("/student-clubs", consumes = ["multipart/form-data"])
     fun updateClub(
         @RequestPart request: UpdateClubReq,
         @RequestPart newMainImage: MultipartFile?
@@ -54,16 +52,16 @@ class AboutController(
     fun deleteClub(@PathVariable id: Long) = aboutService.deleteClub(id)
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/{postType}")
+    @PutMapping("/{postType}", consumes = ["multipart/form-data"])
     fun updateAbout(
-        @PathVariable postType: String,
+        @PathVariable postType: AboutPostType,
         @RequestPart request: UpdateAboutReq,
         @RequestPart newMainImage: MultipartFile?,
-        @RequestPart newAttachments: List<MultipartFile>?
-    ) = aboutService.updateAbout(postType, request, newMainImage, newAttachments)
+        @RequestPart attachments: List<MultipartFile>?
+    ) = aboutService.updateAbout(postType, request, newMainImage, attachments)
 
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping("/facilities")
+    @PostMapping("/facilities", consumes = ["multipart/form-data"])
     fun createFacilities(@RequestPart request: CreateFacReq, @RequestPart mainImage: MultipartFile?) =
         aboutService.createFacilities(request, mainImage)
 
@@ -71,7 +69,7 @@ class AboutController(
     fun readAllGroupedFacilities() = aboutService.readAllGroupedFacilities()
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/facilities/{id}")
+    @PutMapping("/facilities/{id}", consumes = ["multipart/form-data"])
     fun updateFacility(
         @PathVariable id: Long,
         @RequestPart request: UpdateFacReq,
@@ -118,36 +116,8 @@ class AboutController(
 
     @GetMapping("/future-careers")
     fun readFutureCareers(
-        @RequestParam(required = false, defaultValue = "ko") language: String
+        @RequestParam(required = false, defaultValue = "ko") language: LanguageType
     ): ResponseEntity<FutureCareersPage> {
         return ResponseEntity.ok(aboutService.readFutureCareers(language))
     }
-
-    @GetMapping("/search/top")
-    fun searchTopAbout(
-        @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true) @Valid @Positive number: Int,
-        @RequestParam(required = true, defaultValue = "ko") language: String,
-        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
-    ): AboutSearchResBody = aboutService.searchTopAbout(
-        keyword,
-        LanguageType.makeStringToLanguageType(language),
-        number,
-        amount
-    )
-
-    @GetMapping("/search")
-    fun searchPageAbout(
-        @RequestParam(required = true) keyword: String,
-        @RequestParam(required = true) @Valid @Positive pageNum: Int,
-        @RequestParam(required = true) @Valid @Positive pageSize: Int,
-        @RequestParam(required = true, defaultValue = "ko") language: String,
-        @RequestParam(required = false, defaultValue = "30") @Valid @Positive amount: Int
-    ): AboutSearchResBody = aboutService.searchPageAbout(
-        keyword,
-        LanguageType.makeStringToLanguageType(language),
-        pageSize,
-        pageNum,
-        amount
-    )
 }

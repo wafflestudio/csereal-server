@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.notice.api.v2
 
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
+import com.wafflestudio.csereal.core.notice.api.req.CreateNoticeReq
+import com.wafflestudio.csereal.core.notice.api.req.UpdateNoticeReq
 import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.notice.service.NoticeService
 import jakarta.validation.Valid
@@ -25,15 +27,13 @@ class NoticeController(
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) @Positive pageNum: Int?,
         @RequestParam(required = false, defaultValue = "20") @Positive pageSize: Int,
-        @RequestParam(required = false, defaultValue = "DATE") sortBy: String
+        @RequestParam(required = false, defaultValue = "DATE") sortBy: ContentSearchSortType
     ): ResponseEntity<NoticeSearchResponse> {
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
 
-        val sortType = ContentSearchSortType.fromJsonValue(sortBy)
-
-        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, sortType))
+        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, sortBy))
     }
 
     @GetMapping("/totalSearch")
@@ -51,31 +51,31 @@ class NoticeController(
     @GetMapping("/{noticeId}")
     fun readNotice(
         @PathVariable noticeId: Long
-    ): ResponseEntity<NoticeDto> {
+    ): ResponseEntity<NoticeResponse> {
         return ResponseEntity.ok(noticeService.readNotice(noticeId))
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping
+    @PostMapping(consumes = ["multipart/form-data"])
     fun createNotice(
         @Valid
         @RequestPart("request")
-        request: NoticeDto,
+        request: CreateNoticeReq,
         @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<NoticeDto> {
+    ): ResponseEntity<NoticeResponse> {
         return ResponseEntity.ok(noticeService.createNotice(request, attachments))
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @PatchMapping("/{noticeId}")
+    @PatchMapping("/{noticeId}", consumes = ["multipart/form-data"])
     fun updateNotice(
         @PathVariable noticeId: Long,
         @Valid
         @RequestPart("request")
-        request: NoticeDto,
-        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?
-    ): ResponseEntity<NoticeDto> {
-        return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, newAttachments))
+        request: UpdateNoticeReq,
+        @RequestPart("attachments") attachments: List<MultipartFile>?
+    ): ResponseEntity<NoticeResponse> {
+        return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, attachments))
     }
 
     @PreAuthorize("hasRole('STAFF')")
@@ -109,10 +109,5 @@ class NoticeController(
     ): ResponseEntity<String> {
         noticeService.enrollTag(tagName["name"]!!)
         return ResponseEntity<String>("등록되었습니다. (tagName: ${tagName["name"]})", HttpStatus.OK)
-    }
-
-    @GetMapping("/ids")
-    fun getAllIds(): ResponseEntity<List<Long>> {
-        return ResponseEntity.ok(noticeService.getAllIds())
     }
 }

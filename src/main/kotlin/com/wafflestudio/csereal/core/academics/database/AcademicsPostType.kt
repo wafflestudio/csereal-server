@@ -10,4 +10,7 @@ enum class AcademicsPostType {
     // DEGREE_REQUIREMENTS: 졸업 규정
     // COURSE_CHANGES: 교과목 변경 내역
     // SCHOLARSHIP: 장학 제도
+
+    @com.fasterxml.jackson.annotation.JsonValue
+    fun toValue() = name.lowercase().replace('_', '-')
 }

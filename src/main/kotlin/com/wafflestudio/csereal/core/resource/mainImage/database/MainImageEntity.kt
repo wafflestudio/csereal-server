@@ -5,8 +5,6 @@ import jakarta.persistence.*
 
 @Entity(name = "mainImage")
 class MainImageEntity(
-    var isDeleted: Boolean? = false,
-
     @Column(unique = true)
     val filename: String,
 

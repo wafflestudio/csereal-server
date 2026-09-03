@@ -19,11 +19,6 @@ interface CourseRepository : JpaRepository<CourseEntity, Long> {
         val enClassification: String
     }
 
-    fun findAllByLanguageAndStudentTypeOrderByNameAsc(
-        languageType: LanguageType,
-        studentType: AcademicsStudentType
-    ): List<CourseEntity>
-
     @Query(
         """
         SELECT 

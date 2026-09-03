@@ -5,7 +5,6 @@ import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
 import com.wafflestudio.csereal.core.academics.database.CourseEntity
 import com.wafflestudio.csereal.core.academics.database.ScholarshipEntity
-import com.wafflestudio.csereal.core.council.database.CouncilFileEntity
 import com.wafflestudio.csereal.core.news.database.NewsEntity
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
 import com.wafflestudio.csereal.core.research.database.LabEntity
@@ -14,12 +13,9 @@ import jakarta.persistence.*
 
 @Entity(name = "attachment")
 class AttachmentEntity(
-    var isDeleted: Boolean? = false,
-
     @Column(unique = true)
     val filename: String,
 
-    val attachmentsOrder: Int,
     val size: Long,
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -52,9 +48,5 @@ class AttachmentEntity(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scholarship_id")
-    var scholarship: ScholarshipEntity? = null,
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "council_file_id")
-    var councilFile: CouncilFileEntity? = null
+    var scholarship: ScholarshipEntity? = null
 ) : BaseTimeEntity()

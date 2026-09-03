@@ -14,12 +14,14 @@ import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Profile
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
 
+@ActiveProfiles("test")
 @SpringBootTest
 @Profile("test")
 @Transactional
@@ -48,8 +50,8 @@ class AdmissionsServiceTest(
 
             Then("주어진 정보와 일치하는 AdmissionDto가 반환된다.") {
                 result.name shouldBe req.name
-                result.mainType shouldBe mainType.toJsonValue()
-                result.postType shouldBe postType.toJsonValue()
+                result.mainType shouldBe mainType.toValue()
+                result.postType shouldBe postType.toValue()
                 result.language shouldBe req.language
                 result.description shouldBe req.description
             }
@@ -114,8 +116,8 @@ class AdmissionsServiceTest(
             Then("주어진 정보와 일치하는 AdmissionDto가 반환된다.") {
                 result.let {
                     it.name shouldBe admission.name
-                    it.mainType shouldBe admission.mainType.toJsonValue()
-                    it.postType shouldBe admission.postType.toJsonValue()
+                    it.mainType shouldBe admission.mainType.toValue()
+                    it.postType shouldBe admission.postType.toValue()
                     it.language shouldBe LanguageType.makeLowercase(admission.language)
                     it.description shouldBe admission.description
                 }
