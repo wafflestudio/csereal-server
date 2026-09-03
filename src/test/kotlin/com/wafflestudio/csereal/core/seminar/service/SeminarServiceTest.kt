@@ -2,7 +2,8 @@ package com.wafflestudio.csereal.core.seminar.service
 
 import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import com.wafflestudio.csereal.core.seminar.database.SeminarRepository
-import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
+import com.wafflestudio.csereal.core.seminar.api.req.CreateSeminarReq
+import com.wafflestudio.csereal.core.seminar.api.req.UpdateSeminarReq
 import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -32,8 +33,7 @@ class SeminarServiceTest(
         }
 
         Given("세미나를 생성하려고 할 때") {
-            val seminarDTO = SeminarDto(
-                id = -1,
+            val seminarDTO = CreateSeminarReq(
                 title = "title",
                 titleForMain = null,
                 description = """
@@ -60,17 +60,9 @@ class SeminarServiceTest(
                             <p>This is seminar additionalNote.</p>
                             <h3>Goodbye, World!</h3>
                 """.trimIndent(),
-                createdAt = null,
-                modifiedAt = null,
                 isPrivate = false,
                 isImportant = false,
-                importantUntil = null,
-                prevId = null,
-                prevTitle = null,
-                nextId = null,
-                nextTitle = null,
-                imageURL = null,
-                attachments = null
+                importantUntil = null
             )
             When("간단한 세미나 DTO가 주어지면") {
                 val resultSeminarDTO = seminarService.createSeminar(seminarDTO, null, null)
@@ -134,12 +126,9 @@ class SeminarServiceTest(
             val originalId = originalSeminar.id
 
             When("수정된 DTO를 이용하여 수정하면") {
-                val modifiedSeminarDTO = SeminarDto.of(
-                    originalSeminar,
-                    null,
-                    emptyList(),
-                    null
-                ).copy(
+                val modifiedSeminarDTO = UpdateSeminarReq(
+                    title = originalSeminar.title,
+                    titleForMain = originalSeminar.titleForMain,
                     description = """
                                 <h1>Hello, World!</h1>
                                 <p>This is modified seminar description.</p>
@@ -152,12 +141,26 @@ class SeminarServiceTest(
                                 <h3>Goodbye, World!</h3>
                                 <p>And this is a new line.</p>
                     """.trimIndent(),
+                    name = originalSeminar.name,
+                    speakerURL = originalSeminar.speakerURL,
+                    speakerTitle = originalSeminar.speakerTitle,
+                    affiliation = originalSeminar.affiliation,
+                    affiliationURL = originalSeminar.affiliationURL,
+                    startDate = originalSeminar.startDate,
+                    endDate = originalSeminar.endDate,
+                    location = originalSeminar.location,
+                    host = originalSeminar.host,
                     additionalNote = """
                                 <h1>Hello, World!</h1>
                                 <p>This is modified seminar additionalNote.</p>
                                 <h3>Goodbye, World!</h3>
                                 <p>And this is a new line.</p>
-                    """.trimIndent()
+                    """.trimIndent(),
+                    isPrivate = false,
+                    isImportant = false,
+                    importantUntil = null,
+                    attachmentIds = emptyList(),
+                    removeImage = false
                 )
 
                 val modifiedSeminarDto = seminarService.updateSeminar(

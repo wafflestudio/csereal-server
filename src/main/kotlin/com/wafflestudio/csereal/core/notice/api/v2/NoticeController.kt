@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.notice.api.v2
 
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
+import com.wafflestudio.csereal.core.notice.api.req.CreateNoticeReq
+import com.wafflestudio.csereal.core.notice.api.req.UpdateNoticeReq
 import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.notice.service.NoticeService
 import jakarta.validation.Valid
@@ -49,7 +51,7 @@ class NoticeController(
     @GetMapping("/{noticeId}")
     fun readNotice(
         @PathVariable noticeId: Long
-    ): ResponseEntity<NoticeDto> {
+    ): ResponseEntity<NoticeResponse> {
         return ResponseEntity.ok(noticeService.readNotice(noticeId))
     }
 
@@ -58,9 +60,9 @@ class NoticeController(
     fun createNotice(
         @Valid
         @RequestPart("request")
-        request: NoticeDto,
+        request: CreateNoticeReq,
         @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<NoticeDto> {
+    ): ResponseEntity<NoticeResponse> {
         return ResponseEntity.ok(noticeService.createNotice(request, attachments))
     }
 
@@ -70,9 +72,9 @@ class NoticeController(
         @PathVariable noticeId: Long,
         @Valid
         @RequestPart("request")
-        request: NoticeDto,
+        request: UpdateNoticeReq,
         @RequestPart("attachments") attachments: List<MultipartFile>?
-    ): ResponseEntity<NoticeDto> {
+    ): ResponseEntity<NoticeResponse> {
         return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, attachments))
     }
 

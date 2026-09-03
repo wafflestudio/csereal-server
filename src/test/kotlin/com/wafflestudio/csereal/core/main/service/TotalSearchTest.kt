@@ -26,15 +26,15 @@ import com.wafflestudio.csereal.core.member.database.ProfessorStatus
 import com.wafflestudio.csereal.core.member.service.MemberSearchService
 import com.wafflestudio.csereal.core.member.service.ProfessorService
 import com.wafflestudio.csereal.core.member.service.StaffService
-import com.wafflestudio.csereal.core.news.dto.NewsDto
+import com.wafflestudio.csereal.core.news.api.req.CreateNewsReq
 import com.wafflestudio.csereal.core.news.service.NewsService
-import com.wafflestudio.csereal.core.notice.dto.NoticeDto
+import com.wafflestudio.csereal.core.notice.api.req.CreateNoticeReq
 import com.wafflestudio.csereal.core.notice.service.NoticeService
 import com.wafflestudio.csereal.core.research.api.req.CreateResearchCenterReqBody
 import com.wafflestudio.csereal.core.research.api.req.CreateResearchLanguageReqBody
 import com.wafflestudio.csereal.core.research.service.ResearchSearchService
 import com.wafflestudio.csereal.core.research.service.ResearchService
-import com.wafflestudio.csereal.core.seminar.dto.SeminarDto
+import com.wafflestudio.csereal.core.seminar.api.req.CreateSeminarReq
 import com.wafflestudio.csereal.core.seminar.service.SeminarService
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import com.wafflestudio.csereal.global.authenticateAs
@@ -118,57 +118,38 @@ class TotalSearchTest(
         )
 
         noticeService.createNotice(
-            NoticeDto(
-                id = -1,
+            CreateNoticeReq(
                 title = "title",
                 titleForMain = null,
                 description = keyword,
-                author = "username",
                 tags = emptyList(),
-                createdAt = null,
-                modifiedAt = null,
                 isPrivate = false,
                 isPinned = false,
                 pinnedUntil = null,
                 isImportant = false,
-                importantUntil = null,
-                prevId = null,
-                prevTitle = null,
-                nextId = null,
-                nextTitle = null,
-                attachments = null
+                importantUntil = null
             ),
             attachments = null
         )
 
         newsService.createNews(
-            NewsDto(
-                id = -1,
+            CreateNewsReq(
                 title = "title",
                 titleForMain = null,
                 description = keyword,
                 tags = emptyList(),
-                createdAt = null,
-                modifiedAt = null,
                 date = LocalDateTime.now(),
                 isPrivate = false,
                 isSlide = false,
                 isImportant = false,
-                importantUntil = null,
-                prevId = null,
-                prevTitle = null,
-                nextId = null,
-                nextTitle = null,
-                imageURL = null,
-                attachments = null
+                importantUntil = null
             ),
             mainImage = null,
             attachments = null
         )
 
         seminarService.createSeminar(
-            SeminarDto(
-                id = -1,
+            CreateSeminarReq(
                 title = "title",
                 titleForMain = null,
                 description = keyword,
@@ -183,17 +164,9 @@ class TotalSearchTest(
                 location = "location",
                 host = "host",
                 additionalNote = "additionalNote",
-                createdAt = null,
-                modifiedAt = null,
                 isPrivate = false,
                 isImportant = false,
-                importantUntil = null,
-                prevId = null,
-                prevTitle = null,
-                nextId = null,
-                nextTitle = null,
-                imageURL = null,
-                attachments = null
+                importantUntil = null
             ),
             mainImage = null,
             attachments = null

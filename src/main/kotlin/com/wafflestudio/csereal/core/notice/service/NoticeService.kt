@@ -2,8 +2,9 @@ package com.wafflestudio.csereal.core.notice.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
-import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
+import com.wafflestudio.csereal.core.notice.api.req.CreateNoticeReq
+import com.wafflestudio.csereal.core.notice.api.req.UpdateNoticeReq
 import com.wafflestudio.csereal.core.notice.database.*
 import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
@@ -25,13 +26,13 @@ interface NoticeService {
 
     fun searchTotalNotice(keyword: String, number: Int, stringLength: Int): NoticeTotalSearchResponse
 
-    fun readNotice(noticeId: Long): NoticeDto
-    fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto
+    fun readNotice(noticeId: Long): NoticeResponse
+    fun createNotice(request: CreateNoticeReq, attachments: List<MultipartFile>?): NoticeResponse
     fun updateNotice(
         noticeId: Long,
-        request: NoticeDto,
+        request: UpdateNoticeReq,
         newAttachments: List<MultipartFile>?
-    ): NoticeDto
+    ): NoticeResponse
 
     fun deleteNotice(noticeId: Long)
     fun unpinManyNotices(idList: List<Long>)
@@ -68,7 +69,7 @@ class NoticeServiceImpl(
     ) = noticeRepository.totalSearchNotice(keyword, number, stringLength, isCurrentUserStaff())
 
     @Transactional(readOnly = true)
-    override fun readNotice(noticeId: Long): NoticeDto {
+    override fun readNotice(noticeId: Long): NoticeResponse {
         val notice = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
 
@@ -85,25 +86,12 @@ class NoticeServiceImpl(
                 notice.createdAt!!
             )
 
-        return NoticeDto.of(notice, attachmentResponses, prevNotice, nextNotice)
+        return NoticeResponse.of(notice, attachmentResponses, prevNotice, nextNotice)
     }
 
     @Transactional
-    override fun createNotice(request: NoticeDto, attachments: List<MultipartFile>?): NoticeDto {
-        val user = userService.getLoginUser()
-
-        val newNotice = NoticeEntity(
-            title = request.title,
-            titleForMain = request.titleForMain,
-            description = request.description,
-            plainTextDescription = cleanTextFromHtml(request.description),
-            isPrivate = request.isPrivate,
-            isPinned = request.isPinned,
-            pinnedUntil = if (request.isPinned) request.pinnedUntil else null,
-            isImportant = request.isImportant,
-            importantUntil = if (request.isImportant) request.importantUntil else null,
-            author = user
-        )
+    override fun createNotice(request: CreateNoticeReq, attachments: List<MultipartFile>?): NoticeResponse {
+        val newNotice = NoticeEntity.of(request, userService.getLoginUser())
 
         for (tag in request.tags) {
             val tagEnum = TagInNoticeEnum.getTagEnum(tag)
@@ -119,15 +107,15 @@ class NoticeServiceImpl(
 
         val attachmentResponses = attachmentService.createAttachmentResponses(newNotice.attachments)
 
-        return NoticeDto.of(newNotice, attachmentResponses)
+        return NoticeResponse.of(newNotice, attachmentResponses)
     }
 
     @Transactional
     override fun updateNotice(
         noticeId: Long,
-        request: NoticeDto,
+        request: UpdateNoticeReq,
         newAttachments: List<MultipartFile>?
-    ): NoticeDto {
+    ): NoticeResponse {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
             ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
 
@@ -153,7 +141,7 @@ class NoticeServiceImpl(
 
         val attachmentResponses = attachmentService.createAttachmentResponses(notice.attachments)
 
-        return NoticeDto.of(notice, attachmentResponses)
+        return NoticeResponse.of(notice, attachmentResponses)
     }
 
     @Transactional
