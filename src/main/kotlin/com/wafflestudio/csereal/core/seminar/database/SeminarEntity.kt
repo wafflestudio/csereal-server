@@ -40,7 +40,7 @@ class SeminarEntity(
     var affiliation: String,
     var affiliationURL: String?,
 
-    var startDate: LocalDateTime?,
+    var startDate: LocalDateTime,
     var endDate: LocalDateTime?,
 
     var location: String,
