@@ -11,8 +11,6 @@ import com.wafflestudio.csereal.core.council.type.CouncilFileMeetingMinuteKey
 import com.wafflestudio.csereal.core.council.type.CouncilFileRulesKey
 import com.wafflestudio.csereal.core.council.type.CouncilFileType
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
-import com.wafflestudio.csereal.core.resource.common.event.FileDeleteEvent
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
@@ -25,7 +23,7 @@ interface CouncilFileService {
 
     fun updateCouncilRule(
         key: CouncilFileRulesKey,
-        removeFileIds: List<Long>,
+        attachmentIds: List<Long>?,
         addFiles: List<MultipartFile>
     ): CouncilFileRuleDto
 
@@ -41,7 +39,7 @@ interface CouncilFileService {
     fun updateCouncilMeetingMinute(
         year: Int,
         index: Int,
-        removeFileIds: List<Long>,
+        attachmentIds: List<Long>?,
         addFiles: List<MultipartFile>
     ): CouncilFileMeetingMinuteDto
 
@@ -54,8 +52,7 @@ interface CouncilFileService {
 @Service
 class CouncilFileServiceImpl(
     private val councilFileRepository: CouncilFileRepository,
-    private val attachmentService: AttachmentService,
-    private val eventPublisher: ApplicationEventPublisher
+    private val attachmentService: AttachmentService
 ) : CouncilFileService {
     // Rule
 
@@ -70,10 +67,10 @@ class CouncilFileServiceImpl(
     @Transactional
     override fun updateCouncilRule(
         key: CouncilFileRulesKey,
-        removeFileIds: List<Long>,
+        attachmentIds: List<Long>?,
         addFiles: List<MultipartFile>
     ): CouncilFileRuleDto =
-        updateCouncilFile(CouncilFileType.RULE, key, removeFileIds, addFiles)
+        updateCouncilFile(CouncilFileType.RULE, key, attachmentIds, addFiles)
             .let { CouncilFileRuleDto.from(it) }
 
     @Transactional
@@ -108,11 +105,11 @@ class CouncilFileServiceImpl(
     override fun updateCouncilMeetingMinute(
         year: Int,
         index: Int,
-        removeFileIds: List<Long>,
+        attachmentIds: List<Long>?,
         addFiles: List<MultipartFile>
     ): CouncilFileMeetingMinuteDto {
         val key = CouncilFileMeetingMinuteKey(year, index)
-        return updateCouncilFile(CouncilFileType.MEETING_MINUTE, key, removeFileIds, addFiles)
+        return updateCouncilFile(CouncilFileType.MEETING_MINUTE, key, attachmentIds, addFiles)
             .let { CouncilFileMeetingMinuteDto.from(it) }
     }
 
@@ -179,21 +176,13 @@ class CouncilFileServiceImpl(
     fun updateCouncilFile(
         type: CouncilFileType,
         key: CouncilFileKey,
-        removeFileIds: List<Long>,
+        attachmentIds: List<Long>?,
         addFiles: List<MultipartFile>
     ): CouncilFileDto {
         val councilFile = councilFileRepository.findByTypeAndKey(type, key.value())
             ?: throw CserealException.Csereal400("CouncilFile을 찾을 수 없습니다.")
 
-        councilFile.attachments
-            .also { attachments ->
-                attachments.filter { it.id in removeFileIds }
-                    .forEach { eventPublisher.publishEvent(FileDeleteEvent(it.filename)) }
-            }.also { attachments ->
-                attachments.removeAll { it.id in removeFileIds }
-            }
-
-        attachmentService.uploadAllAttachments(councilFile, addFiles)
+        attachmentService.syncAttachments(councilFile, attachmentIds, addFiles)
 
         return councilFileRepository.save(councilFile).let { entity ->
             CouncilFileDto.from(entity) { attachmentService.createAttachmentResponses(it) }
@@ -205,10 +194,7 @@ class CouncilFileServiceImpl(
         val councilFile = councilFileRepository.findByTypeAndKey(type, key.value())
             ?: throw CserealException.Csereal400("CouncilFile을 찾을 수 없습니다.")
 
-        councilFile.attachments
-            .map { it.filename }
-            .map { FileDeleteEvent(it) }
-            .forEach { eventPublisher.publishEvent(it) }
+        attachmentService.syncAttachments(councilFile, emptyList(), null)
 
         councilFileRepository.delete(councilFile)
     }

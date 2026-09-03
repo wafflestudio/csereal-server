@@ -25,7 +25,7 @@ data class NoticeDto(
     val nextId: Long?,
     val nextTitle: String?,
     val attachments: List<AttachmentResponse>?,
-    val deleteIds: List<Long>? = null
+    val attachmentIds: List<Long>? = null
 ) {
 
     companion object {

@@ -8,5 +8,5 @@ data class UpdateAboutReq(
 
 data class BasicAbout(
     val description: String,
-    val deleteIds: List<Long>
+    val attachmentIds: List<Long>? = null
 )

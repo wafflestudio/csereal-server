@@ -75,9 +75,9 @@ class NewsController(
         @RequestPart("request")
         request: NewsDto,
         @RequestPart("newMainImage") newMainImage: MultipartFile?,
-        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<NewsDto> {
-        return ResponseEntity.ok(newsService.updateNews(newsId, request, newMainImage, newAttachments))
+        return ResponseEntity.ok(newsService.updateNews(newsId, request, newMainImage, attachments))
     }
 
     @PreAuthorize("hasRole('STAFF')")

@@ -57,8 +57,8 @@ class AboutController(
         @PathVariable postType: AboutPostType,
         @RequestPart request: UpdateAboutReq,
         @RequestPart newMainImage: MultipartFile?,
-        @RequestPart newAttachments: List<MultipartFile>?
-    ) = aboutService.updateAbout(postType, request, newMainImage, newAttachments)
+        @RequestPart attachments: List<MultipartFile>?
+    ) = aboutService.updateAbout(postType, request, newMainImage, attachments)
 
     @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/facilities", consumes = ["multipart/form-data"])

@@ -71,9 +71,9 @@ class NoticeController(
         @Valid
         @RequestPart("request")
         request: NoticeDto,
-        @RequestPart("newAttachments") newAttachments: List<MultipartFile>?
+        @RequestPart("attachments") attachments: List<MultipartFile>?
     ): ResponseEntity<NoticeDto> {
-        return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, newAttachments))
+        return ResponseEntity.ok(noticeService.updateNotice(noticeId, request, attachments))
     }
 
     @PreAuthorize("hasRole('STAFF')")

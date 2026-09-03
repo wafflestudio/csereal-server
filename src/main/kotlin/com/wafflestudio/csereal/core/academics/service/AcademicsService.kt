@@ -121,10 +121,7 @@ class AcademicsServiceImpl(
             academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
         }
 
-        attachmentService.deleteAttachments(request.deleteIds)
-        if (newAttachments != null) {
-            attachmentService.uploadAllAttachments(academicsEntity, newAttachments)
-        }
+        attachmentService.syncAttachments(academicsEntity, request.attachmentIds, newAttachments)
     }
 
     @Transactional
@@ -148,11 +145,7 @@ class AcademicsServiceImpl(
             academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
         }
 
-        attachmentService.deleteAttachments(request.deleteIds)
-
-        if (newAttachments != null) {
-            attachmentService.uploadAllAttachments(academicsEntity, newAttachments)
-        }
+        attachmentService.syncAttachments(academicsEntity, request.attachmentIds, newAttachments)
     }
 
     @Transactional
@@ -256,10 +249,7 @@ class AcademicsServiceImpl(
             academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
         }
 
-        attachmentService.deleteAttachments(request.deleteIds)
-        if (newAttachments != null) {
-            attachmentService.uploadAllAttachments(academicsEntity, newAttachments)
-        }
+        attachmentService.syncAttachments(academicsEntity, request.attachmentIds, newAttachments)
     }
 
     @Transactional

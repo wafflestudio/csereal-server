@@ -103,11 +103,9 @@ class AboutServiceImpl(
             }
         }
 
-        attachmentService.deleteAttachments(request.ko.deleteIds + request.en.deleteIds)
-
-        if (newAttachments != null) {
-            abouts.forEach { attachmentService.uploadAllAttachments(it, newAttachments) }
-        }
+        val (koAbout, enAbout) = abouts
+        attachmentService.syncAttachments(koAbout, request.ko.attachmentIds, newAttachments)
+        attachmentService.syncAttachments(enAbout, request.en.attachmentIds, newAttachments)
     }
 
     @Transactional

@@ -85,8 +85,8 @@ class AcademicsController(
         @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
         @PathVariable studentType: AcademicsStudentType,
         @RequestPart request: UpdateSingleReq,
-        @RequestPart newAttachments: List<MultipartFile>?
-    ) = academicsService.updateGuide(language, studentType, request, newAttachments)
+        @RequestPart attachments: List<MultipartFile>?
+    ) = academicsService.updateGuide(language, studentType, request, attachments)
 
     @GetMapping("/{studentType}/{postType}")
     fun readAcademicsYearResponses(
@@ -117,8 +117,8 @@ class AcademicsController(
         @PathVariable postType: AcademicsPostType,
         @PathVariable year: Int,
         @RequestPart request: UpdateYearReq,
-        @RequestPart newAttachments: List<MultipartFile>?
-    ) = academicsService.updateAcademicsYearResponse(language, studentType, postType, year, request, newAttachments)
+        @RequestPart attachments: List<MultipartFile>?
+    ) = academicsService.updateAcademicsYearResponse(language, studentType, postType, year, request, attachments)
 
     @GetMapping("/undergraduate/degree-requirements")
     fun readDegreeRequirements(
@@ -132,8 +132,8 @@ class AcademicsController(
     fun updateDegreeRequirements(
         @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
         @RequestPart request: UpdateSingleReq,
-        @RequestPart newAttachments: List<MultipartFile>?
-    ) = academicsService.updateDegreeRequirements(language, request, newAttachments)
+        @RequestPart attachments: List<MultipartFile>?
+    ) = academicsService.updateDegreeRequirements(language, request, attachments)
 
     @GetMapping("/{studentType}/scholarship")
     fun readAllScholarship(
