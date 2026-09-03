@@ -1,7 +1,4 @@
 spring:
-    profiles:
-        active: local
-
     threads:
         virtual:
             enabled: false
@@ -64,15 +61,6 @@ endpoint:
 
 login-page: http://localhost:8080
 
-
-logging:
-    level:
-        org:
-            springframework:
-                security: DEBUG
-                web:
-                    servlet: DEBUG
-
 customlog:
     file:
         name: "csereal-backend"
@@ -92,6 +80,20 @@ spring:
         password: password
     jpa:
         open-in-view: false
+
+server:
+    servlet:
+        session:
+            cookie:
+                secure: false # http://localhost — base의 secure:true는 크롬의 localhost 예외에만 기대는 셈
+
+logging:
+    level:
+        org:
+            springframework:
+                security: DEBUG
+                web:
+                    servlet: DEBUG
 
 customlog:
     file:

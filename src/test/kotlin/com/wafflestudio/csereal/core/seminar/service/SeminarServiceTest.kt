@@ -8,11 +8,13 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import jakarta.transaction.Transactional
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDateTime
 
+@ActiveProfiles("test")
 @SpringBootTest
 @Transactional
 @Import(MySQLTestContainerConfig::class)

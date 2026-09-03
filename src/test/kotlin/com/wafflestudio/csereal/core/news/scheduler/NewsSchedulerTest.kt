@@ -7,6 +7,7 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
 import io.kotest.matchers.shouldBe
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.ZoneId
 
+@ActiveProfiles("test")
 @SpringBootTest
 @Transactional
 @Import(MySQLTestContainerConfig::class)

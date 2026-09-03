@@ -14,7 +14,7 @@ class UserService(
     @Transactional
     fun getLoginUser(): UserEntity {
         val auth = SecurityContextHolder.getContext().authentication
-            ?: return userRepository.findByUsername("test")!! // Please create test user before test when needed
+            ?: throw IllegalStateException("로그인한 사용자가 없습니다.")
         return when (val principal = auth.principal) {
             is CustomOidcUser -> principal.userEntity
             else -> throw IllegalStateException("Unexpected principal type: ${principal::class.java}")

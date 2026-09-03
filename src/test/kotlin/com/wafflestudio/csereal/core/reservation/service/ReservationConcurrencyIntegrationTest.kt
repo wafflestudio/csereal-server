@@ -2,7 +2,6 @@ package com.wafflestudio.csereal.core.reservation.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
-import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
 import com.wafflestudio.csereal.core.reservation.database.ReservationRepository
 import com.wafflestudio.csereal.core.reservation.database.RoomEntity
 import com.wafflestudio.csereal.core.reservation.database.RoomRepository
@@ -10,6 +9,7 @@ import com.wafflestudio.csereal.core.reservation.database.RoomType
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
+import com.wafflestudio.csereal.global.authenticateAs
 import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.spring.SpringTestExtension
@@ -18,12 +18,8 @@ import io.kotest.matchers.shouldBe
 import org.springframework.aop.support.AopUtils
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.test.context.ActiveProfiles
-import java.time.Instant
 import java.time.LocalDateTime
 import java.util.Collections
 import java.util.concurrent.CountDownLatch
@@ -82,7 +78,7 @@ class ReservationConcurrencyIntegrationTest(
         requests.forEach { request ->
             executor.submit {
                 try {
-                    authenticateStaff(staff)
+                    authenticateAs(staff)
                     latch.countDown()
                     latch.await()
                     reservationService.reserveRoom(request)
@@ -109,18 +105,6 @@ class ReservationConcurrencyIntegrationTest(
     }
 }) {
     companion object {
-        private fun authenticateStaff(user: UserEntity) {
-            val authorities = listOf(SimpleGrantedAuthority("ROLE_STAFF"))
-            val issuedAt = Instant.now()
-            val principal = CustomOidcUser(
-                user,
-                authorities,
-                OidcIdToken("mock-token", issuedAt, issuedAt.plusSeconds(3600), mapOf("sub" to user.username))
-            )
-            SecurityContextHolder.getContext().authentication =
-                UsernamePasswordAuthenticationToken(principal, null, authorities)
-        }
-
         private fun request(
             roomId: Long,
             title: String,

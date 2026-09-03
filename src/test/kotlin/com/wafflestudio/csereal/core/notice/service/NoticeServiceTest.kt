@@ -3,18 +3,20 @@ package com.wafflestudio.csereal.core.notice.service
 import com.wafflestudio.csereal.core.notice.database.NoticeEntity
 import com.wafflestudio.csereal.core.notice.database.NoticeRepository
 import com.wafflestudio.csereal.core.notice.dto.NoticeDto
-import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
 import com.wafflestudio.csereal.core.user.service.UserService
+import com.wafflestudio.csereal.global.authenticateAs
 import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
 
+@ActiveProfiles("test")
 @SpringBootTest
 @Transactional
 @Import(MySQLTestContainerConfig::class)
@@ -26,16 +28,7 @@ class NoticeServiceTest(
 ) : BehaviorSpec() {
     init {
         beforeSpec {
-            if (userRepository.findByUsername("test") == null) {
-                userRepository.save(
-                    UserEntity(
-                        "test",
-                        "test",
-                        "test@abc.com",
-                        "0000-00000"
-                    )
-                )
-            }
+            authenticateAs(userRepository, "test")
         }
 
         afterSpec {
