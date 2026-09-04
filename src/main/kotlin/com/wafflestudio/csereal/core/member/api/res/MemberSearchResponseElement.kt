@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.member.api.res
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.database.MemberSearchEntity
 import com.wafflestudio.csereal.core.member.type.MemberType
@@ -38,9 +39,7 @@ data class MemberSearchResponseElement(
                         imageURL = imageURLMaker(memberSearch.staff!!.mainImage),
                         memberType = MemberType.STAFF
                     )
-                else -> throw CserealException.Csereal401(
-                    "MemberSearchEntity는 professor 혹은 staff 중 하나와만 연결되어있어야 합니다."
-                )
+                else -> throw CserealException(ErrorCode.SEARCH_INDEX_BROKEN)
             }
     }
 }

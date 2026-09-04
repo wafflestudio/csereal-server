@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.common.interceptor
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Configuration
@@ -19,7 +20,7 @@ class InternalOnlyInterceptor : HandlerInterceptor {
             return true
         }
         if (!InetAddress.getByName(request.remoteAddr).isLoopbackAddress) {
-            throw CserealException.Csereal403("접근 권한이 없습니다.")
+            throw CserealException(ErrorCode.FORBIDDEN)
         }
         return true
     }

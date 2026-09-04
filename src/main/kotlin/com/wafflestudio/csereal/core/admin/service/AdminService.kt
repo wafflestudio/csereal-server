@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.admin.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.core.admin.database.AdminRepository
 import com.wafflestudio.csereal.core.admin.dto.ImportantDto
 import com.wafflestudio.csereal.core.admin.dto.AdminImportantResponse
@@ -55,19 +56,19 @@ class AdminServiceImpl(
             when (important.category) {
                 "notice" -> {
                     val notice = noticeRepository.findByIdOrNull(important.id)
-                        ?: throw CserealException.Csereal404("해당하는 공지사항을 찾을 수 없습니다.(noticeId=${important.id})")
+                        ?: throw CserealException(ErrorCode.NOTICE_NOT_FOUND, mapOf("id" to important.id))
                     notice.isImportant = false
                 }
 
                 "news" -> {
                     val news = newsRepository.findByIdOrNull(important.id)
-                        ?: throw CserealException.Csereal404("해당하는 새소식을 찾을 수 없습니다.(noticeId=${important.id})")
+                        ?: throw CserealException(ErrorCode.NEWS_NOT_FOUND, mapOf("id" to important.id))
                     news.isImportant = false
                 }
 
                 "seminar" -> {
                     val seminar = seminarRepository.findByIdOrNull(important.id)
-                        ?: throw CserealException.Csereal404("해당하는 세미나를 찾을 수 없습니다.(noticeId=${important.id})")
+                        ?: throw CserealException(ErrorCode.SEMINAR_NOT_FOUND, mapOf("id" to important.id))
                     seminar.isImportant = false
                 }
             }

@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.reservation.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermRepository
 import com.wafflestudio.csereal.core.reservation.dto.CreateCustomReserveTermRequest
@@ -24,11 +25,11 @@ class ReserveTermManualCreationService(
         )
         val invalidReasons = reserveTermPolicy.invalidReasons(candidate)
         if (invalidReasons.isNotEmpty()) {
-            throw CserealException.Csereal400(invalidReasons.joinToString(","))
+            throw CserealException(ErrorCode.VALIDATION_FAILED, mapOf("reasons" to invalidReasons.joinToString(",")))
         }
 
         if (reserveTermRepository.findByTimeOverlap(request.termStartTime, request.termEndTime).isNotEmpty()) {
-            throw CserealException.Csereal409("reserve_term_overlap")
+            throw CserealException(ErrorCode.TERM_OVERLAP)
         }
 
         return reserveTermRepository.saveAndFlush(candidate)

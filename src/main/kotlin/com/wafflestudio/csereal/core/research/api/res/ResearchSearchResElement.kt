@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.research.api.res
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.substringAroundKeyword
 import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
@@ -82,9 +83,7 @@ data class ResearchSearchResElement(
                     )
                 }
 
-                else -> throw CserealException.Csereal401(
-                    "ResearchSearchEntity의 연결이 올바르지 않습니다."
-                )
+                else -> throw CserealException(ErrorCode.SEARCH_INDEX_BROKEN)
             }
     }
 }

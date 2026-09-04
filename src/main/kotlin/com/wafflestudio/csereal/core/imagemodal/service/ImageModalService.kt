@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.imagemodal.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.core.imagemodal.api.req.CreateImageModalReq
 import com.wafflestudio.csereal.core.imagemodal.database.ImageModalEntity
 import com.wafflestudio.csereal.core.imagemodal.database.ImageModalRepository
@@ -81,8 +82,9 @@ class ImageModalServiceImpl(
     }
 
     private fun getImageModalByIdOrThrow(imageModalId: Long): ImageModalEntity {
-        return imageModalRepository.findByIdOrNull(imageModalId) ?: throw CserealException.Csereal404(
-            "ImageModal Not Found"
+        return imageModalRepository.findByIdOrNull(imageModalId) ?: throw CserealException(
+            ErrorCode.IMAGE_MODAL_NOT_FOUND,
+            mapOf("imageModalId" to imageModalId)
         )
     }
 }

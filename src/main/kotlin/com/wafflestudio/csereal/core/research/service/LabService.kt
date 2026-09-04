@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.research.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.common.utils.startsWithEnglish
@@ -79,7 +80,7 @@ class LabServiceImpl(
     override fun readLabLanguage(labId: Long): LabLanguageDto {
         val labMap = researchLanguageRepository.findLabPairById(labId)
             ?.takeIf { it.isNotEmpty() }
-            ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$labId)")
+            ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, mapOf("labId" to labId))
 
         val ko = labMap[LanguageType.KO]!!
         val en = labMap[LanguageType.EN]!!
@@ -96,7 +97,7 @@ class LabServiceImpl(
     @Transactional(readOnly = true)
     override fun readLab(labId: Long): LabDto {
         val lab = labRepository.findByIdOrNull(labId)
-            ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$labId)")
+            ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, mapOf("labId" to labId))
 
         val attachmentResponse =
             attachmentService.createOneAttachmentResponse(lab.pdf)
@@ -128,20 +129,23 @@ class LabServiceImpl(
     override fun createLab(language: LanguageType, request: CreateLabReqBody, pdf: MultipartFile?): LabDto {
         val researchGroup = request.groupId?.let {
             researchRepository.findByIdOrNull(request.groupId)
-                ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = $it)")
+                ?: throw CserealException(ErrorCode.RESEARCH_GROUP_NOT_FOUND, mapOf("it" to it))
         }?.apply {
             if (this.postType != ResearchType.GROUPS) {
-                throw CserealException.Csereal404("해당 id 연구그룹이 아닙니다.(researchGroupId = ${this.id})")
+                throw CserealException(ErrorCode.NOT_A_RESEARCH_GROUP, mapOf("id" to this.id))
             }
         }
 
         val professors = professorRepository.findAllById(request.professorIds)
             .also {
                 if (it.size < request.professorIds.size) {
-                    throw CserealException.Csereal404("해당 교수님들을 찾을 수 없습니다.(professorIds = ${request.professorIds})")
+                    throw CserealException(
+                        ErrorCode.PROFESSORS_NOT_FOUND,
+                        mapOf("professorIds" to request.professorIds)
+                    )
                 }
                 if (it.any { p -> p.lab != null }) {
-                    throw CserealException.Csereal400("이미 다른 연구실에 속한 교수님이 존재합니다.")
+                    throw CserealException(ErrorCode.PROFESSOR_ALREADY_IN_LAB)
                 }
             }
 
@@ -198,23 +202,26 @@ class LabServiceImpl(
         pdf: MultipartFile?
     ): LabDto {
         val labEntity = labRepository.findByIdAndLanguage(labId, language)
-            ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$labId)")
+            ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, mapOf("labId" to labId))
 
         val oldGroup = labEntity.research
         val newGroup = request.groupId?.let {
             researchRepository.findByIdAndPostType(it, ResearchType.GROUPS)
-                ?: throw CserealException.Csereal404("해당 연구그룹을 찾을 수 없습니다.(researchGroupId = $it)")
+                ?: throw CserealException(ErrorCode.RESEARCH_GROUP_NOT_FOUND, mapOf("it" to it))
         }
 
         val oldProfessors = labEntity.professors
         val newProfessors = professorRepository.findAllById(request.professorIds)
             .also {
                 if (it.size < request.professorIds.size) {
-                    throw CserealException.Csereal404("해당 교수님들을 찾을 수 없습니다.(professorIds = ${request.professorIds})")
+                    throw CserealException(
+                        ErrorCode.PROFESSORS_NOT_FOUND,
+                        mapOf("professorIds" to request.professorIds)
+                    )
                 }
 
                 if (!(it.all { p -> p.lab == null || p.lab!!.id == labId })) {
-                    throw CserealException.Csereal400("이미 다른 연구실에 속한 교수님이 존재합니다.")
+                    throw CserealException(ErrorCode.PROFESSOR_ALREADY_IN_LAB)
                 }
             }
 
@@ -260,7 +267,10 @@ class LabServiceImpl(
             koreanId,
             englishId,
             ResearchRelatedType.LAB
-        ) ?: throw CserealException.Csereal404("해당 연구실 언어 쌍을 찾을 수 없습니다.: koreanId=$koreanId, englishId=$englishId")
+        ) ?: throw CserealException(
+            ErrorCode.LAB_PAIR_NOT_FOUND,
+            mapOf("koreanId" to koreanId, "englishId" to englishId)
+        )
 
         deleteLab(koreanId)
         deleteLab(englishId)
@@ -270,7 +280,7 @@ class LabServiceImpl(
     @Transactional
     override fun deleteLab(id: Long) {
         val lab = labRepository.findByIdOrNull(id)
-            ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다.(labId=$id)")
+            ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, mapOf("id" to id))
 
         applicationEventPublisher.publishEvent(
             LabDeletedEvent(

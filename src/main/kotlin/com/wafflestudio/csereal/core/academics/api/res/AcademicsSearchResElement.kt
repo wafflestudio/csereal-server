@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.academics.api.res
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.substringAroundKeyword
 import com.wafflestudio.csereal.core.academics.database.AcademicsPostType
@@ -95,7 +96,7 @@ data class AcademicsSearchResElement(
                     )
                 }
 
-                else -> throw CserealException.Csereal401("AcademicsSearchEntity의 연결이 올바르지 않습니다.")
+                else -> throw CserealException(ErrorCode.SEARCH_INDEX_BROKEN)
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.common.enums
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 
 enum class LanguageType {
     KO, EN;
@@ -12,7 +13,7 @@ enum class LanguageType {
                 val upperLanguageType = language.uppercase()
                 return LanguageType.valueOf(upperLanguageType)
             } catch (e: IllegalArgumentException) {
-                throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
+                throw CserealException(ErrorCode.INVALID_ENUM_VALUE)
             }
         }
 

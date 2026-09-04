@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.user.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.mockauth.CustomOidcUser
 import com.wafflestudio.csereal.core.user.database.UserEntity
 import com.wafflestudio.csereal.core.user.database.UserRepository
@@ -91,7 +92,7 @@ class CustomOidcUserService(
         )
 
         if (userInfoResponse.body?.get("sub") != userRequest.idToken.getClaim("sub")) {
-            throw CserealException.Csereal401("Authentication failed")
+            throw CserealException(ErrorCode.UNAUTHENTICATED)
         }
 
         return userInfoResponse.body ?: emptyMap()

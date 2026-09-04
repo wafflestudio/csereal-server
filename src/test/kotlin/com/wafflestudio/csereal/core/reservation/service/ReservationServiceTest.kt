@@ -65,7 +65,7 @@ class ReservationServiceTest(
     "creation fails closed without authentication" {
         SecurityContextHolder.clearContext()
         val start = reserveTermPolicy.now().plusDays(1)
-        shouldThrow<CserealException.Csereal401> { reservationService.reserveRoom(request(lab.id, start, 1)) }
+        shouldThrow<CserealException> { reservationService.reserveRoom(request(lab.id, start, 1)) }
     }
 
     "staff can reserve every room as UNRESTRICTED with the configured maximum" {
@@ -425,12 +425,12 @@ class ReservationServiceTest(
         authenticateAs(userRepository, "reservation-owner", "ROLE_RESERVE")
         val forbidden = reservationService.reserveRoom(request(seminar.id, start.plusHours(4), 1)).single()
         authenticateAs(userRepository, "other-user", "ROLE_RESERVE")
-        shouldThrow<CserealException.Csereal403> {
+        shouldThrow<CserealException> {
             reservationService.cancelSpecific(forbidden.id)
-        }.message shouldBe "Cannot cancel other's reservation"
-        shouldThrow<CserealException.Csereal404> {
+        }.errorCode shouldBe ErrorCode.CANNOT_CANCEL_OTHERS_RESERVATION
+        shouldThrow<CserealException> {
             reservationService.cancelSpecific(Long.MAX_VALUE)
-        }.message shouldBe "reservation not found"
+        }.errorCode shouldBe ErrorCode.RESERVATION_NOT_FOUND
     }
 
     "recurring cancellation deletes the recurrence group" {

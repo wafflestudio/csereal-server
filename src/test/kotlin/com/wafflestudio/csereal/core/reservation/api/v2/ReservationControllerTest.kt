@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.config.CserealExceptionHandler
 import com.wafflestudio.csereal.common.config.LocalDateTimeSerializer
 import com.wafflestudio.csereal.core.reservation.database.ReserveTermEntity
@@ -97,7 +98,10 @@ class ReservationControllerTest : StringSpec({
     }
 
     "POST custom maps an invalid schedule to 400" {
-        every { manualCreationService.createCustom(any()) } throws CserealException.Csereal400("invalid_schedule")
+        every { manualCreationService.createCustom(any()) } throws CserealException(
+            ErrorCode.VALIDATION_FAILED,
+            mapOf("reasons" to "invalid_schedule")
+        )
 
         mockMvc.perform(
             post(CUSTOM_PATH)
@@ -105,13 +109,13 @@ class ReservationControllerTest : StringSpec({
                 .content(validRequestJson)
         )
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.message").value("invalid_schedule"))
+            .andExpect(jsonPath("$.code").value("SYS-02"))
 
         verify(exactly = 1) { manualCreationService.createCustom(any()) }
     }
 
     "POST custom maps an overlap to 409" {
-        every { manualCreationService.createCustom(any()) } throws CserealException.Csereal409("reserve_term_overlap")
+        every { manualCreationService.createCustom(any()) } throws CserealException(ErrorCode.TERM_OVERLAP)
 
         mockMvc.perform(
             post(CUSTOM_PATH)
@@ -119,7 +123,7 @@ class ReservationControllerTest : StringSpec({
                 .content(validRequestJson)
         )
             .andExpect(status().isConflict)
-            .andExpect(jsonPath("$.message").value("reserve_term_overlap"))
+            .andExpect(jsonPath("$.code").value("RESERVE-21"))
 
         verify(exactly = 1) { manualCreationService.createCustom(any()) }
     }

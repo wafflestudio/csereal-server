@@ -95,8 +95,8 @@ class ReservationConcurrencyIntegrationTest(
 
         results.count { it.isSuccess } shouldBe 1
         results.count { it.isFailure } shouldBe 1
-        results.single { it.isFailure }.exceptionOrNull() shouldBe
-            CserealException(ErrorCode.RESERVATION_OCCUPIED)
+        (results.single { it.isFailure }.exceptionOrNull() as CserealException).errorCode shouldBe
+            ErrorCode.RESERVATION_OCCUPIED
         reservationRepository.findByRoomIdAndTimeOverlap(
             room.id,
             start,

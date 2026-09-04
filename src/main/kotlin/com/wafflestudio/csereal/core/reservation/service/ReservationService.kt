@@ -98,7 +98,7 @@ class ReservationServiceImpl(
                 } else {
                     null
                 }
-                throw CserealException(ErrorCode.RESERVATION_OCCUPIED, customMsg = message)
+                throw CserealException(ErrorCode.RESERVATION_OCCUPIED, mapOf("detail" to message))
             }
 
             ReservationEntity.create(
@@ -188,7 +188,7 @@ class ReservationServiceImpl(
             throw CserealException(ErrorCode.UNSUPPORTED_RESERVATION_DATE)
         }
         if (!request.agreed) {
-            throw CserealException.Csereal400("Policy Not Agreed")
+            throw CserealException(ErrorCode.POLICY_NOT_AGREED)
         }
         if (!request.startTime.isBefore(request.endTime)) {
             throw CserealException(ErrorCode.INVALID_RESERVATION_TIME)
@@ -238,7 +238,7 @@ class ReservationServiceImpl(
             !authentication.isAuthenticated ||
             authentication is AnonymousAuthenticationToken
         ) {
-            throw CserealException.Csereal401("Authentication required")
+            throw CserealException(ErrorCode.UNAUTHENTICATED)
         }
         return authentication.authorities.mapTo(mutableSetOf()) { it.authority }
     }
@@ -259,7 +259,7 @@ class ReservationServiceImpl(
     @Transactional(readOnly = true)
     override fun getReservation(reservationId: Long): ReservationDto {
         val reservationEntity = reservationRepository.findByIdOrNull(reservationId)
-            ?: throw CserealException.Csereal404("예약을 찾을 수 없습니다.")
+            ?: throw CserealException(ErrorCode.RESERVATION_NOT_FOUND)
         return if (isCurrentUserStaff()) {
             ReservationDto.of(reservationEntity)
         } else {
@@ -270,9 +270,9 @@ class ReservationServiceImpl(
     override fun cancelSpecific(reservationId: Long) {
         val user = userService.getLoginUser()
         val reservation = reservationRepository.findByIdOrNull(reservationId)
-            ?: throw CserealException.Csereal404("reservation not found")
+            ?: throw CserealException(ErrorCode.RESERVATION_NOT_FOUND)
         if (!isCurrentUserStaff() && user.id != reservation.user.id) {
-            throw CserealException.Csereal403("Cannot cancel other's reservation")
+            throw CserealException(ErrorCode.CANNOT_CANCEL_OTHERS_RESERVATION)
         }
         reservationRepository.deleteById(reservationId)
     }
@@ -280,9 +280,9 @@ class ReservationServiceImpl(
     override fun cancelRecurring(recurrenceId: UUID) {
         val user = userService.getLoginUser()
         val reservation = reservationRepository.findFirstByRecurrenceId(recurrenceId)
-            ?: throw CserealException.Csereal404("reservation not found")
+            ?: throw CserealException(ErrorCode.RESERVATION_NOT_FOUND)
         if (!isCurrentUserStaff() && user.id != reservation.user.id) {
-            throw CserealException.Csereal403("Cannot cancel other's reservation")
+            throw CserealException(ErrorCode.CANNOT_CANCEL_OTHERS_RESERVATION)
         }
         reservationRepository.deleteAllByRecurrenceId(recurrenceId)
     }

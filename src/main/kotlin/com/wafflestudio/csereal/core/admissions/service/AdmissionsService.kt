@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.admissions.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.admissions.api.req.AdmissionReqBody
 import com.wafflestudio.csereal.core.admissions.api.req.UpdateAdmissionReq
@@ -70,7 +71,7 @@ class AdmissionsServiceImpl(
         postType,
         language
     )?.let { AdmissionsDto.of(it) }
-        ?: throw CserealException.Csereal404("해당하는 페이지를 찾을 수 없습니다.")
+        ?: throw CserealException(ErrorCode.ADMISSION_NOT_FOUND)
 
     @Transactional(readOnly = true)
     override fun readGroupedAdmission(
@@ -82,13 +83,13 @@ class AdmissionsServiceImpl(
             postType,
             LanguageType.KO
         )?.let { AdmissionsDto.of(it) }
-            ?: throw CserealException.Csereal404("해당하는 한글 페이지를 찾을 수 없습니다.")
+            ?: throw CserealException(ErrorCode.ADMISSION_NOT_FOUND)
         val enAdmission = admissionsRepository.findByMainTypeAndPostTypeAndLanguage(
             mainType,
             postType,
             LanguageType.EN
         )?.let { AdmissionsDto.of(it) }
-            ?: throw CserealException.Csereal404("해당하는 영어 페이지를 찾을 수 없습니다.")
+            ?: throw CserealException(ErrorCode.ADMISSION_NOT_FOUND)
         return GroupedAdmission(koAdmission, enAdmission)
     }
 
@@ -102,12 +103,12 @@ class AdmissionsServiceImpl(
             mainType,
             postType,
             LanguageType.KO
-        ) ?: throw CserealException.Csereal404("해당하는 한글 페이지를 찾을 수 없습니다.")
+        ) ?: throw CserealException(ErrorCode.ADMISSION_NOT_FOUND)
         val enAdmission = admissionsRepository.findByMainTypeAndPostTypeAndLanguage(
             mainType,
             postType,
             LanguageType.EN
-        ) ?: throw CserealException.Csereal404("해당하는 한글 페이지를 찾을 수 없습니다.")
+        ) ?: throw CserealException(ErrorCode.ADMISSION_NOT_FOUND)
         koAdmission.description = updateAdmissionReq.ko
         enAdmission.description = updateAdmissionReq.en
         syncSearchAdmission(koAdmission)
