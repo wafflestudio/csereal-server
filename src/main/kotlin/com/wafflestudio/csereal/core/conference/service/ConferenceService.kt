@@ -84,8 +84,9 @@ class ConferenceServiceImpl(
     fun modifyConferenceWithoutSave(
         conferenceDto: ConferenceDto
     ): ConferenceEntity {
-        val conferenceEntity = conferenceRepository.findByIdOrNull(conferenceDto.id)
-            ?: throw CserealException(ErrorCode.CONFERENCE_NOT_FOUND, mapOf("id" to conferenceDto.id))
+        val id = conferenceDto.id ?: throw CserealException(ErrorCode.CONFERENCE_NOT_FOUND)
+        val conferenceEntity = conferenceRepository.findByIdOrNull(id)
+            ?: throw CserealException(ErrorCode.CONFERENCE_NOT_FOUND, mapOf("id" to id))
 
         conferenceEntity.update(conferenceDto)
 

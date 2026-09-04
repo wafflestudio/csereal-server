@@ -139,7 +139,7 @@ class CserealExceptionHandler : ResponseEntityExceptionHandler() {
         is MethodArgumentNotValidException ->
             ex.bindingResult.fieldErrors.joinToString { "${it.field}: ${it.code}" }
         is HandlerMethodValidationException ->
-            ex.allValidationResults.flatMap { result ->
+            ex.parameterValidationResults.flatMap { result ->
                 // codes 는 "Positive.컨트롤러#메서드.파라미터" 꼴이라 제약 이름만 잘라 쓴다
                 result.resolvableErrors.map {
                     "${result.methodParameter.parameterName}: ${it.codes?.firstOrNull()?.substringBefore('.')}"
