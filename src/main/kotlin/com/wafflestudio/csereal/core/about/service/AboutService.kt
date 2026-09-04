@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.about.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.about.api.req.*
 import com.wafflestudio.csereal.core.about.api.res.AboutSearchElementDto
@@ -135,11 +136,11 @@ class AboutServiceImpl(
     @Transactional
     override fun updateClub(request: UpdateClubReq, newMainImage: MultipartFile?) {
         val (ko, en) = listOf(request.ko.id, request.en.id).map { id ->
-            aboutRepository.findByIdOrNull(id) ?: throw CserealException.Csereal404("club not found")
+            aboutRepository.findByIdOrNull(id) ?: throw CserealException(ErrorCode.CLUB_NOT_FOUND)
         }
 
         if (ko.language != LanguageType.KO || en.language != LanguageType.EN) {
-            throw CserealException.Csereal400("language doesn't match")
+            throw CserealException(ErrorCode.LANGUAGE_MISMATCH)
         }
 
         listOf(ko to request.ko, en to request.en).forEach { (club, clubDto) ->
@@ -167,7 +168,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun deleteClub(id: Long) {
-        val club = aboutRepository.findByIdOrNull(id) ?: throw CserealException.Csereal404("club not found")
+        val club = aboutRepository.findByIdOrNull(id) ?: throw CserealException(ErrorCode.CLUB_NOT_FOUND)
         val aboutLanguage = when (club.language) {
             LanguageType.KO -> aboutLanguageRepository.findByKoAbout(club)
             LanguageType.EN -> aboutLanguageRepository.findByEnAbout(club)
@@ -238,7 +239,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun updateFacility(id: Long, request: UpdateFacReq, newMainImage: MultipartFile?) {
-        val facility = aboutRepository.findByIdOrNull(id) ?: throw CserealException.Csereal404("id not found")
+        val facility = aboutRepository.findByIdOrNull(id) ?: throw CserealException(ErrorCode.FACILITY_NOT_FOUND)
 
         val corresponding = when (facility.language) {
             LanguageType.KO -> aboutLanguageRepository.findByKoAbout(facility)!!.enAbout
@@ -281,7 +282,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun deleteFacility(id: Long) {
-        val facility = aboutRepository.findByIdOrNull(id) ?: throw CserealException.Csereal404("id not found")
+        val facility = aboutRepository.findByIdOrNull(id) ?: throw CserealException(ErrorCode.FACILITY_NOT_FOUND)
 
         val facilityLanguage = when (facility.language) {
             LanguageType.KO -> aboutLanguageRepository.findByKoAbout(facility)
@@ -319,7 +320,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun updateDirection(id: Long, request: UpdateDescriptionReq) {
-        val direction = aboutRepository.findByIdOrNull(id) ?: throw CserealException.Csereal404("direction not found")
+        val direction = aboutRepository.findByIdOrNull(id) ?: throw CserealException(ErrorCode.DIRECTION_NOT_FOUND)
 
         val corresponding = when (direction.language) {
             LanguageType.KO -> aboutLanguageRepository.findByKoAbout(direction)!!.enAbout
@@ -357,10 +358,10 @@ class AboutServiceImpl(
     @Transactional
     override fun createFutureCareersStat(request: CreateStatReq) {
         if (statRepository.findAllByYear(request.year).isNotEmpty()) {
-            throw CserealException.Csereal409("year already exist")
+            throw CserealException(ErrorCode.STAT_YEAR_ALREADY_EXISTS)
         }
         if (request.statList.size != 6) {
-            throw CserealException.Csereal400("모든 row data 필요")
+            throw CserealException(ErrorCode.STAT_ROWS_REQUIRED)
         }
         for (stat in request.statList) {
             statRepository.save(StatEntity(request.year, Degree.BACHELOR, stat.career.krName, stat.bachelor))
@@ -422,7 +423,7 @@ class AboutServiceImpl(
 
     @Transactional
     override fun updateCompany(id: Long, request: CreateCompanyReq) {
-        val company = companyRepository.findByIdOrNull(id) ?: throw CserealException.Csereal404("company not found")
+        val company = companyRepository.findByIdOrNull(id) ?: throw CserealException(ErrorCode.COMPANY_NOT_FOUND)
         company.name = request.name
         company.url = request.url
         company.year = request.year

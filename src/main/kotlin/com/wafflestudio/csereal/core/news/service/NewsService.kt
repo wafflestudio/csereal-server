@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.news.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.admin.dto.AdminSlidesResponse
@@ -78,9 +79,9 @@ class NewsServiceImpl(
     @Transactional(readOnly = true)
     override fun readNews(newsId: Long): NewsResponse {
         val news: NewsEntity = newsRepository.findByIdOrNull(newsId)
-            ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다.(newsId: $newsId)")
+            ?: throw CserealException(ErrorCode.NEWS_NOT_FOUND, mapOf("newsId" to newsId))
 
-        if (news.isPrivate && !isCurrentUserStaff()) throw CserealException.Csereal401("접근 권한이 없습니다.")
+        if (news.isPrivate && !isCurrentUserStaff()) throw CserealException(ErrorCode.PRIVATE_POST)
 
         val imageURL = mainImageService.createImageURL(news.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(news.attachments)
@@ -198,6 +199,6 @@ class NewsServiceImpl(
 
     fun getNewsEntityByIdOrThrow(newsId: Long): NewsEntity {
         return newsRepository.findByIdOrNull(newsId)
-            ?: throw CserealException.Csereal404("존재하지 않는 새소식입니다.(newsId: $newsId)")
+            ?: throw CserealException(ErrorCode.NEWS_NOT_FOUND, mapOf("newsId" to newsId))
     }
 }

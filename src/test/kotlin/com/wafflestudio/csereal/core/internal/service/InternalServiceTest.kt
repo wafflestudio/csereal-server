@@ -30,7 +30,7 @@ class InternalServiceTest(
     Given("Internal이 비어있을 때") {
         When("Get을 실행하면") {
             Then("400 에러를 발생시켜야 한다.") {
-                val exc: CserealException.Csereal400 = shouldThrow {
+                val exc: CserealException = shouldThrow {
                     internalService.getInternal()
                 }
             }

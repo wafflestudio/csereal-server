@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.api.req.CreateStaffLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.CreateStaffReqBody
@@ -103,7 +104,7 @@ class StaffServiceImpl(
     @Transactional(readOnly = true)
     override fun getStaff(staffId: Long): StaffDto {
         val staff = staffRepository.findByIdOrNull(staffId)
-            ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. staffId: $staffId")
+            ?: throw CserealException(ErrorCode.STAFF_NOT_FOUND, mapOf("staffId" to staffId))
 
         val imageURL = mainImageService.createImageURL(staff.mainImage)
 
@@ -114,7 +115,7 @@ class StaffServiceImpl(
     override fun getStaffLanguages(staffId: Long): StaffLanguagesDto {
         val staffs = staffRepository.findStaffAllLanguages(staffId)
         if (staffs.isEmpty()) {
-            throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. staffId: $staffId")
+            throw CserealException(ErrorCode.STAFF_NOT_FOUND, mapOf("staffId" to staffId))
         }
 
         if (staffs.any { it.value.size > 1 }) {
@@ -160,7 +161,10 @@ class StaffServiceImpl(
     ): StaffLanguagesDto {
         // check given id is paired
         if (!memberLanguageRepository.existsByKoreanIdAndEnglishIdAndType(koStaffId, enStaffId, MemberType.STAFF)) {
-            throw CserealException.Csereal404("해당 행정직원을 쌍을 찾을 수 없습니다. <$koStaffId, $enStaffId>")
+            throw CserealException(
+                ErrorCode.STAFF_PAIR_NOT_FOUND,
+                mapOf("koStaffId" to koStaffId, "enStaffId" to enStaffId)
+            )
         }
 
         val koStaffDto = updateStaff(koStaffId, updateStaffLanguagesReqBody.ko, newImage)
@@ -170,7 +174,7 @@ class StaffServiceImpl(
 
     override fun updateStaff(staffId: Long, req: ModifyStaffReqBody, newImage: MultipartFile?): StaffDto {
         val staff = staffRepository.findByIdOrNull(staffId)
-            ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. staffId: $staffId")
+            ?: throw CserealException(ErrorCode.STAFF_NOT_FOUND, mapOf("staffId" to staffId))
 
         staff.run {
             name = req.name
@@ -209,7 +213,10 @@ class StaffServiceImpl(
 
         memberLanguageRepository.findByKoreanIdAndEnglishIdAndType(koStaffId, enStaffId, MemberType.STAFF)
             ?.let { memberLanguageRepository.delete(it) }
-            ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. <$koStaffId, $enStaffId>")
+            ?: throw CserealException(
+                ErrorCode.STAFF_PAIR_NOT_FOUND,
+                mapOf("koStaffId" to koStaffId, "enStaffId" to enStaffId)
+            )
     }
 
     override fun deleteStaff(staffId: Long) {
@@ -218,6 +225,6 @@ class StaffServiceImpl(
                 mainImageService.removeImage(it)
             }
             staffRepository.delete(staff)
-        } ?: throw CserealException.Csereal404("해당 행정직원을 찾을 수 없습니다. staffId: $staffId")
+        } ?: throw CserealException(ErrorCode.STAFF_NOT_FOUND, mapOf("staffId" to staffId))
     }
 }

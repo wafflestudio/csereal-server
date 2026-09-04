@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.news.database
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 
 enum class TagInNewsEnum(val krName: String) {
     EVENT("행사"), RESEARCH("연구"), AWARDS("수상"), RECRUIT("채용"), COLUMN("칼럼"),
@@ -10,7 +11,7 @@ enum class TagInNewsEnum(val krName: String) {
         private val lookupMap: Map<String, TagInNewsEnum> = TagInNewsEnum.values().associateBy(TagInNewsEnum::krName)
 
         fun getTagEnum(t: String): TagInNewsEnum {
-            return lookupMap[t] ?: throw CserealException.Csereal404("태그를 찾을 수 없습니다: $t")
+            return lookupMap[t] ?: throw CserealException(ErrorCode.NEWS_TAG_NOT_FOUND, mapOf("t" to t))
         }
     }
 }

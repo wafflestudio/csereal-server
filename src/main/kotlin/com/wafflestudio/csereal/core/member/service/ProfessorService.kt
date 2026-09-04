@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.startsWithEnglish
 import com.wafflestudio.csereal.core.member.api.req.CreateProfessorLanguagesReqBody
@@ -73,7 +74,7 @@ class ProfessorServiceImpl(
     @Transactional(readOnly = true)
     override fun getProfessor(professorId: Long): ProfessorDto {
         val professor = professorRepository.findByIdOrNull(professorId)
-            ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다. professorId: $professorId")
+            ?: throw CserealException(ErrorCode.PROFESSOR_NOT_FOUND, mapOf("professorId" to professorId))
 
         val imageURL = mainImageService.createImageURL(professor.mainImage)
 
@@ -83,7 +84,7 @@ class ProfessorServiceImpl(
     override fun getProfessorLanguages(professorId: Long): ProfessorLanguagesDto {
         val professors = professorRepository.findProfessorAllLanguages(professorId)
         if (professors.isEmpty()) {
-            throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다. professorId: $professorId")
+            throw CserealException(ErrorCode.PROFESSOR_NOT_FOUND, mapOf("professorId" to professorId))
         }
 
         if (professors.any { it.value.size > 1 }) {
@@ -193,7 +194,7 @@ class ProfessorServiceImpl(
 
         if (createProfessorRequest.labId != null) {
             val lab = labRepository.findByIdOrNull(createProfessorRequest.labId)
-                ?: throw CserealException.Csereal404("해당 연구실을 찾을 수 없습니다. LabId: ${createProfessorRequest.labId}")
+                ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, mapOf("labId" to createProfessorRequest.labId))
             professor.addLab(lab)
         }
 
@@ -238,14 +239,15 @@ class ProfessorServiceImpl(
         newImage: MultipartFile?
     ): ProfessorDto {
         val professor = professorRepository.findByIdOrNull(professorId)
-            ?: throw CserealException.Csereal404("해당 교수님을 찾을 수 없습니다. professorId: $professorId")
+            ?: throw CserealException(ErrorCode.PROFESSOR_NOT_FOUND, mapOf("professorId" to professorId))
 
         // Lab 업데이트
         // 기존 연구실이 제거되지 않는 이상 수동으로 교수의 Lab을 제거할 수 없음
         val outdatedLabId = professor.lab?.id
         if (updateReq.labId != null && updateReq.labId != professor.lab?.id) {
-            val lab = labRepository.findByIdOrNull(updateReq.labId) ?: throw CserealException.Csereal404(
-                "해당 연구실을 찾을 수 없습니다. LabId: ${updateReq.labId}"
+            val lab = labRepository.findByIdOrNull(updateReq.labId) ?: throw CserealException(
+                ErrorCode.LAB_NOT_FOUND,
+                mapOf("labId" to updateReq.labId)
             )
             professor.addLab(lab)
         }
@@ -308,7 +310,10 @@ class ProfessorServiceImpl(
                 MemberType.PROFESSOR
             )
         ) {
-            throw CserealException.Csereal404("해당 교수 쌍을 찾을 수 없습니다. <$koProfessorId, $enProfessorId>")
+            throw CserealException(
+                ErrorCode.PROFESSOR_PAIR_NOT_FOUND,
+                mapOf("koProfessorId" to koProfessorId, "enProfessorId" to enProfessorId)
+            )
         }
 
         val koProfessorDto = updateProfessor(koProfessorId, req.ko, newImage)
@@ -336,6 +341,9 @@ class ProfessorServiceImpl(
 
         memberLanguageRepository.findByKoreanIdAndEnglishIdAndType(koProfessorId, enProfessorId, MemberType.PROFESSOR)
             ?.let { memberLanguageRepository.delete(it) }
-            ?: throw CserealException.Csereal404("해당 교수 쌍을 찾을 수 없습니다. <$koProfessorId, $enProfessorId>")
+            ?: throw CserealException(
+                ErrorCode.PROFESSOR_PAIR_NOT_FOUND,
+                mapOf("koProfessorId" to koProfessorId, "enProfessorId" to enProfessorId)
+            )
     }
 }

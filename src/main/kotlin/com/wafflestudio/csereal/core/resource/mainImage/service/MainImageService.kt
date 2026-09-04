@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.resource.mainImage.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
@@ -55,7 +56,7 @@ class MainImageServiceImpl(
         val extension = FilenameUtils.getExtension(requestImage.originalFilename)?.lowercase()
 
         if (!listOf("jpg", "jpeg", "png").contains(extension)) {
-            throw CserealException.Csereal400("파일의 형식은 jpg, jpeg, png 중 하나여야 합니다.")
+            throw CserealException(ErrorCode.INVALID_IMAGE_TYPE)
         }
 
         val timeMillis = System.currentTimeMillis()

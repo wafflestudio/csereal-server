@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.conference.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.conference.database.ConferenceEntity
 import com.wafflestudio.csereal.core.conference.database.ConferencePageEntity
@@ -83,8 +84,9 @@ class ConferenceServiceImpl(
     fun modifyConferenceWithoutSave(
         conferenceDto: ConferenceDto
     ): ConferenceEntity {
-        val conferenceEntity = conferenceRepository.findByIdOrNull(conferenceDto.id)
-            ?: throw CserealException.Csereal404("Conference id:${conferenceDto.id} 가 존재하지 않습니다.")
+        val id = conferenceDto.id ?: throw CserealException(ErrorCode.CONFERENCE_NOT_FOUND)
+        val conferenceEntity = conferenceRepository.findByIdOrNull(id)
+            ?: throw CserealException(ErrorCode.CONFERENCE_NOT_FOUND, mapOf("id" to id))
 
         conferenceEntity.update(conferenceDto)
 

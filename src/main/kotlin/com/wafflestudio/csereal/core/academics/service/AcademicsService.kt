@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.academics.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.api.req.*
 import com.wafflestudio.csereal.core.academics.database.*
@@ -94,7 +95,7 @@ class AcademicsServiceImpl(
                 language,
                 studentType,
                 AcademicsPostType.GUIDE
-            ) ?: throw CserealException.Csereal404("Guide Not Found")
+            ) ?: throw CserealException(ErrorCode.GUIDE_NOT_FOUND)
         val attachmentResponses =
             attachmentService.createAttachmentResponses(academicsEntity.attachments)
         return GuidePageResponse.of(academicsEntity, attachmentResponses)
@@ -112,7 +113,7 @@ class AcademicsServiceImpl(
                 language,
                 studentType,
                 AcademicsPostType.GUIDE
-            ) ?: throw CserealException.Csereal404("Guide Not Found")
+            ) ?: throw CserealException(ErrorCode.GUIDE_NOT_FOUND)
 
         academicsEntity.description = request.description
         academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
@@ -136,7 +137,7 @@ class AcademicsServiceImpl(
             studentType,
             postType,
             year
-        ) ?: throw CserealException.Csereal404("AcademicsEntity Not Found")
+        ) ?: throw CserealException(ErrorCode.ACADEMICS_NOT_FOUND)
 
         academicsEntity.description = request.description
         academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
@@ -158,7 +159,7 @@ class AcademicsServiceImpl(
             studentType,
             postType,
             year
-        ) ?: throw CserealException.Csereal404("AcademicsEntity Not Found")
+        ) ?: throw CserealException(ErrorCode.ACADEMICS_NOT_FOUND)
 
         attachmentService.deleteAttachments(academicsEntity.attachments.map { it.id })
         academicsRepository.delete(academicsEntity)
@@ -178,7 +179,7 @@ class AcademicsServiceImpl(
             postType,
             request.year
         )?.let {
-            throw CserealException.Csereal409("Year Response Already Exist")
+            throw CserealException(ErrorCode.YEAR_ALREADY_EXISTS)
         }
 
         val newAcademics =
@@ -223,7 +224,7 @@ class AcademicsServiceImpl(
                 language,
                 AcademicsStudentType.UNDERGRADUATE,
                 AcademicsPostType.DEGREE_REQUIREMENTS
-            ) ?: throw CserealException.Csereal404("Degree Requirements Not Found")
+            ) ?: throw CserealException(ErrorCode.DEGREE_REQUIREMENTS_NOT_FOUND)
 
         val attachments = attachmentService.createAttachmentResponses(academicsEntity.attachments)
         return DegreeRequirementsPageResponse.of(academicsEntity, attachments)
@@ -240,7 +241,7 @@ class AcademicsServiceImpl(
                 language,
                 AcademicsStudentType.UNDERGRADUATE,
                 AcademicsPostType.DEGREE_REQUIREMENTS
-            ) ?: throw CserealException.Csereal404("Degree Requirements Not Found")
+            ) ?: throw CserealException(ErrorCode.DEGREE_REQUIREMENTS_NOT_FOUND)
 
         academicsEntity.description = request.description
         academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
@@ -253,7 +254,7 @@ class AcademicsServiceImpl(
     @Transactional
     override fun createCourse(request: GroupedCourseDto) {
         if (courseRepository.existsByCode(request.code)) {
-            throw CserealException.Csereal409("해당 교과목 번호를 가지고 있는 엔티티가 이미 있습니다")
+            throw CserealException(ErrorCode.COURSE_CODE_DUPLICATED)
         }
 
         val studentType = makeStringToAcademicsStudentType(request.studentType)
@@ -295,9 +296,9 @@ class AcademicsServiceImpl(
     @Transactional
     override fun updateCourse(updateRequest: GroupedCourseDto) {
         val ko = courseRepository.findByCodeAndLanguage(updateRequest.code, LanguageType.KO)
-            ?: throw CserealException.Csereal404("korean course not found")
+            ?: throw CserealException(ErrorCode.COURSE_NOT_FOUND)
         val en = courseRepository.findByCodeAndLanguage(updateRequest.code, LanguageType.EN)
-            ?: throw CserealException.Csereal404("english course not found")
+            ?: throw CserealException(ErrorCode.COURSE_NOT_FOUND)
 
         listOf(ko, en).forEach { course ->
             course.apply {
@@ -318,7 +319,7 @@ class AcademicsServiceImpl(
     @Transactional
     override fun deleteCourse(code: String) {
         if (!courseRepository.existsByCode(code)) {
-            throw CserealException.Csereal404("entity not found")
+            throw CserealException(ErrorCode.COURSE_NOT_FOUND)
         }
         courseRepository.deleteAllByCode(code)
     }
@@ -333,7 +334,7 @@ class AcademicsServiceImpl(
             language,
             studentType,
             AcademicsPostType.SCHOLARSHIP
-        ) ?: throw CserealException.Csereal404("scholarship page not found")
+        ) ?: throw CserealException(ErrorCode.SCHOLARSHIP_NOT_FOUND)
 
         scholarshipPage.description = request.description
         scholarshipPage.academicsSearch?.update(scholarshipPage) ?: let {
@@ -351,7 +352,7 @@ class AcademicsServiceImpl(
                 language,
                 studentType,
                 AcademicsPostType.SCHOLARSHIP
-            ) ?: throw CserealException.Csereal404("Scholarship Entity Not Found")
+            ) ?: throw CserealException(ErrorCode.SCHOLARSHIP_NOT_FOUND)
         val scholarshipEntityList =
             scholarshipRepository.findAllByStudentTypeAndLanguage(studentType, language)
 
@@ -381,7 +382,7 @@ class AcademicsServiceImpl(
     @Transactional(readOnly = true)
     override fun readScholarshipV2(scholarshipId: Long): Pair<ScholarshipDto, ScholarshipDto> {
         val scholarship = scholarshipRepository.findByIdOrNull(scholarshipId)
-            ?: throw CserealException.Csereal404("해당하는 장학제도를 찾을 수 없습니다")
+            ?: throw CserealException(ErrorCode.SCHOLARSHIP_NOT_FOUND)
 
         val correspondingScholarship = when (scholarship.language) {
             LanguageType.KO -> scholarshipLanguageRepository.findByKoScholarship(scholarship)!!.enScholarship
@@ -394,9 +395,9 @@ class AcademicsServiceImpl(
     @Transactional
     override fun updateScholarship(request: UpdateScholarshipReq) {
         val koScholarship = scholarshipRepository.findByIdOrNull(request.ko.id)
-            ?: throw CserealException.Csereal404("해당하는 장학제도를 찾을 수 없습니다")
+            ?: throw CserealException(ErrorCode.SCHOLARSHIP_NOT_FOUND)
         val enScholarship = scholarshipRepository.findByIdOrNull(request.en.id)
-            ?: throw CserealException.Csereal404("해당하는 장학제도를 찾을 수 없습니다")
+            ?: throw CserealException(ErrorCode.SCHOLARSHIP_NOT_FOUND)
 
         koScholarship.name = request.ko.name
         koScholarship.description = request.ko.description
@@ -414,7 +415,7 @@ class AcademicsServiceImpl(
     @Transactional
     override fun deleteScholarship(scholarshipId: Long) {
         val scholarship = scholarshipRepository.findByIdOrNull(scholarshipId)
-            ?: throw CserealException.Csereal404("해당하는 장학제도를 찾을 수 없습니다")
+            ?: throw CserealException(ErrorCode.SCHOLARSHIP_NOT_FOUND)
 
         val scholarshipLanguage = when (scholarship.language) {
             LanguageType.KO -> scholarshipLanguageRepository.findByKoScholarship(scholarship)
@@ -431,7 +432,7 @@ class AcademicsServiceImpl(
         try {
             return AcademicsStudentType.valueOf(value.replace("-", "_").uppercase())
         } catch (e: IllegalArgumentException) {
-            throw CserealException.Csereal400("해당하는 enum을 찾을 수 없습니다")
+            throw CserealException(ErrorCode.INVALID_ENUM_VALUE)
         }
     }
 }
