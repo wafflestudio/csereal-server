@@ -17,4 +17,9 @@
 
     # Login
     reverse_proxy /oauth2/authorization/idsnucse host.docker.internal:8080 
+
+	# Swagger — /swagger-ui.html 은 /swagger-ui/ 아래가 아니라 별도 매처가 필요하다
+	reverse_proxy /swagger-ui.html host.docker.internal:8080
+	reverse_proxy /swagger-ui/* host.docker.internal:8080
+	reverse_proxy /api-docs/* host.docker.internal:8080
 }
