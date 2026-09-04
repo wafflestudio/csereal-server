@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.reservation.database
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.core.reservation.dto.ReserveRequest
 import com.wafflestudio.csereal.core.user.database.UserEntity
@@ -53,7 +54,7 @@ class ReservationEntity(
     @PreUpdate
     fun validateDates() {
         if (!startTime.isBefore(endTime)) {
-            throw CserealException.Csereal400("종료 시각은 시작 시각 이후여야 합니다.")
+            throw CserealException(ErrorCode.INVALID_RESERVATION_TIME)
         }
     }
 

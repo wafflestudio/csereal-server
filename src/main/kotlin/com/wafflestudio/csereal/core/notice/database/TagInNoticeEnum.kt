@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.notice.database
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 
 enum class TagInNoticeEnum(val krName: String) {
     CLASS("수업"), SCHOLARSHIP("장학"), UNDERGRADUATE("학사(학부)"), GRADUATE("학사(대학원)"),
@@ -12,7 +13,7 @@ enum class TagInNoticeEnum(val krName: String) {
         private val lookupMap: Map<String, TagInNoticeEnum> = entries.associateBy(TagInNoticeEnum::krName)
 
         fun getTagEnum(t: String): TagInNoticeEnum {
-            return lookupMap[t] ?: throw CserealException.Csereal404("태그를 찾을 수 없습니다: $t")
+            return lookupMap[t] ?: throw CserealException(ErrorCode.NOTICE_TAG_NOT_FOUND, mapOf("t" to t))
         }
     }
 }

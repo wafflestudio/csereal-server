@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.research.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.research.api.req.*
 import com.wafflestudio.csereal.core.research.database.*
@@ -53,7 +54,7 @@ class ResearchServiceImpl(
         mainImage: MultipartFile?
     ): ResearchLanguageDto {
         if (!req.valid()) {
-            throw CserealException.Csereal400("두 언어의 research type이 일치하지 않습니다.")
+            throw CserealException(ErrorCode.RESEARCH_TYPE_MISMATCH)
         }
 
         val ko = createResearch(LanguageType.KO, req.ko, mainImage)
@@ -112,7 +113,7 @@ class ResearchServiceImpl(
         updateImage: MultipartFile?
     ): ResearchLanguageDto {
         if (!req.valid()) {
-            throw CserealException.Csereal404("두 언어의 research type이 일치하지 않습니다.")
+            throw CserealException(ErrorCode.RESEARCH_TYPE_MISMATCH)
         }
 
         val type = req.ko.type
@@ -122,7 +123,7 @@ class ResearchServiceImpl(
                 type.ofResearchRelatedType()
             )
         ) {
-            throw CserealException.Csereal404("해당 Research 언어 쌍을 찾을 수 없습니다.")
+            throw CserealException(ErrorCode.RESEARCH_PAIR_NOT_FOUND)
         }
 
         val koreanUpdatedDto = updateResearch(koreanId, req.ko, updateImage)
@@ -138,7 +139,7 @@ class ResearchServiceImpl(
         updateImage: MultipartFile?
     ): ResearchSealedDto {
         val research = researchRepository.findByIdOrNull(researchId)
-            ?: throw CserealException.Csereal404("해당 게시글을 찾을 수 없습니다.(researchId=$researchId)")
+            ?: throw CserealException(ErrorCode.RESEARCH_NOT_FOUND, mapOf("researchId" to researchId))
         val originalName = research.name
 
         // Update common fields
@@ -191,7 +192,7 @@ class ResearchServiceImpl(
             koreanId,
             englishId,
             ResearchRelatedType.RESEARCH_CENTER
-        ) ?: throw CserealException.Csereal404("해당 Research 언어 쌍을 찾을 수 없습니다.")
+        ) ?: throw CserealException(ErrorCode.RESEARCH_PAIR_NOT_FOUND)
 
         deleteResearch(koreanId)
         deleteResearch(englishId)
@@ -201,7 +202,7 @@ class ResearchServiceImpl(
     @Transactional
     override fun deleteResearch(researchId: Long) {
         val research = researchRepository.findByIdOrNull(researchId)
-            ?: throw CserealException.Csereal404("해당 게시글을 찾을 수 없습니다.(researchId=$researchId)")
+            ?: throw CserealException(ErrorCode.RESEARCH_NOT_FOUND, mapOf("researchId" to researchId))
 
         research.mainImage?.let {
             mainImageService.removeImage(it)
@@ -223,7 +224,7 @@ class ResearchServiceImpl(
     @Transactional(readOnly = true)
     override fun readResearchLanguage(id: Long): ResearchLanguageDto {
         val researchMap = researchLanguageRepository.findResearchPairById(id)
-            ?: throw CserealException.Csereal404("해당 Research 언어 쌍을 찾을 수 없습니다.(id=$id)")
+            ?: throw CserealException(ErrorCode.RESEARCH_PAIR_NOT_FOUND, mapOf("id" to id))
 
         val ko = researchMap[LanguageType.KO]!!
         val en = researchMap[LanguageType.EN]!!

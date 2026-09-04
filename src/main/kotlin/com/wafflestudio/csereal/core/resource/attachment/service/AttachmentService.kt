@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.resource.attachment.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.common.properties.EndpointProperties
 import com.wafflestudio.csereal.core.about.database.AboutEntity
@@ -182,7 +183,7 @@ class AttachmentServiceImpl(
         if (ids != null) {
             for (id in ids) {
                 val attachment = attachmentRepository.findByIdOrNull(id)
-                    ?: throw CserealException.Csereal404("id:${id}인 첨부파일을 찾을 수 없습니다.")
+                    ?: throw CserealException(ErrorCode.ATTACHMENT_NOT_FOUND, mapOf("id" to id))
                 deleteAttachment(attachment)
             }
         }

@@ -88,7 +88,7 @@ class AdmissionsServiceTest(
         val postType = AdmissionsPostType.REGULAR_ADMISSION
         When("createAdmission이 호출되면") {
             Then("Csereal400 에러가 발생한다.") {
-                shouldThrow<CserealException.Csereal400> {
+                shouldThrow<CserealException> {
                     admissionsService.createAdmission(req, mainType, postType)
                 }
             }
@@ -126,7 +126,7 @@ class AdmissionsServiceTest(
 
         When("존재하지 않는 readAdmission이 호출되면") {
             Then("Csereal404 에러가 발생한다.") {
-                shouldThrow<CserealException.Csereal404> {
+                shouldThrow<CserealException> {
                     admissionsService.readAdmission(
                         AdmissionsMainType.UNDERGRADUATE,
                         AdmissionsPostType.REGULAR_ADMISSION,

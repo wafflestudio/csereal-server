@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.notice.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.notice.api.req.CreateNoticeReq
@@ -70,9 +71,9 @@ class NoticeServiceImpl(
     @Transactional(readOnly = true)
     override fun readNotice(noticeId: Long): NoticeResponse {
         val notice = noticeRepository.findByIdOrNull(noticeId)
-            ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
+            ?: throw CserealException(ErrorCode.NOTICE_NOT_FOUND, mapOf("noticeId" to noticeId))
 
-        if (notice.isPrivate && !isCurrentUserStaff()) throw CserealException.Csereal401("접근 권한이 없습니다.")
+        if (notice.isPrivate && !isCurrentUserStaff()) throw CserealException(ErrorCode.PRIVATE_POST)
 
         val attachmentResponses = attachmentService.createAttachmentResponses(notice.attachments)
 
@@ -116,7 +117,7 @@ class NoticeServiceImpl(
         newAttachments: List<MultipartFile>?
     ): NoticeResponse {
         val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
-            ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
+            ?: throw CserealException(ErrorCode.NOTICE_NOT_FOUND, mapOf("noticeId" to noticeId))
 
         notice.update(request)
 
@@ -146,7 +147,7 @@ class NoticeServiceImpl(
     @Transactional
     override fun deleteNotice(noticeId: Long) {
         noticeRepository.findByIdOrNull(noticeId)
-            ?: throw CserealException.Csereal404("존재하지 않는 공지사항입니다.(noticeId: $noticeId)")
+            ?: throw CserealException(ErrorCode.NOTICE_NOT_FOUND, mapOf("noticeId" to noticeId))
 
         noticeRepository.deleteById(noticeId)
     }
@@ -155,7 +156,7 @@ class NoticeServiceImpl(
     override fun unpinManyNotices(idList: List<Long>) {
         for (noticeId in idList) {
             val notice: NoticeEntity = noticeRepository.findByIdOrNull(noticeId)
-                ?: throw CserealException.Csereal404("존재하지 않는 공지사항을 입력하였습니다.(noticeId: $noticeId)")
+                ?: throw CserealException(ErrorCode.NOTICE_NOT_FOUND, mapOf("noticeId" to noticeId))
             notice.isPinned = false
         }
     }
@@ -164,7 +165,7 @@ class NoticeServiceImpl(
     override fun deleteManyNotices(idList: List<Long>) {
         for (noticeId in idList) {
             noticeRepository.findByIdOrNull(noticeId)
-                ?: throw CserealException.Csereal404("존재하지 않는 공지사항을 입력하였습니다.(noticeId: $noticeId)")
+                ?: throw CserealException(ErrorCode.NOTICE_NOT_FOUND, mapOf("noticeId" to noticeId))
             noticeRepository.deleteById(noticeId)
         }
     }

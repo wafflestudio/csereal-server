@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.core.seminar.service
 
 import com.wafflestudio.csereal.common.CserealException
+import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
@@ -84,9 +85,9 @@ class SeminarServiceImpl(
     @Transactional(readOnly = true)
     override fun readSeminar(seminarId: Long): SeminarResponse {
         val seminar: SeminarEntity = seminarRepository.findByIdOrNull(seminarId)
-            ?: throw CserealException.Csereal404("존재하지 않는 세미나입니다.(seminarId: $seminarId)")
+            ?: throw CserealException(ErrorCode.SEMINAR_NOT_FOUND, mapOf("seminarId" to seminarId))
 
-        if (seminar.isPrivate && !isCurrentUserStaff()) throw CserealException.Csereal401("접근 권한이 없습니다.")
+        if (seminar.isPrivate && !isCurrentUserStaff()) throw CserealException(ErrorCode.PRIVATE_POST)
 
         val imageURL = mainImageService.createImageURL(seminar.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(seminar.attachments)
@@ -111,7 +112,7 @@ class SeminarServiceImpl(
         newAttachments: List<MultipartFile>?
     ): SeminarResponse {
         val seminar: SeminarEntity = seminarRepository.findByIdOrNull(seminarId)
-            ?: throw CserealException.Csereal404("존재하지 않는 세미나입니다")
+            ?: throw CserealException(ErrorCode.SEMINAR_NOT_FOUND)
 
         seminar.update(request)
 
@@ -134,7 +135,7 @@ class SeminarServiceImpl(
     @Transactional
     override fun deleteSeminar(seminarId: Long) {
         seminarRepository.findByIdOrNull(seminarId)
-            ?: throw CserealException.Csereal404("존재하지 않는 세미나입니다.(seminarId=$seminarId")
+            ?: throw CserealException(ErrorCode.SEMINAR_NOT_FOUND, mapOf("seminarId" to seminarId))
 
         seminarRepository.deleteById(seminarId)
     }
