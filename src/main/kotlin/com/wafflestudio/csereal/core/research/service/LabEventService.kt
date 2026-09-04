@@ -57,7 +57,7 @@ class LabEventServiceImpl(
         }
 
         if (beforeLab != null && beforeLab == afterLab) {
-            beforeLab.researchSearch?.update(beforeLab)
+            upsertLabSearchIndex(beforeLab)
         }
 
         beforeLab?.apply {
@@ -72,10 +72,12 @@ class LabEventServiceImpl(
         }
     }
 
+    // 색인은 언어별이라 번역본마다 갱신한다.
     @Transactional
     fun upsertLabSearchIndex(lab: LabEntity) {
-        lab.researchSearch?.update(lab) ?: let {
-            lab.researchSearch = ResearchSearchEntity.create(lab)
+        lab.translations.forEach { translation ->
+            translation.researchSearch?.update(translation)
+                ?: let { translation.researchSearch = ResearchSearchEntity.create(translation) }
         }
     }
 }

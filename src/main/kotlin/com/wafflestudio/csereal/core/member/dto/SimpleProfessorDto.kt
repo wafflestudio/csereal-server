@@ -1,6 +1,6 @@
 package com.wafflestudio.csereal.core.member.dto
 
-import com.wafflestudio.csereal.core.member.database.ProfessorEntity
+import com.wafflestudio.csereal.core.member.database.ProfessorTranslationEntity
 
 data class SimpleProfessorDto(
     val id: Long,
@@ -15,17 +15,18 @@ data class SimpleProfessorDto(
     val imageURL: String?
 ) {
     companion object {
-        fun of(professorEntity: ProfessorEntity, imageURL: String?): SimpleProfessorDto {
+        fun of(translation: ProfessorTranslationEntity, imageURL: String?): SimpleProfessorDto {
+            val professor = translation.professor
             return SimpleProfessorDto(
-                id = professorEntity.id,
-                name = professorEntity.name,
-                academicRank = professorEntity.academicRank,
-                department = professorEntity.department,
-                status = professorEntity.status.toString(),
-                labId = professorEntity.lab?.id,
-                labName = professorEntity.lab?.name,
-                phone = professorEntity.phone,
-                email = professorEntity.email,
+                id = professor.id,
+                name = translation.name,
+                academicRank = translation.academicRank,
+                department = translation.department,
+                status = professor.status.toString(),
+                labId = professor.lab?.id,
+                labName = professor.lab?.translationOf(translation.language)?.name,
+                phone = professor.phone,
+                email = professor.email,
                 imageURL = imageURL
             )
         }

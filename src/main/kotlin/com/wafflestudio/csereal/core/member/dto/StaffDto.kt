@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.member.dto
 
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.core.member.database.StaffEntity
+import com.wafflestudio.csereal.core.member.database.StaffTranslationEntity
 
 data class StaffDto(
     var id: Long,
@@ -15,18 +15,16 @@ data class StaffDto(
     val imageURL: String?
 ) {
     companion object {
-        fun of(staffEntity: StaffEntity, imageURL: String?): StaffDto {
-            return StaffDto(
-                id = staffEntity.id,
-                language = LanguageType.makeLowercase(staffEntity.language),
-                name = staffEntity.name,
-                role = staffEntity.role,
-                office = staffEntity.office,
-                phone = staffEntity.phone,
-                email = staffEntity.email,
-                tasks = staffEntity.tasks,
-                imageURL = imageURL
-            )
-        }
+        fun of(translation: StaffTranslationEntity, imageURL: String?): StaffDto = StaffDto(
+            id = translation.staff.id,
+            language = LanguageType.makeLowercase(translation.language),
+            name = translation.name,
+            role = translation.role,
+            office = translation.office,
+            phone = translation.staff.phone,
+            email = translation.staff.email,
+            tasks = translation.tasks,
+            imageURL = imageURL
+        )
     }
 }

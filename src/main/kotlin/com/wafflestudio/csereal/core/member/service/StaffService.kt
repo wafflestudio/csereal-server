@@ -4,20 +4,15 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.api.req.CreateStaffLanguagesReqBody
-import com.wafflestudio.csereal.core.member.api.req.CreateStaffReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyStaffLanguagesReqBody
-import com.wafflestudio.csereal.core.member.api.req.ModifyStaffReqBody
-import com.wafflestudio.csereal.core.member.database.MemberLanguageEntity
-import com.wafflestudio.csereal.core.member.database.MemberLanguageRepository
 import com.wafflestudio.csereal.core.member.database.MemberSearchEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.member.database.StaffRepository
+import com.wafflestudio.csereal.core.member.database.StaffTranslationEntity
+import com.wafflestudio.csereal.core.member.database.StaffTranslationRepository
 import com.wafflestudio.csereal.core.member.dto.SimpleStaffDto
-import com.wafflestudio.csereal.core.member.dto.StaffDto
 import com.wafflestudio.csereal.core.member.dto.StaffLanguagesDto
-import com.wafflestudio.csereal.core.member.type.MemberType
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
-import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -25,206 +20,120 @@ import org.springframework.web.multipart.MultipartFile
 
 interface StaffService {
     fun getStaffLanguages(staffId: Long): StaffLanguagesDto
-    fun getStaff(staffId: Long): StaffDto
     fun getAllStaff(language: LanguageType): List<SimpleStaffDto>
-
-    fun createStaffLanguages(
-        createStaffLanguagesReqBody: CreateStaffLanguagesReqBody,
-        mainImage: MultipartFile?
-    ): StaffLanguagesDto
-
-    fun createStaff(language: LanguageType, createStaffRequest: CreateStaffReqBody, mainImage: MultipartFile?): StaffDto
-
+    fun createStaffLanguages(request: CreateStaffLanguagesReqBody, mainImage: MultipartFile?): StaffLanguagesDto
     fun updateStaffLanguages(
-        koStaffId: Long,
-        enStaffId: Long,
-        updateStaffLanguagesReqBody: ModifyStaffLanguagesReqBody,
+        staffId: Long,
+        request: ModifyStaffLanguagesReqBody,
         newImage: MultipartFile?
     ): StaffLanguagesDto
 
-    fun updateStaff(staffId: Long, req: ModifyStaffReqBody, newImage: MultipartFile?): StaffDto
-
-    fun deleteStaffLanguages(koStaffId: Long, enStaffId: Long)
-    fun deleteStaff(staffId: Long)
+    fun deleteStaffLanguages(staffId: Long)
 }
 
 @Service
 @Transactional
 class StaffServiceImpl(
     private val staffRepository: StaffRepository,
-    private val mainImageService: MainImageService,
-    private val memberLanguageRepository: MemberLanguageRepository
+    private val staffTranslationRepository: StaffTranslationRepository,
+    private val mainImageService: MainImageService
 ) : StaffService {
-    private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun createStaffLanguages(
-        createStaffLanguagesReqBody: CreateStaffLanguagesReqBody,
+        request: CreateStaffLanguagesReqBody,
         mainImage: MultipartFile?
     ): StaffLanguagesDto {
-        val koreanStaffDto = createStaff(LanguageType.KO, createStaffLanguagesReqBody.ko, mainImage)
-        val englishStaffDto = createStaff(LanguageType.EN, createStaffLanguagesReqBody.en, mainImage)
-
-        memberLanguageRepository.save(
-            MemberLanguageEntity(MemberType.STAFF, koreanId = koreanStaffDto.id, englishId = englishStaffDto.id)
+        val staff = StaffEntity(
+            phone = request.phone,
+            email = request.email
         )
-
-        return StaffLanguagesDto(koreanStaffDto, englishStaffDto)
-    }
-
-    override fun createStaff(
-        language: LanguageType,
-        createStaffRequest: CreateStaffReqBody,
-        mainImage: MultipartFile?
-    ): StaffDto {
-        val staff = createStaffRequest.run {
-            StaffEntity(
-                language = language,
-                name,
-                role,
-                office,
-                phone,
-                email,
-                tasks = tasks.map { it.trim() }.toMutableList()
+        listOf(LanguageType.KO to request.ko, LanguageType.EN to request.en).forEach { (language, content) ->
+            staff.translations.add(
+                StaffTranslationEntity(
+                    staff = staff,
+                    language = language,
+                    name = content.name,
+                    role = content.role,
+                    office = content.office,
+                    tasks = content.tasks.map { it.trim() }.toMutableList()
+                )
             )
         }
 
+        // 사진은 사람에게 하나뿐이다 — 예전엔 언어별로 한 번씩 올라가 같은 파일이 두 벌 남았다.
         if (mainImage != null) {
             mainImageService.uploadMainImage(staff, mainImage)
         }
-
-        staff.memberSearch = MemberSearchEntity.create(staff)
-
+        staff.translations.forEach { it.memberSearch = MemberSearchEntity.create(it) }
         staffRepository.save(staff)
 
-        val imageURL = mainImageService.createImageURL(staff.mainImage)
-
-        return StaffDto.of(staff, imageURL)
-    }
-
-    @Transactional(readOnly = true)
-    override fun getStaff(staffId: Long): StaffDto {
-        val staff = staffRepository.findByIdOrNull(staffId)
-            ?: throw CserealException(ErrorCode.STAFF_NOT_FOUND, mapOf("staffId" to staffId))
-
-        val imageURL = mainImageService.createImageURL(staff.mainImage)
-
-        return StaffDto.of(staff, imageURL)
+        return staff.toLanguagesDto()
     }
 
     @Transactional(readOnly = true)
     override fun getStaffLanguages(staffId: Long): StaffLanguagesDto {
-        val staffs = staffRepository.findStaffAllLanguages(staffId)
-        if (staffs.isEmpty()) {
-            throw CserealException(ErrorCode.STAFF_NOT_FOUND, mapOf("staffId" to staffId))
-        }
-
-        if (staffs.any { it.value.size > 1 }) {
-            logger.error("staff 데이터 정합성 오류: $staffId")
-        }
-
-        return StaffLanguagesDto(
-            ko = staffs[LanguageType.KO]?.let {
-                StaffDto.of(
-                    it.first(),
-                    mainImageService.createImageURL(it.first().mainImage)
-                )
-            },
-            en = staffs[LanguageType.EN]?.let {
-                StaffDto.of(
-                    it.first(),
-                    mainImageService.createImageURL(it.first().mainImage)
-                )
-            }
-        )
+        val staff = staffRepository.findByIdOrNull(staffId)
+            ?: throw CserealException(ErrorCode.STAFF_NOT_FOUND, mapOf("staffId" to staffId))
+        return staff.toLanguagesDto()
     }
 
     @Transactional(readOnly = true)
     override fun getAllStaff(language: LanguageType): List<SimpleStaffDto> {
-        val sortedStaff = staffRepository.findAllByLanguage(language).map {
-            val imageURL = mainImageService.createImageURL(it.mainImage)
-            SimpleStaffDto.of(it, imageURL)
-        }.sortedBy { it.name }.toMutableList()
+        val sortedStaff = staffTranslationRepository.findAllByLanguage(language)
+            .map { SimpleStaffDto.of(it, mainImageService.createImageURL(it.staff.mainImage)) }
+            .sortedBy { it.name }
+            .toMutableList()
 
+        // 행정실장을 맨 앞으로 — 정렬 규칙이 아니라 화면 요구다.
         sortedStaff.indexOfFirst { it.email == "misuk@snu.ac.kr" }.takeIf { it != -1 }?.let { index ->
-            val headStaff = sortedStaff.removeAt(index)
-            sortedStaff.add(0, headStaff)
+            sortedStaff.add(0, sortedStaff.removeAt(index))
         }
-
         return sortedStaff
     }
 
     override fun updateStaffLanguages(
-        koStaffId: Long,
-        enStaffId: Long,
-        updateStaffLanguagesReqBody: ModifyStaffLanguagesReqBody,
+        staffId: Long,
+        request: ModifyStaffLanguagesReqBody,
         newImage: MultipartFile?
     ): StaffLanguagesDto {
-        // check given id is paired
-        if (!memberLanguageRepository.existsByKoreanIdAndEnglishIdAndType(koStaffId, enStaffId, MemberType.STAFF)) {
-            throw CserealException(
-                ErrorCode.STAFF_PAIR_NOT_FOUND,
-                mapOf("koStaffId" to koStaffId, "enStaffId" to enStaffId)
-            )
-        }
-
-        val koStaffDto = updateStaff(koStaffId, updateStaffLanguagesReqBody.ko, newImage)
-        val enStaffDto = updateStaff(enStaffId, updateStaffLanguagesReqBody.en, newImage)
-        return StaffLanguagesDto(ko = koStaffDto, en = enStaffDto)
-    }
-
-    override fun updateStaff(staffId: Long, req: ModifyStaffReqBody, newImage: MultipartFile?): StaffDto {
         val staff = staffRepository.findByIdOrNull(staffId)
             ?: throw CserealException(ErrorCode.STAFF_NOT_FOUND, mapOf("staffId" to staffId))
 
-        staff.run {
-            name = req.name
-            role = req.role
-            office = req.office
-            phone = req.phone
-            email = req.email
-            tasks = req.tasks.map { it.trim() }.toMutableList()
+        staff.updateShared(request.phone, request.email)
+
+        listOf(LanguageType.KO to request.ko, LanguageType.EN to request.en).forEach { (language, content) ->
+            val translation = staff.translationOf(language)
+                ?: throw CserealException(ErrorCode.STAFF_NOT_FOUND, mapOf("staffId" to staffId))
+            translation.name = content.name
+            translation.role = content.role
+            translation.office = content.office
+            translation.tasks = content.tasks.map { it.trim() }.toMutableList()
+            translation.memberSearch?.update(translation)
+                ?: let { translation.memberSearch = MemberSearchEntity.create(translation) }
         }
 
-        if (req.removeImage && newImage == null) {
-            if (staff.mainImage != null) {
-                mainImageService.removeImage(staff.mainImage!!)
+        if (request.removeImage && newImage == null) {
+            staff.mainImage?.let {
+                mainImageService.removeImage(it)
                 staff.mainImage = null
             }
         } else if (newImage != null) {
-            staff.mainImage?.let {
-                mainImageService.removeImage(it)
-            }
+            staff.mainImage?.let { mainImageService.removeImage(it) }
             mainImageService.uploadMainImage(staff, newImage)
         }
 
-        // 검색 엔티티 업데이트
-        staff.memberSearch?.update(staff) ?: let {
-            staff.memberSearch = MemberSearchEntity.create(staff)
-        }
-
-        val imageURL = mainImageService.createImageURL(staff.mainImage)
-
-        return StaffDto.of(staff, imageURL)
+        return staff.toLanguagesDto()
     }
 
-    override fun deleteStaffLanguages(koStaffId: Long, enStaffId: Long) {
-        deleteStaff(koStaffId)
-        deleteStaff(enStaffId)
+    override fun deleteStaffLanguages(staffId: Long) {
+        val staff = staffRepository.findByIdOrNull(staffId)
+            ?: throw CserealException(ErrorCode.STAFF_NOT_FOUND, mapOf("staffId" to staffId))
 
-        memberLanguageRepository.findByKoreanIdAndEnglishIdAndType(koStaffId, enStaffId, MemberType.STAFF)
-            ?.let { memberLanguageRepository.delete(it) }
-            ?: throw CserealException(
-                ErrorCode.STAFF_PAIR_NOT_FOUND,
-                mapOf("koStaffId" to koStaffId, "enStaffId" to enStaffId)
-            )
+        staff.mainImage?.let { mainImageService.removeImage(it) }
+        // 번역본과 검색 색인은 cascade + orphanRemoval 로 함께 지워진다.
+        staffRepository.delete(staff)
     }
 
-    override fun deleteStaff(staffId: Long) {
-        staffRepository.findByIdOrNull(staffId)?.let { staff ->
-            staff.mainImage?.let {
-                mainImageService.removeImage(it)
-            }
-            staffRepository.delete(staff)
-        } ?: throw CserealException(ErrorCode.STAFF_NOT_FOUND, mapOf("staffId" to staffId))
-    }
+    private fun StaffEntity.toLanguagesDto(): StaffLanguagesDto =
+        StaffLanguagesDto.of(this, mainImageService.createImageURL(mainImage))
 }

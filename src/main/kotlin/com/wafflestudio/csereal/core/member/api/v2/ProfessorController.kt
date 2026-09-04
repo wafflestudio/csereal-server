@@ -49,26 +49,22 @@ class ProfessorController(
         professorService.createProfessorLanguages(requestBody, mainImage)
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/{koProfessorId}/{enProfessorId}", consumes = ["multipart/form-data"])
+    @PutMapping("/{professorId}", consumes = ["multipart/form-data"])
     fun updateProfessor(
         @PathVariable @Positive
-        koProfessorId: Long,
-        @PathVariable @Positive
-        enProfessorId: Long,
+        professorId: Long,
         @RequestPart("request") requestBody: ModifyProfessorLanguagesReqBody,
 
         @Parameter(description = "image 교체할 경우 업로드. Request Body의 removeImage 관계없이 변경됨.")
         @RequestPart("newMainImage")
         newMainImage: MultipartFile?
     ): ProfessorLanguagesDto =
-        professorService.updateProfessorLanguages(koProfessorId, enProfessorId, requestBody, newMainImage)
+        professorService.updateProfessorLanguages(professorId, requestBody, newMainImage)
 
     @PreAuthorize("hasRole('STAFF')")
-    @DeleteMapping("/{koProfessorId}/{enProfessorId}")
+    @DeleteMapping("/{professorId}")
     fun deleteProfessor(
         @PathVariable @Positive
-        koProfessorId: Long,
-        @PathVariable @Positive
-        enProfessorId: Long
-    ) = professorService.deleteProfessorLanguages(koProfessorId, enProfessorId)
+        professorId: Long
+    ) = professorService.deleteProfessorLanguages(professorId)
 }
