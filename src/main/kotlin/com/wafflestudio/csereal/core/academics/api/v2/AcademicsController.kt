@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.academics.api.v2
 
 import com.wafflestudio.csereal.core.academics.database.AcademicsStudentType
-import com.wafflestudio.csereal.core.academics.database.AcademicsPostType
+import com.wafflestudio.csereal.core.academics.database.AcademicsYearPostType
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.api.req.*
 import com.wafflestudio.csereal.core.academics.dto.*
@@ -53,11 +53,14 @@ class AcademicsController(
     @GetMapping("/scholarship/{scholarshipId}")
     fun getScholarship(
         @PathVariable scholarshipId: Long
-    ): Pair<ScholarshipDto, ScholarshipDto> = academicsService.readScholarshipV2(scholarshipId)
+    ): ScholarshipLanguagesDto = academicsService.readScholarshipV2(scholarshipId)
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/scholarship")
-    fun updateScholarship(@RequestBody request: UpdateScholarshipReq) = academicsService.updateScholarship(request)
+    @PutMapping("/scholarship/{scholarshipId}")
+    fun updateScholarship(
+        @PathVariable scholarshipId: Long,
+        @RequestBody request: UpdateScholarshipReq
+    ) = academicsService.updateScholarship(scholarshipId, request)
 
     @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/scholarship/{scholarshipId}")
@@ -88,14 +91,16 @@ class AcademicsController(
         @RequestPart attachments: List<MultipartFile>?
     ) = academicsService.updateGuide(language, studentType, request, attachments)
 
+    // 연도별 목록을 갖는 셋만 받는다 — guide·scholarship·degree-requirements 는
+    // 전용 경로가 이긴다. 자세한 이유는 AcademicsYearPostType 주석 참고.
     @GetMapping("/{studentType}/{postType}")
     fun readAcademicsYearResponses(
         @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
         @PathVariable studentType: AcademicsStudentType,
-        @PathVariable postType: AcademicsPostType
+        @PathVariable postType: AcademicsYearPostType
     ): ResponseEntity<List<AcademicsYearResponse>> {
         return ResponseEntity.ok(
-            academicsService.readAcademicsYearResponses(language, studentType, postType)
+            academicsService.readAcademicsYearResponses(language, studentType, postType.postType)
         )
     }
 
@@ -104,21 +109,34 @@ class AcademicsController(
     fun createAcademicsYearResponse(
         @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
         @PathVariable studentType: AcademicsStudentType,
-        @PathVariable postType: AcademicsPostType,
+        @PathVariable postType: AcademicsYearPostType,
         @RequestPart request: CreateYearReq,
         @RequestPart attachments: List<MultipartFile>?
-    ) = academicsService.createAcademicsYearResponse(language, studentType, postType, request, attachments)
+    ) = academicsService.createAcademicsYearResponse(
+        language,
+        studentType,
+        postType.postType,
+        request,
+        attachments
+    )
 
     @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{studentType}/{postType}/{year}", consumes = ["multipart/form-data"])
     fun updateAcademicsYearResponse(
         @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
         @PathVariable studentType: AcademicsStudentType,
-        @PathVariable postType: AcademicsPostType,
+        @PathVariable postType: AcademicsYearPostType,
         @PathVariable year: Int,
         @RequestPart request: UpdateYearReq,
         @RequestPart attachments: List<MultipartFile>?
-    ) = academicsService.updateAcademicsYearResponse(language, studentType, postType, year, request, attachments)
+    ) = academicsService.updateAcademicsYearResponse(
+        language,
+        studentType,
+        postType.postType,
+        year,
+        request,
+        attachments
+    )
 
     @GetMapping("/undergraduate/degree-requirements")
     fun readDegreeRequirements(
@@ -148,7 +166,7 @@ class AcademicsController(
     fun deleteAcademicsYearResponse(
         @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
         @PathVariable studentType: AcademicsStudentType,
-        @PathVariable postType: AcademicsPostType,
+        @PathVariable postType: AcademicsYearPostType,
         @PathVariable year: Int
-    ) = academicsService.deleteAcademicsYearResponse(language, studentType, postType, year)
+    ) = academicsService.deleteAcademicsYearResponse(language, studentType, postType.postType, year)
 }

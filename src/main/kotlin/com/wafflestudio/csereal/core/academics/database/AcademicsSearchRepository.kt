@@ -8,7 +8,7 @@ import com.wafflestudio.csereal.common.utils.exchangeValidPageNum
 import com.wafflestudio.csereal.core.academics.database.QAcademicsEntity.academicsEntity
 import com.wafflestudio.csereal.core.academics.database.QAcademicsSearchEntity.academicsSearchEntity
 import com.wafflestudio.csereal.core.academics.database.QCourseEntity.courseEntity
-import com.wafflestudio.csereal.core.academics.database.QScholarshipEntity.scholarshipEntity
+import com.wafflestudio.csereal.core.academics.database.QScholarshipTranslationEntity.scholarshipTranslationEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
@@ -65,7 +65,7 @@ class AcademicsSearchCustomRepositoryImpl(
             ).fetchJoin()
             .leftJoin(
                 academicsSearchEntity.scholarship,
-                scholarshipEntity
+                scholarshipTranslationEntity
             ).fetchJoin()
             .where(
                 searchDoubleTemplate.gt(0.0),

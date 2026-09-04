@@ -10,18 +10,19 @@ class MemberSearchEntity(
     @Column(columnDefinition = "TEXT")
     var content: String,
 
+    @Enumerated(EnumType.STRING)
     var language: LanguageType,
 
     @OneToOne
     @JoinColumn(name = "professor_id")
-    val professor: ProfessorEntity? = null,
+    val professor: ProfessorTranslationEntity? = null,
 
     @OneToOne
     @JoinColumn(name = "staff_id")
-    val staff: StaffEntity? = null
+    val staff: StaffTranslationEntity? = null
 ) : BaseTimeEntity() {
     companion object {
-        fun create(professor: ProfessorEntity): MemberSearchEntity {
+        fun create(professor: ProfessorTranslationEntity): MemberSearchEntity {
             return MemberSearchEntity(
                 content = createContent(professor),
                 language = professor.language,
@@ -29,7 +30,7 @@ class MemberSearchEntity(
             )
         }
 
-        fun create(staff: StaffEntity): MemberSearchEntity {
+        fun create(staff: StaffTranslationEntity): MemberSearchEntity {
             return MemberSearchEntity(
                 content = createContent(staff),
                 language = staff.language,
@@ -37,34 +38,36 @@ class MemberSearchEntity(
             )
         }
 
-        fun createContent(professor: ProfessorEntity): String {
+        fun createContent(translation: ProfessorTranslationEntity): String {
+            val professor = translation.professor
             val stringBuilder = StringBuilder()
-            stringBuilder.appendLine(professor.name)
+            stringBuilder.appendLine(translation.name)
             stringBuilder.appendLine(professor.status.krValue)
-            stringBuilder.appendLine(professor.academicRank)
-            stringBuilder.appendLine(professor.department)
-            professor.lab?.let { stringBuilder.appendLine(it.name) }
+            stringBuilder.appendLine(translation.academicRank)
+            stringBuilder.appendLine(translation.department)
+            // 소속 연구실 이름은 같은 언어판으로.
+            professor.lab?.translationOf(translation.language)?.let { stringBuilder.appendLine(it.name) }
             professor.startDate?.let { stringBuilder.appendLine(it) }
             professor.endDate?.let { stringBuilder.appendLine(it) }
-            professor.office?.let { stringBuilder.appendLine(it) }
+            translation.office?.let { stringBuilder.appendLine(it) }
             professor.phone?.let { stringBuilder.appendLine(it) }
             professor.fax?.let { stringBuilder.appendLine(it) }
             professor.email?.let { stringBuilder.appendLine(it) }
             professor.website?.let { stringBuilder.appendLine(it) }
-            professor.educations.forEach { stringBuilder.appendLine(it) }
-            professor.researchAreas.forEach { stringBuilder.appendLine(it) }
-            professor.careers.forEach { stringBuilder.appendLine(it) }
+            translation.educations.forEach { stringBuilder.appendLine(it) }
+            translation.researchAreas.forEach { stringBuilder.appendLine(it) }
+            translation.careers.forEach { stringBuilder.appendLine(it) }
 
             return stringBuilder.toString()
         }
 
-        fun createContent(staff: StaffEntity): String {
+        fun createContent(staff: StaffTranslationEntity): String {
             val stringBuilder = StringBuilder()
             stringBuilder.appendLine(staff.name)
             stringBuilder.appendLine(staff.role)
             stringBuilder.appendLine(staff.office)
-            stringBuilder.appendLine(staff.phone)
-            stringBuilder.appendLine(staff.email)
+            stringBuilder.appendLine(staff.staff.phone)
+            stringBuilder.appendLine(staff.staff.email)
             staff.tasks.forEach { stringBuilder.appendLine(it) }
 
             return stringBuilder.toString()
@@ -92,12 +95,12 @@ class MemberSearchEntity(
         }
     }
 
-    fun update(professor: ProfessorEntity) {
+    fun update(professor: ProfessorTranslationEntity) {
         this.language = professor.language
         this.content = createContent(professor)
     }
 
-    fun update(staff: StaffEntity) {
+    fun update(staff: StaffTranslationEntity) {
         this.language = staff.language
         this.content = createContent(staff)
     }

@@ -16,18 +16,18 @@ class ResearchSearchEntity(
 
     @OneToOne
     @JoinColumn(name = "research_id")
-    val research: ResearchEntity? = null,
+    val research: ResearchTranslationEntity? = null,
 
     @OneToOne
     @JoinColumn(name = "lab_id")
-    val lab: LabEntity? = null,
+    val lab: LabTranslationEntity? = null,
 
     @OneToOne
     @JoinColumn(name = "conference_id")
     val conferenceElement: ConferenceEntity? = null
 ) : BaseTimeEntity() {
     companion object {
-        fun create(research: ResearchEntity): ResearchSearchEntity {
+        fun create(research: ResearchTranslationEntity): ResearchSearchEntity {
             return ResearchSearchEntity(
                 content = createContent(research),
                 language = research.language,
@@ -35,7 +35,7 @@ class ResearchSearchEntity(
             )
         }
 
-        fun create(lab: LabEntity): ResearchSearchEntity {
+        fun create(lab: LabTranslationEntity): ResearchSearchEntity {
             return ResearchSearchEntity(
                 content = createContent(lab),
                 language = lab.language,
@@ -51,25 +51,32 @@ class ResearchSearchEntity(
             )
         }
 
-        fun createContent(research: ResearchEntity) = StringBuilder().apply {
-            appendLine(research.name)
+        fun createContent(translation: ResearchTranslationEntity) = StringBuilder().apply {
+            val research = translation.research
+            appendLine(translation.name)
             appendLine(research.postType.krName)
-            research.description?.let {
+            translation.description?.let {
                 appendLine(cleanTextFromHtml(it))
             }
-            research.labs.forEach { appendLine(it.name) }
+            // 색인은 언어별이므로 딸린 이름도 같은 언어판에서 가져온다.
+            research.labs.forEach { lab ->
+                lab.translationOf(translation.language)?.let { appendLine(it.name) }
+            }
             research.websiteURL?.let { appendLine(it) }
         }.toString()
 
-        fun createContent(lab: LabEntity) = StringBuilder().apply {
-            appendLine(lab.name)
-            lab.professors.forEach { appendLine(it.name) }
-            lab.location?.let { appendLine(it) }
+        fun createContent(translation: LabTranslationEntity) = StringBuilder().apply {
+            val lab = translation.lab
+            appendLine(translation.name)
+            lab.professors.forEach { professor ->
+                professor.translationOf(translation.language)?.let { appendLine(it.name) }
+            }
+            translation.location?.let { appendLine(it) }
             lab.tel?.let { appendLine(it) }
             lab.acronym?.let { appendLine(it) }
             lab.youtube?.let { appendLine(it) }
-            lab.research?.let { appendLine(it.name) }
-            lab.description?.let {
+            lab.research?.translationOf(translation.language)?.let { appendLine(it.name) }
+            translation.description?.let {
                 appendLine(cleanTextFromHtml(it))
             }
             lab.websiteURL?.let { appendLine(it) }
@@ -94,11 +101,11 @@ class ResearchSearchEntity(
         }
     }
 
-    fun update(research: ResearchEntity) {
+    fun update(research: ResearchTranslationEntity) {
         this.content = createContent(research)
     }
 
-    fun update(lab: LabEntity) {
+    fun update(lab: LabTranslationEntity) {
         this.content = createContent(lab)
     }
 

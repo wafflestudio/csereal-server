@@ -51,30 +51,26 @@ class ResearchController(
     ): ResearchLanguageDto = researchService.createResearchLanguage(request, mainImage)
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/{koreanId}/{englishId}", consumes = ["multipart/form-data"])
+    @PutMapping("/{researchId:[0-9]+}", consumes = ["multipart/form-data"])
     fun updateResearch(
         @PathVariable @Positive
-        koreanId: Long,
-        @PathVariable @Positive
-        englishId: Long,
+        researchId: Long,
         @RequestPart("request") request: ModifyResearchLanguageReqBody,
 
         @Parameter(description = "image 교체할 경우 업로드. Request Body의 removeImage 관계없이 변경됨.")
         @RequestPart("newMainImage")
         newMainImage: MultipartFile?
     ): ResearchLanguageDto {
-        return researchService.updateResearchLanguage(koreanId, englishId, request, newMainImage)
+        return researchService.updateResearchLanguage(researchId, request, newMainImage)
     }
 
     @PreAuthorize("hasRole('STAFF')")
-    @DeleteMapping("/{koreanId}/{englishId}")
+    @DeleteMapping("/{researchId:[0-9]+}")
     fun deleteResearch(
         @PathVariable @Positive
-        koreanId: Long,
-        @PathVariable @Positive
-        englishId: Long
+        researchId: Long
     ) {
-        researchService.deleteResearchLanguage(koreanId, englishId)
+        researchService.deleteResearchLanguage(researchId)
     }
 
     // Lab APIs
@@ -101,26 +97,22 @@ class ResearchController(
     ): LabLanguageDto = labService.createLabLanguage(request, pdf)
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/lab/{koreanLabId}/{englishLabId}", consumes = ["multipart/form-data"])
+    @PutMapping("/lab/{labId}", consumes = ["multipart/form-data"])
     fun updateLab(
         @PathVariable @Positive
-        koreanLabId: Long,
-        @PathVariable @Positive
-        englishLabId: Long,
+        labId: Long,
         @Valid
         @RequestPart("request")
         request: ModifyLabLanguageReqBody,
         @RequestPart("pdf") pdf: MultipartFile?
-    ): LabLanguageDto = labService.updateLabLanguage(koreanLabId, englishLabId, request, pdf)
+    ): LabLanguageDto = labService.updateLabLanguage(labId, request, pdf)
 
     @PreAuthorize("hasRole('STAFF')")
-    @DeleteMapping("/lab/{koreanLabId}/{englishLabId}")
+    @DeleteMapping("/lab/{labId}")
     fun deleteLab(
         @PathVariable @Positive
-        koreanLabId: Long,
-        @PathVariable @Positive
-        englishLabId: Long
+        labId: Long
     ) {
-        labService.deleteLabLanguage(koreanLabId, englishLabId)
+        labService.deleteLabLanguage(labId)
     }
 }

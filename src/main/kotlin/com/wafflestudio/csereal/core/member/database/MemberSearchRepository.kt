@@ -6,8 +6,8 @@ import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.exchangeValidPageNum
 import com.wafflestudio.csereal.core.member.database.QMemberSearchEntity.memberSearchEntity
-import com.wafflestudio.csereal.core.member.database.QProfessorEntity.professorEntity
-import com.wafflestudio.csereal.core.member.database.QStaffEntity.staffEntity
+import com.wafflestudio.csereal.core.member.database.QProfessorTranslationEntity.professorTranslationEntity
+import com.wafflestudio.csereal.core.member.database.QStaffTranslationEntity.staffTranslationEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
@@ -59,11 +59,11 @@ class MemberSearchRepositoryCustomImpl(
             memberSearchEntity
         ).leftJoin(
             memberSearchEntity.professor,
-            professorEntity
+            professorTranslationEntity
         ).fetchJoin()
             .leftJoin(
                 memberSearchEntity.staff,
-                staffEntity
+                staffTranslationEntity
             ).fetchJoin()
             .where(
                 searchDoubleTemplate.gt(0.0),

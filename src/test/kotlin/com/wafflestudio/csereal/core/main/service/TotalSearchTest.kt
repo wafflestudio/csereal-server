@@ -11,6 +11,7 @@ import com.wafflestudio.csereal.core.about.api.req.CreateFacReq
 import com.wafflestudio.csereal.core.about.dto.FacReq
 import com.wafflestudio.csereal.core.about.service.AboutService
 import com.wafflestudio.csereal.core.academics.api.req.CreateScholarshipReq
+import com.wafflestudio.csereal.core.academics.api.req.ScholarshipContentReq
 import com.wafflestudio.csereal.core.academics.api.req.CreateYearReq
 import com.wafflestudio.csereal.core.academics.dto.GroupedCourseDto
 import com.wafflestudio.csereal.core.academics.dto.SingleCourseDto
@@ -20,7 +21,9 @@ import com.wafflestudio.csereal.core.admissions.api.req.AdmissionReqBody
 import com.wafflestudio.csereal.core.admissions.service.AdmissionsService
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsMainType
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsPostType
+import com.wafflestudio.csereal.core.member.api.req.CreateProfessorLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.CreateProfessorReqBody
+import com.wafflestudio.csereal.core.member.api.req.CreateStaffLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.CreateStaffReqBody
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
 import com.wafflestudio.csereal.core.member.service.MemberSearchService
@@ -30,7 +33,8 @@ import com.wafflestudio.csereal.core.news.api.req.CreateNewsReq
 import com.wafflestudio.csereal.core.news.service.NewsService
 import com.wafflestudio.csereal.core.notice.api.req.CreateNoticeReq
 import com.wafflestudio.csereal.core.notice.service.NoticeService
-import com.wafflestudio.csereal.core.research.api.req.CreateResearchCenterReqBody
+import com.wafflestudio.csereal.core.research.api.req.ResearchContentReqBody
+import com.wafflestudio.csereal.core.research.type.ResearchType
 import com.wafflestudio.csereal.core.research.api.req.CreateResearchLanguageReqBody
 import com.wafflestudio.csereal.core.research.service.ResearchSearchService
 import com.wafflestudio.csereal.core.research.service.ResearchService
@@ -172,55 +176,64 @@ class TotalSearchTest(
             attachments = null
         )
 
-        professorService.createProfessor(
-            LanguageType.KO,
-            CreateProfessorReqBody(
-                name = "name",
-                email = "email",
+        professorService.createProfessorLanguages(
+            CreateProfessorLanguagesReqBody(
                 status = ProfessorStatus.ACTIVE,
-                academicRank = "academicRank",
-                department = "department",
                 labId = null,
                 startDate = null,
                 endDate = null,
-                office = "office",
                 phone = "phone",
                 fax = "fax",
+                email = "email",
                 website = "website",
-                educations = listOf(keyword, "education2"),
-                researchAreas = listOf("researchArea1", "researchArea2"),
-                careers = listOf("career1", "career2")
+                ko = CreateProfessorReqBody(
+                    name = "name",
+                    academicRank = "academicRank",
+                    department = "department",
+                    office = "office",
+                    educations = listOf(keyword, "education2"),
+                    researchAreas = listOf("researchArea1", "researchArea2"),
+                    careers = listOf("career1", "career2")
+                ),
+                en = CreateProfessorReqBody(
+                    name = "name",
+                    academicRank = "academicRank",
+                    department = "department",
+                    office = "office",
+                    educations = listOf(keyword, "education2"),
+                    researchAreas = listOf("researchArea1", "researchArea2"),
+                    careers = listOf("career1", "career2")
+                )
             ),
             mainImage = null
         )
 
-        staffService.createStaff(
-            LanguageType.KO,
-            CreateStaffReqBody(
-                name = "name",
-                role = "role",
-                office = "office",
+        staffService.createStaffLanguages(
+            CreateStaffLanguagesReqBody(
                 phone = "phone",
                 email = "email",
-                tasks = listOf(keyword, "task2")
+                ko = CreateStaffReqBody(
+                    name = "name",
+                    role = "role",
+                    office = "office",
+                    tasks = listOf(keyword, "task2")
+                ),
+                en = CreateStaffReqBody(
+                    name = "name",
+                    role = "role",
+                    office = "office",
+                    tasks = listOf(keyword, "task2")
+                )
             ),
             mainImage = null
         )
 
         researchService.createResearchLanguage(
             CreateResearchLanguageReqBody(
-                ko = CreateResearchCenterReqBody(
-                    name = "한국어 연구소",
-                    description = keyword,
-                    mainImageUrl = null,
-                    websiteURL = "https://www.koreanlab.com"
-                ),
-                en = CreateResearchCenterReqBody(
-                    name = "English Research Center",
-                    description = keyword,
-                    mainImageUrl = null,
-                    websiteURL = "https://www.englishlab.com"
-                )
+                type = ResearchType.CENTERS,
+                websiteURL = "https://www.koreanlab.com",
+                ko = ResearchContentReqBody(name = "한국어 연구소", description = keyword),
+                en = ResearchContentReqBody(name = "English Research Center", description = keyword)
             ),
             mainImage = null
         )
@@ -269,10 +282,8 @@ class TotalSearchTest(
         academicsService.createScholarship(
             studentType = AcademicsStudentType.UNDERGRADUATE,
             request = CreateScholarshipReq(
-                koName = "name",
-                koDescription = "<p>$keyword</p>",
-                enName = "name",
-                enDescription = "<p>$keyword</p>"
+                ko = ScholarshipContentReq(name = "name", description = "<p>$keyword</p>"),
+                en = ScholarshipContentReq(name = "name", description = "<p>$keyword</p>")
             )
         )
 

@@ -3,29 +3,13 @@ package com.wafflestudio.csereal.core.research.database
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
-import com.wafflestudio.csereal.core.research.dto.LabUpdateRequest
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import jakarta.persistence.*
 
+// 연구실 자체. PDF·소속 그룹·소속 교수·연락처는 언어와 무관하다.
+// (예전엔 PDF 가 언어별 행마다 따로 저장돼 같은 파일이 두 벌 남았다.)
 @Entity(name = "lab")
 class LabEntity(
-    var language: LanguageType,
-
-    var name: String,
-
-    @Column(columnDefinition = "mediumText")
-    var description: String?,
-
-    var acronym: String?,
-
-    var location: String?,
-
-    var websiteURL: String?,
-
-    var tel: String?,
-
-    var youtube: String?,
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "research_id")
     var research: ResearchEntity? = null,
@@ -33,20 +17,17 @@ class LabEntity(
     @OneToOne
     var pdf: AttachmentEntity? = null,
 
+    var acronym: String? = null,
+    var tel: String? = null,
+    var websiteURL: String? = null,
+    var youtube: String? = null,
+
     @OneToMany(mappedBy = "lab")
     var professors: MutableSet<ProfessorEntity> = mutableSetOf(),
 
-    @OneToOne(mappedBy = "lab", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var researchSearch: ResearchSearchEntity? = null
-
+    @OneToMany(mappedBy = "lab", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var translations: MutableList<LabTranslationEntity> = mutableListOf()
 ) : BaseTimeEntity() {
-    fun updateWithoutProfessor(labUpdateRequest: LabUpdateRequest) {
-        this.name = labUpdateRequest.name
-        this.location = labUpdateRequest.location
-        this.tel = labUpdateRequest.tel
-        this.acronym = labUpdateRequest.acronym
-        this.youtube = labUpdateRequest.youtube
-        this.description = labUpdateRequest.description
-        this.websiteURL = labUpdateRequest.websiteURL
-    }
+    fun translationOf(language: LanguageType): LabTranslationEntity? =
+        translations.firstOrNull { it.language == language }
 }

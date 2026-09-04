@@ -33,13 +33,13 @@ class MemberSearchServiceImpl(
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @EventListener
     fun refreshSearchListener(event: RefreshSearchEvent) {
-        professorRepository.findAll().forEach { pf ->
+        professorRepository.findAll().flatMap { it.translations }.forEach { pf ->
             pf.memberSearch?.update(pf) ?: let {
                 pf.memberSearch = MemberSearchEntity.create(pf)
             }
         }
 
-        staffRepository.findAll().forEach { st ->
+        staffRepository.findAll().flatMap { it.translations }.forEach { st ->
             st.memberSearch?.update(st) ?: let {
                 st.memberSearch = MemberSearchEntity.create(st)
             }

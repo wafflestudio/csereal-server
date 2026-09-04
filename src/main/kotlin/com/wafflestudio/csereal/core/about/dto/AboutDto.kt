@@ -1,14 +1,13 @@
 package com.wafflestudio.csereal.core.about.dto
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.core.about.database.AboutEntity
+import com.wafflestudio.csereal.core.about.database.AboutTranslationEntity
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
 
 data class AboutDto(
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    val id: Long? = null,
+    // 콘텐츠 자체(부모)의 id 다 — 편집·삭제가 이 id 를 쓴다.
+    val id: Long,
     val language: String,
     val name: String?,
     val description: String,
@@ -20,21 +19,19 @@ data class AboutDto(
 ) {
     companion object {
         fun of(
-            entity: AboutEntity,
+            translation: AboutTranslationEntity,
             imageURL: String?,
             attachmentResponses: List<AttachmentResponse>
-        ): AboutDto = entity.run {
-            AboutDto(
-                id = this.id,
-                language = LanguageType.makeLowercase(this.language),
-                name = this.name,
-                description = this.description,
-                createdAt = this.createdAt,
-                modifiedAt = this.modifiedAt,
-                locations = this.locations,
-                imageURL = imageURL,
-                attachments = attachmentResponses
-            )
-        }
+        ): AboutDto = AboutDto(
+            id = translation.about.id,
+            language = LanguageType.makeLowercase(translation.language),
+            name = translation.name,
+            description = translation.description,
+            createdAt = translation.about.createdAt,
+            modifiedAt = translation.about.modifiedAt,
+            locations = translation.locations,
+            imageURL = imageURL,
+            attachments = attachmentResponses
+        )
     }
 }

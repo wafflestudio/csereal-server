@@ -112,9 +112,12 @@ class ProfessorEventServiceImpl(
         }
     }
 
+    // 색인은 언어별이라 번역본마다 갱신한다.
     @Transactional
     fun upsertProfessorSearchIndex(professor: ProfessorEntity) {
-        professor.memberSearch?.update(professor)
-            ?: let { professor.memberSearch = MemberSearchEntity.create(professor) }
+        professor.translations.forEach { translation ->
+            translation.memberSearch?.update(translation)
+                ?: let { translation.memberSearch = MemberSearchEntity.create(translation) }
+        }
     }
 }
