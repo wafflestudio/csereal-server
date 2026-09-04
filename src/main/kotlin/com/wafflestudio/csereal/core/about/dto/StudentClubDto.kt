@@ -1,14 +1,12 @@
 package com.wafflestudio.csereal.core.about.dto
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.core.about.database.AboutEntity
+import com.wafflestudio.csereal.core.about.database.AboutTranslationEntity
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
 
 data class StudentClubDto(
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    val id: Long? = null,
+    val id: Long,
     val language: String,
     val name: String,
     val engName: String,
@@ -21,24 +19,22 @@ data class StudentClubDto(
 ) {
     companion object {
         fun of(
-            entity: AboutEntity,
+            translation: AboutTranslationEntity,
             name: String,
             engName: String,
             imageURL: String?,
             attachmentResponses: List<AttachmentResponse>
-        ): StudentClubDto = entity.run {
-            StudentClubDto(
-                id = this.id,
-                language = LanguageType.makeLowercase(this.language),
-                name = name,
-                engName = engName,
-                description = this.description,
-                createdAt = this.createdAt,
-                modifiedAt = this.modifiedAt,
-                locations = this.locations,
-                imageURL = imageURL,
-                attachments = attachmentResponses
-            )
-        }
+        ): StudentClubDto = StudentClubDto(
+            id = translation.about.id,
+            language = LanguageType.makeLowercase(translation.language),
+            name = name,
+            engName = engName,
+            description = translation.description,
+            createdAt = translation.about.createdAt,
+            modifiedAt = translation.about.modifiedAt,
+            locations = translation.locations,
+            imageURL = imageURL,
+            attachments = attachmentResponses
+        )
     }
 }

@@ -11,6 +11,7 @@ import com.wafflestudio.csereal.core.about.api.req.CreateFacReq
 import com.wafflestudio.csereal.core.about.dto.FacReq
 import com.wafflestudio.csereal.core.about.service.AboutService
 import com.wafflestudio.csereal.core.academics.api.req.CreateScholarshipReq
+import com.wafflestudio.csereal.core.academics.api.req.ScholarshipContentReq
 import com.wafflestudio.csereal.core.academics.api.req.CreateYearReq
 import com.wafflestudio.csereal.core.academics.dto.GroupedCourseDto
 import com.wafflestudio.csereal.core.academics.dto.SingleCourseDto
@@ -281,10 +282,8 @@ class TotalSearchTest(
         academicsService.createScholarship(
             studentType = AcademicsStudentType.UNDERGRADUATE,
             request = CreateScholarshipReq(
-                koName = "name",
-                koDescription = "<p>$keyword</p>",
-                enName = "name",
-                enDescription = "<p>$keyword</p>"
+                ko = ScholarshipContentReq(name = "name", description = "<p>$keyword</p>"),
+                en = ScholarshipContentReq(name = "name", description = "<p>$keyword</p>")
             )
         )
 
