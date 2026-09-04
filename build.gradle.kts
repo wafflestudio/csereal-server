@@ -1,14 +1,14 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "3.2.3"
-    id("io.spring.dependency-management") version "1.1.4"
-    kotlin("jvm") version "1.9.22"
-    kotlin("plugin.spring") version "1.9.22"
-    kotlin("plugin.jpa") version "1.9.22"
-    kotlin("kapt") version "1.9.22"
+    id("org.springframework.boot") version "3.5.16"
+    id("io.spring.dependency-management") version "1.1.7"
+    kotlin("jvm") version "1.9.25"
+    kotlin("plugin.spring") version "1.9.25"
+    kotlin("plugin.jpa") version "1.9.25"
+    kotlin("kapt") version "1.9.25"
     id("org.jlleitschuh.gradle.ktlint") version "11.6.0"
-    id("org.flywaydb.flyway") version "10.20.1"
+    id("org.flywaydb.flyway") version "11.7.2"
 }
 
 group = "com.wafflestudio"
@@ -30,14 +30,14 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.9.0")
     runtimeOnly("com.mysql:mysql-connector-j")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
 
     // flyway
-    implementation("org.flywaydb:flyway-core:10.20.1")
-    implementation("org.flywaydb:flyway-mysql:10.20.1")
+    implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-mysql")
 
     // kotest
     testImplementation("io.kotest:kotest-runner-junit5-jvm:5.8.1")
@@ -46,9 +46,9 @@ dependencies {
     implementation("io.kotest.extensions:kotest-extensions-spring:1.1.3")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
-    testImplementation("org.testcontainers:junit-jupiter:1.20.6")
+    testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("io.kotest.extensions:kotest-extensions-testcontainers:1.3.4")
-    testImplementation("org.testcontainers:mysql:1.20.6")
+    testImplementation("org.testcontainers:mysql")
 
     // mockk
     testImplementation("io.mockk:mockk:1.13.10")
