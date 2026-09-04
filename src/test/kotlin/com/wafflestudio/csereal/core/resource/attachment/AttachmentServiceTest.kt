@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.resource.attachment
 
-import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.about.database.AboutEntity
 import com.wafflestudio.csereal.core.about.database.AboutPostType
 import com.wafflestudio.csereal.core.about.database.AboutRepository
@@ -39,15 +38,8 @@ class AttachmentServiceTest(
 
     /** 첨부 [names]를 가진 about 글을 커밋하고 id를 돌려준다. */
     private fun createOwnerWith(vararg names: String): Long = tx.execute {
-        val about = aboutRepository.save(
-            AboutEntity(
-                postType = AboutPostType.OVERVIEW,
-                language = LanguageType.KO,
-                name = "t",
-                description = "d",
-                searchContent = ""
-            )
-        )
+        // 첨부는 콘텐츠(부모)에 붙는다 — 번역본은 이 테스트와 무관해 만들지 않는다.
+        val about = aboutRepository.save(AboutEntity(postType = AboutPostType.OVERVIEW))
         attachmentService.uploadAllAttachments(about, names.map(::file))
         about.id
     }!!

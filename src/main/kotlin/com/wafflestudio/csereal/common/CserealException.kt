@@ -41,6 +41,7 @@ enum class ErrorCode(val status: HttpStatus, @get:JsonValue val code: String, va
     DIRECTION_NOT_FOUND(HttpStatus.NOT_FOUND, "ABOUT-04", "찾아오는 길 없음"),
     STAT_YEAR_ALREADY_EXISTS(HttpStatus.CONFLICT, "ABOUT-05", "해당 연도 통계가 이미 있음"),
     STAT_ROWS_REQUIRED(HttpStatus.BAD_REQUEST, "ABOUT-06", "통계 행이 전부 필요"),
+    ABOUT_NOT_FOUND(HttpStatus.NOT_FOUND, "ABOUT-07", "소개 글 없음"),
 
     // 학사
     ACADEMICS_NOT_FOUND(HttpStatus.NOT_FOUND, "ACADEMICS-01", "학사 글 없음"),

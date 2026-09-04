@@ -62,16 +62,18 @@ class AboutServiceImpl(
     private val statRepository: StatRepository,
     private val mainImageService: MainImageService,
     private val attachmentService: AttachmentService,
-    private val aboutLanguageRepository: AboutLanguageRepository
+    private val aboutTranslationRepository: AboutTranslationRepository
 ) : AboutService {
 
     @Transactional(readOnly = true)
     override fun readAbout(language: LanguageType, postType: AboutPostType): AboutDto {
-        val about = aboutRepository.findByLanguageAndPostType(language, postType)
+        val about = aboutRepository.findByPostType(postType)
+        val translation = about.translationOf(language)
+            ?: throw CserealException(ErrorCode.ABOUT_NOT_FOUND)
         val imageURL = mainImageService.createImageURL(about.mainImage)
         val attachmentResponses = attachmentService.createAttachmentResponses(about.attachments)
 
-        return AboutDto.of(about, imageURL, attachmentResponses)
+        return AboutDto.of(translation, imageURL, attachmentResponses)
     }
 
     @Transactional
@@ -81,278 +83,190 @@ class AboutServiceImpl(
         newMainImage: MultipartFile?,
         newAttachments: List<MultipartFile>?
     ) {
-        val languages = listOf(LanguageType.KO, LanguageType.EN)
-        val abouts = languages.map { lang ->
-            aboutRepository.findByLanguageAndPostType(lang, postType).apply {
-                description = if (lang == LanguageType.KO) request.ko.description else request.en.description
-            }
+        val about = aboutRepository.findByPostType(postType)
+
+        listOf(LanguageType.KO to request.ko, LanguageType.EN to request.en).forEach { (language, content) ->
+            val translation = about.translationOf(language)
+                ?: throw CserealException(ErrorCode.ABOUT_NOT_FOUND)
+            translation.description = content.description
+            syncSearchOfTranslation(translation)
         }
 
-        abouts.forEach { it.syncSearchContent() }
+        updateMainImage(about, newMainImage, request.removeImage)
 
+        // 첨부는 콘텐츠에 한 벌뿐이다 — 예전엔 한/영에 따로 붙어 같은 파일이 두 벌 올라갔다.
+        attachmentService.syncAttachments(about, request.attachmentIds, newAttachments)
+    }
+
+    // 사진도 콘텐츠에 하나뿐이라 한 번만 처리한다.
+    private fun updateMainImage(about: AboutEntity, newMainImage: MultipartFile?, removeImage: Boolean) {
         if (newMainImage != null) {
-            abouts.forEach {
-                it.mainImage?.let { image -> mainImageService.removeImage(image) }
-                mainImageService.uploadMainImage(it, newMainImage)
-            }
-        } else if (request.removeImage) {
-            abouts.forEach {
-                it.mainImage?.let { image -> mainImageService.removeImage(image) }
-                it.mainImage = null
-            }
+            about.mainImage?.let { mainImageService.removeImage(it) }
+            mainImageService.uploadMainImage(about, newMainImage)
+        } else if (removeImage) {
+            about.mainImage?.let { mainImageService.removeImage(it) }
+            about.mainImage = null
         }
-
-        val (koAbout, enAbout) = abouts
-        attachmentService.syncAttachments(koAbout, request.ko.attachmentIds, newAttachments)
-        attachmentService.syncAttachments(enAbout, request.en.attachmentIds, newAttachments)
     }
 
     @Transactional
     override fun createClub(request: CreateClubReq, mainImage: MultipartFile?) {
-        val langToReq = listOf(
-            LanguageType.KO to request.ko,
-            LanguageType.EN to request.en
-        )
+        val club = AboutEntity(postType = AboutPostType.STUDENT_CLUBS)
 
-        val clubs = langToReq.map { (lang, req) ->
-            AboutEntity(
-                AboutPostType.STUDENT_CLUBS,
-                lang,
-                req.name,
-                req.description,
-                searchContent = ""
-            ).apply { syncSearchContent() }
+        listOf(LanguageType.KO to request.ko, LanguageType.EN to request.en).forEach { (language, content) ->
+            club.translations.add(
+                AboutTranslationEntity(
+                    about = club,
+                    language = language,
+                    name = content.name,
+                    description = content.description
+                )
+            )
         }
+        club.translations.forEach { it.syncSearchContent() }
 
+        // 사진은 동아리에 하나뿐이다 — 예전엔 언어별로 한 번씩 올라가 두 벌 남았다.
         if (mainImage != null) {
-            clubs.forEach { mainImageService.uploadMainImage(it, mainImage) }
+            mainImageService.uploadMainImage(club, mainImage)
         }
 
-        aboutRepository.save(clubs[0])
-        aboutRepository.save(clubs[1])
-        aboutLanguageRepository.save(AboutLanguageEntity(clubs[0], clubs[1]))
+        aboutRepository.save(club)
     }
 
     @Transactional
     override fun updateClub(request: UpdateClubReq, newMainImage: MultipartFile?) {
-        val (ko, en) = listOf(request.ko.id, request.en.id).map { id ->
-            aboutRepository.findByIdOrNull(id) ?: throw CserealException(ErrorCode.CLUB_NOT_FOUND)
+        val club = aboutRepository.findByIdOrNull(request.id)
+            ?: throw CserealException(ErrorCode.CLUB_NOT_FOUND)
+
+        listOf(LanguageType.KO to request.ko, LanguageType.EN to request.en).forEach { (language, content) ->
+            val translation = club.translationOf(language)
+                ?: throw CserealException(ErrorCode.CLUB_NOT_FOUND)
+            translation.name = content.name
+            translation.description = content.description
+            translation.syncSearchContent()
         }
 
-        if (ko.language != LanguageType.KO || en.language != LanguageType.EN) {
-            throw CserealException(ErrorCode.LANGUAGE_MISMATCH)
-        }
-
-        listOf(ko to request.ko, en to request.en).forEach { (club, clubDto) ->
-            updateClubDetails(club, clubDto)
-        }
-
-        if (newMainImage != null) {
-            listOf(ko, en).forEach { club ->
-                club.mainImage?.let { image -> mainImageService.removeImage(image) }
-                mainImageService.uploadMainImage(club, newMainImage)
-            }
-        } else if (request.removeImage) {
-            listOf(ko, en).forEach {
-                it.mainImage?.let { image -> mainImageService.removeImage(image) }
-                it.mainImage = null
-            }
-        }
-    }
-
-    private fun updateClubDetails(club: AboutEntity, clubDto: ClubDto) {
-        club.name = clubDto.name
-        club.description = clubDto.description
-        club.syncSearchContent()
+        updateMainImage(club, newMainImage, request.removeImage)
     }
 
     @Transactional
     override fun deleteClub(id: Long) {
         val club = aboutRepository.findByIdOrNull(id) ?: throw CserealException(ErrorCode.CLUB_NOT_FOUND)
-        val aboutLanguage = when (club.language) {
-            LanguageType.KO -> aboutLanguageRepository.findByKoAbout(club)
-            LanguageType.EN -> aboutLanguageRepository.findByEnAbout(club)
-        }
-
-        listOf(aboutLanguage!!.koAbout, aboutLanguage.enAbout).forEach {
-            it.mainImage?.let { image -> mainImageService.removeImage(image) }
-        }
-
-        aboutLanguageRepository.delete(aboutLanguage)
-        aboutRepository.delete(aboutLanguage.koAbout)
-        aboutRepository.delete(aboutLanguage.enAbout)
+        club.mainImage?.let { mainImageService.removeImage(it) }
+        // 번역본은 cascade + orphanRemoval 로 함께 지워진다.
+        aboutRepository.delete(club)
     }
 
     @Transactional(readOnly = true)
     override fun readAllClubs(language: LanguageType): List<StudentClubDto> {
-        val clubs =
-            aboutRepository.findAllByLanguageAndPostTypeOrderByName(
-                language,
-                AboutPostType.STUDENT_CLUBS
-            ).map {
+        return aboutRepository.findAllByPostType(AboutPostType.STUDENT_CLUBS)
+            .mapNotNull { club -> club.translationOf(language) }
+            .sortedBy { it.name }
+            .map {
                 val name = it.name!!.split("(")[0]
                 val engName = it.name!!.split("(")[1].replaceFirst(")", "")
-                val imageURL = mainImageService.createImageURL(it.mainImage)
-                val attachmentResponses =
-                    attachmentService.createAttachmentResponses(it.attachments)
+                val imageURL = mainImageService.createImageURL(it.about.mainImage)
+                val attachmentResponses = attachmentService.createAttachmentResponses(it.about.attachments)
                 StudentClubDto.of(it, name, engName, imageURL, attachmentResponses)
             }
-
-        return clubs
     }
 
     @Transactional(readOnly = true)
     override fun readAllGroupedClubs(): List<GroupedClubDto> {
-        val clubs = aboutLanguageRepository.findAllByKoAboutPostType(AboutPostType.STUDENT_CLUBS)
-            .sortedBy { it.koAbout.name }
-        return clubs.map {
-            val imageURL = mainImageService.createImageURL(it.koAbout.mainImage)
-            GroupedClubDto(ko = ClubDto.of(it.koAbout, imageURL), en = ClubDto.of(it.enAbout, imageURL))
-        }
+        return aboutRepository.findAllByPostType(AboutPostType.STUDENT_CLUBS)
+            .sortedBy { it.translationOf(LanguageType.KO)?.name }
+            .map { GroupedClubDto.of(it, mainImageService.createImageURL(it.mainImage)) }
     }
 
     @Transactional
     override fun createFacilities(request: CreateFacReq, mainImage: MultipartFile?) {
-        val langToReq = listOf(
-            LanguageType.KO to request.ko,
-            LanguageType.EN to request.en
-        )
+        val facility = AboutEntity(postType = AboutPostType.FACILITIES)
 
-        val facilities = langToReq.map { (lang, req) ->
-            AboutEntity(
-                AboutPostType.FACILITIES,
-                lang,
-                req.name,
-                req.description,
-                searchContent = "",
-                locations = req.locations
-            ).apply { syncSearchContent() }
+        listOf(LanguageType.KO to request.ko, LanguageType.EN to request.en).forEach { (language, content) ->
+            facility.translations.add(
+                AboutTranslationEntity(
+                    about = facility,
+                    language = language,
+                    name = content.name,
+                    description = content.description,
+                    locations = content.locations
+                )
+            )
         }
+        facility.translations.forEach { it.syncSearchContent() }
 
         if (mainImage != null) {
-            facilities.forEach { mainImageService.uploadMainImage(it, mainImage) }
+            mainImageService.uploadMainImage(facility, mainImage)
         }
-        aboutRepository.save(facilities[0])
-        aboutRepository.save(facilities[1])
-        aboutLanguageRepository.save(AboutLanguageEntity(facilities[0], facilities[1]))
+
+        aboutRepository.save(facility)
     }
 
     @Transactional
     override fun updateFacility(id: Long, request: UpdateFacReq, newMainImage: MultipartFile?) {
         val facility = aboutRepository.findByIdOrNull(id) ?: throw CserealException(ErrorCode.FACILITY_NOT_FOUND)
 
-        val corresponding = when (facility.language) {
-            LanguageType.KO -> aboutLanguageRepository.findByKoAbout(facility)!!.enAbout
-            LanguageType.EN -> aboutLanguageRepository.findByEnAbout(facility)!!.koAbout
+        listOf(LanguageType.KO to request.ko, LanguageType.EN to request.en).forEach { (language, content) ->
+            val translation = facility.translationOf(language)
+                ?: throw CserealException(ErrorCode.FACILITY_NOT_FOUND)
+            translation.name = content.name
+            translation.description = content.description
+            translation.locations = content.locations
+            translation.syncSearchContent()
         }
 
-        when (facility.language) {
-            LanguageType.KO -> {
-                updateFacility(facility, request.ko)
-                updateFacility(corresponding, request.en)
-            }
-
-            LanguageType.EN -> {
-                updateFacility(facility, request.en)
-                updateFacility(corresponding, request.ko)
-            }
-        }
-
-        facility.syncSearchContent()
-        corresponding.syncSearchContent()
-
-        if (newMainImage != null) {
-            listOf(facility, corresponding).forEach {
-                it.mainImage?.let { image -> mainImageService.removeImage(image) }
-                mainImageService.uploadMainImage(it, newMainImage)
-            }
-        } else if (request.removeImage) {
-            listOf(facility, corresponding).forEach {
-                it.mainImage?.let { image -> mainImageService.removeImage(image) }
-                it.mainImage = null
-            }
-        }
-    }
-
-    private fun updateFacility(facility: AboutEntity, facReq: FacReq) {
-        facility.name = facReq.name
-        facility.description = facReq.description
-        facility.locations = facReq.locations
+        updateMainImage(facility, newMainImage, request.removeImage)
     }
 
     @Transactional
     override fun deleteFacility(id: Long) {
         val facility = aboutRepository.findByIdOrNull(id) ?: throw CserealException(ErrorCode.FACILITY_NOT_FOUND)
-
-        val facilityLanguage = when (facility.language) {
-            LanguageType.KO -> aboutLanguageRepository.findByKoAbout(facility)
-            LanguageType.EN -> aboutLanguageRepository.findByEnAbout(facility)
-        }
-
-        listOf(facilityLanguage!!.koAbout, facilityLanguage.enAbout).forEach {
-            it.mainImage?.let { image -> mainImageService.removeImage(image) }
-        }
-
-        aboutLanguageRepository.delete(facilityLanguage)
-        aboutRepository.delete(facilityLanguage.koAbout)
-        aboutRepository.delete(facilityLanguage.enAbout)
+        facility.mainImage?.let { mainImageService.removeImage(it) }
+        aboutRepository.delete(facility)
     }
 
     @Transactional(readOnly = true)
     override fun readAllGroupedFacilities(): List<GroupedFacDto> {
-        val facilities =
-            aboutLanguageRepository.findAllByKoAboutPostType(AboutPostType.FACILITIES).sortedBy { it.koAbout.name }
-        return facilities.map {
-            val koImageURL = mainImageService.createImageURL(it.koAbout.mainImage)
-            val enImageURL = mainImageService.createImageURL(it.enAbout.mainImage)
-            GroupedFacDto(ko = FacDto.of(it.koAbout, koImageURL), en = FacDto.of(it.enAbout, enImageURL))
-        }
+        return aboutRepository.findAllByPostType(AboutPostType.FACILITIES)
+            .sortedBy { it.translationOf(LanguageType.KO)?.name }
+            .map { GroupedFacDto.of(it, mainImageService.createImageURL(it.mainImage)) }
     }
 
     @Transactional(readOnly = true)
     override fun readAllGroupedDirections(): List<GroupedDirectionDto> {
-        val directions =
-            aboutLanguageRepository.findAllByKoAboutPostType(AboutPostType.DIRECTIONS).sortedBy { it.koAbout.name }
-        return directions.map {
-            GroupedDirectionDto(ko = DirDto.of(it.koAbout), en = DirDto.of(it.enAbout))
-        }
+        return aboutRepository.findAllByPostType(AboutPostType.DIRECTIONS)
+            .sortedBy { it.translationOf(LanguageType.KO)?.name }
+            .map { GroupedDirectionDto.of(it) }
     }
 
     @Transactional
     override fun updateDirection(id: Long, request: UpdateDescriptionReq) {
         val direction = aboutRepository.findByIdOrNull(id) ?: throw CserealException(ErrorCode.DIRECTION_NOT_FOUND)
 
-        val corresponding = when (direction.language) {
-            LanguageType.KO -> aboutLanguageRepository.findByKoAbout(direction)!!.enAbout
-            LanguageType.EN -> aboutLanguageRepository.findByEnAbout(direction)!!.koAbout
+        listOf(
+            LanguageType.KO to request.koDescription,
+            LanguageType.EN to request.enDescription
+        ).forEach { (language, description) ->
+            val translation = direction.translationOf(language)
+                ?: throw CserealException(ErrorCode.DIRECTION_NOT_FOUND)
+            translation.description = description
+            translation.syncSearchContent()
         }
-
-        when (direction.language) {
-            LanguageType.KO -> {
-                direction.description = request.koDescription
-                corresponding.description = request.enDescription
-            }
-
-            LanguageType.EN -> {
-                direction.description = request.enDescription
-                corresponding.description = request.koDescription
-            }
-        }
-
-        direction.syncSearchContent()
-        corresponding.syncSearchContent()
     }
 
     @Transactional
     override fun updateFutureCareersPage(request: UpdateDescriptionReq) {
-        val ko = aboutRepository.findByLanguageAndPostType(LanguageType.KO, AboutPostType.FUTURE_CAREERS)
-        val en = aboutRepository.findByLanguageAndPostType(LanguageType.EN, AboutPostType.FUTURE_CAREERS)
+        val page = aboutRepository.findByPostType(AboutPostType.FUTURE_CAREERS)
 
-        ko.description = request.koDescription
-        en.description = request.enDescription
-
-        ko.syncSearchContent()
-        en.syncSearchContent()
+        listOf(
+            LanguageType.KO to request.koDescription,
+            LanguageType.EN to request.enDescription
+        ).forEach { (language, description) ->
+            val translation = page.translationOf(language)
+                ?: throw CserealException(ErrorCode.ABOUT_NOT_FOUND)
+            translation.description = description
+            syncSearchOfTranslation(translation)
+        }
     }
 
     @Transactional
@@ -388,11 +302,9 @@ class AboutServiceImpl(
 
     @Transactional
     override fun readFutureCareers(language: LanguageType): FutureCareersPage {
-        val description =
-            aboutRepository.findByLanguageAndPostType(
-                language,
-                AboutPostType.FUTURE_CAREERS
-            ).description
+        val description = aboutRepository.findByPostType(AboutPostType.FUTURE_CAREERS)
+            .translationOf(language)?.description
+            ?: throw CserealException(ErrorCode.ABOUT_NOT_FOUND)
 
         val statList = mutableListOf<FutureCareersStatDto>()
         val maxYear = statRepository.findMaxYear()
@@ -437,20 +349,21 @@ class AboutServiceImpl(
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @EventListener
     fun refreshSearchListener(event: RefreshSearchEvent) {
-        aboutRepository.findAll().forEach {
-            syncSearchOfAbout(it)
+        aboutTranslationRepository.findAll().forEach {
+            syncSearchOfTranslation(it)
         }
     }
 
+    // 졸업생 진로 페이지의 색인만 통계·기업 이름을 함께 담는다.
     @Transactional
-    fun syncSearchOfAbout(about: AboutEntity) {
-        if (about.postType == AboutPostType.FUTURE_CAREERS) {
-            about.syncSearchContent(
+    fun syncSearchOfTranslation(translation: AboutTranslationEntity) {
+        if (translation.about.postType == AboutPostType.FUTURE_CAREERS) {
+            translation.syncSearchContent(
                 statRepository.findAll().map { it.name },
                 companyRepository.findAll().map { it.name }
             )
         } else {
-            about.syncSearchContent()
+            translation.syncSearchContent()
         }
     }
 
@@ -462,7 +375,7 @@ class AboutServiceImpl(
         amount: Int
     ): AboutSearchResBody {
         val (searchEntities, searchCnt) =
-            aboutRepository.searchAbouts(keyword, language, number, 1)
+            aboutTranslationRepository.searchAbouts(keyword, language, number, 1)
         return AboutSearchResBody(
             searchCnt,
             searchEntities.map {

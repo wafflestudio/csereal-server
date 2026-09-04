@@ -83,13 +83,14 @@ data class AcademicsSearchResElement(
                         amount
                     )
                     AcademicsSearchResElement(
-                        id = academicsSearch.scholarship!!.id,
+                        // id 는 장학금 자체(부모)의 id — 상세 URL 이 그 id 를 쓴다.
+                        id = academicsSearch.scholarship!!.scholarship.id,
                         name = academicsSearch.scholarship!!.name,
                         language = academicsSearch.scholarship!!.language.let {
                             LanguageType.makeLowercase(it)
                         },
                         postType = AcademicsSearchType.SCHOLARSHIP,
-                        studentType = academicsSearch.scholarship!!.studentType,
+                        studentType = academicsSearch.scholarship!!.scholarship.studentType,
                         partialDescription = partialDescription.replace("\n", " "),
                         boldStartIndex = startIdx ?: 0,
                         boldEndIndex = startIdx?.plus(keyword.length) ?: 0

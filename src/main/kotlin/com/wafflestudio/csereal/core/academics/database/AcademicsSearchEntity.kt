@@ -21,9 +21,10 @@ class AcademicsSearchEntity(
     @JoinColumn(name = "course_id")
     val course: CourseEntity? = null,
 
+    // 색인은 언어별이라 장학금 자체가 아니라 번역본에 붙는다.
     @OneToOne
     @JoinColumn(name = "scholarship_id")
-    val scholarship: ScholarshipEntity? = null
+    val scholarship: ScholarshipTranslationEntity? = null
 
 ) : BaseTimeEntity() {
     companion object {
@@ -43,7 +44,7 @@ class AcademicsSearchEntity(
             )
         }
 
-        fun create(scholarship: ScholarshipEntity): AcademicsSearchEntity {
+        fun create(scholarship: ScholarshipTranslationEntity): AcademicsSearchEntity {
             return AcademicsSearchEntity(
                 scholarship = scholarship,
                 language = scholarship.language,
@@ -81,10 +82,10 @@ class AcademicsSearchEntity(
                 sb.toString()
             }
 
-        fun createContent(scholarship: ScholarshipEntity) =
+        fun createContent(scholarship: ScholarshipTranslationEntity) =
             scholarship.let {
                 val sb = StringBuilder()
-                sb.appendLine(it.studentType.value)
+                sb.appendLine(it.scholarship.studentType.value)
                 sb.appendLine(it.name)
                 sb.appendLine(
                     cleanTextFromHtml(it.description)
@@ -101,7 +102,7 @@ class AcademicsSearchEntity(
         this.content = createContent(course)
     }
 
-    fun update(scholarship: ScholarshipEntity) {
+    fun update(scholarship: ScholarshipTranslationEntity) {
         this.content = createContent(scholarship)
     }
 

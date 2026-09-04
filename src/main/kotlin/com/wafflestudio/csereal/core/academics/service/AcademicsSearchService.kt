@@ -18,7 +18,7 @@ interface AcademicsSearchService {
     ): AcademicsSearchResBody
 
     fun syncCourseSearch(course: CourseEntity)
-    fun syncScholarshipSearch(scholarship: ScholarshipEntity)
+    fun syncScholarshipSearch(scholarship: ScholarshipTranslationEntity)
     fun syncAcademicsSearch(academics: AcademicsEntity)
 }
 
@@ -27,7 +27,7 @@ class AcademicsSearchServiceImpl(
     private val academicsSearchRepository: AcademicsSearchRepository,
     private val academicsRepository: AcademicsRepository,
     private val courseRepository: CourseRepository,
-    private val scholarshipRepository: ScholarshipRepository
+    private val scholarshipTranslationRepository: ScholarshipTranslationRepository
 ) : AcademicsSearchService {
     @Transactional(readOnly = true)
     override fun searchTopAcademics(
@@ -61,7 +61,7 @@ class AcademicsSearchServiceImpl(
             syncCourseSearch(it)
         }
 
-        scholarshipRepository.findAll().forEach {
+        scholarshipTranslationRepository.findAll().forEach {
             syncScholarshipSearch(it)
         }
     }
@@ -75,7 +75,7 @@ class AcademicsSearchServiceImpl(
     }
 
     @Transactional
-    override fun syncScholarshipSearch(scholarship: ScholarshipEntity) {
+    override fun syncScholarshipSearch(scholarship: ScholarshipTranslationEntity) {
         scholarship.academicsSearch?.update(scholarship)
             ?: let {
                 scholarship.academicsSearch = AcademicsSearchEntity.create(scholarship)

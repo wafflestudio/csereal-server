@@ -53,11 +53,14 @@ class AcademicsController(
     @GetMapping("/scholarship/{scholarshipId}")
     fun getScholarship(
         @PathVariable scholarshipId: Long
-    ): Pair<ScholarshipDto, ScholarshipDto> = academicsService.readScholarshipV2(scholarshipId)
+    ): ScholarshipLanguagesDto = academicsService.readScholarshipV2(scholarshipId)
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/scholarship")
-    fun updateScholarship(@RequestBody request: UpdateScholarshipReq) = academicsService.updateScholarship(request)
+    @PutMapping("/scholarship/{scholarshipId}")
+    fun updateScholarship(
+        @PathVariable scholarshipId: Long,
+        @RequestBody request: UpdateScholarshipReq
+    ) = academicsService.updateScholarship(scholarshipId, request)
 
     @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/scholarship/{scholarshipId}")
