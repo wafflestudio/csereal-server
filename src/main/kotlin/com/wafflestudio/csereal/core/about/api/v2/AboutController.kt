@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.about.api.v2
 
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.core.about.database.AboutPostType
+import com.wafflestudio.csereal.core.about.database.AboutSinglePostType
 import com.wafflestudio.csereal.core.about.api.req.*
 import com.wafflestudio.csereal.core.about.dto.AboutDto
 import com.wafflestudio.csereal.core.about.dto.FutureCareersPage
@@ -21,13 +21,14 @@ class AboutController(
     // postType: facilities / name -> 학부-행정실, S-Lab, 소프트웨어-실습실, 하드웨어-실습실, 해동학술정보실, 학생-공간-및-동아리-방, 세미나실, 서버실
     // postType: directions / name -> by-public-transit, by-car, from-far-away
 
-    // TODO: Remove if not needed (controller returns language pair should be preferred)
+    // 이 경로가 서빙할 수 있는 넷만 받는다 — 나머지 넷은 전용 경로가 이긴다.
+    // 자세한 이유는 AboutSinglePostType 주석 참고.
     @GetMapping("/{postType}")
     fun readAbout(
         @RequestParam(required = false, defaultValue = "ko") language: LanguageType,
-        @PathVariable postType: AboutPostType
+        @PathVariable postType: AboutSinglePostType
     ): ResponseEntity<AboutDto> {
-        return ResponseEntity.ok(aboutService.readAbout(language, postType))
+        return ResponseEntity.ok(aboutService.readAbout(language, postType.postType))
     }
 
     @GetMapping("/student-clubs")
@@ -54,11 +55,11 @@ class AboutController(
     @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{postType}", consumes = ["multipart/form-data"])
     fun updateAbout(
-        @PathVariable postType: AboutPostType,
+        @PathVariable postType: AboutSinglePostType,
         @RequestPart request: UpdateAboutReq,
         @RequestPart newMainImage: MultipartFile?,
         @RequestPart attachments: List<MultipartFile>?
-    ) = aboutService.updateAbout(postType, request, newMainImage, attachments)
+    ) = aboutService.updateAbout(postType.postType, request, newMainImage, attachments)
 
     @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/facilities", consumes = ["multipart/form-data"])
