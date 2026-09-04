@@ -1,25 +1,26 @@
 package com.wafflestudio.csereal.core.reseach.service
 
+import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
-import com.wafflestudio.csereal.core.research.api.req.*
+import com.wafflestudio.csereal.core.research.api.req.CreateResearchLanguageReqBody
+import com.wafflestudio.csereal.core.research.api.req.ModifyResearchLanguageReqBody
+import com.wafflestudio.csereal.core.research.api.req.ResearchContentReqBody
 import com.wafflestudio.csereal.core.research.database.LabRepository
-import com.wafflestudio.csereal.core.research.database.ResearchLanguageRepository
 import com.wafflestudio.csereal.core.research.database.ResearchRepository
 import com.wafflestudio.csereal.core.research.database.ResearchSearchRepository
-import com.wafflestudio.csereal.core.research.dto.ResearchLanguageDto
-import com.wafflestudio.csereal.core.research.dto.ResearchSealedDto
+import com.wafflestudio.csereal.core.research.database.ResearchTranslationRepository
 import com.wafflestudio.csereal.core.research.service.ResearchService
-import com.wafflestudio.csereal.core.research.type.ResearchRelatedType
+import com.wafflestudio.csereal.core.research.type.ResearchType
 import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.shouldBe
 import io.kotest.extensions.spring.SpringTestExtension
 import io.kotest.extensions.spring.SpringTestLifecycleMode
-import io.kotest.matchers.shouldBe
+import jakarta.transaction.Transactional
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -27,247 +28,84 @@ import org.springframework.transaction.annotation.Transactional
 @Import(MySQLTestContainerConfig::class)
 class ResearchServiceTest(
     private val researchService: ResearchService,
-    private val researchLanguageRepository: ResearchLanguageRepository,
-    private val professorRepository: ProfessorRepository,
-    private val labRepository: LabRepository,
     private val researchRepository: ResearchRepository,
-    private val researchSearchRepository: ResearchSearchRepository
+    private val researchTranslationRepository: ResearchTranslationRepository,
+    private val researchSearchRepository: ResearchSearchRepository,
+    private val professorRepository: ProfessorRepository,
+    private val labRepository: LabRepository
 ) : BehaviorSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
 
-    beforeSpec {
-    }
-
     afterSpec {
         professorRepository.deleteAll()
-        researchLanguageRepository.deleteAll()
         researchRepository.deleteAll()
         labRepository.deleteAll()
         researchSearchRepository.deleteAll()
     }
 
-    // TODO: Add edge test cases
-    // TODO: Add search index test cases
-    Given("Create Research Center Request Body") {
-        val koCreateResearchCenterReqBody = CreateResearchCenterReqBody(
-            name = "한국어 연구소",
-            description = "한국어 연구소입니다.",
-            mainImageUrl = null,
-            websiteURL = "https://www.koreanlab.com"
-        )
+    fun createReq(type: ResearchType, websiteURL: String? = null) = CreateResearchLanguageReqBody(
+        type = type,
+        websiteURL = websiteURL,
+        ko = ResearchContentReqBody("한국어 이름", "한국어 설명입니다."),
+        en = ResearchContentReqBody("English Name", "This is an English description.")
+    )
 
-        val enCreateResearchCenterReqBody = CreateResearchCenterReqBody(
-            name = "English Research Center",
-            description = "This is English Research Center.",
-            mainImageUrl = null,
-            websiteURL = "https://www.englishlab.com"
-        )
-
-        val createResearchCenterReqBody = CreateResearchLanguageReqBody(
-            ko = koCreateResearchCenterReqBody,
-            en = enCreateResearchCenterReqBody
-        )
-
-        When("Create Research Center") {
-            val researchCenter = researchService.createResearchLanguage(createResearchCenterReqBody, null)
-
-            Then("Research Center should be created") {
-                val pair = researchLanguageRepository.findAll()
-                    .also { it.size shouldBe 1 }
-                pair[0].type shouldBe ResearchRelatedType.RESEARCH_CENTER
-
-                val (koId, enId) = pair[0].koreanId to pair[0].englishId
-                val koResearchCenter = researchRepository.findByIdOrNull(koId)!!
-                val enResearchCenter = researchRepository.findByIdOrNull(enId)!!
-                ResearchLanguageDto(
-                    ko = ResearchSealedDto.of(koResearchCenter, null),
-                    en = ResearchSealedDto.of(enResearchCenter, null)
-                ) shouldBe researchCenter
-            }
-        }
-    }
-
-    Given("Create Research Group Request Body") {
-        val koCreateResearchGroupReqBody = CreateResearchGroupReqBody(
-            name = "한국어 연구 그룹",
-            description = "한국어 연구 그룹입니다.",
-            mainImageUrl = null
-        )
-
-        val enCreateResearchGroupReqBody = CreateResearchGroupReqBody(
-            name = "English Research Group",
-            description = "This is English Research Group.",
-            mainImageUrl = null
-        )
-
-        val createResearchGroupReqBody = CreateResearchLanguageReqBody(
-            ko = koCreateResearchGroupReqBody,
-            en = enCreateResearchGroupReqBody
-        )
-
-        When("Create Research Group") {
-            val researchGroup = researchService.createResearchLanguage(createResearchGroupReqBody, null)
-
-            Then("Research Group should be created") {
-                val pair = researchLanguageRepository.findAll()
-                    .also { it.size shouldBe 1 }
-                pair[0].type shouldBe ResearchRelatedType.RESEARCH_GROUP
-
-                val (koId, enId) = pair[0].koreanId to pair[0].englishId
-                val koResearchGroup = researchRepository.findByIdOrNull(koId)!!
-                val enResearchGroup = researchRepository.findByIdOrNull(enId)!!
-                ResearchLanguageDto(
-                    ko = ResearchSealedDto.of(koResearchGroup, null),
-                    en = ResearchSealedDto.of(enResearchGroup, null)
-                ) shouldBe researchGroup
-            }
-        }
-    }
-
-    Given("Research Center Exists") {
-        val koCreateResearchCenterReqBody = CreateResearchCenterReqBody(
-            name = "한국어 연구소",
-            description = "한국어 연구소입니다.",
-            mainImageUrl = null,
-            websiteURL = "https://www.koreanlab.com"
-        )
-
-        val enCreateResearchCenterReqBody = CreateResearchCenterReqBody(
-            name = "English Research Center",
-            description = "This is English Research Center.",
-            mainImageUrl = null,
-            websiteURL = "https://www.englishlab.com"
-        )
-
-        val createResearchCenterReqBody = CreateResearchLanguageReqBody(
-            ko = koCreateResearchCenterReqBody,
-            en = enCreateResearchCenterReqBody
-        )
-
-        val researchCenter = researchService.createResearchLanguage(createResearchCenterReqBody, null)
-
-        When("Update Research Center") {
-            val koUpdateResearchCenterReqBody = ModifyResearchCenterReqBody(
-                name = "한국어 연구소 수정",
-                description = "한국어 연구소입니다. 수정",
-                websiteURL = "https://www.koreanlabbbb.com",
-                removeImage = false
-            )
-
-            val enUpdateResearchCenterReqBody = ModifyResearchCenterReqBody(
-                name = "English Research Center Update",
-                description = "This is English Research Center. Update",
-                websiteURL = "https://www.englishlabbbb.com",
-                removeImage = false
-            )
-
-            val updateResearchCenterReqBody = ModifyResearchLanguageReqBody(
-                ko = koUpdateResearchCenterReqBody,
-                en = enUpdateResearchCenterReqBody
-            )
-
-            val modifiedResearchCenter = researchService.updateResearchLanguage(
-                researchCenter.ko.id,
-                researchCenter.en.id,
-                updateResearchCenterReqBody,
+    Given("연구센터를 만들려고 할 때") {
+        When("생성하면") {
+            val created = researchService.createResearchLanguage(
+                createReq(ResearchType.CENTERS, "https://www.center.com"),
                 null
             )
 
-            Then("Research Center should be updated") {
-                val pair = researchLanguageRepository.findAll()
-                    .also { it.size shouldBe 1 }
-                pair[0].type shouldBe ResearchRelatedType.RESEARCH_CENTER
-                val (koId, enId) = pair[0].koreanId to pair[0].englishId
-                koId shouldBe researchCenter.ko.id
-                enId shouldBe researchCenter.en.id
-
-                val koResearchCenter = researchRepository.findByIdOrNull(koId)!!
-                val enResearchCenter = researchRepository.findByIdOrNull(enId)!!
-                ResearchLanguageDto(
-                    ko = ResearchSealedDto.of(koResearchCenter, null),
-                    en = ResearchSealedDto.of(enResearchCenter, null)
-                ) shouldBe modifiedResearchCenter
+            Then("연구 하나에 번역본 두 개가 생긴다") {
+                researchRepository.count() shouldBe 1
+                researchTranslationRepository.count() shouldBe 2
             }
-        }
 
-        When("Delete Research Center") {
-            researchService.deleteResearchLanguage(researchCenter.ko.id, researchCenter.en.id)
+            Then("종류와 웹사이트는 응답 최상위에 한 벌만 있다") {
+                val research = researchRepository.findByIdOrNull(created.id)!!
+                research.postType shouldBe ResearchType.CENTERS
+                created.type shouldBe ResearchType.CENTERS
+                created.websiteURL shouldBe "https://www.center.com"
+            }
 
-            Then("Research Center should be deleted") {
-                researchLanguageRepository.findAll() shouldBe emptyList()
-                researchRepository.findAll() shouldBe emptyList()
+            Then("이름과 설명은 언어별로 다르다") {
+                created.ko!!.name shouldBe "한국어 이름"
+                created.en!!.name shouldBe "English Name"
             }
         }
     }
 
-    Given("Research Group Exists") {
-        val koCreateResearchGroupReqBody = CreateResearchGroupReqBody(
-            name = "한국어 연구 그룹",
-            description = "한국어 연구 그룹입니다.",
-            mainImageUrl = null
-        )
+    Given("연구그룹이 있을 때") {
+        val created = researchService.createResearchLanguage(createReq(ResearchType.GROUPS), null)
 
-        val enCreateResearchGroupReqBody = CreateResearchGroupReqBody(
-            name = "English Research Group",
-            description = "This is English Research Group.",
-            mainImageUrl = null
-        )
-
-        val createResearchGroupReqBody = CreateResearchLanguageReqBody(
-            ko = koCreateResearchGroupReqBody,
-            en = enCreateResearchGroupReqBody
-        )
-
-        val researchGroup = researchService.createResearchLanguage(createResearchGroupReqBody, null)
-
-        When("Update Research Group") {
-            val koUpdateResearchGroupReqBody = ModifyResearchGroupReqBody(
-                name = "한국어 연구 그룹 수정",
-                description = "한국어 연구 그룹입니다. 수정",
-                removeImage = false
-            )
-
-            val enUpdateResearchGroupReqBody = ModifyResearchGroupReqBody(
-                name = "English Research Group Update",
-                description = "This is English Research Group. Update",
-                removeImage = false
-            )
-
-            val updateResearchGroupReqBody = ModifyResearchLanguageReqBody(
-                ko = koUpdateResearchGroupReqBody,
-                en = enUpdateResearchGroupReqBody
-            )
-
-            val modifiedResearchGroup = researchService.updateResearchLanguage(
-                researchGroup.ko.id,
-                researchGroup.en.id,
-                updateResearchGroupReqBody,
+        When("수정하면") {
+            val modified = researchService.updateResearchLanguage(
+                // 어느 쪽 언어의 id 로 불러도 같은 연구를 가리킨다.
+                created.id,
+                ModifyResearchLanguageReqBody(
+                    websiteURL = null,
+                    removeImage = false,
+                    ko = ResearchContentReqBody("바뀐 이름", "바뀐 설명"),
+                    en = ResearchContentReqBody("Changed Name", "Changed description")
+                ),
                 null
             )
 
-            Then("Research Group should be updated") {
-                val pair = researchLanguageRepository.findAll()
-                    .also { it.size shouldBe 1 }
-                pair[0].type shouldBe ResearchRelatedType.RESEARCH_GROUP
-                val (koId, enId) = pair[0].koreanId to pair[0].englishId
-                koId shouldBe researchGroup.ko.id
-                enId shouldBe researchGroup.en.id
-
-                val koResearchGroup = researchRepository.findByIdOrNull(koId)!!
-                val enResearchGroup = researchRepository.findByIdOrNull(enId)!!
-                ResearchLanguageDto(
-                    ko = ResearchSealedDto.of(koResearchGroup, null),
-                    en = ResearchSealedDto.of(enResearchGroup, null)
-                ) shouldBe modifiedResearchGroup
+            Then("두 언어가 함께 바뀐다") {
+                researchRepository.count() shouldBe 1
+                val research = researchRepository.findByIdOrNull(modified.id)!!
+                research.translationOf(LanguageType.KO)!!.name shouldBe "바뀐 이름"
+                research.translationOf(LanguageType.EN)!!.name shouldBe "Changed Name"
             }
         }
 
-        When("Delete Research Group") {
-            researchService.deleteResearchLanguage(researchGroup.ko.id, researchGroup.en.id)
+        When("삭제하면") {
+            researchService.deleteResearchLanguage(created.id)
 
-            Then("Research Group should be deleted") {
-                researchLanguageRepository.findAll() shouldBe emptyList()
-                researchRepository.findAll() shouldBe emptyList()
+            Then("번역본까지 함께 지워진다") {
+                researchRepository.count() shouldBe 0
+                researchTranslationRepository.count() shouldBe 0
             }
         }
     }

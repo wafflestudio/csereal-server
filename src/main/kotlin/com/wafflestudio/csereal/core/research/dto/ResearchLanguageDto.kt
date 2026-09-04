@@ -2,70 +2,42 @@ package com.wafflestudio.csereal.core.research.dto
 
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.research.database.ResearchEntity
+import com.wafflestudio.csereal.core.research.database.ResearchTranslationEntity
 import com.wafflestudio.csereal.core.research.type.ResearchType
 
+// 요청 본문과 같은 모양. 종류·웹사이트·대표이미지는 최상위, 이름·설명만 ko/en 안에.
 data class ResearchLanguageDto(
-    val ko: ResearchSealedDto,
-    val en: ResearchSealedDto
-) {
-    fun valid() = ko.type == en.type
-    fun valid(researchType: ResearchType) = ko.valid(researchType) && en.valid(researchType)
-}
-
-sealed class ResearchSealedDto(
+    val id: Long,
     val type: ResearchType,
-    open val id: Long,
-    open val language: LanguageType,
-    open val name: String,
-    open val description: String,
-    open val mainImageUrl: String?
+    val websiteURL: String?,
+    val mainImageUrl: String?,
+    val ko: ResearchTranslationDto?,
+    val en: ResearchTranslationDto?
 ) {
-    fun valid(researchType: ResearchType) = this.type == researchType
-
     companion object {
-        fun of(entity: ResearchEntity, imageUrl: String?) = when (entity.postType) {
-            ResearchType.GROUPS -> ResearchGroupDto.of(entity, imageUrl)
-            ResearchType.CENTERS -> ResearchCenterDto.of(entity, imageUrl)
-        }
-    }
-}
-
-data class ResearchGroupDto(
-    override val id: Long,
-    override val language: LanguageType,
-    override val name: String,
-    override val description: String,
-    override val mainImageUrl: String?,
-    val labs: List<ResearchLabResponse>
-) : ResearchSealedDto(ResearchType.GROUPS, id, language, name, description, mainImageUrl) {
-    companion object {
-        fun of(entity: ResearchEntity, imageUrl: String?) = ResearchGroupDto(
-            id = entity.id,
-            language = entity.language,
-            name = entity.name,
-            description = entity.description!!,
-            mainImageUrl = imageUrl,
-            labs = entity.labs.map { ResearchLabResponse(it.id, it.name) }
+        fun of(research: ResearchEntity, mainImageUrl: String?) = ResearchLanguageDto(
+            id = research.id,
+            type = research.postType,
+            websiteURL = research.websiteURL,
+            mainImageUrl = mainImageUrl,
+            ko = research.translationOf(LanguageType.KO)?.let { ResearchTranslationDto.of(it) },
+            en = research.translationOf(LanguageType.EN)?.let { ResearchTranslationDto.of(it) }
         )
     }
 }
 
-data class ResearchCenterDto(
-    override val id: Long,
-    override val language: LanguageType,
-    override val name: String,
-    override val description: String,
-    override val mainImageUrl: String?,
-    val websiteURL: String?
-) : ResearchSealedDto(ResearchType.CENTERS, id, language, name, description, mainImageUrl) {
+data class ResearchTranslationDto(
+    val name: String,
+    val description: String?,
+    val labs: List<ResearchLabResponse>
+) {
     companion object {
-        fun of(entity: ResearchEntity, imageUrl: String?) = ResearchCenterDto(
-            id = entity.id,
-            language = entity.language,
-            name = entity.name,
-            description = entity.description!!,
-            mainImageUrl = imageUrl,
-            websiteURL = entity.websiteURL
+        fun of(translation: ResearchTranslationEntity) = ResearchTranslationDto(
+            name = translation.name,
+            description = translation.description,
+            labs = translation.research.labs.mapNotNull { lab ->
+                lab.translationOf(translation.language)?.let { ResearchLabResponse(lab.id, it.name) }
+            }
         )
     }
 }

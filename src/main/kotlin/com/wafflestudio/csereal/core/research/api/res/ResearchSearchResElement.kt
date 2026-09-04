@@ -33,10 +33,10 @@ data class ResearchSearchResElement(
                         amount
                     )
                     ResearchSearchResElement(
-                        id = it.id,
+                        id = it.research.id,
                         name = it.name,
                         language = it.language.let { ln -> LanguageType.makeLowercase(ln) },
-                        researchType = it.postType.ofResearchRelatedType(),
+                        researchType = it.research.postType.ofResearchRelatedType(),
                         partialDescription = partialDesc,
                         boldStartIndex = startIdx ?: 0,
                         boldEndIndex = startIdx?.plus(keyword.length) ?: 0
@@ -53,7 +53,7 @@ data class ResearchSearchResElement(
                         amount
                     )
                     ResearchSearchResElement(
-                        id = it.id,
+                        id = it.lab.id,
                         name = it.name,
                         language = it.language.let { ln -> LanguageType.makeLowercase(ln) },
                         researchType = ResearchRelatedType.LAB,

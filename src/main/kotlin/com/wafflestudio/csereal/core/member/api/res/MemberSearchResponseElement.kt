@@ -23,20 +23,20 @@ data class MemberSearchResponseElement(
             when {
                 memberSearch.professor != null && memberSearch.staff == null ->
                     MemberSearchResponseElement(
-                        id = memberSearch.professor!!.id,
+                        id = memberSearch.professor!!.professor.id,
                         language = memberSearch.language.let { LanguageType.makeLowercase(it) },
                         name = memberSearch.professor!!.name,
                         academicRankOrRole = memberSearch.professor!!.academicRank,
-                        imageURL = imageURLMaker(memberSearch.professor!!.mainImage),
+                        imageURL = imageURLMaker(memberSearch.professor!!.professor.mainImage),
                         memberType = MemberType.PROFESSOR
                     )
                 memberSearch.professor == null && memberSearch.staff != null ->
                     MemberSearchResponseElement(
-                        id = memberSearch.staff!!.id,
+                        id = memberSearch.staff!!.staff.id,
                         language = memberSearch.language.let { LanguageType.makeLowercase(it) },
                         name = memberSearch.staff!!.name,
                         academicRankOrRole = memberSearch.staff!!.role,
-                        imageURL = imageURLMaker(memberSearch.staff!!.mainImage),
+                        imageURL = imageURLMaker(memberSearch.staff!!.staff.mainImage),
                         memberType = MemberType.STAFF
                     )
                 else -> throw CserealException(ErrorCode.SEARCH_INDEX_BROKEN)

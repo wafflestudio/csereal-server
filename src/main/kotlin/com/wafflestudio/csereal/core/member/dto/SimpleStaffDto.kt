@@ -1,6 +1,6 @@
 package com.wafflestudio.csereal.core.member.dto
 
-import com.wafflestudio.csereal.core.member.database.StaffEntity
+import com.wafflestudio.csereal.core.member.database.StaffTranslationEntity
 
 data class SimpleStaffDto(
     val id: Long,
@@ -11,18 +11,15 @@ data class SimpleStaffDto(
     val email: String,
     val imageURL: String?
 ) {
-
     companion object {
-        fun of(staffEntity: StaffEntity, imageURL: String?): SimpleStaffDto {
-            return SimpleStaffDto(
-                id = staffEntity.id,
-                name = staffEntity.name,
-                role = staffEntity.role,
-                office = staffEntity.office,
-                phone = staffEntity.phone,
-                email = staffEntity.email,
-                imageURL = imageURL
-            )
-        }
+        fun of(translation: StaffTranslationEntity, imageURL: String?): SimpleStaffDto = SimpleStaffDto(
+            id = translation.staff.id,
+            name = translation.name,
+            role = translation.role,
+            office = translation.office,
+            phone = translation.staff.phone,
+            email = translation.staff.email,
+            imageURL = imageURL
+        )
     }
 }

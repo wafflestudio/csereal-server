@@ -5,21 +5,21 @@ import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.startsWithEnglish
 import com.wafflestudio.csereal.core.member.api.req.CreateProfessorLanguagesReqBody
-import com.wafflestudio.csereal.core.member.api.req.CreateProfessorReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorLanguagesReqBody
-import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorReqBody
-import com.wafflestudio.csereal.core.member.database.*
-import com.wafflestudio.csereal.core.member.dto.ProfessorDto
+import com.wafflestudio.csereal.core.member.database.MemberSearchEntity
+import com.wafflestudio.csereal.core.member.database.ProfessorEntity
+import com.wafflestudio.csereal.core.member.database.ProfessorRepository
+import com.wafflestudio.csereal.core.member.database.ProfessorStatus
+import com.wafflestudio.csereal.core.member.database.ProfessorTranslationEntity
+import com.wafflestudio.csereal.core.member.database.ProfessorTranslationRepository
 import com.wafflestudio.csereal.core.member.dto.ProfessorLanguagesDto
 import com.wafflestudio.csereal.core.member.dto.ProfessorPageDto
 import com.wafflestudio.csereal.core.member.dto.SimpleProfessorDto
 import com.wafflestudio.csereal.core.member.event.ProfessorCreatedEvent
 import com.wafflestudio.csereal.core.member.event.ProfessorDeletedEvent
 import com.wafflestudio.csereal.core.member.event.ProfessorModifiedEvent
-import com.wafflestudio.csereal.core.member.type.MemberType
 import com.wafflestudio.csereal.core.research.database.LabRepository
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
-import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -27,84 +27,84 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
 interface ProfessorService {
-    fun getProfessor(professorId: Long): ProfessorDto
     fun getProfessorLanguages(professorId: Long): ProfessorLanguagesDto
     fun getActiveProfessors(language: LanguageType): ProfessorPageDto
     fun getInactiveProfessors(language: LanguageType): List<SimpleProfessorDto>
-
-    fun createProfessor(
-        language: LanguageType,
-        createProfessorRequest: CreateProfessorReqBody,
-        mainImage: MultipartFile?
-    ): ProfessorDto
-
     fun createProfessorLanguages(
         req: CreateProfessorLanguagesReqBody,
         mainImage: MultipartFile?
     ): ProfessorLanguagesDto
 
-    fun updateProfessor(
-        professorId: Long,
-        updateProfessorRequest: ModifyProfessorReqBody,
-        mainImage: MultipartFile?
-    ): ProfessorDto
-
     fun updateProfessorLanguages(
-        koProfessorId: Long,
-        enProfessorId: Long,
+        professorId: Long,
         req: ModifyProfessorLanguagesReqBody,
         newImage: MultipartFile?
     ): ProfessorLanguagesDto
 
-    fun deleteProfessor(professorId: Long)
-    fun deleteProfessorLanguages(koProfessorId: Long, enProfessorId: Long)
+    fun deleteProfessorLanguages(professorId: Long)
 }
 
 @Service
 @Transactional
 class ProfessorServiceImpl(
-    private val memberLanguageRepository: MemberLanguageRepository,
-    private val labRepository: LabRepository,
     private val professorRepository: ProfessorRepository,
+    private val professorTranslationRepository: ProfessorTranslationRepository,
+    private val labRepository: LabRepository,
     private val mainImageService: MainImageService,
     private val applicationEventPublisher: ApplicationEventPublisher
 ) : ProfessorService {
-    private val logger = LoggerFactory.getLogger(this::class.java)
 
-    @Transactional(readOnly = true)
-    override fun getProfessor(professorId: Long): ProfessorDto {
-        val professor = professorRepository.findByIdOrNull(professorId)
-            ?: throw CserealException(ErrorCode.PROFESSOR_NOT_FOUND, mapOf("professorId" to professorId))
+    override fun createProfessorLanguages(
+        req: CreateProfessorLanguagesReqBody,
+        mainImage: MultipartFile?
+    ): ProfessorLanguagesDto {
+        val professor = ProfessorEntity(
+            status = req.status,
+            startDate = req.startDate,
+            endDate = req.endDate,
+            phone = req.phone,
+            fax = req.fax,
+            email = req.email,
+            website = req.website
+        )
+        req.labId?.let { labId ->
+            val lab = labRepository.findByIdOrNull(labId)
+                ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, mapOf("labId" to labId))
+            professor.addLab(lab)
+        }
 
-        val imageURL = mainImageService.createImageURL(professor.mainImage)
+        listOf(LanguageType.KO to req.ko, LanguageType.EN to req.en).forEach { (language, content) ->
+            professor.translations.add(
+                ProfessorTranslationEntity(
+                    professor = professor,
+                    language = language,
+                    name = content.name,
+                    academicRank = content.academicRank,
+                    department = content.department,
+                    office = content.office,
+                    educations = content.educations.map { it.trim() }.toMutableList(),
+                    researchAreas = content.researchAreas.map { it.trim() }.toMutableList(),
+                    careers = content.careers.map { it.trim() }.toMutableList()
+                )
+            )
+        }
 
-        return ProfessorDto.of(professor, imageURL)
+        // 사진은 사람에게 하나뿐이다 — 예전엔 언어별로 한 번씩 올라가 같은 파일이 두 벌 남았다.
+        if (mainImage != null) {
+            mainImageService.uploadMainImage(professor, mainImage)
+        }
+        professor.translations.forEach { it.memberSearch = MemberSearchEntity.create(it) }
+        professorRepository.save(professor)
+
+        applicationEventPublisher.publishEvent(ProfessorCreatedEvent.of(professor))
+        return professor.toLanguagesDto()
     }
 
+    @Transactional(readOnly = true)
     override fun getProfessorLanguages(professorId: Long): ProfessorLanguagesDto {
-        val professors = professorRepository.findProfessorAllLanguages(professorId)
-        if (professors.isEmpty()) {
-            throw CserealException(ErrorCode.PROFESSOR_NOT_FOUND, mapOf("professorId" to professorId))
-        }
-
-        if (professors.any { it.value.size > 1 }) {
-            logger.error("professor 데이터 정합성 오류: $professorId")
-        }
-
-        return ProfessorLanguagesDto(
-            ko = professors[LanguageType.KO]?.let {
-                ProfessorDto.of(
-                    it.first(),
-                    mainImageService.createImageURL(it.first().mainImage)
-                )
-            },
-            en = professors[LanguageType.EN]?.let {
-                ProfessorDto.of(
-                    it.first(),
-                    mainImageService.createImageURL(it.first().mainImage)
-                )
-            }
-        )
+        val professor = professorRepository.findByIdOrNull(professorId)
+            ?: throw CserealException(ErrorCode.PROFESSOR_NOT_FOUND, mapOf("professorId" to professorId))
+        return professor.toLanguagesDto()
     }
 
     @Transactional(readOnly = true)
@@ -120,230 +120,97 @@ class ProfessorServiceImpl(
                 "동시에 한국인 학생이 세계로 진출하는 초석이 되고 있다. 또한 CSE int’l Luncheon을 개최하여 " +
                 "학부 내 외국인 구성원의 화합과 생활의 불편함을 최소화하는 등 학부 차원에서 최선을 다하고 있다."
 
-        val professors = professorRepository.findByLanguageAndStatusNot(
-            language,
-            ProfessorStatus.INACTIVE
-        ).map {
-            val imageURL = mainImageService.createImageURL(it.mainImage)
-            SimpleProfessorDto.of(it, imageURL)
-        }.sortedWith { a, b ->
-
-            when {
-                language == LanguageType.EN -> {
-                    val lastNameA = a.name.split(" ").last()
-                    val lastNameB = b.name.split(" ").last()
-                    lastNameA.compareTo(lastNameB)
-                }
-
-                startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
-                !startsWithEnglish(a.name) && startsWithEnglish(b.name) -> -1
-                else -> a.name.compareTo(b.name)
-            }
-        }
+        val professors = professorTranslationRepository
+            .findAllByLanguageAndProfessorStatusNot(language, ProfessorStatus.INACTIVE)
+            .toSimpleDtos(language)
 
         return ProfessorPageDto(description, professors)
     }
 
     @Transactional(readOnly = true)
-    override fun getInactiveProfessors(language: LanguageType): List<SimpleProfessorDto> {
-        return professorRepository.findByLanguageAndStatus(
-            language,
-            ProfessorStatus.INACTIVE
-        ).map {
-            val imageURL = mainImageService.createImageURL(it.mainImage)
-            SimpleProfessorDto.of(it, imageURL)
-        }.sortedWith { a, b ->
-            when {
-                language == LanguageType.EN -> {
-                    val lastNameA = a.name.split(" ").last()
-                    val lastNameB = b.name.split(" ").last()
-                    lastNameA.compareTo(lastNameB)
-                }
-
-                startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
-                !startsWithEnglish(a.name) && startsWithEnglish(b.name) -> -1
-                else -> a.name.compareTo(b.name)
-            }
-        }
-    }
-
-    override fun createProfessor(
-        language: LanguageType,
-        createProfessorRequest: CreateProfessorReqBody,
-        mainImage: MultipartFile?
-    ): ProfessorDto {
-        val professor = createProfessorRequest.run {
-            ProfessorEntity(
-                language = language,
-                name = name,
-                status = status,
-                academicRank = academicRank,
-                department = department,
-                startDate = startDate,
-                endDate = endDate,
-                office = office,
-                phone = phone,
-                fax = fax,
-                email = email,
-                website = website,
-                educations = educations.map { it.trim() }.toMutableList(),
-                researchAreas = researchAreas.map { it.trim() }.toMutableList(),
-                careers = careers.map { it.trim() }.toMutableList()
-            )
-        }
-
-        if (createProfessorRequest.labId != null) {
-            val lab = labRepository.findByIdOrNull(createProfessorRequest.labId)
-                ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, mapOf("labId" to createProfessorRequest.labId))
-            professor.addLab(lab)
-        }
-
-        if (mainImage != null) {
-            mainImageService.uploadMainImage(professor, mainImage)
-        }
-
-        professor.memberSearch = MemberSearchEntity.create(professor)
-
-        professorRepository.save(professor)
-
-        val imageURL = mainImageService.createImageURL(professor.mainImage)
-
-        applicationEventPublisher.publishEvent(
-            ProfessorCreatedEvent.of(professor)
-        )
-
-        return ProfessorDto.of(professor, imageURL)
-    }
-
-    override fun createProfessorLanguages(
-        req: CreateProfessorLanguagesReqBody,
-        mainImage: MultipartFile?
-    ): ProfessorLanguagesDto {
-        val koreanProfessorDto = createProfessor(LanguageType.KO, req.ko, mainImage)
-        val englishProfessorDto = createProfessor(LanguageType.EN, req.en, mainImage)
-
-        memberLanguageRepository.save(
-            MemberLanguageEntity(
-                MemberType.PROFESSOR,
-                koreanId = koreanProfessorDto.id,
-                englishId = englishProfessorDto.id
-            )
-        )
-
-        return ProfessorLanguagesDto(koreanProfessorDto, englishProfessorDto)
-    }
-
-    override fun updateProfessor(
-        professorId: Long,
-        updateReq: ModifyProfessorReqBody,
-        newImage: MultipartFile?
-    ): ProfessorDto {
-        val professor = professorRepository.findByIdOrNull(professorId)
-            ?: throw CserealException(ErrorCode.PROFESSOR_NOT_FOUND, mapOf("professorId" to professorId))
-
-        // Lab 업데이트
-        // 기존 연구실이 제거되지 않는 이상 수동으로 교수의 Lab을 제거할 수 없음
-        val outdatedLabId = professor.lab?.id
-        if (updateReq.labId != null && updateReq.labId != professor.lab?.id) {
-            val lab = labRepository.findByIdOrNull(updateReq.labId) ?: throw CserealException(
-                ErrorCode.LAB_NOT_FOUND,
-                mapOf("labId" to updateReq.labId)
-            )
-            professor.addLab(lab)
-        }
-
-        // 교수 정보 업데이트
-        updateReq.let {
-            professor.run {
-                name = it.name
-                status = it.status
-                academicRank = it.academicRank
-                department = it.department
-                startDate = it.startDate
-                endDate = it.endDate
-                office = it.office
-                phone = it.phone
-                fax = it.fax
-                email = it.email
-                website = it.website
-                educations = it.educations.map { it.trim() }.toMutableList()
-                researchAreas = it.researchAreas.map { it.trim() }.toMutableList()
-                careers = it.careers.map { it.trim() }.toMutableList()
-            }
-        }
-
-        // Main Image 업데이트
-        if (updateReq.removeImage && newImage == null) {
-            if (professor.mainImage != null) {
-                mainImageService.removeImage(professor.mainImage!!)
-                professor.mainImage = null
-            }
-        } else if (newImage != null) {
-            professor.mainImage?.let {
-                mainImageService.removeImage(it)
-            }
-            mainImageService.uploadMainImage(professor, newImage)
-        }
-
-        // 검색 엔티티 업데이트
-        professor.memberSearch!!.update(professor)
-
-        // update event 생성
-        applicationEventPublisher.publishEvent(
-            ProfessorModifiedEvent.of(professor, outdatedLabId)
-        )
-
-        val imageURL = mainImageService.createImageURL(professor.mainImage)
-        return ProfessorDto.of(professor, imageURL)
-    }
+    override fun getInactiveProfessors(language: LanguageType): List<SimpleProfessorDto> =
+        professorTranslationRepository
+            .findAllByLanguageAndProfessorStatus(language, ProfessorStatus.INACTIVE)
+            .toSimpleDtos(language)
 
     override fun updateProfessorLanguages(
-        koProfessorId: Long,
-        enProfessorId: Long,
+        professorId: Long,
         req: ModifyProfessorLanguagesReqBody,
         newImage: MultipartFile?
     ): ProfessorLanguagesDto {
-        // check given id is paired
-        if (!memberLanguageRepository.existsByKoreanIdAndEnglishIdAndType(
-                koProfessorId,
-                enProfessorId,
-                MemberType.PROFESSOR
-            )
-        ) {
-            throw CserealException(
-                ErrorCode.PROFESSOR_PAIR_NOT_FOUND,
-                mapOf("koProfessorId" to koProfessorId, "enProfessorId" to enProfessorId)
-            )
+        val professor = professorRepository.findByIdOrNull(professorId)
+            ?: throw CserealException(ErrorCode.PROFESSOR_NOT_FOUND, mapOf("professorId" to professorId))
+
+        val outdatedLabId = professor.lab?.id
+        // 기존 연구실은 자동으로 빠지지 않는다 — 새 연구실이 올 때만 교체한다.
+        if (req.labId != null && req.labId != outdatedLabId) {
+            val lab = labRepository.findByIdOrNull(req.labId)
+                ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, mapOf("labId" to req.labId))
+            professor.addLab(lab)
         }
 
-        val koProfessorDto = updateProfessor(koProfessorId, req.ko, newImage)
-        val enProfessorDto = updateProfessor(enProfessorId, req.en, newImage)
-        return ProfessorLanguagesDto(koProfessorDto, enProfessorDto)
-    }
-
-    override fun deleteProfessor(professorId: Long) {
-        val professorEntity = professorRepository.findByIdOrNull(professorId) ?: return
-
-        professorEntity.mainImage?.let {
-            mainImageService.removeImage(it)
+        professor.apply {
+            status = req.status
+            startDate = req.startDate
+            endDate = req.endDate
+            phone = req.phone
+            fax = req.fax
+            email = req.email
+            website = req.website
         }
 
-        professorRepository.delete(professorEntity)
+        listOf(LanguageType.KO to req.ko, LanguageType.EN to req.en).forEach { (language, content) ->
+            val translation = professor.translationOf(language)
+                ?: throw CserealException(ErrorCode.PROFESSOR_NOT_FOUND, mapOf("professorId" to professorId))
+            translation.name = content.name
+            translation.academicRank = content.academicRank
+            translation.department = content.department
+            translation.office = content.office
+            translation.educations = content.educations.map { it.trim() }.toMutableList()
+            translation.researchAreas = content.researchAreas.map { it.trim() }.toMutableList()
+            translation.careers = content.careers.map { it.trim() }.toMutableList()
+            translation.memberSearch?.update(translation)
+                ?: let { translation.memberSearch = MemberSearchEntity.create(translation) }
+        }
 
-        applicationEventPublisher.publishEvent(
-            ProfessorDeletedEvent.of(professorEntity)
-        )
+        if (req.removeImage && newImage == null) {
+            professor.mainImage?.let {
+                mainImageService.removeImage(it)
+                professor.mainImage = null
+            }
+        } else if (newImage != null) {
+            professor.mainImage?.let { mainImageService.removeImage(it) }
+            mainImageService.uploadMainImage(professor, newImage)
+        }
+
+        applicationEventPublisher.publishEvent(ProfessorModifiedEvent.of(professor, outdatedLabId))
+        return professor.toLanguagesDto()
     }
 
-    override fun deleteProfessorLanguages(koProfessorId: Long, enProfessorId: Long) {
-        deleteProfessor(koProfessorId)
-        deleteProfessor(enProfessorId)
+    override fun deleteProfessorLanguages(professorId: Long) {
+        val professor = professorRepository.findByIdOrNull(professorId)
+            ?: throw CserealException(ErrorCode.PROFESSOR_NOT_FOUND, mapOf("professorId" to professorId))
 
-        memberLanguageRepository.findByKoreanIdAndEnglishIdAndType(koProfessorId, enProfessorId, MemberType.PROFESSOR)
-            ?.let { memberLanguageRepository.delete(it) }
-            ?: throw CserealException(
-                ErrorCode.PROFESSOR_PAIR_NOT_FOUND,
-                mapOf("koProfessorId" to koProfessorId, "enProfessorId" to enProfessorId)
-            )
+        professor.mainImage?.let { mainImageService.removeImage(it) }
+        val event = ProfessorDeletedEvent.of(professor)
+        // 번역본과 검색 색인은 cascade + orphanRemoval 로 함께 지워진다.
+        professorRepository.delete(professor)
+        applicationEventPublisher.publishEvent(event)
     }
+
+    private fun ProfessorEntity.toLanguagesDto(): ProfessorLanguagesDto =
+        ProfessorLanguagesDto.of(this, mainImageService.createImageURL(mainImage))
+
+    private fun List<ProfessorTranslationEntity>.toSimpleDtos(language: LanguageType): List<SimpleProfessorDto> =
+        map { SimpleProfessorDto.of(it, mainImageService.createImageURL(it.professor.mainImage)) }
+            .sortedWith { a, b ->
+                when {
+                    language == LanguageType.EN ->
+                        a.name.split(" ").last().compareTo(b.name.split(" ").last())
+
+                    startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
+                    !startsWithEnglish(a.name) && startsWithEnglish(b.name) -> -1
+                    else -> a.name.compareTo(b.name)
+                }
+            }
 }

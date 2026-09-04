@@ -98,8 +98,9 @@ class ResearchEventServiceImpl(
 
     @Transactional
     fun upsertResearchSearchIndex(research: ResearchEntity) {
-        research.researchSearch?.update(research) ?: let {
-            research.researchSearch = ResearchSearchEntity.create(research)
+        research.translations.forEach { translation ->
+            translation.researchSearch?.update(translation)
+                ?: let { translation.researchSearch = ResearchSearchEntity.create(translation) }
         }
     }
 }

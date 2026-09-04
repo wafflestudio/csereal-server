@@ -1,54 +1,29 @@
 package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
-import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.common.utils.StringListConverter
-import com.wafflestudio.csereal.core.member.dto.StaffDto
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
+import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import jakarta.persistence.*
 
+// 행정직원 자체. 사진·연락처처럼 언어와 무관한 것만 든다.
+// office 는 여기 없다 — 호실 표기가 언어마다 달라 번역본이 든다.
 @Entity(name = "staff")
 class StaffEntity(
-    @Enumerated(EnumType.STRING)
-    var language: LanguageType,
-
-    var name: String,
-    var role: String,
-
-    var office: String,
     var phone: String,
     var email: String,
-
-    @Column(columnDefinition = "TEXT")
-    @Convert(converter = StringListConverter::class)
-    var tasks: MutableList<String> = mutableListOf(),
 
     @OneToOne
     override var mainImage: MainImageEntity? = null,
 
-    @OneToOne(mappedBy = "staff", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var memberSearch: MemberSearchEntity? = null
+    @OneToMany(mappedBy = "staff", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var translations: MutableList<StaffTranslationEntity> = mutableListOf()
 ) : BaseTimeEntity(), MainImageAttachable {
+    fun translationOf(language: LanguageType): StaffTranslationEntity? =
+        translations.firstOrNull { it.language == language }
 
-    companion object {
-        fun of(languageType: LanguageType, staffDto: StaffDto): StaffEntity {
-            return StaffEntity(
-                language = languageType,
-                name = staffDto.name,
-                role = staffDto.role,
-                office = staffDto.office,
-                phone = staffDto.phone,
-                email = staffDto.email
-            )
-        }
-    }
-
-    fun update(staffDto: StaffDto) {
-        this.name = staffDto.name
-        this.role = staffDto.role
-        this.office = staffDto.office
-        this.phone = staffDto.phone
-        this.email = staffDto.email
+    fun updateShared(phone: String, email: String) {
+        this.phone = phone
+        this.email = email
     }
 }

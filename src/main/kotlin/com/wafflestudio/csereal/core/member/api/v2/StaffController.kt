@@ -42,34 +42,29 @@ class StaffController(
     @PreAuthorize("hasRole('STAFF')")
     @PostMapping(consumes = ["multipart/form-data"])
     fun createStaff(
-        @RequestPart("request") createStaffLanguagesReqBody: CreateStaffLanguagesReqBody,
+        @RequestPart("request") request: CreateStaffLanguagesReqBody,
         @RequestPart("mainImage") mainImage: MultipartFile?
-    ): StaffLanguagesDto = staffService.createStaffLanguages(createStaffLanguagesReqBody, mainImage)
+    ): StaffLanguagesDto = staffService.createStaffLanguages(request, mainImage)
 
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping("/{koStaffId}/{enStaffId}", consumes = ["multipart/form-data"])
+    @PutMapping("/{staffId}", consumes = ["multipart/form-data"])
     fun updateStaff(
         @PathVariable @Positive
-        koStaffId: Long,
-        @PathVariable @Positive
-        enStaffId: Long,
+        staffId: Long,
         @RequestPart("request") modifyStaffLanguageReq: ModifyStaffLanguagesReqBody,
 
         @Parameter(description = "image 교체할 경우 업로드. Request Body의 removeImage 관계없이 변경됨.")
         @RequestPart("newMainImage")
         newMainImage: MultipartFile?
     ): StaffLanguagesDto =
-        staffService.updateStaffLanguages(koStaffId, enStaffId, modifyStaffLanguageReq, newMainImage)
+        staffService.updateStaffLanguages(staffId, modifyStaffLanguageReq, newMainImage)
 
     @PreAuthorize("hasRole('STAFF')")
-    @DeleteMapping("/{koStaffId}/{enStaffId}")
+    @DeleteMapping("/{staffId}")
     fun deleteStaff(
         @PathVariable @Positive
-        koStaffId: Long,
-
-        @PathVariable @Positive
-        enStaffId: Long
+        staffId: Long
     ) {
-        staffService.deleteStaffLanguages(koStaffId, enStaffId)
+        staffService.deleteStaffLanguages(staffId)
     }
 }

@@ -3,10 +3,15 @@ package com.wafflestudio.csereal.core.research.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.core.research.api.req.*
-import com.wafflestudio.csereal.core.research.database.*
-import com.wafflestudio.csereal.core.research.dto.*
-import com.wafflestudio.csereal.core.research.type.ResearchRelatedType
+import com.wafflestudio.csereal.core.research.api.req.CreateResearchLanguageReqBody
+import com.wafflestudio.csereal.core.research.api.req.ModifyResearchLanguageReqBody
+import com.wafflestudio.csereal.core.research.database.ResearchEntity
+import com.wafflestudio.csereal.core.research.database.ResearchRepository
+import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
+import com.wafflestudio.csereal.core.research.database.ResearchTranslationEntity
+import com.wafflestudio.csereal.core.research.database.ResearchTranslationRepository
+import com.wafflestudio.csereal.core.research.dto.ResearchLanguageDto
+import com.wafflestudio.csereal.core.research.dto.ResearchSealedDto
 import com.wafflestudio.csereal.core.research.type.ResearchType
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.repository.findByIdOrNull
@@ -16,206 +21,99 @@ import org.springframework.web.multipart.MultipartFile
 
 interface ResearchService {
     fun createResearchLanguage(req: CreateResearchLanguageReqBody, mainImage: MultipartFile?): ResearchLanguageDto
-    fun createResearch(
-        language: LanguageType,
-        request: CreateResearchSealedReqBody,
-        mainImage: MultipartFile?
-    ): ResearchSealedDto
-
     fun updateResearchLanguage(
-        koreanId: Long,
-        englishId: Long,
+        researchId: Long,
         req: ModifyResearchLanguageReqBody,
         updateImage: MultipartFile?
     ): ResearchLanguageDto
 
-    fun updateResearch(
-        researchId: Long,
-        request: ModifyResearchSealedReqBody,
-        updateImage: MultipartFile?
-    ): ResearchSealedDto
-
-    fun deleteResearchLanguage(koreanId: Long, englishId: Long)
-    fun deleteResearch(researchId: Long)
-
+    fun deleteResearchLanguage(researchId: Long)
     fun readResearchLanguage(id: Long): ResearchLanguageDto
     fun readAllResearch(language: LanguageType, type: ResearchType): List<ResearchSealedDto>
 }
 
 @Service
+@Transactional
 class ResearchServiceImpl(
     private val researchRepository: ResearchRepository,
-    private val researchLanguageRepository: ResearchLanguageRepository,
+    private val researchTranslationRepository: ResearchTranslationRepository,
     private val mainImageService: MainImageService
 ) : ResearchService {
-    @Transactional
+
     override fun createResearchLanguage(
         req: CreateResearchLanguageReqBody,
         mainImage: MultipartFile?
     ): ResearchLanguageDto {
-        if (!req.valid()) {
-            throw CserealException(ErrorCode.RESEARCH_TYPE_MISMATCH)
-        }
-
-        val ko = createResearch(LanguageType.KO, req.ko, mainImage)
-        val en = createResearch(LanguageType.EN, req.en, mainImage)
-        researchLanguageRepository.save(
-            ResearchLanguageEntity(
-                koreanId = ko.id,
-                englishId = en.id,
-                type = req.ko.type.ofResearchRelatedType()
+        val research = ResearchEntity(
+            postType = req.type,
+            websiteURL = req.websiteURL
+        )
+        listOf(LanguageType.KO to req.ko, LanguageType.EN to req.en).forEach { (language, content) ->
+            research.translations.add(
+                ResearchTranslationEntity(
+                    research = research,
+                    language = language,
+                    name = content.name,
+                    description = content.description
+                )
             )
-        )
-
-        return ResearchLanguageDto(ko, en)
-    }
-
-    @Transactional
-    override fun createResearch(
-        language: LanguageType,
-        request: CreateResearchSealedReqBody,
-        mainImage: MultipartFile?
-    ): ResearchSealedDto {
-        // Common fields
-        val newResearch = ResearchEntity(
-            postType = request.type,
-            language = language,
-            name = request.name,
-            description = request.description
-        )
-
-        // Type specific fields
-        when (request) {
-            is CreateResearchGroupReqBody -> {}
-            is CreateResearchCenterReqBody -> newResearch.websiteURL = request.websiteURL
         }
 
-        // Create Research Search Index
-        upsertResearchSearchIndex(newResearch)
-
-        // Main Image
+        // 대표이미지는 하나뿐이다 — 예전엔 언어별로 한 번씩 올라가 같은 파일이 두 벌 남았다.
         if (mainImage != null) {
-            mainImageService.uploadMainImage(newResearch, mainImage)
+            mainImageService.uploadMainImage(research, mainImage)
         }
-        val imageURL = mainImageService.createImageURL(newResearch.mainImage)
+        research.translations.forEach { it.researchSearch = ResearchSearchEntity.create(it) }
+        researchRepository.save(research)
 
-        return ResearchSealedDto.of(
-            researchRepository.save(newResearch),
-            imageURL
-        )
+        return research.toLanguageDto()
     }
 
-    @Transactional
     override fun updateResearchLanguage(
-        koreanId: Long,
-        englishId: Long,
+        researchId: Long,
         req: ModifyResearchLanguageReqBody,
         updateImage: MultipartFile?
     ): ResearchLanguageDto {
-        if (!req.valid()) {
-            throw CserealException(ErrorCode.RESEARCH_TYPE_MISMATCH)
-        }
-
-        val type = req.ko.type
-        if (!researchLanguageRepository.existsByKoreanIdAndEnglishIdAndType(
-                koreanId,
-                englishId,
-                type.ofResearchRelatedType()
-            )
-        ) {
-            throw CserealException(ErrorCode.RESEARCH_PAIR_NOT_FOUND)
-        }
-
-        val koreanUpdatedDto = updateResearch(koreanId, req.ko, updateImage)
-        val englishUpdatedDto = updateResearch(englishId, req.en, updateImage)
-
-        return ResearchLanguageDto(koreanUpdatedDto, englishUpdatedDto)
-    }
-
-    @Transactional
-    override fun updateResearch(
-        researchId: Long,
-        request: ModifyResearchSealedReqBody,
-        updateImage: MultipartFile?
-    ): ResearchSealedDto {
-        val research = researchRepository.findByIdOrNull(researchId)
-            ?: throw CserealException(ErrorCode.RESEARCH_NOT_FOUND, mapOf("researchId" to researchId))
-        val originalName = research.name
-
-        // Update common fields
-        research.apply {
-            name = request.name
-            description = request.description
-        }
-
-        // Update type specific fields
-        when (request) {
-            is ModifyResearchGroupReqBody -> {}
-            is ModifyResearchCenterReqBody -> {
-                research.websiteURL = request.websiteURL
-            }
-        }
-
-        // Update image
-        // remove old image
-        if (research.mainImage != null && (request.removeImage || updateImage != null)) {
-            mainImageService.removeImage(research.mainImage!!)
-            research.mainImage = null
-        }
-        // upload new image
-        updateImage?.let {
-            mainImageService.uploadMainImage(research, it)
-        }
-        val imageURL = mainImageService.createImageURL(research.mainImage)
-
-        // update search index
-        upsertResearchSearchIndex(research)
-
-        // TODO: Extract this to handle in event handler
-        // upsert labs in research group if name changed
-        if (originalName != research.name) {
-            research.labs.forEach {
-                upsertLabSearchIndex(it)
-            }
-        }
-
-        return ResearchSealedDto.of(research, imageURL)
-    }
-
-    @Transactional
-    override fun deleteResearchLanguage(koreanId: Long, englishId: Long) {
-        val researchLanguage = researchLanguageRepository.findByKoreanIdAndEnglishIdAndType(
-            koreanId,
-            englishId,
-            ResearchRelatedType.RESEARCH_GROUP
-        ) ?: researchLanguageRepository.findByKoreanIdAndEnglishIdAndType(
-            koreanId,
-            englishId,
-            ResearchRelatedType.RESEARCH_CENTER
-        ) ?: throw CserealException(ErrorCode.RESEARCH_PAIR_NOT_FOUND)
-
-        deleteResearch(koreanId)
-        deleteResearch(englishId)
-        researchLanguageRepository.delete(researchLanguage)
-    }
-
-    @Transactional
-    override fun deleteResearch(researchId: Long) {
         val research = researchRepository.findByIdOrNull(researchId)
             ?: throw CserealException(ErrorCode.RESEARCH_NOT_FOUND, mapOf("researchId" to researchId))
 
-        research.mainImage?.let {
-            mainImageService.removeImage(it)
+        research.websiteURL = req.websiteURL
+
+        listOf(LanguageType.KO to req.ko, LanguageType.EN to req.en).forEach { (language, content) ->
+            val translation = research.translationOf(language)
+                ?: throw CserealException(ErrorCode.RESEARCH_NOT_FOUND, mapOf("researchId" to researchId))
+            translation.name = content.name
+            translation.description = content.description
+            translation.researchSearch?.update(translation)
+                ?: let { translation.researchSearch = ResearchSearchEntity.create(translation) }
         }
 
-        research.labs.forEach {
-            it.research = null
+        if (req.removeImage && updateImage == null) {
+            research.mainImage?.let {
+                mainImageService.removeImage(it)
+                research.mainImage = null
+            }
+        } else if (updateImage != null) {
+            research.mainImage?.let { mainImageService.removeImage(it) }
+            mainImageService.uploadMainImage(research, updateImage)
         }
 
-        // TODO: Extract this to event handler
-        // update search index to remove research
-        research.labs.forEach {
-            upsertLabSearchIndex(it)
+        return research.toLanguageDto()
+    }
+
+    override fun deleteResearchLanguage(researchId: Long) {
+        val research = researchRepository.findByIdOrNull(researchId)
+            ?: throw CserealException(ErrorCode.RESEARCH_NOT_FOUND, mapOf("researchId" to researchId))
+
+        research.mainImage?.let { mainImageService.removeImage(it) }
+
+        // 딸린 연구실은 남고 소속만 끊는다. 색인도 그에 맞춰 다시 쓴다.
+        research.labs.forEach { lab ->
+            lab.research = null
+            lab.translations.forEach { translation ->
+                translation.researchSearch?.update(translation)
+                    ?: let { translation.researchSearch = ResearchSearchEntity.create(translation) }
+            }
         }
 
         researchRepository.delete(research)
@@ -223,33 +121,16 @@ class ResearchServiceImpl(
 
     @Transactional(readOnly = true)
     override fun readResearchLanguage(id: Long): ResearchLanguageDto {
-        val researchMap = researchLanguageRepository.findResearchPairById(id)
-            ?: throw CserealException(ErrorCode.RESEARCH_PAIR_NOT_FOUND, mapOf("id" to id))
-
-        val ko = researchMap[LanguageType.KO]!!
-        val en = researchMap[LanguageType.EN]!!
-        return ResearchLanguageDto(
-            ResearchSealedDto.of(ko, mainImageService.createImageURL(ko.mainImage)),
-            ResearchSealedDto.of(en, mainImageService.createImageURL(en.mainImage))
-        )
+        val research = researchRepository.findByIdOrNull(id)
+            ?: throw CserealException(ErrorCode.RESEARCH_NOT_FOUND, mapOf("researchId" to id))
+        return research.toLanguageDto()
     }
 
     @Transactional(readOnly = true)
     override fun readAllResearch(language: LanguageType, type: ResearchType): List<ResearchSealedDto> =
-        researchRepository.findAllByPostTypeAndLanguageOrderByName(type, language)
-            .map { ResearchSealedDto.of(it, mainImageService.createImageURL(it.mainImage)) }
+        researchTranslationRepository.findAllByLanguageAndResearchPostTypeOrderByName(language, type)
+            .map { ResearchSealedDto.of(it, mainImageService.createImageURL(it.research.mainImage)) }
 
-    @Transactional
-    fun upsertResearchSearchIndex(research: ResearchEntity) {
-        research.researchSearch?.update(research) ?: let {
-            research.researchSearch = ResearchSearchEntity.create(research)
-        }
-    }
-
-    @Transactional
-    fun upsertLabSearchIndex(lab: LabEntity) {
-        lab.researchSearch?.update(lab) ?: let {
-            lab.researchSearch = ResearchSearchEntity.create(lab)
-        }
-    }
+    private fun ResearchEntity.toLanguageDto(): ResearchLanguageDto =
+        ResearchLanguageDto.of(this, mainImageService.createImageURL(mainImage))
 }

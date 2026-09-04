@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.research.dto
 
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.core.research.database.ResearchEntity
+import com.wafflestudio.csereal.core.research.database.ResearchTranslationEntity
 import com.wafflestudio.csereal.core.research.type.ResearchType
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import java.time.LocalDateTime
@@ -20,17 +20,24 @@ data class ResearchDto(
     val attachments: List<AttachmentResponse>?
 ) {
     companion object {
-        fun of(entity: ResearchEntity, imageURL: String?, attachmentResponse: List<AttachmentResponse>) = entity.run {
-            ResearchDto(
-                id = this.id,
-                postType = this.postType,
-                language = LanguageType.makeLowercase(entity.language),
-                name = this.name,
-                description = this.description,
-                websiteURL = this.websiteURL,
-                createdAt = this.createdAt,
-                modifiedAt = this.modifiedAt,
-                labs = this.labs.map { ResearchLabResponse(id = it.id, name = it.name) },
+        fun of(
+            translation: ResearchTranslationEntity,
+            imageURL: String?,
+            attachmentResponse: List<AttachmentResponse>
+        ): ResearchDto {
+            val research = translation.research
+            return ResearchDto(
+                id = research.id,
+                postType = research.postType,
+                language = LanguageType.makeLowercase(translation.language),
+                name = translation.name,
+                description = translation.description,
+                websiteURL = research.websiteURL,
+                createdAt = research.createdAt,
+                modifiedAt = research.modifiedAt,
+                labs = research.labs.mapNotNull { lab ->
+                    lab.translationOf(translation.language)?.let { ResearchLabResponse(id = lab.id, name = it.name) }
+                },
                 imageURL = imageURL,
                 attachments = attachmentResponse
             )

@@ -3,22 +3,21 @@ package com.wafflestudio.csereal.core.research.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.common.properties.EndpointProperties
-import com.wafflestudio.csereal.common.utils.startsWithEnglish
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.research.api.req.CreateLabLanguageReqBody
-import com.wafflestudio.csereal.core.research.api.req.CreateLabReqBody
 import com.wafflestudio.csereal.core.research.api.req.ModifyLabLanguageReqBody
-import com.wafflestudio.csereal.core.research.api.req.ModifyLabReqBody
-import com.wafflestudio.csereal.core.research.database.*
+import com.wafflestudio.csereal.core.research.database.LabEntity
+import com.wafflestudio.csereal.core.research.database.LabRepository
+import com.wafflestudio.csereal.core.research.database.LabTranslationEntity
+import com.wafflestudio.csereal.core.research.database.LabTranslationRepository
+import com.wafflestudio.csereal.core.research.database.ResearchRepository
+import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
 import com.wafflestudio.csereal.core.research.dto.LabDto
 import com.wafflestudio.csereal.core.research.dto.LabLanguageDto
 import com.wafflestudio.csereal.core.research.event.LabCreatedEvent
 import com.wafflestudio.csereal.core.research.event.LabDeletedEvent
 import com.wafflestudio.csereal.core.research.event.LabModifiedEvent
-import com.wafflestudio.csereal.core.research.type.ResearchRelatedType
 import com.wafflestudio.csereal.core.research.type.ResearchType
-import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
@@ -28,280 +27,165 @@ import org.springframework.web.multipart.MultipartFile
 
 interface LabService {
     fun readLabLanguage(labId: Long): LabLanguageDto
-    fun readLab(labId: Long): LabDto
     fun readAllLabs(language: LanguageType): List<LabDto>
-
-    fun createLab(language: LanguageType, request: CreateLabReqBody, pdf: MultipartFile?): LabDto
     fun createLabLanguage(request: CreateLabLanguageReqBody, pdf: MultipartFile?): LabLanguageDto
-
-    fun updateLabLanguage(
-        koreanId: Long,
-        englishId: Long,
-        request: ModifyLabLanguageReqBody,
-        pdf: MultipartFile?
-    ): LabLanguageDto
-
-    fun updateLab(language: LanguageType, labId: Long, request: ModifyLabReqBody, pdf: MultipartFile?): LabDto
-
-    fun deleteLabLanguage(koreanId: Long, englishId: Long)
-    fun deleteLab(id: Long)
+    fun updateLabLanguage(labId: Long, request: ModifyLabLanguageReqBody, pdf: MultipartFile?): LabLanguageDto
+    fun deleteLabLanguage(labId: Long)
 }
 
 @Service
+@Transactional
 class LabServiceImpl(
     private val attachmentService: AttachmentService,
-    private val researchSearchService: ResearchSearchService,
     private val labRepository: LabRepository,
-    private val researchLanguageRepository: ResearchLanguageRepository,
+    private val labTranslationRepository: LabTranslationRepository,
     private val researchRepository: ResearchRepository,
     private val professorRepository: ProfessorRepository,
-    private val endpointProperties: EndpointProperties,
     private val applicationEventPublisher: ApplicationEventPublisher
 ) : LabService {
-    // TODO: Solve N+1 Problem
-    @Transactional(readOnly = true)
-    override fun readAllLabs(language: LanguageType): List<LabDto> {
-        val labs = labRepository.findAllByLanguageOrderByName(language).map {
-            val attachmentResponse =
-                attachmentService.createOneAttachmentResponse(it.pdf)
-            LabDto.of(it, attachmentResponse)
-        }.sortedWith { a, b ->
-            when {
-                startsWithEnglish(a.name) && !startsWithEnglish(b.name) -> 1
-                !startsWithEnglish(a.name) && startsWithEnglish(b.name) -> -1
-                else -> a.name.compareTo(b.name)
-            }
-        }
 
-        return labs
-    }
+    @Transactional(readOnly = true)
+    override fun readAllLabs(language: LanguageType): List<LabDto> =
+        labTranslationRepository.findAllByLanguageOrderByName(language)
+            .map { LabDto.of(it, attachmentService.createOneAttachmentResponse(it.lab.pdf)) }
 
     @Transactional(readOnly = true)
     override fun readLabLanguage(labId: Long): LabLanguageDto {
-        val labMap = researchLanguageRepository.findLabPairById(labId)
-            ?.takeIf { it.isNotEmpty() }
-            ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, mapOf("labId" to labId))
-
-        val ko = labMap[LanguageType.KO]!!
-        val en = labMap[LanguageType.EN]!!
-
-        val koAttachmentResponse = attachmentService.createOneAttachmentResponse(ko.pdf)
-        val enAttachmentResponse = attachmentService.createOneAttachmentResponse(en.pdf)
-
-        return LabLanguageDto(
-            LabDto.of(ko, koAttachmentResponse),
-            LabDto.of(en, enAttachmentResponse)
-        )
-    }
-
-    @Transactional(readOnly = true)
-    override fun readLab(labId: Long): LabDto {
         val lab = labRepository.findByIdOrNull(labId)
             ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, mapOf("labId" to labId))
-
-        val attachmentResponse =
-            attachmentService.createOneAttachmentResponse(lab.pdf)
-
-        return LabDto.of(lab, attachmentResponse)
-    }
-
-    private fun createPdfURL(pdf: AttachmentEntity): String {
-        return "${endpointProperties.backend}/v1/file/${pdf.filename}"
+        return lab.toLanguageDto()
     }
 
     @Transactional
     override fun createLabLanguage(request: CreateLabLanguageReqBody, pdf: MultipartFile?): LabLanguageDto {
-        val koLabDto = createLab(LanguageType.KO, request.ko, pdf)
-        val enLabDto = createLab(LanguageType.EN, request.en, pdf)
-
-        researchLanguageRepository.save(
-            ResearchLanguageEntity(
-                koreanId = koLabDto.id,
-                englishId = enLabDto.id,
-                type = ResearchRelatedType.LAB
-            )
+        val lab = LabEntity(
+            acronym = request.acronym,
+            tel = request.tel,
+            youtube = request.youtube,
+            websiteURL = request.websiteURL
         )
+        lab.research = request.groupId?.let { resolveGroup(it) }
 
-        return LabLanguageDto(koLabDto, enLabDto)
-    }
-
-    @Transactional
-    override fun createLab(language: LanguageType, request: CreateLabReqBody, pdf: MultipartFile?): LabDto {
-        val researchGroup = request.groupId?.let {
-            researchRepository.findByIdOrNull(request.groupId)
-                ?: throw CserealException(ErrorCode.RESEARCH_GROUP_NOT_FOUND, mapOf("it" to it))
-        }?.apply {
-            if (this.postType != ResearchType.GROUPS) {
-                throw CserealException(ErrorCode.NOT_A_RESEARCH_GROUP, mapOf("id" to this.id))
-            }
+        listOf(LanguageType.KO to request.ko, LanguageType.EN to request.en).forEach { (language, content) ->
+            lab.translations.add(
+                LabTranslationEntity(
+                    lab = lab,
+                    language = language,
+                    name = content.name,
+                    description = content.description,
+                    location = content.location
+                )
+            )
         }
 
         val professors = professorRepository.findAllById(request.professorIds)
-            .also {
-                if (it.size < request.professorIds.size) {
-                    throw CserealException(
-                        ErrorCode.PROFESSORS_NOT_FOUND,
-                        mapOf("professorIds" to request.professorIds)
-                    )
-                }
-                if (it.any { p -> p.lab != null }) {
-                    throw CserealException(ErrorCode.PROFESSOR_ALREADY_IN_LAB)
-                }
-            }
-
-        val newLab = LabEntity(
-            language = language,
-            name = request.name,
-            description = request.description,
-            acronym = request.acronym,
-            location = request.location,
-            websiteURL = request.websiteURL,
-            tel = request.tel,
-            youtube = request.youtube,
-            research = researchGroup,
-            professors = professors.toMutableSet()
-        ).apply {
-            pdf?.let {
-                attachmentService.uploadAttachmentInLabEntity(this, it)
-            }
-        }.also {
-            upsertLabSearchIndex(it)
+        if (professors.size != request.professorIds.size) {
+            throw CserealException(ErrorCode.PROFESSOR_NOT_FOUND, mapOf("professorIds" to request.professorIds))
         }
+        professors.forEach { it.addLab(lab) }
 
-        val newSavedLab = labRepository.save(newLab)
+        labRepository.save(lab)
+
+        // PDF 는 연구실에 하나뿐이다 — 예전엔 언어별로 한 번씩 올라가 같은 파일이 두 벌 남았다.
+        pdf?.let { attachmentService.uploadAttachmentInLabEntity(lab, it) }
+        lab.translations.forEach { it.researchSearch = ResearchSearchEntity.create(it) }
 
         applicationEventPublisher.publishEvent(
-            LabCreatedEvent(
-                newSavedLab.id,
-                request.groupId,
-                request.professorIds
-            )
+            LabCreatedEvent(lab.id, lab.research?.id, request.professorIds)
         )
-
-        return LabDto.of(newSavedLab, attachmentService.createOneAttachmentResponse(newSavedLab.pdf))
+        return lab.toLanguageDto()
     }
 
     @Transactional
     override fun updateLabLanguage(
-        koreanId: Long,
-        englishId: Long,
+        labId: Long,
         request: ModifyLabLanguageReqBody,
         pdf: MultipartFile?
     ): LabLanguageDto {
-        val koLabDto = updateLab(LanguageType.KO, koreanId, request.ko, pdf)
-        val enLabDto = updateLab(LanguageType.EN, englishId, request.en, pdf)
-
-        return LabLanguageDto(koLabDto, enLabDto)
-    }
-
-    @Transactional
-    override fun updateLab(
-        language: LanguageType,
-        labId: Long,
-        request: ModifyLabReqBody,
-        pdf: MultipartFile?
-    ): LabDto {
-        val labEntity = labRepository.findByIdAndLanguage(labId, language)
+        val lab = labRepository.findByIdOrNull(labId)
             ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, mapOf("labId" to labId))
 
-        val oldGroup = labEntity.research
-        val newGroup = request.groupId?.let {
-            researchRepository.findByIdAndPostType(it, ResearchType.GROUPS)
-                ?: throw CserealException(ErrorCode.RESEARCH_GROUP_NOT_FOUND, mapOf("it" to it))
-        }
+        val oldGroupId = lab.research?.id
+        val oldProfessorIds = lab.professors.map { it.id }.toSet()
 
-        val oldProfessors = labEntity.professors
+        lab.research = request.groupId?.let { resolveGroup(it) }
+        lab.acronym = request.acronym
+        lab.tel = request.tel
+        lab.youtube = request.youtube
+        lab.websiteURL = request.websiteURL
+
         val newProfessors = professorRepository.findAllById(request.professorIds)
-            .also {
-                if (it.size < request.professorIds.size) {
-                    throw CserealException(
-                        ErrorCode.PROFESSORS_NOT_FOUND,
-                        mapOf("professorIds" to request.professorIds)
-                    )
-                }
+        if (newProfessors.size != request.professorIds.size) {
+            throw CserealException(ErrorCode.PROFESSOR_NOT_FOUND, mapOf("professorIds" to request.professorIds))
+        }
+        lab.professors.filterNot { it.id in request.professorIds }.forEach { it.lab = null }
+        lab.professors = newProfessors.toMutableSet()
+        newProfessors.forEach { it.lab = lab }
 
-                if (!(it.all { p -> p.lab == null || p.lab!!.id == labId })) {
-                    throw CserealException(ErrorCode.PROFESSOR_ALREADY_IN_LAB)
-                }
+        listOf(LanguageType.KO to request.ko, LanguageType.EN to request.en).forEach { (language, content) ->
+            val translation = lab.translationOf(language)
+                ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, mapOf("labId" to labId))
+            translation.name = content.name
+            translation.description = content.description
+            translation.location = content.location
+        }
+
+        if (request.removePdf && pdf == null) {
+            lab.pdf?.let {
+                lab.pdf = null
+                attachmentService.deleteAttachment(it)
             }
-
-        labEntity.apply {
-            name = request.name
-            description = request.description
-            location = request.location
-            tel = request.tel
-            acronym = request.acronym
-            youtube = request.youtube
-            websiteURL = request.websiteURL
-            research = newGroup
-            professors = newProfessors.toMutableSet()
+        } else if (pdf != null) {
+            lab.pdf?.let {
+                lab.pdf = null
+                attachmentService.deleteAttachment(it)
+            }
+            attachmentService.uploadAttachmentInLabEntity(lab, pdf)
         }
 
-        // update pdf
-        if ((pdf != null || request.removePdf) && (labEntity.pdf != null)) {
-            val originalPdf = labEntity.pdf!!
-            labEntity.pdf = null
-            attachmentService.deleteAttachment(originalPdf)
-        }
-        pdf?.let {
-            attachmentService.uploadAttachmentInLabEntity(labEntity, it)
-        }
-
-        // update researchSearch
-        upsertLabSearchIndex(labEntity)
+        lab.translations.forEach { upsertSearchIndex(it) }
 
         applicationEventPublisher.publishEvent(
             LabModifiedEvent(
-                labId,
-                oldGroup?.id to newGroup?.id,
-                oldProfessors.map { it.id }.toSet() to request.professorIds
+                lab.id,
+                oldGroupId to lab.research?.id,
+                oldProfessorIds to request.professorIds
             )
         )
-
-        return LabDto.of(labEntity, attachmentService.createOneAttachmentResponse(labEntity.pdf))
+        return lab.toLanguageDto()
     }
 
     @Transactional
-    override fun deleteLabLanguage(koreanId: Long, englishId: Long) {
-        val labLanguage = researchLanguageRepository.findByKoreanIdAndEnglishIdAndType(
-            koreanId,
-            englishId,
-            ResearchRelatedType.LAB
-        ) ?: throw CserealException(
-            ErrorCode.LAB_PAIR_NOT_FOUND,
-            mapOf("koreanId" to koreanId, "englishId" to englishId)
-        )
-
-        deleteLab(koreanId)
-        deleteLab(englishId)
-        researchLanguageRepository.delete(labLanguage)
-    }
-
-    @Transactional
-    override fun deleteLab(id: Long) {
-        val lab = labRepository.findByIdOrNull(id)
-            ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, mapOf("id" to id))
+    override fun deleteLabLanguage(labId: Long) {
+        val lab = labRepository.findByIdOrNull(labId)
+            ?: throw CserealException(ErrorCode.LAB_NOT_FOUND, mapOf("labId" to labId))
 
         applicationEventPublisher.publishEvent(
-            LabDeletedEvent(
-                lab.id,
-                lab.research?.id,
-                lab.professors.map { it.id }.toSet()
-            )
+            LabDeletedEvent(lab.id, lab.research?.id, lab.professors.map { it.id }.toSet())
         )
 
         lab.pdf?.let {
             lab.pdf = null
             attachmentService.deleteAttachment(it)
         }
-
+        // 번역본과 검색 색인은 cascade + orphanRemoval 로 함께 지워진다.
         labRepository.delete(lab)
     }
 
-    @Transactional
-    fun upsertLabSearchIndex(lab: LabEntity) {
-        lab.researchSearch?.update(lab) ?: let {
-            lab.researchSearch = ResearchSearchEntity.create(lab)
-        }
+    private fun resolveGroup(groupId: Long) =
+        researchRepository.findByIdOrNull(groupId)
+            ?.also {
+                if (it.postType != ResearchType.GROUPS) {
+                    throw CserealException(ErrorCode.NOT_A_RESEARCH_GROUP, mapOf("id" to it.id))
+                }
+            }
+            ?: throw CserealException(ErrorCode.RESEARCH_GROUP_NOT_FOUND, mapOf("groupId" to groupId))
+
+    private fun upsertSearchIndex(translation: LabTranslationEntity) {
+        translation.researchSearch?.update(translation)
+            ?: let { translation.researchSearch = ResearchSearchEntity.create(translation) }
     }
+
+    private fun LabEntity.toLanguageDto(): LabLanguageDto =
+        LabLanguageDto.of(this, attachmentService.createOneAttachmentResponse(pdf))
 }

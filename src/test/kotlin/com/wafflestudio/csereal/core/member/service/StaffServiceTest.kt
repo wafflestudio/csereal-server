@@ -1,10 +1,13 @@
 package com.wafflestudio.csereal.core.member.service
 
 import com.wafflestudio.csereal.common.enums.LanguageType
+import com.wafflestudio.csereal.core.member.api.req.CreateStaffLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.CreateStaffReqBody
+import com.wafflestudio.csereal.core.member.api.req.ModifyStaffLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyStaffReqBody
 import com.wafflestudio.csereal.core.member.database.MemberSearchRepository
 import com.wafflestudio.csereal.core.member.database.StaffRepository
+import com.wafflestudio.csereal.core.member.database.StaffTranslationRepository
 import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringTestExtension
@@ -24,6 +27,7 @@ import org.springframework.test.context.ActiveProfiles
 class StaffServiceTest(
     private val staffService: StaffService,
     private val staffRepository: StaffRepository,
+    private val staffTranslationRepository: StaffTranslationRepository,
     private val memberSearchRepository: MemberSearchRepository
 ) : BehaviorSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
@@ -32,51 +36,54 @@ class StaffServiceTest(
         staffRepository.deleteAll()
     }
 
-    // TODO: staff 쌍으로 묶은 테스트 생성
-
-    Given("이미지 없는 행정직원을 생성하려고 할 떄") {
-        val createStaffReq = CreateStaffReqBody(
-            name = "name",
-            role = "role",
-            office = "office",
+    Given("이미지 없는 행정직원을 생성하려고 할 때") {
+        val createReq = CreateStaffLanguagesReqBody(
             phone = "phone",
             email = "email",
-            tasks = listOf("task1", "task2 ")
+            ko = CreateStaffReqBody(name = "이름", role = "역할", office = "office", tasks = listOf("업무1", "업무2 ")),
+            en = CreateStaffReqBody(name = "name", role = "role", office = "office", tasks = listOf("task1", "task2"))
         )
 
         When("행정직원을 생성하면") {
-            val createdStaffDto = staffService.createStaff(LanguageType.KO, createStaffReq, null)
+            val created = staffService.createStaffLanguages(createReq, null)
 
-            Then("행정직원이 생성된다") {
+            Then("직원 한 명에 번역본 두 개가 생긴다") {
                 staffRepository.count() shouldBe 1
-                staffRepository.findByIdOrNull(createdStaffDto.id) shouldNotBe null
+                staffTranslationRepository.count() shouldBe 2
+                staffRepository.findByIdOrNull(created.id) shouldNotBe null
             }
 
-            Then("행정직원의 정보가 일치한다") {
-                val staffEntity = staffRepository.findByIdOrNull(createdStaffDto.id)!!
-                staffEntity.name shouldBe createStaffReq.name
-                staffEntity.role shouldBe createStaffReq.role
-                staffEntity.office shouldBe createStaffReq.office
-                staffEntity.phone shouldBe createStaffReq.phone
-                staffEntity.email shouldBe createStaffReq.email
-                staffEntity.tasks shouldBe createStaffReq.tasks.map { it.trim() }
+            Then("한/영이 한 직원 아래에 있다") {
+                created.ko shouldNotBe null
+                created.en shouldNotBe null
             }
 
-            Then("검색 정보가 생성된다") {
-                memberSearchRepository.count() shouldBe 1
+            Then("연락처는 응답 최상위에 한 벌만 있다") {
+                created.phone shouldBe "phone"
+                created.email shouldBe "email"
+            }
 
-                val staffEntity = staffRepository.findByIdOrNull(createdStaffDto.id)!!
-                val memberSearch = staffEntity.memberSearch!!
+            Then("언어별 값은 각자 다르다") {
+                created.ko!!.name shouldBe "이름"
+                created.en!!.name shouldBe "name"
+                created.ko!!.tasks shouldBe listOf("업무1", "업무2")
+                // 호실은 언어별 값이라 ko/en 안에 있다.
+                created.ko!!.office shouldBe "office"
+            }
 
-                memberSearch.language shouldBe LanguageType.KO
-                memberSearch.content shouldBe """
-                    name
-                    role
+            Then("검색 색인이 언어마다 하나씩 생긴다") {
+                memberSearchRepository.count() shouldBe 2
+                val staff = staffRepository.findByIdOrNull(created.id)!!
+                val koSearch = staff.translationOf(LanguageType.KO)!!.memberSearch!!
+                koSearch.language shouldBe LanguageType.KO
+                koSearch.content shouldBe """
+                    이름
+                    역할
                     office
                     phone
                     email
-                    task1
-                    task2
+                    업무1
+                    업무2
                     
                 """.trimIndent()
             }
@@ -84,55 +91,56 @@ class StaffServiceTest(
     }
 
     Given("이미지 없는 행정직원을 수정할 때") {
-        val createStaffReq = CreateStaffReqBody(
-            name = "name",
-            role = "role",
-            office = "office",
-            phone = "phone",
-            email = "email",
-            tasks = listOf("task1", "task2")
+        val created = staffService.createStaffLanguages(
+            CreateStaffLanguagesReqBody(
+                phone = "phone",
+                email = "email",
+                ko = CreateStaffReqBody(name = "이름", role = "역할", office = "office", tasks = listOf("업무1", "업무2")),
+                en = CreateStaffReqBody(
+                    name = "name",
+                    role = "role",
+                    office = "office",
+                    tasks = listOf("task1", "task2")
+                )
+            ),
+            null
         )
-        val createdStaffDto = staffService.createStaff(LanguageType.KO, createStaffReq, null)
 
         When("행정직원을 수정하면") {
-            val modifyStaffReq = ModifyStaffReqBody(
-                name = "name2",
-                role = "role2",
-                office = "office2",
+            val modifyReq = ModifyStaffLanguagesReqBody(
                 phone = "phone2",
                 email = "email2",
-                tasks = listOf("task1", "task3", "task4 "),
-                removeImage = false
+                removeImage = false,
+                ko = ModifyStaffReqBody(name = "이름2", role = "역할2", office = "office2", tasks = listOf("업무1", "업무3 ")),
+                en = ModifyStaffReqBody(
+                    name = "name2",
+                    role = "role2",
+                    office = "office2",
+                    tasks = listOf("task1", "task3")
+                )
             )
+            val updated = staffService.updateStaffLanguages(created.id, modifyReq, null)
 
-            val updatedStaffDto = staffService.updateStaff(createdStaffDto.id, modifyStaffReq, null)
-
-            Then("행정직원의 정보가 일치한다") {
+            Then("직원은 그대로 하나고 값이 바뀐다") {
                 staffRepository.count() shouldBe 1
-                val staffEntity = staffRepository.findByIdOrNull(updatedStaffDto.id)!!
-                staffEntity.name shouldBe modifyStaffReq.name
-                staffEntity.role shouldBe modifyStaffReq.role
-                staffEntity.office shouldBe modifyStaffReq.office
-                staffEntity.phone shouldBe modifyStaffReq.phone
-                staffEntity.email shouldBe modifyStaffReq.email
-                staffEntity.tasks shouldBe modifyStaffReq.tasks.map { it.trim() }
+                val staff = staffRepository.findByIdOrNull(updated.id)!!
+                staff.translationOf(LanguageType.KO)!!.office shouldBe "office2"
+                staff.translationOf(LanguageType.KO)!!.name shouldBe "이름2"
+                staff.translationOf(LanguageType.EN)!!.name shouldBe "name2"
+                staff.translationOf(LanguageType.KO)!!.tasks shouldBe listOf("업무1", "업무3")
             }
 
-            Then("검색 정보가 수정된다") {
-                memberSearchRepository.count() shouldBe 1
-
-                val staffEntity = staffRepository.findByIdOrNull(updatedStaffDto.id)!!
-                val memberSearch = staffEntity.memberSearch!!
-
-                memberSearch.content shouldBe """
-                    name2
-                    role2
+            Then("검색 색인도 언어마다 갱신된다") {
+                memberSearchRepository.count() shouldBe 2
+                val staff = staffRepository.findByIdOrNull(updated.id)!!
+                staff.translationOf(LanguageType.KO)!!.memberSearch!!.content shouldBe """
+                    이름2
+                    역할2
                     office2
                     phone2
                     email2
-                    task1
-                    task3
-                    task4
+                    업무1
+                    업무3
                     
                 """.trimIndent()
             }

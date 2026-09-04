@@ -6,8 +6,8 @@ import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.exchangeValidPageNum
 import com.wafflestudio.csereal.core.conference.database.QConferenceEntity.conferenceEntity
-import com.wafflestudio.csereal.core.research.database.QLabEntity.labEntity
-import com.wafflestudio.csereal.core.research.database.QResearchEntity.researchEntity
+import com.wafflestudio.csereal.core.research.database.QLabTranslationEntity.labTranslationEntity
+import com.wafflestudio.csereal.core.research.database.QResearchTranslationEntity.researchTranslationEntity
 import com.wafflestudio.csereal.core.research.database.QResearchSearchEntity.researchSearchEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
@@ -57,11 +57,11 @@ class ResearchSearchRepositoryCustomImpl(
             researchSearchEntity
         ).leftJoin(
             researchSearchEntity.lab,
-            labEntity
+            labTranslationEntity
         ).fetchJoin()
             .leftJoin(
                 researchSearchEntity.research,
-                researchEntity
+                researchTranslationEntity
             ).fetchJoin()
             .leftJoin(
                 researchSearchEntity.conferenceElement,

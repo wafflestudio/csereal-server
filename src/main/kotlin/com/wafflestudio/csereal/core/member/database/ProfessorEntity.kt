@@ -3,76 +3,37 @@ package com.wafflestudio.csereal.core.member.database
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.common.utils.StringListConverter
-import com.wafflestudio.csereal.core.member.dto.ProfessorDto
 import com.wafflestudio.csereal.core.research.database.LabEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import jakarta.persistence.*
 import java.time.LocalDate
 
+// 교수 자체. 사진·연락처·소속처럼 언어와 무관한 것만 든다.
+// office 는 여기 없다 — 호실 표기가 언어마다 달라 번역본이 든다.
 @Entity(name = "professor")
 class ProfessorEntity(
     @Enumerated(EnumType.STRING)
-    var language: LanguageType,
-
-    var name: String,
-
-    @Enumerated(EnumType.STRING)
     var status: ProfessorStatus,
-
-    var academicRank: String,
-    var department: String,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lab_id")
     var lab: LabEntity? = null,
 
-    var startDate: LocalDate?,
-    var endDate: LocalDate?,
-
-    var office: String?,
-    var phone: String?,
-    var fax: String?,
-    var email: String?,
-    var website: String?,
-
-    @Column(columnDefinition = "TEXT")
-    @Convert(converter = StringListConverter::class)
-    var educations: MutableList<String> = mutableListOf(),
-
-    @Column(columnDefinition = "TEXT")
-    @Convert(converter = StringListConverter::class)
-    var researchAreas: MutableList<String> = mutableListOf(),
-
-    @Column(columnDefinition = "TEXT")
-    @Convert(converter = StringListConverter::class)
-    var careers: MutableList<String> = mutableListOf(),
+    var startDate: LocalDate? = null,
+    var endDate: LocalDate? = null,
+    var phone: String? = null,
+    var fax: String? = null,
+    var email: String? = null,
+    var website: String? = null,
 
     @OneToOne
     override var mainImage: MainImageEntity? = null,
 
-    @OneToOne(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var memberSearch: MemberSearchEntity? = null
+    @OneToMany(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var translations: MutableList<ProfessorTranslationEntity> = mutableListOf()
 ) : BaseTimeEntity(), MainImageAttachable {
-
-    companion object {
-        fun of(languageType: LanguageType, professorDto: ProfessorDto): ProfessorEntity {
-            return ProfessorEntity(
-                language = languageType,
-                name = professorDto.name,
-                status = professorDto.status,
-                academicRank = professorDto.academicRank,
-                department = professorDto.department,
-                startDate = professorDto.startDate,
-                endDate = professorDto.endDate,
-                office = professorDto.office,
-                phone = professorDto.phone,
-                fax = professorDto.fax,
-                email = professorDto.email,
-                website = professorDto.website
-            )
-        }
-    }
+    fun translationOf(language: LanguageType): ProfessorTranslationEntity? =
+        translations.firstOrNull { it.language == language }
 
     fun addLab(lab: LabEntity) {
         this.lab?.professors?.remove(this)

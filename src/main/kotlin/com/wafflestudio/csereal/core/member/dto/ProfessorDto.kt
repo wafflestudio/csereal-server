@@ -1,7 +1,7 @@
 package com.wafflestudio.csereal.core.member.dto
 
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.core.member.database.ProfessorEntity
+import com.wafflestudio.csereal.core.member.database.ProfessorTranslationEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
 import java.time.LocalDate
 
@@ -27,26 +27,28 @@ data class ProfessorDto(
     var imageURL: String? = null
 ) {
     companion object {
-        fun of(professorEntity: ProfessorEntity, imageURL: String?): ProfessorDto {
+        fun of(translation: ProfessorTranslationEntity, imageURL: String?): ProfessorDto {
+            val professor = translation.professor
             return ProfessorDto(
-                id = professorEntity.id,
-                language = LanguageType.makeLowercase(professorEntity.language),
-                name = professorEntity.name,
-                status = professorEntity.status,
-                academicRank = professorEntity.academicRank,
-                department = professorEntity.department,
-                labId = professorEntity.lab?.id,
-                labName = professorEntity.lab?.name,
-                startDate = professorEntity.startDate,
-                endDate = professorEntity.endDate,
-                office = professorEntity.office,
-                phone = professorEntity.phone,
-                fax = professorEntity.fax,
-                email = professorEntity.email,
-                website = professorEntity.website,
-                educations = professorEntity.educations,
-                researchAreas = professorEntity.researchAreas,
-                careers = professorEntity.careers,
+                id = professor.id,
+                language = LanguageType.makeLowercase(translation.language),
+                name = translation.name,
+                status = professor.status,
+                academicRank = translation.academicRank,
+                department = translation.department,
+                labId = professor.lab?.id,
+                // 연구실 이름은 이 번역본과 같은 언어판에서.
+                labName = professor.lab?.translationOf(translation.language)?.name,
+                startDate = professor.startDate,
+                endDate = professor.endDate,
+                office = translation.office,
+                phone = professor.phone,
+                fax = professor.fax,
+                email = professor.email,
+                website = professor.website,
+                educations = translation.educations,
+                researchAreas = translation.researchAreas,
+                careers = translation.careers,
                 imageURL = imageURL
             )
         }
