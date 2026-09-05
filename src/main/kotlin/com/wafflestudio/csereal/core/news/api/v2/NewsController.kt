@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.news.api.v2
 
-import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.core.news.api.req.CreateNewsReq
 import com.wafflestudio.csereal.core.news.api.req.UpdateNewsReq
 import com.wafflestudio.csereal.core.news.dto.NewsResponse
@@ -24,14 +23,13 @@ class NewsController(
         @RequestParam(required = false) tag: List<String>?,
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
-        @RequestParam(required = false, defaultValue = "10") pageSize: Int,
-        @RequestParam(required = false, defaultValue = "DATE") sortBy: ContentSearchSortType
+        @RequestParam(required = false, defaultValue = "10") pageSize: Int
     ): ResponseEntity<NewsSearchResponse> {
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
 
-        return ResponseEntity.ok(newsService.searchNews(tag, keyword, pageRequest, usePageBtn, sortBy))
+        return ResponseEntity.ok(newsService.searchNews(tag, keyword, pageRequest, usePageBtn))
     }
 
     @GetMapping("/{newsId}")

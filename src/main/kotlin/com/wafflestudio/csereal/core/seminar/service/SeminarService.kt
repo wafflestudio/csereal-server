@@ -2,7 +2,6 @@ package com.wafflestudio.csereal.core.seminar.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
-import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.search.SearchListService
 import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
@@ -24,8 +23,7 @@ interface SeminarService {
     fun searchSeminar(
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean,
-        sortBy: ContentSearchSortType
+        usePageBtn: Boolean
     ): SeminarSearchResponse
 
     fun createSeminar(
@@ -56,8 +54,7 @@ class SeminarServiceImpl(
     override fun searchSeminar(
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean,
-        sortBy: ContentSearchSortType
+        usePageBtn: Boolean
     ): SeminarSearchResponse {
         val isStaff = isCurrentUserStaff()
         if (keyword.isNullOrEmpty()) {

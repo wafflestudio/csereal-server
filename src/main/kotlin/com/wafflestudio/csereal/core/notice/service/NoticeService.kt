@@ -2,7 +2,6 @@ package com.wafflestudio.csereal.core.notice.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
-import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.search.SearchListService
 import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
@@ -23,8 +22,7 @@ interface NoticeService {
         tag: List<String>?,
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean,
-        sortBy: ContentSearchSortType
+        usePageBtn: Boolean
     ): NoticeSearchResponse
 
     fun readNotice(noticeId: Long): NoticeResponse
@@ -60,8 +58,7 @@ class NoticeServiceImpl(
         tag: List<String>?,
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean,
-        sortBy: ContentSearchSortType
+        usePageBtn: Boolean
     ): NoticeSearchResponse {
         val isStaff = isCurrentUserStaff()
         if (keyword.isNullOrEmpty()) {

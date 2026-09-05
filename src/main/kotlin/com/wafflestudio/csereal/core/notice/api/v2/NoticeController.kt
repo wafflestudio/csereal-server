@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.notice.api.v2
 
-import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.core.notice.api.req.CreateNoticeReq
 import com.wafflestudio.csereal.core.notice.api.req.UpdateNoticeReq
 import com.wafflestudio.csereal.core.notice.dto.*
@@ -24,14 +23,13 @@ class NoticeController(
         @RequestParam(required = false) tag: List<String>?,
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) @Positive pageNum: Int?,
-        @RequestParam(required = false, defaultValue = "20") @Positive pageSize: Int,
-        @RequestParam(required = false, defaultValue = "DATE") sortBy: ContentSearchSortType
+        @RequestParam(required = false, defaultValue = "20") @Positive pageSize: Int
     ): ResponseEntity<NoticeSearchResponse> {
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
 
-        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, sortBy))
+        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn))
     }
 
     @GetMapping("/{noticeId}")

@@ -2,7 +2,6 @@ package com.wafflestudio.csereal.core.news.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
-import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.search.SearchListService
 import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
@@ -25,8 +24,7 @@ interface NewsService {
         tag: List<String>?,
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean,
-        sortBy: ContentSearchSortType
+        usePageBtn: Boolean
     ): NewsSearchResponse
 
     fun readNews(newsId: Long): NewsResponse
@@ -58,8 +56,7 @@ class NewsServiceImpl(
         tag: List<String>?,
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean,
-        sortBy: ContentSearchSortType
+        usePageBtn: Boolean
     ): NewsSearchResponse {
         val isStaff = isCurrentUserStaff()
         if (keyword.isNullOrEmpty()) {

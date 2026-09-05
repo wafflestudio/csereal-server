@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.seminar.api.v2
 
-import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.core.seminar.api.req.CreateSeminarReq
 import com.wafflestudio.csereal.core.seminar.api.req.UpdateSeminarReq
 import com.wafflestudio.csereal.core.seminar.dto.SeminarResponse
@@ -22,14 +21,13 @@ class SeminarController(
     fun searchSeminar(
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
-        @RequestParam(required = false, defaultValue = "10") pageSize: Int,
-        @RequestParam(required = false, defaultValue = "DATE") sortBy: ContentSearchSortType
+        @RequestParam(required = false, defaultValue = "10") pageSize: Int
     ): ResponseEntity<SeminarSearchResponse> {
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
 
-        return ResponseEntity.ok(seminarService.searchSeminar(keyword, pageRequest, usePageBtn, sortBy))
+        return ResponseEntity.ok(seminarService.searchSeminar(keyword, pageRequest, usePageBtn))
     }
 
     @PreAuthorize("hasRole('STAFF')")
