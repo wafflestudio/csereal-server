@@ -3,6 +3,8 @@ package com.wafflestudio.csereal.core.news.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
+import com.wafflestudio.csereal.common.search.SearchListService
+import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.admin.dto.AdminSlidesResponse
 import com.wafflestudio.csereal.core.news.database.*
@@ -47,6 +49,7 @@ interface NewsService {
 @Service
 class NewsServiceImpl(
     private val newsRepository: NewsRepository,
+    private val searchListService: SearchListService,
     private val tagInNewsRepository: TagInNewsRepository,
     private val newsTagRepository: NewsTagRepository,
     private val mainImageService: MainImageService,
@@ -60,7 +63,20 @@ class NewsServiceImpl(
         usePageBtn: Boolean,
         sortBy: ContentSearchSortType
     ): NewsSearchResponse {
-        return newsRepository.searchNews(tag, keyword, pageable, usePageBtn, sortBy, isCurrentUserStaff())
+        val isStaff = isCurrentUserStaff()
+        if (keyword.isNullOrEmpty()) {
+            return newsRepository.browseNews(tag, pageable, usePageBtn, isStaff)
+        }
+
+        val page = searchListService.searchIds(
+            type = SearchType.NEWS,
+            keyword = keyword,
+            tags = tag.orEmpty().map { TagInNewsEnum.getTagEnum(it).name },
+            isStaff = isStaff,
+            offset = pageable.offset,
+            size = pageable.pageSize
+        )
+        return NewsSearchResponse(page.total, newsRepository.findSearchDtosByIds(page.ids))
     }
 
     @Transactional(readOnly = true)

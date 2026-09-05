@@ -4,7 +4,6 @@ import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
-import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
 import com.wafflestudio.csereal.core.main.dto.MainImportantResponse
@@ -39,13 +38,15 @@ interface SeminarRepository : JpaRepository<SeminarEntity, Long>, CustomSeminarR
 }
 
 interface CustomSeminarRepository {
-    fun searchSeminar(
-        keyword: String?,
+    /** 키워드 없이 훑을 때. 순서·페이징까지 여기서 정한다. */
+    fun browseSeminar(
         pageable: Pageable,
         usePageBtn: Boolean,
-        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): SeminarSearchResponse
+
+    /** 키워드 검색이 고른 id 들의 표시용 값. 준 id 차례대로 돌려준다. */
+    fun findSearchDtosByIds(ids: List<Long>): List<SeminarSearchDto>
 
     fun findImportantSeminar(cnt: Int? = null): List<MainImportantResponse>
 }
@@ -56,29 +57,21 @@ class SeminarRepositoryImpl(
     private val mainImageService: MainImageService,
     private val commonRepository: CommonRepository
 ) : CustomSeminarRepository {
-    override fun searchSeminar(
-        keyword: String?,
+    override fun findSearchDtosByIds(ids: List<Long>): List<SeminarSearchDto> {
+        // in 질의는 순서를 보장하지 않는다. 부른 쪽이 정한 차례로 되돌린다.
+        val byId = queryFactory.selectFrom(seminarEntity)
+            .where(seminarEntity.id.`in`(ids))
+            .fetch()
+            .associateBy { it.id }
+        return toSearchDtos(ids.mapNotNull(byId::get))
+    }
+
+    override fun browseSeminar(
         pageable: Pageable,
         usePageBtn: Boolean,
-        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): SeminarSearchResponse {
-        val keywordBooleanBuilder = BooleanBuilder()
         val isPrivateBooleanBuilder = BooleanBuilder()
-
-        if (!keyword.isNullOrEmpty()) {
-            val booleanTemplate = commonRepository.searchFullSeptupleTextTemplate(
-                keyword,
-                seminarEntity.title,
-                seminarEntity.name,
-                seminarEntity.affiliation,
-                seminarEntity.location,
-                seminarEntity.plainTextDescription,
-                seminarEntity.plainTextIntroduction,
-                seminarEntity.plainTextAdditionalNote
-            )
-            keywordBooleanBuilder.and(booleanTemplate.gt(0.0))
-        }
 
         if (!isStaff) {
             isPrivateBooleanBuilder.or(
@@ -87,7 +80,7 @@ class SeminarRepositoryImpl(
         }
 
         val jpaQuery = queryFactory.selectFrom(seminarEntity)
-            .where(keywordBooleanBuilder, isPrivateBooleanBuilder)
+            .where(isPrivateBooleanBuilder)
 
         val total: Long
         var pageRequest = pageable
@@ -100,49 +93,31 @@ class SeminarRepositoryImpl(
             total = (10 * pageable.pageSize).toLong() + 1 // 10개 페이지 고정
         }
 
-        val seminarEntityQuery = jpaQuery
+        val seminarEntityList = jpaQuery
             .offset(pageRequest.offset)
             .limit(pageRequest.pageSize.toLong())
+            .orderBy(seminarEntity.startDate.desc())
+            .fetch()
 
-        val seminarEntityList = when {
-            sortBy == ContentSearchSortType.DATE || keyword.isNullOrEmpty() ->
-                seminarEntityQuery.orderBy(
-                    seminarEntity.startDate.desc()
-                )
+        return SeminarSearchResponse(total, toSearchDtos(seminarEntityList))
+    }
 
-            else /* sortBy == RELEVANCE */ -> seminarEntityQuery
-        }.fetch()
-
-        val seminarSearchDtoList: MutableList<SeminarSearchDto> = mutableListOf()
-
-        for (i: Int in 0 until seminarEntityList.size) {
-            var isYearLast = false
-            if (i == 0) {
-                isYearLast = true
-            } else if (seminarEntityList[i].startDate.year != seminarEntityList[i - 1].startDate.year) {
-                isYearLast = true
-            }
-
-            val imageURL = mainImageService.createImageURL(seminarEntityList[i].mainImage)
-
-            seminarSearchDtoList.add(
-                SeminarSearchDto(
-                    id = seminarEntityList[i].id,
-                    title = seminarEntityList[i].title,
-                    description = seminarEntityList[i].plainTextDescription,
-                    name = seminarEntityList[i].name,
-                    affiliation = seminarEntityList[i].affiliation,
-                    startDate = seminarEntityList[i].startDate,
-                    location = seminarEntityList[i].location,
-                    imageURL = imageURL,
-                    isYearLast = isYearLast,
-                    isPrivate = seminarEntityList[i].isPrivate
-                )
+    /** isYearLast 는 앞 항목과 견줘 정하므로 목록이 이미 화면 순서여야 한다. */
+    private fun toSearchDtos(seminars: List<SeminarEntity>): List<SeminarSearchDto> =
+        seminars.mapIndexed { index, seminar ->
+            SeminarSearchDto(
+                id = seminar.id,
+                title = seminar.title,
+                description = seminar.plainTextDescription,
+                name = seminar.name,
+                affiliation = seminar.affiliation,
+                startDate = seminar.startDate,
+                location = seminar.location,
+                imageURL = mainImageService.createImageURL(seminar.mainImage),
+                isYearLast = index == 0 || seminar.startDate.year != seminars[index - 1].startDate.year,
+                isPrivate = seminar.isPrivate
             )
         }
-
-        return SeminarSearchResponse(total, seminarSearchDtoList)
-    }
 
     override fun findImportantSeminar(cnt: Int?): List<MainImportantResponse> =
         queryFactory.select(

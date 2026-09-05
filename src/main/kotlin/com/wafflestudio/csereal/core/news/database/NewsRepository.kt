@@ -4,7 +4,6 @@ import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
-import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
 import com.wafflestudio.csereal.core.admin.dto.AdminSlideElement
@@ -47,14 +46,16 @@ interface NewsRepository : JpaRepository<NewsEntity, Long>, CustomNewsRepository
 }
 
 interface CustomNewsRepository {
-    fun searchNews(
+    /** 키워드 없이 태그만으로 훑을 때. 순서·페이징까지 여기서 정한다. */
+    fun browseNews(
         tag: List<String>?,
-        keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
-        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): NewsSearchResponse
+
+    /** 키워드 검색이 고른 id 들의 표시용 값. 준 id 차례대로 돌려준다. */
+    fun findSearchDtosByIds(ids: List<Long>): List<NewsSearchDto>
 
     fun searchTotalNews(
         keyword: String,
@@ -74,26 +75,24 @@ class NewsRepositoryImpl(
     private val mainImageService: MainImageService,
     private val commonRepository: CommonRepository
 ) : CustomNewsRepository {
-    override fun searchNews(
+    override fun findSearchDtosByIds(ids: List<Long>): List<NewsSearchDto> {
+        // in 질의는 순서를 보장하지 않는다. 부른 쪽이 정한 차례로 되돌린다.
+        val byId = queryFactory.selectFrom(newsEntity)
+            .where(newsEntity.id.`in`(ids))
+            .fetch()
+            .associateBy { it.id }
+        return ids.mapNotNull(byId::get).map(::toSearchDto)
+    }
+
+    override fun browseNews(
         tag: List<String>?,
-        keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
-        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): NewsSearchResponse {
-        val keywordBooleanBuilder = BooleanBuilder()
         val tagsBooleanBuilder = BooleanBuilder()
         val isPrivateBooleanBuilder = BooleanBuilder()
 
-        if (!keyword.isNullOrEmpty()) {
-            val booleanTemplate = commonRepository.searchFullDoubleTextTemplate(
-                keyword,
-                newsEntity.title,
-                newsEntity.plainTextDescription
-            )
-            keywordBooleanBuilder.and(booleanTemplate.gt(0.0))
-        }
         if (!tag.isNullOrEmpty()) {
             tag.forEach {
                 val tagEnum = TagInNewsEnum.getTagEnum(it)
@@ -111,11 +110,7 @@ class NewsRepositoryImpl(
 
         val jpaQuery = queryFactory.selectFrom(newsEntity)
             .leftJoin(newsTagEntity).on(newsTagEntity.news.eq(newsEntity))
-            .where(
-                keywordBooleanBuilder,
-                tagsBooleanBuilder,
-                isPrivateBooleanBuilder
-            )
+            .where(tagsBooleanBuilder, isPrivateBooleanBuilder)
 
         val total: Long
         var pageRequest = pageable
@@ -128,37 +123,27 @@ class NewsRepositoryImpl(
             total = (10 * pageable.pageSize).toLong() + 1 // 10개 페이지 고정
         }
 
-        val newsEntityQuery = jpaQuery
+        val newsSearchDtoList = jpaQuery
             .offset(pageRequest.offset)
             .limit(pageRequest.pageSize.toLong())
             .distinct()
+            .orderBy(newsEntity.date.desc())
+            .fetch()
+            .map(::toSearchDto)
 
-        val newsEntityList = when {
-            sortBy == ContentSearchSortType.DATE || keyword.isNullOrEmpty() ->
-                newsEntityQuery.orderBy(
-                    newsEntity.date.desc()
-                )
-
-            else /* sortBy == RELEVANCE */ -> newsEntityQuery
-        }.fetch()
-
-        val newsSearchDtoList: List<NewsSearchDto> = newsEntityList.map {
-            val imageURL = mainImageService.createImageURL(it.mainImage)
-            NewsSearchDto(
-                id = it.id,
-                title = it.title,
-                description = it.plainTextDescription,
-                createdAt = it.createdAt,
-                date = it.date,
-                tags = it.newsTags.map { newsTagEntity ->
-                    newsTagEntity.tag.name.krName
-                },
-                imageURL = imageURL,
-                isPrivate = it.isPrivate
-            )
-        }
         return NewsSearchResponse(total, newsSearchDtoList)
     }
+
+    private fun toSearchDto(news: NewsEntity) = NewsSearchDto(
+        id = news.id,
+        title = news.title,
+        description = news.plainTextDescription,
+        createdAt = news.createdAt,
+        date = news.date,
+        tags = news.newsTags.map { it.tag.name.krName },
+        imageURL = mainImageService.createImageURL(news.mainImage),
+        isPrivate = news.isPrivate
+    )
 
     override fun searchTotalNews(
         keyword: String,

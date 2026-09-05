@@ -78,9 +78,7 @@ class NoticeServiceImpl(
             offset = pageable.offset,
             size = pageable.pageSize
         )
-        // in 질의는 순서를 보장하지 않는다. ES 가 정한 차례로 되돌린다.
-        val byId = noticeRepository.findSearchDtosByIds(page.ids).associateBy { it.id }
-        return NoticeSearchResponse(page.total, page.ids.mapNotNull(byId::get))
+        return NoticeSearchResponse(page.total, noticeRepository.findSearchDtosByIds(page.ids))
     }
 
     @Transactional(readOnly = true)

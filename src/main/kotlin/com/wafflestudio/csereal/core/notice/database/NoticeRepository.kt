@@ -61,7 +61,7 @@ interface CustomNoticeRepository {
         isStaff: Boolean
     ): NoticeSearchResponse
 
-    /** 키워드 검색이 고른 id 들의 표시용 값. 순서는 부르는 쪽이 맞춘다. */
+    /** 키워드 검색이 고른 id 들의 표시용 값. 준 id 차례대로 돌려준다. */
     fun findSearchDtosByIds(ids: List<Long>): List<NoticeSearchDto>
 
     fun totalSearchNotice(keyword: String, number: Int, stringLength: Int, isStaff: Boolean): NoticeTotalSearchResponse
@@ -118,8 +118,11 @@ class NoticeRepositoryImpl(
         )
     }
 
-    override fun findSearchDtosByIds(ids: List<Long>): List<NoticeSearchDto> =
-        selectNoticeSearchDto().where(noticeEntity.id.`in`(ids)).fetch()
+    override fun findSearchDtosByIds(ids: List<Long>): List<NoticeSearchDto> {
+        // in 질의는 순서를 보장하지 않는다. 부른 쪽이 정한 차례로 되돌린다.
+        val byId = selectNoticeSearchDto().where(noticeEntity.id.`in`(ids)).fetch().associateBy { it.id }
+        return ids.mapNotNull(byId::get)
+    }
 
     override fun browseNotice(
         tag: List<String>?,
