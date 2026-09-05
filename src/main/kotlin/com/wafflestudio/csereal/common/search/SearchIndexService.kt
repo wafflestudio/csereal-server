@@ -24,11 +24,16 @@ class SearchIndexService(
      * 매번 새로 만드는 덕에 매핑·분석기 변경도 재시작만으로 반영된다.
      */
     @Transactional(readOnly = true)
-    fun reindexAll(): Map<SearchDomain, Int> {
+    fun reindexAll(): Map<SearchType, Int> {
         recreateIndex()
-        return providers.associate { provider ->
-            provider.domain to index(provider.collectAll())
+        val counts = mutableMapOf<SearchType, Int>()
+        // provider 단위로 넣는다 — 16,000건을 한꺼번에 메모리에 올리지 않기 위해.
+        providers.forEach { provider ->
+            val documents = provider.collectAll()
+            index(documents)
+            documents.forEach { counts.merge(it.type, 1, Int::plus) }
         }
+        return counts
     }
 
     fun serverVersion(): String = client.info().version().number()

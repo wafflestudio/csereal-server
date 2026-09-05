@@ -24,7 +24,7 @@ class SearchIndexInitializer(
         if (!enabled) return
 
         runCatching {
-            val counts: Map<SearchDomain, Int>
+            val counts: Map<SearchType, Int>
             val elapsed = measureTimeMillis { counts = searchIndexService.reindexAll() }
             logger.info(
                 "검색 색인 완료 {}ms, 총 {}건 {} (ES {})",

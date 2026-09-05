@@ -17,7 +17,7 @@
   "mappings": {
     "dynamic": "strict",
     "properties": {
-      "domain":    { "type": "keyword" },
+      "type":      { "type": "keyword" },
       "sourceId":  { "type": "long" },
       "titleKo":   { "type": "text", "analyzer": "korean" },
       "titleEn":   { "type": "text", "analyzer": "korean" },

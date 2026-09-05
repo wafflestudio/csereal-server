@@ -40,13 +40,6 @@ server:
                 same-site: lax
                 secure: true
 
-csereal:
-    search:
-        index: csereal-search
-        # 기동할 때마다 인덱스를 지우고 다시 만든다(약 6초). 마이그레이션이 JPA 밖에서
-        # 색인 테이블을 고치므로 이벤트만으로는 못 따라간다.
-        reindex-on-startup: true
-
 springdoc:
     paths-to-match:
         - /api/**
@@ -58,6 +51,11 @@ csereal:
         path: ./files/
     reservation:
         max-recurring-weeks: 20
+    search:
+        index: csereal-search
+        # 기동할 때마다 인덱스를 지우고 다시 만든다(약 6초). 마이그레이션이 JPA 밖에서
+        # 색인 테이블을 고치므로 이벤트만으로는 못 따라간다.
+        reindex-on-startup: true
 
 oldFiles:
     path: ./cse-files/

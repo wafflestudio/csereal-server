@@ -1,4 +1,4 @@
-package com.wafflestudio.csereal.core.notice.database
+package com.wafflestudio.csereal.core.news.database
 
 import com.wafflestudio.csereal.common.search.SearchDocument
 import com.wafflestudio.csereal.common.search.SearchDocumentProvider
@@ -6,13 +6,12 @@ import com.wafflestudio.csereal.common.search.SearchType
 import org.springframework.stereotype.Component
 
 @Component
-class NoticeSearchDocumentProvider(
-    private val noticeRepository: NoticeRepository
+class NewsSearchDocumentProvider(
+    private val newsRepository: NewsRepository
 ) : SearchDocumentProvider {
-    // 공지는 번역본이 없다. 한국어 필드만 채우면 한/영 화면 어디서든 걸린다.
-    override fun collectAll(): List<SearchDocument> = noticeRepository.findAll().map {
+    override fun collectAll(): List<SearchDocument> = newsRepository.findAll().map {
         SearchDocument(
-            type = SearchType.NOTICE,
+            type = SearchType.NEWS,
             sourceId = it.id,
             titleKo = it.title,
             titleEn = null,
