@@ -3,6 +3,8 @@ package com.wafflestudio.csereal.core.notice.service
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.ContentSearchSortType
+import com.wafflestudio.csereal.common.search.SearchListService
+import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.notice.api.req.CreateNoticeReq
 import com.wafflestudio.csereal.core.notice.api.req.UpdateNoticeReq
@@ -44,12 +46,17 @@ interface NoticeService {
 @Service
 class NoticeServiceImpl(
     private val noticeRepository: NoticeRepository,
+    private val searchListService: SearchListService,
     private val tagInNoticeRepository: TagInNoticeRepository,
     private val noticeTagRepository: NoticeTagRepository,
     private val attachmentService: AttachmentService,
     private val userService: UserService
 ) : NoticeService {
 
+    /**
+     * 키워드가 있으면 ES 가 거르고 정렬하고 페이지를 나눈다. 화면에 그릴 값은 그 id 로
+     * DB 에서 읽는다. 키워드 없이 태그만 훑을 때는 색인을 거칠 이유가 없다.
+     */
     @Transactional(readOnly = true)
     override fun searchNotice(
         tag: List<String>?,
@@ -58,7 +65,22 @@ class NoticeServiceImpl(
         usePageBtn: Boolean,
         sortBy: ContentSearchSortType
     ): NoticeSearchResponse {
-        return noticeRepository.searchNotice(tag, keyword, pageable, usePageBtn, sortBy, isCurrentUserStaff())
+        val isStaff = isCurrentUserStaff()
+        if (keyword.isNullOrEmpty()) {
+            return noticeRepository.browseNotice(tag, pageable, usePageBtn, isStaff)
+        }
+
+        val page = searchListService.searchIds(
+            type = SearchType.NOTICE,
+            keyword = keyword,
+            tags = tag.orEmpty().map { TagInNoticeEnum.getTagEnum(it).name },
+            isStaff = isStaff,
+            offset = pageable.offset,
+            size = pageable.pageSize
+        )
+        // in 질의는 순서를 보장하지 않는다. ES 가 정한 차례로 되돌린다.
+        val byId = noticeRepository.findSearchDtosByIds(page.ids).associateBy { it.id }
+        return NoticeSearchResponse(page.total, page.ids.mapNotNull(byId::get))
     }
 
     @Transactional(readOnly = true)
