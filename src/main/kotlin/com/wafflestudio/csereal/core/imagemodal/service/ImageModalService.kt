@@ -48,11 +48,8 @@ class ImageModalServiceImpl(
 
         imageModal.update(request)
 
-        if (newImage != null) {
-            val originalImage = imageModal.mainImage
-            mainImageService.uploadMainImage(imageModal, newImage)
-            originalImage?.let { mainImageService.removeImage(it) }
-        }
+        // 이미지가 곧 배너라 "이미지만 떼기"가 없다. 그만 띄우려면 모달을 지운다.
+        mainImageService.replaceMainImage(imageModal, newImage, removeImage = false)
         val imageUrl = mainImageService.createImageURL(imageModal.mainImage)!!
 
         return ImageModalDto.of(imageModal, imageUrl)

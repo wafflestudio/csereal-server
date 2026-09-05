@@ -1,9 +1,9 @@
 package com.wafflestudio.csereal.core.member.service
 
+import com.wafflestudio.csereal.core.member.database.syncSearch
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.main.event.RefreshSearchEvent
 import com.wafflestudio.csereal.core.member.api.res.MemberSearchResBody
-import com.wafflestudio.csereal.core.member.database.MemberSearchEntity
 import com.wafflestudio.csereal.core.member.database.MemberSearchRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.member.database.StaffRepository
@@ -34,15 +34,11 @@ class MemberSearchServiceImpl(
     @EventListener
     fun refreshSearchListener(event: RefreshSearchEvent) {
         professorRepository.findAll().flatMap { it.translations }.forEach { pf ->
-            pf.memberSearch?.update(pf) ?: let {
-                pf.memberSearch = MemberSearchEntity.create(pf)
-            }
+            pf.syncSearch()
         }
 
         staffRepository.findAll().flatMap { it.translations }.forEach { st ->
-            st.memberSearch?.update(st) ?: let {
-                st.memberSearch = MemberSearchEntity.create(st)
-            }
+            st.syncSearch()
         }
     }
 }

@@ -10,7 +10,6 @@ import com.wafflestudio.csereal.core.research.service.LabService
 import com.wafflestudio.csereal.core.research.service.ResearchSearchService
 import com.wafflestudio.csereal.core.research.service.ResearchService
 import com.wafflestudio.csereal.core.research.type.ResearchType
-import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
 import org.springframework.security.access.prepost.PreAuthorize
@@ -57,7 +56,6 @@ class ResearchController(
         researchId: Long,
         @RequestPart("request") request: ModifyResearchLanguageReqBody,
 
-        @Parameter(description = "image 교체할 경우 업로드. Request Body의 removeImage 관계없이 변경됨.")
         @RequestPart("newMainImage")
         newMainImage: MultipartFile?
     ): ResearchLanguageDto {

@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.conference.service
 
+import com.wafflestudio.csereal.core.research.database.syncSearch
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
@@ -90,10 +91,7 @@ class ConferenceServiceImpl(
 
         conferenceEntity.update(conferenceDto)
 
-        conferenceEntity.researchSearch?.update(conferenceEntity)
-            ?: let {
-                conferenceEntity.researchSearch = ResearchSearchEntity.create(conferenceEntity)
-            }
+        conferenceEntity.syncSearch()
 
         return conferenceEntity
     }

@@ -117,9 +117,7 @@ class AcademicsServiceImpl(
             ) ?: throw CserealException(ErrorCode.GUIDE_NOT_FOUND)
 
         academicsEntity.description = request.description
-        academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
-            academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
-        }
+        academicsEntity.syncSearch()
 
         attachmentService.syncAttachments(academicsEntity, request.attachmentIds, newAttachments)
     }
@@ -141,9 +139,7 @@ class AcademicsServiceImpl(
         ) ?: throw CserealException(ErrorCode.ACADEMICS_NOT_FOUND)
 
         academicsEntity.description = request.description
-        academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
-            academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
-        }
+        academicsEntity.syncSearch()
 
         attachmentService.syncAttachments(academicsEntity, request.attachmentIds, newAttachments)
     }
@@ -245,9 +241,7 @@ class AcademicsServiceImpl(
             ) ?: throw CserealException(ErrorCode.DEGREE_REQUIREMENTS_NOT_FOUND)
 
         academicsEntity.description = request.description
-        academicsEntity.academicsSearch?.update(academicsEntity) ?: let {
-            academicsEntity.academicsSearch = AcademicsSearchEntity.create(academicsEntity)
-        }
+        academicsEntity.syncSearch()
 
         attachmentService.syncAttachments(academicsEntity, request.attachmentIds, newAttachments)
     }
@@ -311,9 +305,7 @@ class AcademicsServiceImpl(
                 description = langSpecificData.description
                 classification = langSpecificData.classification
             }
-            course.academicsSearch?.update(course) ?: let {
-                course.academicsSearch = AcademicsSearchEntity.create(course)
-            }
+            course.syncSearch()
         }
     }
 
@@ -338,9 +330,7 @@ class AcademicsServiceImpl(
         ) ?: throw CserealException(ErrorCode.SCHOLARSHIP_NOT_FOUND)
 
         scholarshipPage.description = request.description
-        scholarshipPage.academicsSearch?.update(scholarshipPage) ?: let {
-            scholarshipPage.academicsSearch = AcademicsSearchEntity.create(scholarshipPage)
-        }
+        scholarshipPage.syncSearch()
     }
 
     @Transactional(readOnly = true)
@@ -396,8 +386,7 @@ class AcademicsServiceImpl(
                 ?: throw CserealException(ErrorCode.SCHOLARSHIP_NOT_FOUND)
             translation.name = content.name
             translation.description = content.description
-            translation.academicsSearch?.update(translation)
-                ?: let { translation.academicsSearch = AcademicsSearchEntity.create(translation) }
+            translation.syncSearch()
         }
     }
 

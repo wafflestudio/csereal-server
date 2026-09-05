@@ -68,25 +68,16 @@ class AcademicsSearchServiceImpl(
 
     @Transactional
     override fun syncAcademicsSearch(academics: AcademicsEntity) {
-        academics.academicsSearch?.update(academics)
-            ?: let {
-                academics.academicsSearch = AcademicsSearchEntity.create(academics)
-            }
+        academics.syncSearch()
     }
 
     @Transactional
     override fun syncScholarshipSearch(scholarship: ScholarshipTranslationEntity) {
-        scholarship.academicsSearch?.update(scholarship)
-            ?: let {
-                scholarship.academicsSearch = AcademicsSearchEntity.create(scholarship)
-            }
+        scholarship.syncSearch()
     }
 
     @Transactional
     override fun syncCourseSearch(course: CourseEntity) {
-        course.academicsSearch?.update(course)
-            ?: let {
-                course.academicsSearch = AcademicsSearchEntity.create(course)
-            }
+        course.syncSearch()
     }
 }

@@ -5,7 +5,6 @@ import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.StringListConverter
 import jakarta.persistence.*
 
-// 교수의 한 언어판. 직급·학과 표기·학력·연구분야·경력은 언어마다 다르다.
 @Entity(name = "professor_translation")
 class ProfessorTranslationEntity(
     @ManyToOne(fetch = FetchType.LAZY)

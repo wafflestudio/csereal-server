@@ -26,4 +26,9 @@ class AboutEntity(
 ) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable {
     fun translationOf(language: LanguageType): AboutTranslationEntity? =
         translations.firstOrNull { it.language == language }
+
+    override fun attach(attachment: AttachmentEntity) {
+        attachments.add(attachment)
+        attachment.about = this
+    }
 }

@@ -70,4 +70,9 @@ class NewsEntity(
         this.isImportant = updateNewsRequest.isImportant
         this.importantUntil = if (updateNewsRequest.isImportant) updateNewsRequest.importantUntil else null
     }
+
+    override fun attach(attachment: AttachmentEntity) {
+        attachments.add(attachment)
+        attachment.news = this
+    }
 }

@@ -7,7 +7,6 @@ import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEnti
 import jakarta.persistence.*
 
 // 연구실 자체. PDF·소속 그룹·소속 교수·연락처는 언어와 무관하다.
-// (예전엔 PDF 가 언어별 행마다 따로 저장돼 같은 파일이 두 벌 남았다.)
 @Entity(name = "lab")
 class LabEntity(
     @ManyToOne(fetch = FetchType.LAZY)

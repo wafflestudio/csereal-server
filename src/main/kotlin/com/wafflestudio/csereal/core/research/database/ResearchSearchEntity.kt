@@ -113,3 +113,15 @@ class ResearchSearchEntity(
         this.content = createContent(conference)
     }
 }
+
+fun ResearchTranslationEntity.syncSearch() {
+    researchSearch?.update(this) ?: run { researchSearch = ResearchSearchEntity.create(this) }
+}
+
+fun LabTranslationEntity.syncSearch() {
+    researchSearch?.update(this) ?: run { researchSearch = ResearchSearchEntity.create(this) }
+}
+
+fun ConferenceEntity.syncSearch() {
+    researchSearch?.update(this) ?: run { researchSearch = ResearchSearchEntity.create(this) }
+}

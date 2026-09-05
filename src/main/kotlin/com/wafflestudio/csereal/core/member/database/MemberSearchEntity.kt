@@ -105,3 +105,11 @@ class MemberSearchEntity(
         this.content = createContent(staff)
     }
 }
+
+fun ProfessorTranslationEntity.syncSearch() {
+    memberSearch?.update(this) ?: run { memberSearch = MemberSearchEntity.create(this) }
+}
+
+fun StaffTranslationEntity.syncSearch() {
+    memberSearch?.update(this) ?: run { memberSearch = MemberSearchEntity.create(this) }
+}

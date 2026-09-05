@@ -5,7 +5,6 @@ import com.wafflestudio.csereal.core.member.database.StaffTranslationEntity
 import com.wafflestudio.csereal.common.enums.LanguageType
 
 // 요청 본문과 같은 모양이다 — 언어와 무관한 값은 최상위, 언어별 값만 ko/en 안에.
-// 예전엔 공유값이 ko·en 양쪽에 복제돼 있어서 화면이 "아무 쪽에서나 꺼내" 쓰고 있었다.
 data class StaffLanguagesDto(
     val id: Long,
     val phone: String,

@@ -76,4 +76,9 @@ class NoticeEntity(
         this.isImportant = updateNoticeRequest.isImportant
         this.importantUntil = if (updateNoticeRequest.isImportant) updateNoticeRequest.importantUntil else null
     }
+
+    override fun attach(attachment: AttachmentEntity) {
+        attachments.add(attachment)
+        attachment.notice = this
+    }
 }

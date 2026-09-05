@@ -5,7 +5,7 @@ import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.StringListConverter
 import jakarta.persistence.*
 
-// 행정직원의 한 언어판. 검색 색인은 언어별이라 여기 붙는다.
+// 검색 색인은 언어별이라 번역본에 붙는다.
 @Entity(name = "staff_translation")
 class StaffTranslationEntity(
     @ManyToOne(fetch = FetchType.LAZY)

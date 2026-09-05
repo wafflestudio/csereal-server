@@ -92,21 +92,10 @@ class AboutServiceImpl(
             syncSearchOfTranslation(translation)
         }
 
-        updateMainImage(about, newMainImage, request.removeImage)
+        mainImageService.replaceMainImage(about, newMainImage, request.removeImage)
 
-        // 첨부는 콘텐츠에 한 벌뿐이다 — 예전엔 한/영에 따로 붙어 같은 파일이 두 벌 올라갔다.
+        // 첨부는 콘텐츠에 한 벌뿐이다.
         attachmentService.syncAttachments(about, request.attachmentIds, newAttachments)
-    }
-
-    // 사진도 콘텐츠에 하나뿐이라 한 번만 처리한다.
-    private fun updateMainImage(about: AboutEntity, newMainImage: MultipartFile?, removeImage: Boolean) {
-        if (newMainImage != null) {
-            about.mainImage?.let { mainImageService.removeImage(it) }
-            mainImageService.uploadMainImage(about, newMainImage)
-        } else if (removeImage) {
-            about.mainImage?.let { mainImageService.removeImage(it) }
-            about.mainImage = null
-        }
     }
 
     @Transactional
@@ -125,7 +114,7 @@ class AboutServiceImpl(
         }
         club.translations.forEach { it.syncSearchContent() }
 
-        // 사진은 동아리에 하나뿐이다 — 예전엔 언어별로 한 번씩 올라가 두 벌 남았다.
+        // 사진은 동아리에 하나뿐이라 한 번만 올린다.
         if (mainImage != null) {
             mainImageService.uploadMainImage(club, mainImage)
         }
@@ -146,7 +135,7 @@ class AboutServiceImpl(
             translation.syncSearchContent()
         }
 
-        updateMainImage(club, newMainImage, request.removeImage)
+        mainImageService.replaceMainImage(club, newMainImage, request.removeImage)
     }
 
     @Transactional
@@ -215,7 +204,7 @@ class AboutServiceImpl(
             translation.syncSearchContent()
         }
 
-        updateMainImage(facility, newMainImage, request.removeImage)
+        mainImageService.replaceMainImage(facility, newMainImage, request.removeImage)
     }
 
     @Transactional
