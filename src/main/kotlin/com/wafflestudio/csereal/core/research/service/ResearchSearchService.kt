@@ -42,21 +42,15 @@ class ResearchSearchServiceImpl(
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun refreshSearchListener(event: RefreshSearchEvent) {
         labRepository.findAll().flatMap { it.translations }.forEach {
-            it.researchSearch?.update(it) ?: let { _ ->
-                it.researchSearch = ResearchSearchEntity.create(it)
-            }
+            it.syncSearch()
         }
 
         researchRepository.findAll().flatMap { it.translations }.forEach {
-            it.researchSearch?.update(it) ?: let { _ ->
-                it.researchSearch = ResearchSearchEntity.create(it)
-            }
+            it.syncSearch()
         }
 
         conferenceRepository.findAll().forEach {
-            it.researchSearch?.update(it) ?: let { _ ->
-                it.researchSearch = ResearchSearchEntity.create(it)
-            }
+            it.syncSearch()
         }
     }
 

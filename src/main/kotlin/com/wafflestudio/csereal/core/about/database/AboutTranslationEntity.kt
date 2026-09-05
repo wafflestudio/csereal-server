@@ -6,7 +6,6 @@ import com.wafflestudio.csereal.common.utils.StringListConverter
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import jakarta.persistence.*
 
-// 학부 소개의 한 언어판.
 // locations 는 주소 표기라 언어별로 다르다(["302동 310-2호"] / ["301B 310-2"]).
 @Entity(name = "about_translation")
 class AboutTranslationEntity(

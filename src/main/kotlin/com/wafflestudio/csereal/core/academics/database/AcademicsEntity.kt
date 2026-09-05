@@ -48,4 +48,9 @@ class AcademicsEntity(
             )
         }
     }
+
+    override fun attach(attachment: AttachmentEntity) {
+        attachments.add(attachment)
+        attachment.academics = this
+    }
 }

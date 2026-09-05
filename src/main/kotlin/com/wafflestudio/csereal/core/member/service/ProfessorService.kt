@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.member.service
 
+import com.wafflestudio.csereal.core.member.database.syncSearch
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
@@ -89,7 +90,7 @@ class ProfessorServiceImpl(
             )
         }
 
-        // 사진은 사람에게 하나뿐이다 — 예전엔 언어별로 한 번씩 올라가 같은 파일이 두 벌 남았다.
+        // 사진은 사람에게 하나뿐이라 한 번만 올린다.
         if (mainImage != null) {
             mainImageService.uploadMainImage(professor, mainImage)
         }
@@ -169,19 +170,10 @@ class ProfessorServiceImpl(
             translation.educations = content.educations.map { it.trim() }.toMutableList()
             translation.researchAreas = content.researchAreas.map { it.trim() }.toMutableList()
             translation.careers = content.careers.map { it.trim() }.toMutableList()
-            translation.memberSearch?.update(translation)
-                ?: let { translation.memberSearch = MemberSearchEntity.create(translation) }
+            translation.syncSearch()
         }
 
-        if (req.removeImage && newImage == null) {
-            professor.mainImage?.let {
-                mainImageService.removeImage(it)
-                professor.mainImage = null
-            }
-        } else if (newImage != null) {
-            professor.mainImage?.let { mainImageService.removeImage(it) }
-            mainImageService.uploadMainImage(professor, newImage)
-        }
+        mainImageService.replaceMainImage(professor, newImage, req.removeImage)
 
         applicationEventPublisher.publishEvent(ProfessorModifiedEvent.of(professor, outdatedLabId))
         return professor.toLanguagesDto()

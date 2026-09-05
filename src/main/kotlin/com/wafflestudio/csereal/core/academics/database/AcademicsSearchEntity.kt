@@ -136,3 +136,15 @@ enum class AcademicsSearchType {
     @com.fasterxml.jackson.annotation.JsonValue
     fun toValue() = name.lowercase().replace('_', '-')
 }
+
+fun AcademicsEntity.syncSearch() {
+    academicsSearch?.update(this) ?: run { academicsSearch = AcademicsSearchEntity.create(this) }
+}
+
+fun CourseEntity.syncSearch() {
+    academicsSearch?.update(this) ?: run { academicsSearch = AcademicsSearchEntity.create(this) }
+}
+
+fun ScholarshipTranslationEntity.syncSearch() {
+    academicsSearch?.update(this) ?: run { academicsSearch = AcademicsSearchEntity.create(this) }
+}

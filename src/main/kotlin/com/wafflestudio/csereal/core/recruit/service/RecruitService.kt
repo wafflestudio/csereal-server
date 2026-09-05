@@ -68,13 +68,11 @@ class RecruitServiceImpl(
             }
         }
 
-        if (modifiedRecruitEntity.mainImage != null &&
-            (newMainImage != null || modifyRecruitReqBody.removeImage)
-        ) {
-            mainImageService.removeImage(modifiedRecruitEntity.mainImage!!)
-            modifiedRecruitEntity.mainImage = null
-        }
-        newMainImage?.let { mainImageService.uploadMainImage(modifiedRecruitEntity, it) }
+        mainImageService.replaceMainImage(
+            modifiedRecruitEntity,
+            newMainImage,
+            modifyRecruitReqBody.removeImage
+        )
 
         return modifiedRecruitEntity.let {
             recruitRepository.save(it)

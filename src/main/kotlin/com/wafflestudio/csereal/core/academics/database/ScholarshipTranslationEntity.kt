@@ -4,7 +4,6 @@ import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.enums.LanguageType
 import jakarta.persistence.*
 
-// 장학금의 한 언어판.
 // name 은 실측상 12쌍이 전부 같지만(아직 영문화가 안 됐다) 번역 대상 콘텐츠라 여기에 둔다.
 // 부모로 올리면 앞으로도 번역할 수 없게 된다.
 @Entity(name = "scholarship_translation")

@@ -116,13 +116,7 @@ class SeminarServiceImpl(
 
         seminar.update(request)
 
-        if (newMainImage != null) {
-            seminar.mainImage?.let { mainImageService.removeImage(it) }
-            mainImageService.uploadMainImage(seminar, newMainImage)
-        } else if (request.removeImage) {
-            seminar.mainImage?.let { mainImageService.removeImage(it) }
-            seminar.mainImage = null
-        }
+        mainImageService.replaceMainImage(seminar, newMainImage, request.removeImage)
 
         attachmentService.syncAttachments(seminar, request.attachmentIds, newAttachments)
 

@@ -139,13 +139,7 @@ class NewsServiceImpl(
 
         news.update(request)
 
-        if (newMainImage != null) {
-            news.mainImage?.let { mainImageService.removeImage(it) }
-            mainImageService.uploadMainImage(news, newMainImage)
-        } else if (request.removeImage) {
-            news.mainImage?.let { mainImageService.removeImage(it) }
-            news.mainImage = null
-        }
+        mainImageService.replaceMainImage(news, newMainImage, request.removeImage)
 
         attachmentService.syncAttachments(news, request.attachmentIds, newAttachments)
 
