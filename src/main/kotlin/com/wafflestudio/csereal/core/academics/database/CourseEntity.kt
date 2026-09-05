@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.academics.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
+import com.wafflestudio.csereal.common.search.SearchIndexed
+import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.enums.LanguageType
 import jakarta.persistence.*
 
@@ -24,7 +26,10 @@ class CourseEntity(
     @OneToOne(mappedBy = "course", cascade = [CascadeType.ALL], orphanRemoval = true)
     var academicsSearch: AcademicsSearchEntity? = null
 
-) : BaseTimeEntity() {
+) : BaseTimeEntity(), SearchIndexed {
+
+    override val searchType get() = SearchType.COURSE
+    override val searchSourceId get() = id
 
     companion object {
         fun of(

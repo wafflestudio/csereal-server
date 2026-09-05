@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
+import com.wafflestudio.csereal.common.search.SearchIndexed
+import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.StringListConverter
 import jakarta.persistence.*
@@ -27,4 +29,8 @@ class StaffTranslationEntity(
 
     @OneToOne(mappedBy = "staff", cascade = [CascadeType.ALL], orphanRemoval = true)
     var memberSearch: MemberSearchEntity? = null
-) : BaseTimeEntity()
+) : BaseTimeEntity(), SearchIndexed {
+
+    override val searchType get() = SearchType.STAFF
+    override val searchSourceId get() = staff.id
+}

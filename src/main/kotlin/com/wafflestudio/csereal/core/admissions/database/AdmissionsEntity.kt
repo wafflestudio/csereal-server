@@ -7,6 +7,8 @@ import com.wafflestudio.csereal.core.admissions.api.req.AdmissionReqBody
 import com.wafflestudio.csereal.core.admissions.dto.AdmissionsDto
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsMainType
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsPostType
+import com.wafflestudio.csereal.common.search.SearchIndexed
+import com.wafflestudio.csereal.common.search.SearchType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -37,7 +39,11 @@ class AdmissionsEntity(
 
     @Column(nullable = false, columnDefinition = "mediumText")
     var searchContent: String
-) : BaseTimeEntity() {
+) : BaseTimeEntity(), SearchIndexed {
+
+    override val searchType get() = SearchType.ADMISSIONS
+    override val searchSourceId get() = id
+
     companion object {
         fun of(
             mainType: AdmissionsMainType,

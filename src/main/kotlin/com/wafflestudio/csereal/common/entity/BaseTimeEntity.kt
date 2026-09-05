@@ -3,11 +3,12 @@ package com.wafflestudio.csereal.common.entity
 import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
+import com.wafflestudio.csereal.common.search.SearchSyncEntityListener
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDateTime
 
 @MappedSuperclass
-@EntityListeners(AuditingEntityListener::class)
+@EntityListeners(AuditingEntityListener::class, SearchSyncEntityListener::class)
 abstract class BaseTimeEntity {
     @CreatedDate
     @Column(columnDefinition = "datetime(6) default '1999-01-01'")

@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.conference.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
+import com.wafflestudio.csereal.common.search.SearchIndexed
+import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.conference.dto.ConferenceDto
 import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
@@ -21,7 +23,11 @@ class ConferenceEntity(
 
     @OneToOne(mappedBy = "conferenceElement", cascade = [CascadeType.ALL], orphanRemoval = true)
     var researchSearch: ResearchSearchEntity? = null
-) : BaseTimeEntity() {
+) : BaseTimeEntity(), SearchIndexed {
+
+    override val searchType get() = SearchType.CONFERENCE
+    override val searchSourceId get() = id
+
     companion object {
         fun of(
             languageType: LanguageType,

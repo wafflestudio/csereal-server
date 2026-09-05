@@ -1,6 +1,7 @@
 package com.wafflestudio.csereal.common.search
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient
+import co.elastic.clients.elasticsearch._types.Refresh
 import co.elastic.clients.elasticsearch.indices.CreateIndexRequest
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -37,6 +38,25 @@ class SearchIndexService(
     }
 
     fun serverVersion(): String = client.info().version().number()
+
+    // refresh=wait_for — 넣자마자 검색되게 한다. ES 는 기본 1초 지연이 있어
+    // 글을 저장하고 바로 검색하면 안 나온다(시드 직후 검증하는 E2E 가 그 경우다).
+    fun indexOne(document: SearchDocument) {
+        client.index { request ->
+            request.index(indexName)
+                .id(document.documentId())
+                .document(document)
+                .refresh(Refresh.WaitFor)
+        }
+    }
+
+    fun deleteOne(type: SearchType, sourceId: Long) {
+        client.delete { request ->
+            request.index(indexName)
+                .id("${'$'}{type.toValue()}:${'$'}sourceId")
+                .refresh(Refresh.WaitFor)
+        }
+    }
 
     private fun recreateIndex() {
         client.indices().delete { it.index(indexName).ignoreUnavailable(true) }
