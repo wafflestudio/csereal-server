@@ -18,6 +18,10 @@ data class SearchResElement(
     val title: String,
     @Schema(description = "이 결과가 사는 화면 경로(로케일 프리픽스 없음). 그대로 링크에 쓴다.")
     val url: String,
+    @Schema(description = "목록에 띄울 사진. 없으면 null.")
+    val thumbnailUrl: String?,
+    @Schema(description = "글이 생긴 날. 날짜가 의미 없는 정적 페이지는 null.")
+    val date: String?,
     @Schema(description = "본문 미리보기. hit=true 인 조각이 검색어와 맞은 부분이다.")
     val preview: List<PreviewSegment>
 )

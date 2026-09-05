@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.research.database
 
+import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.common.search.SearchDocument
 import com.wafflestudio.csereal.common.search.SearchDocumentProvider
 import com.wafflestudio.csereal.common.search.SearchType
@@ -11,7 +12,8 @@ import org.springframework.stereotype.Component
 class ResearchSearchDocumentProvider(
     private val researchRepository: ResearchRepository,
     private val labRepository: LabRepository,
-    private val conferenceRepository: ConferenceRepository
+    private val conferenceRepository: ConferenceRepository,
+    private val mainImageService: MainImageService
 ) : SearchDocumentProvider {
     override fun collectAll(): List<SearchDocument> {
         val translations = researchRepository.findAll().flatMap { it.translations }
@@ -54,6 +56,7 @@ class ResearchSearchDocumentProvider(
         language = { it.language },
         title = { it.name },
         body = { ResearchSearchEntity.createContent(it) },
-        url = { "/research/$pathSegment/${it.research.id}" }
+        url = { "/research/$pathSegment/${it.research.id}" },
+        thumbnailUrl = { mainImageService.createImageURL(it.research.mainImage) }
     )
 }

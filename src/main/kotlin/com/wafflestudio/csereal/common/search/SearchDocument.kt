@@ -32,6 +32,11 @@ data class SearchDocument(
      * provider 가 기존 enum 에서 조립해 문서에 담는다.
      */
     val url: String,
+    /**
+     * 목록에 띄울 사진(새소식·교수·연구실 등). 절대 URL 이라 환경마다 다르지만
+     * 기동할 때마다 재색인하므로 항상 그 환경의 값이다.
+     */
+    val thumbnailUrl: String?,
     // Kotlin 의 is 접두사 프로퍼티는 게터가 isPrivate() 라 Jackson 이 이름을 private 으로 줄인다.
     // 매핑에 없는 이름이 되어 strict 인덱스가 거절한다.
     @get:JsonProperty("isPrivate")
@@ -61,6 +66,7 @@ data class SearchDocument(
             title: (ROW) -> String?,
             body: (ROW) -> String?,
             url: (ROW) -> String,
+            thumbnailUrl: (ROW) -> String? = { null },
             createdAt: (ROW) -> LocalDateTime? = { null }
         ): List<SearchDocument> = rows.groupBy(groupBy).map { (_, group) ->
             val ko = group.find { language(it) == LanguageType.KO }
@@ -74,6 +80,7 @@ data class SearchDocument(
                 bodyKo = ko?.let(body),
                 bodyEn = en?.let(body),
                 url = url(representative),
+                thumbnailUrl = thumbnailUrl(representative),
                 createdAt = timestamp(createdAt(representative))
             )
         }

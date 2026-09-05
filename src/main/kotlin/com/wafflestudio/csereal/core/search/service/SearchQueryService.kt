@@ -80,6 +80,8 @@ class SearchQueryService(
             id = document.sourceId,
             title = title,
             url = document.url,
+            thumbnailUrl = document.thumbnailUrl,
+            date = document.createdAt,
             preview = preview(hit, document, korean)
         )
     }

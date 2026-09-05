@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.member.database
 
+import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.common.search.SearchDocument
 import com.wafflestudio.csereal.common.search.SearchDocumentProvider
 import com.wafflestudio.csereal.common.search.SearchType
@@ -13,7 +14,8 @@ import org.springframework.stereotype.Component
 @Component
 class MemberSearchDocumentProvider(
     private val professorRepository: ProfessorRepository,
-    private val staffRepository: StaffRepository
+    private val staffRepository: StaffRepository,
+    private val mainImageService: MainImageService
 ) : SearchDocumentProvider {
     override fun collectAll(): List<SearchDocument> {
         val translations = professorRepository.findAll().flatMap { it.translations }
@@ -31,7 +33,8 @@ class MemberSearchDocumentProvider(
                 language = { it.language },
                 title = { it.name },
                 body = { MemberSearchEntity.createContent(it) },
-                url = { "/people/staff/${it.staff.id}" }
+                url = { "/people/staff/${it.staff.id}" },
+                thumbnailUrl = { mainImageService.createImageURL(it.staff.mainImage) }
             )
     }
 
@@ -47,6 +50,7 @@ class MemberSearchDocumentProvider(
         language = { it.language },
         title = { it.name },
         body = { MemberSearchEntity.createContent(it) },
-        url = { "/people/$pathSegment/${it.professor.id}" }
+        url = { "/people/$pathSegment/${it.professor.id}" },
+        thumbnailUrl = { mainImageService.createImageURL(it.professor.mainImage) }
     )
 }

@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.news.database
 
+import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.common.search.SearchDocument
 import com.wafflestudio.csereal.common.search.SearchDocumentProvider
 import com.wafflestudio.csereal.common.search.SearchType
@@ -7,7 +8,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class NewsSearchDocumentProvider(
-    private val newsRepository: NewsRepository
+    private val newsRepository: NewsRepository,
+    private val mainImageService: MainImageService
 ) : SearchDocumentProvider {
     override fun collectAll(): List<SearchDocument> = newsRepository.findAll().map(::toDocument)
 
@@ -27,6 +29,7 @@ class NewsSearchDocumentProvider(
         bodyKo = news.plainTextDescription,
         bodyEn = null,
         url = "/community/news/${news.id}",
+        thumbnailUrl = mainImageService.createImageURL(news.mainImage),
         createdAt = SearchDocument.timestamp(news.createdAt),
         isPrivate = news.isPrivate
     )

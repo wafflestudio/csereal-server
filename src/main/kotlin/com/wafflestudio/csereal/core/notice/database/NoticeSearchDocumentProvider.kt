@@ -28,6 +28,7 @@ class NoticeSearchDocumentProvider(
         bodyKo = notice.plainTextDescription,
         bodyEn = null,
         url = "/community/notice/${notice.id}",
+        thumbnailUrl = null,
         createdAt = SearchDocument.timestamp(notice.createdAt),
         isPrivate = notice.isPrivate
     )

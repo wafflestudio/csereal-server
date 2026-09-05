@@ -1,5 +1,6 @@
 package com.wafflestudio.csereal.core.seminar.database
 
+import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import com.wafflestudio.csereal.common.search.SearchDocument
 import com.wafflestudio.csereal.common.search.SearchDocumentProvider
 import com.wafflestudio.csereal.common.search.SearchType
@@ -7,7 +8,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class SeminarSearchDocumentProvider(
-    private val seminarRepository: SeminarRepository
+    private val seminarRepository: SeminarRepository,
+    private val mainImageService: MainImageService
 ) : SearchDocumentProvider {
     override fun collectAll(): List<SearchDocument> = seminarRepository.findAll().map(::toDocument)
 
@@ -34,6 +36,7 @@ class SeminarSearchDocumentProvider(
         ).joinToString("\n"),
         bodyEn = null,
         url = "/community/seminar/${seminar.id}",
+        thumbnailUrl = mainImageService.createImageURL(seminar.mainImage),
         createdAt = SearchDocument.timestamp(seminar.startDate),
         isPrivate = seminar.isPrivate
     )
