@@ -2,6 +2,7 @@ package com.wafflestudio.csereal.core.search.service
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient
 import co.elastic.clients.elasticsearch._types.FieldValue
+import co.elastic.clients.elasticsearch.core.search.HighlighterType
 import co.elastic.clients.elasticsearch.core.search.Hit
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.search.SearchDocument
@@ -55,6 +56,10 @@ class SearchQueryService(
                         // 표시자로 제어문자를 쓴다. <em> 같은 태그를 쓰면 원문에 같은 글자가
                         // 있을 때 조각 나누기가 어긋난다.
                         hl.preTags(HIT_OPEN).postTags(HIT_CLOSE)
+                            // 기본 하이라이터는 문장 경계에서 끊어, 검색어가 든 문장이 짧으면
+                            // fragmentSize 와 무관하게 그 문장만 돌려준다(실측 평균 118자).
+                            // plain 은 문장을 보지 않고 창을 채운다.
+                            .type(HighlighterType.Plain)
                             .fragmentSize(FRAGMENT_SIZE)
                             .numberOfFragments(1)
                         HIGHLIGHT_FIELDS.forEach { field -> hl.fields(field) { it } }
@@ -102,11 +107,11 @@ class SearchQueryService(
 
         val body = (if (korean) document.bodyKo else document.bodyEn)
             ?: document.bodyKo ?: return emptyList()
-        return listOf(PreviewSegment(body.take(FRAGMENT_SIZE), hit = false))
+        return listOf(PreviewSegment(body.trim().take(FRAGMENT_SIZE), hit = false))
     }
 
-    private fun toSegments(fragment: String): List<PreviewSegment> =
-        fragment.split(HIT_OPEN).flatMapIndexed { index, chunk ->
+    private fun toSegments(fragment: String): List<PreviewSegment> {
+        val segments = fragment.split(HIT_OPEN).flatMapIndexed { index, chunk ->
             if (index == 0) {
                 listOf(PreviewSegment(chunk, hit = false))
             } else {
@@ -118,13 +123,26 @@ class SearchQueryService(
             }
         }.filter { it.text.isNotEmpty() }
 
+        // 본문에 개행·들여쓰기가 그대로 들어 있어 조각이 공백으로 시작·끝나는 일이 잦다.
+        return segments.mapIndexed { index, segment ->
+            var text = segment.text
+            if (index == 0) text = text.trimStart()
+            if (index == segments.lastIndex) text = text.trimEnd()
+            segment.copy(text = text)
+        }.filter { it.text.isNotEmpty() }
+    }
+
     companion object {
         private val SEARCH_FIELDS = listOf("titleKo^3", "titleEn^3", "bodyKo", "bodyEn")
         private val HIGHLIGHT_FIELDS = listOf("bodyKo", "bodyEn")
         private const val HIT_OPEN = "\u0002"
         private const val HIT_CLOSE = "\u0003"
 
-        // 프론트가 2줄로 그린다. 받은 것을 다 보여주는 길이.
-        private const val FRAGMENT_SIZE = 110
+        /**
+         * 프론트는 2줄(약 170자)만 보여주고 나머지는 자른다. 넉넉히 넘겨 두 줄이 늘 차게 한다.
+         * 무작정 키우면 안 된다 — 창이 커질수록 강조가 조각 뒤로 밀려 잘린 부분에 들어간다.
+         * 실측(검색어 10개 × 상위 20건): 240 은 강조가 안 보이는 게 4/184, 300 부터 13/184.
+         */
+        private const val FRAGMENT_SIZE = 240
     }
 }
