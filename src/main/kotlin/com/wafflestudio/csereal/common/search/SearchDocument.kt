@@ -22,6 +22,10 @@ data class SearchDocument(
     val titleEn: String?,
     val bodyKo: String?,
     val bodyEn: String?,
+    /**
+     * 목록에 보이고 정렬 기준이 되는 날짜. 글이 만들어진 시각과는 다를 수 있다 —
+     * 새소식은 date, 세미나는 startDate 가 그 자리를 대신한다.
+     */
     val createdAt: String?,
     /**
      * 이 문서가 사는 화면의 경로(로케일 프리픽스 없이). 프론트가 그대로 링크에 쓴다.
@@ -40,7 +44,15 @@ data class SearchDocument(
     // Kotlin 의 is 접두사 프로퍼티는 게터가 isPrivate() 라 Jackson 이 이름을 private 으로 줄인다.
     // 매핑에 없는 이름이 되어 strict 인덱스가 거절한다.
     @get:JsonProperty("isPrivate")
-    val isPrivate: Boolean = false
+    val isPrivate: Boolean = false,
+    /**
+     * 게시판 목록의 태그 필터용. 표시에는 안 쓴다(칩 라벨은 프론트가 만든다).
+     * 공지·새소식만 태그가 있고 나머지는 빈 목록이다.
+     */
+    val tags: List<String> = emptyList(),
+    // 공지 목록은 고정글을 맨 위에 올린다. 정렬을 ES 가 하므로 그 값도 여기 있어야 한다.
+    @get:JsonProperty("isPinned")
+    val isPinned: Boolean = false
 ) {
     // 재색인이 삽입이 아니라 덮어쓰기가 되도록 id 를 내용에서 만든다.
     // getter 모양이 아니라서 문서 본문(dynamic: strict)에는 실리지 않는다.

@@ -30,6 +30,10 @@ class NoticeSearchDocumentProvider(
         url = "/community/notice/${notice.id}",
         thumbnailUrl = null,
         createdAt = SearchDocument.timestamp(notice.createdAt),
-        isPrivate = notice.isPrivate
+        isPrivate = notice.isPrivate,
+        // 프론트는 태그를 한글 이름("장학")으로 보내지만 색인에는 enum 이름을 넣는다.
+        // 한글 이름을 바꿔도 재색인이 필요 없다.
+        tags = notice.noticeTags.map { it.tag.name.name },
+        isPinned = notice.isPinned
     )
 }

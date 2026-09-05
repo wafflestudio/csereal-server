@@ -30,7 +30,9 @@ class NewsSearchDocumentProvider(
         bodyEn = null,
         url = "/community/news/${news.id}",
         thumbnailUrl = mainImageService.createImageURL(news.mainImage),
-        createdAt = SearchDocument.timestamp(news.createdAt),
-        isPrivate = news.isPrivate
+        // 목록·상세가 보여주고 정렬 기준으로 쓰는 건 글이 생긴 시각이 아니라 이 date 다.
+        createdAt = SearchDocument.timestamp(news.date),
+        isPrivate = news.isPrivate,
+        tags = news.newsTags.map { it.tag.name.name }
     )
 }

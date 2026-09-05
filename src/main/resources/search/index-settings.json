@@ -26,7 +26,9 @@
       "url":       { "type": "keyword", "index": false },
       "thumbnailUrl": { "type": "keyword", "index": false },
       "createdAt": { "type": "date" },
-      "isPrivate": { "type": "boolean" }
+      "isPrivate": { "type": "boolean" },
+      "tags":      { "type": "keyword" },
+      "isPinned":  { "type": "boolean" }
     }
   }
 }
