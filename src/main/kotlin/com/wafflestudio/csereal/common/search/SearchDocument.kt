@@ -23,6 +23,15 @@ data class SearchDocument(
     val bodyKo: String?,
     val bodyEn: String?,
     val createdAt: String?,
+    /**
+     * 이 문서가 사는 화면의 경로(로케일 프리픽스 없이). 프론트가 그대로 링크에 쓴다.
+     *
+     * type + id 만으로는 못 만드는 타입이 있다 — /about/{postType},
+     * /academics/{studentType}/{postType} 처럼 백엔드 enum 이 경로를 정하기 때문이다.
+     * 그 곱집합을 SearchType 으로 베끼면 enum 5개를 두 벌로 들고 있게 되므로,
+     * provider 가 기존 enum 에서 조립해 문서에 담는다.
+     */
+    val url: String,
     // Kotlin 의 is 접두사 프로퍼티는 게터가 isPrivate() 라 Jackson 이 이름을 private 으로 줄인다.
     // 매핑에 없는 이름이 되어 strict 인덱스가 거절한다.
     @get:JsonProperty("isPrivate")
@@ -51,6 +60,7 @@ data class SearchDocument(
             language: (ROW) -> LanguageType,
             title: (ROW) -> String?,
             body: (ROW) -> String?,
+            url: (ROW) -> String,
             createdAt: (ROW) -> LocalDateTime? = { null }
         ): List<SearchDocument> = rows.groupBy(groupBy).map { (_, group) ->
             val ko = group.find { language(it) == LanguageType.KO }
@@ -63,6 +73,7 @@ data class SearchDocument(
                 titleEn = en?.let(title),
                 bodyKo = ko?.let(body),
                 bodyEn = en?.let(body),
+                url = url(representative),
                 createdAt = timestamp(createdAt(representative))
             )
         }

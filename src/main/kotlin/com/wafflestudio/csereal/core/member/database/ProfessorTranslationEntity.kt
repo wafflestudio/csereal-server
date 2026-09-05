@@ -40,6 +40,11 @@ class ProfessorTranslationEntity(
     var memberSearch: MemberSearchEntity? = null
 ) : BaseTimeEntity(), SearchIndexed {
 
-    override val searchType get() = SearchType.PROFESSOR
+    override val searchType get() =
+        if (professor.status == ProfessorStatus.INACTIVE) {
+            SearchType.EMERITUS_PROFESSOR
+        } else {
+            SearchType.PROFESSOR
+        }
     override val searchSourceId get() = professor.id
 }

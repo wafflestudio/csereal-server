@@ -15,21 +15,38 @@ class MemberSearchDocumentProvider(
     private val professorRepository: ProfessorRepository,
     private val staffRepository: StaffRepository
 ) : SearchDocumentProvider {
-    override fun collectAll(): List<SearchDocument> = SearchDocument.bilingual(
-        rows = professorRepository.findAll().flatMap { it.translations },
-        type = SearchType.PROFESSOR,
+    override fun collectAll(): List<SearchDocument> {
+        val translations = professorRepository.findAll().flatMap { it.translations }
+        // 현직과 역대는 화면도 경로도 다르다(/people/faculty vs /people/emeritus-faculty).
+        val (emeritus, active) = translations.partition {
+            it.professor.status == ProfessorStatus.INACTIVE
+        }
+        return professors(active, SearchType.PROFESSOR, "faculty") +
+            professors(emeritus, SearchType.EMERITUS_PROFESSOR, "emeritus-faculty") +
+            SearchDocument.bilingual(
+                rows = staffRepository.findAll().flatMap { it.translations },
+                type = SearchType.STAFF,
+                groupBy = { it.staff.id },
+                sourceId = { it.staff.id },
+                language = { it.language },
+                title = { it.name },
+                body = { MemberSearchEntity.createContent(it) },
+                url = { "/people/staff/${it.staff.id}" }
+            )
+    }
+
+    private fun professors(
+        translations: List<ProfessorTranslationEntity>,
+        type: SearchType,
+        pathSegment: String
+    ) = SearchDocument.bilingual(
+        rows = translations,
+        type = type,
         groupBy = { it.professor.id },
         sourceId = { it.professor.id },
         language = { it.language },
         title = { it.name },
-        body = { MemberSearchEntity.createContent(it) }
-    ) + SearchDocument.bilingual(
-        rows = staffRepository.findAll().flatMap { it.translations },
-        type = SearchType.STAFF,
-        groupBy = { it.staff.id },
-        sourceId = { it.staff.id },
-        language = { it.language },
-        title = { it.name },
-        body = { MemberSearchEntity.createContent(it) }
+        body = { MemberSearchEntity.createContent(it) },
+        url = { "/people/$pathSegment/${it.professor.id}" }
     )
 }

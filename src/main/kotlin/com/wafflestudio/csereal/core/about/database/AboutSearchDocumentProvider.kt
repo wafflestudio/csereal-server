@@ -16,6 +16,7 @@ class AboutSearchDocumentProvider(
         sourceId = { it.about.id },
         language = { it.language },
         title = { it.name },
-        body = { it.searchContent }
+        body = { it.searchContent },
+        url = { "/about/${it.about.postType.toValue()}" }
     )
 }

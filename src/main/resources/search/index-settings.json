@@ -23,6 +23,7 @@
       "titleEn":   { "type": "text", "analyzer": "korean" },
       "bodyKo":    { "type": "text", "analyzer": "korean" },
       "bodyEn":    { "type": "text", "analyzer": "korean" },
+      "url":       { "type": "keyword", "index": false },
       "createdAt": { "type": "date" },
       "isPrivate": { "type": "boolean" }
     }

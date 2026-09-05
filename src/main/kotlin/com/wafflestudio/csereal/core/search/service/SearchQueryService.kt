@@ -79,6 +79,7 @@ class SearchQueryService(
             type = document.type,
             id = document.sourceId,
             title = title,
+            url = document.url,
             preview = preview(hit, document, korean)
         )
     }

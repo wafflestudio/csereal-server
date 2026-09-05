@@ -17,6 +17,7 @@ class AdmissionsSearchDocumentProvider(
         sourceId = { it.id },
         language = { it.language },
         title = { it.name },
-        body = { it.searchContent }
+        body = { it.searchContent },
+        url = { "/admissions/${it.mainType.toValue()}/${it.postType.toValue()}" }
     )
 }

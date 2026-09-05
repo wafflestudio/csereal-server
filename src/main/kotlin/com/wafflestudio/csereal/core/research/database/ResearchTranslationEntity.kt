@@ -3,6 +3,7 @@ package com.wafflestudio.csereal.core.research.database
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.search.SearchIndexed
 import com.wafflestudio.csereal.common.search.SearchType
+import com.wafflestudio.csereal.core.research.type.ResearchType
 import com.wafflestudio.csereal.common.enums.LanguageType
 import jakarta.persistence.*
 
@@ -24,6 +25,11 @@ class ResearchTranslationEntity(
     var researchSearch: ResearchSearchEntity? = null
 ) : BaseTimeEntity(), SearchIndexed {
 
-    override val searchType get() = SearchType.RESEARCH
+    override val searchType get() =
+        if (research.postType == ResearchType.CENTERS) {
+            SearchType.RESEARCH_CENTER
+        } else {
+            SearchType.RESEARCH_GROUP
+        }
     override val searchSourceId get() = research.id
 }

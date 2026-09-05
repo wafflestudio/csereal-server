@@ -16,6 +16,8 @@ data class SearchResElement(
     val id: Long,
     @Schema(description = "요청한 language 의 제목. 그 언어판이 없으면 다른 쪽을 준다.")
     val title: String,
+    @Schema(description = "이 결과가 사는 화면 경로(로케일 프리픽스 없음). 그대로 링크에 쓴다.")
+    val url: String,
     @Schema(description = "본문 미리보기. hit=true 인 조각이 검색어와 맞은 부분이다.")
     val preview: List<PreviewSegment>
 )

@@ -11,10 +11,10 @@ import com.fasterxml.jackson.annotation.JsonValue
  */
 enum class SearchType {
     NOTICE, NEWS, SEMINAR, ABOUT, ADMISSIONS,
-    PROFESSOR, STAFF,
-    RESEARCH, LAB, CONFERENCE,
+    PROFESSOR, EMERITUS_PROFESSOR, STAFF,
+    RESEARCH_GROUP, RESEARCH_CENTER, LAB, CONFERENCE,
     ACADEMICS, COURSE, SCHOLARSHIP;
 
     @JsonValue
-    fun toValue() = name.lowercase()
+    fun toValue() = name.lowercase().replace('_', '-')
 }

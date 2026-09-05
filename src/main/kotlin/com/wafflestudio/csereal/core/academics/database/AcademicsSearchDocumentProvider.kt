@@ -19,7 +19,8 @@ class AcademicsSearchDocumentProvider(
         sourceId = { it.id },
         language = { it.language },
         title = { it.name },
-        body = { AcademicsSearchEntity.createContent(it) }
+        body = { AcademicsSearchEntity.createContent(it) },
+        url = { "/academics/${it.studentType.toValue()}/${it.postType.toValue()}" }
     ) + SearchDocument.bilingual(
         rows = courseRepository.findAll(),
         type = SearchType.COURSE,
@@ -27,7 +28,8 @@ class AcademicsSearchDocumentProvider(
         sourceId = { it.id },
         language = { it.language },
         title = { it.name },
-        body = { AcademicsSearchEntity.createContent(it) }
+        body = { AcademicsSearchEntity.createContent(it) },
+        url = { "/academics/${it.studentType.toValue()}/courses" }
     ) + SearchDocument.bilingual(
         rows = scholarshipTranslationRepository.findAll(),
         type = SearchType.SCHOLARSHIP,
@@ -35,6 +37,9 @@ class AcademicsSearchDocumentProvider(
         sourceId = { it.scholarship.id },
         language = { it.language },
         title = { it.name },
-        body = { AcademicsSearchEntity.createContent(it) }
+        body = { AcademicsSearchEntity.createContent(it) },
+        url = {
+            "/academics/${it.scholarship.studentType.toValue()}/scholarship/${it.scholarship.id}"
+        }
     )
 }
