@@ -40,6 +40,13 @@ server:
                 same-site: lax
                 secure: true
 
+csereal:
+    search:
+        index: csereal-search
+        # 기동할 때마다 인덱스를 지우고 다시 만든다(약 6초). 마이그레이션이 JPA 밖에서
+        # 색인 테이블을 고치므로 이벤트만으로는 못 따라간다.
+        reindex-on-startup: true
+
 springdoc:
     paths-to-match:
         - /api/**
@@ -80,6 +87,8 @@ spring:
         password: password
     jpa:
         open-in-view: false
+    elasticsearch:
+        uris: http://127.0.0.1:9200
 
 server:
     servlet:
@@ -181,6 +190,9 @@ spring:
     flyway:
         enabled: true
         locations: classpath:db/migration
+csereal:
+    search:
+        reindex-on-startup: false # 테스트엔 ES 서버가 없다
 customlog:
     file:
         base: "./logs"
