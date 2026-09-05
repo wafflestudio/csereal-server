@@ -5,7 +5,6 @@ import com.wafflestudio.csereal.core.academics.database.AcademicsYearPostType
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.api.req.*
 import com.wafflestudio.csereal.core.academics.dto.*
-import com.wafflestudio.csereal.core.academics.service.AcademicsSearchService
 import com.wafflestudio.csereal.core.academics.service.AcademicsService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -16,8 +15,7 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/api/v2/academics")
 @RestController
 class AcademicsController(
-    private val academicsService: AcademicsService,
-    private val academicsSearchService: AcademicsSearchService
+    private val academicsService: AcademicsService
 ) {
     @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/courses")

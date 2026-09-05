@@ -77,8 +77,6 @@ interface AcademicsService {
 }
 
 // TODO: add Update, Delete method
-//       remember to update academicsSearch Field on Update method
-//       remember to mark delete of academicsSearch Field on Delete mark method
 
 @Service
 class AcademicsServiceImpl(
@@ -117,7 +115,6 @@ class AcademicsServiceImpl(
             ) ?: throw CserealException(ErrorCode.GUIDE_NOT_FOUND)
 
         academicsEntity.description = request.description
-        academicsEntity.syncSearch()
 
         attachmentService.syncAttachments(academicsEntity, request.attachmentIds, newAttachments)
     }
@@ -139,7 +136,6 @@ class AcademicsServiceImpl(
         ) ?: throw CserealException(ErrorCode.ACADEMICS_NOT_FOUND)
 
         academicsEntity.description = request.description
-        academicsEntity.syncSearch()
 
         attachmentService.syncAttachments(academicsEntity, request.attachmentIds, newAttachments)
     }
@@ -183,7 +179,6 @@ class AcademicsServiceImpl(
             AcademicsEntity.createYearResponse(studentType, postType, language, request)
 
         newAcademics.apply {
-            academicsSearch = AcademicsSearchEntity.create(this)
         }
 
         if (attachments != null) {
@@ -241,7 +236,6 @@ class AcademicsServiceImpl(
             ) ?: throw CserealException(ErrorCode.DEGREE_REQUIREMENTS_NOT_FOUND)
 
         academicsEntity.description = request.description
-        academicsEntity.syncSearch()
 
         attachmentService.syncAttachments(academicsEntity, request.attachmentIds, newAttachments)
     }
@@ -268,7 +262,6 @@ class AcademicsServiceImpl(
                 request.grade,
                 langSpecificData.description
             ).apply {
-                academicsSearch = AcademicsSearchEntity.create(this)
             }
         }
 
@@ -305,7 +298,6 @@ class AcademicsServiceImpl(
                 description = langSpecificData.description
                 classification = langSpecificData.classification
             }
-            course.syncSearch()
         }
     }
 
@@ -330,7 +322,6 @@ class AcademicsServiceImpl(
         ) ?: throw CserealException(ErrorCode.SCHOLARSHIP_NOT_FOUND)
 
         scholarshipPage.description = request.description
-        scholarshipPage.syncSearch()
     }
 
     @Transactional(readOnly = true)
@@ -364,7 +355,6 @@ class AcademicsServiceImpl(
                 )
             )
         }
-        scholarship.translations.forEach { it.academicsSearch = AcademicsSearchEntity.create(it) }
 
         scholarshipRepository.save(scholarship)
     }
@@ -386,7 +376,6 @@ class AcademicsServiceImpl(
                 ?: throw CserealException(ErrorCode.SCHOLARSHIP_NOT_FOUND)
             translation.name = content.name
             translation.description = content.description
-            translation.syncSearch()
         }
     }
 

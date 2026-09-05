@@ -27,8 +27,6 @@ interface NoticeService {
         sortBy: ContentSearchSortType
     ): NoticeSearchResponse
 
-    fun searchTotalNotice(keyword: String, number: Int, stringLength: Int): NoticeTotalSearchResponse
-
     fun readNotice(noticeId: Long): NoticeResponse
     fun createNotice(request: CreateNoticeReq, attachments: List<MultipartFile>?): NoticeResponse
     fun updateNotice(
@@ -80,13 +78,6 @@ class NoticeServiceImpl(
         )
         return NoticeSearchResponse(page.total, noticeRepository.findSearchDtosByIds(page.ids))
     }
-
-    @Transactional(readOnly = true)
-    override fun searchTotalNotice(
-        keyword: String,
-        number: Int,
-        stringLength: Int
-    ) = noticeRepository.totalSearchNotice(keyword, number, stringLength, isCurrentUserStaff())
 
     @Transactional(readOnly = true)
     override fun readNotice(noticeId: Long): NoticeResponse {

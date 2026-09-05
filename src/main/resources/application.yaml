@@ -11,9 +11,6 @@ spring:
         show-sql: true
         hibernate:
             ddl-auto: validate
-        properties:
-            hibernate:
-                dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
     flyway:
         enabled: true
         locations: classpath:db/migration
@@ -178,13 +175,9 @@ spring:
         password: test
     jpa:
         database: mysql
-        database-platform: com.wafflestudio.csereal.common.config.MySQLDialectCustom
         open-in-view: false
         hibernate:
             ddl-auto: none
-        properties:
-            hibernate:
-                dialect: com.wafflestudio.csereal.common.config.MySQLDialectCustom
     flyway:
         enabled: true
         locations: classpath:db/migration

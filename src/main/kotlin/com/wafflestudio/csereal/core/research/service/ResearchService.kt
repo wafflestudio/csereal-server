@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.research.service
 
-import com.wafflestudio.csereal.core.research.database.syncSearch
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
@@ -8,7 +7,6 @@ import com.wafflestudio.csereal.core.research.api.req.CreateResearchLanguageReqB
 import com.wafflestudio.csereal.core.research.api.req.ModifyResearchLanguageReqBody
 import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.research.database.ResearchRepository
-import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
 import com.wafflestudio.csereal.core.research.database.ResearchTranslationEntity
 import com.wafflestudio.csereal.core.research.database.ResearchTranslationRepository
 import com.wafflestudio.csereal.core.research.dto.ResearchLanguageDto
@@ -64,7 +62,6 @@ class ResearchServiceImpl(
         if (mainImage != null) {
             mainImageService.uploadMainImage(research, mainImage)
         }
-        research.translations.forEach { it.researchSearch = ResearchSearchEntity.create(it) }
         researchRepository.save(research)
 
         return research.toLanguageDto()
@@ -85,7 +82,6 @@ class ResearchServiceImpl(
                 ?: throw CserealException(ErrorCode.RESEARCH_NOT_FOUND, mapOf("researchId" to researchId))
             translation.name = content.name
             translation.description = content.description
-            translation.syncSearch()
         }
 
         mainImageService.replaceMainImage(research, updateImage, req.removeImage)
@@ -103,7 +99,6 @@ class ResearchServiceImpl(
         research.labs.forEach { lab ->
             lab.research = null
             lab.translations.forEach { translation ->
-                translation.syncSearch()
             }
         }
 

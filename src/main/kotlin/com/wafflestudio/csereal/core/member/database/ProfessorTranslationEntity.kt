@@ -34,10 +34,8 @@ class ProfessorTranslationEntity(
 
     @Column(columnDefinition = "TEXT")
     @Convert(converter = StringListConverter::class)
-    var careers: MutableList<String> = mutableListOf(),
+    var careers: MutableList<String> = mutableListOf()
 
-    @OneToOne(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var memberSearch: MemberSearchEntity? = null
 ) : BaseTimeEntity(), SearchIndexed {
 
     override val searchType get() =

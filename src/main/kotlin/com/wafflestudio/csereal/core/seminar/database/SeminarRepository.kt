@@ -4,7 +4,6 @@ import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
-import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
 import com.wafflestudio.csereal.core.main.dto.MainImportantResponse
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
@@ -54,8 +53,7 @@ interface CustomSeminarRepository {
 @Component
 class SeminarRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
-    private val mainImageService: MainImageService,
-    private val commonRepository: CommonRepository
+    private val mainImageService: MainImageService
 ) : CustomSeminarRepository {
     override fun findSearchDtosByIds(ids: List<Long>): List<SeminarSearchDto> {
         // in 질의는 순서를 보장하지 않는다. 부른 쪽이 정한 차례로 되돌린다.

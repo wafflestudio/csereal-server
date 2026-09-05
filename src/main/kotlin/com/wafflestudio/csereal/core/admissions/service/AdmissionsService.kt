@@ -5,18 +5,13 @@ import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.admissions.api.req.AdmissionReqBody
 import com.wafflestudio.csereal.core.admissions.api.req.UpdateAdmissionReq
-import com.wafflestudio.csereal.core.admissions.api.res.AdmissionSearchResBody
-import com.wafflestudio.csereal.core.admissions.api.res.AdmissionSearchResElem
 import com.wafflestudio.csereal.core.admissions.api.res.GroupedAdmission
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsEntity
 import com.wafflestudio.csereal.core.admissions.database.AdmissionsRepository
 import com.wafflestudio.csereal.core.admissions.dto.AdmissionsDto
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsMainType
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsPostType
-import com.wafflestudio.csereal.core.main.event.RefreshSearchEvent
-import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 
 interface AdmissionsService {
@@ -42,8 +37,6 @@ interface AdmissionsService {
         postType: AdmissionsPostType,
         updateAdmissionReq: UpdateAdmissionReq
     )
-
-    fun searchTopAdmission(keyword: String, language: LanguageType, number: Int, amount: Int): AdmissionSearchResBody
 }
 
 @Service
@@ -111,44 +104,5 @@ class AdmissionsServiceImpl(
         ) ?: throw CserealException(ErrorCode.ADMISSION_NOT_FOUND)
         koAdmission.description = updateAdmissionReq.ko
         enAdmission.description = updateAdmissionReq.en
-        syncSearchAdmission(koAdmission)
-        syncSearchAdmission(enAdmission)
-    }
-
-    @Transactional(readOnly = true)
-    override fun searchTopAdmission(
-        keyword: String,
-        language: LanguageType,
-        number: Int,
-        amount: Int
-    ): AdmissionSearchResBody {
-        val (admissions, total) = admissionsRepository.searchAdmissions(keyword, language, number, 1)
-        return AdmissionSearchResBody(
-            total = total,
-            results = admissions.map {
-                AdmissionSearchResElem.of(it, keyword, amount)
-            }
-        )
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @EventListener
-    fun refreshSearch(event: RefreshSearchEvent) {
-        admissionsRepository.findAll().forEach {
-            syncSearchAdmission(it)
-        }
-    }
-
-    @Transactional
-    fun syncSearchAdmission(admissions: AdmissionsEntity) {
-        admissions.apply {
-            searchContent = AdmissionsEntity.createSearchContent(
-                name,
-                mainType,
-                postType,
-                language,
-                description
-            )
-        }
     }
 }

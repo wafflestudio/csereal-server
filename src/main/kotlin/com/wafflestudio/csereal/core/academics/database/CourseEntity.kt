@@ -21,10 +21,7 @@ class CourseEntity(
     var grade: Int,
 
     @Column(columnDefinition = "mediumText")
-    var description: String?,
-
-    @OneToOne(mappedBy = "course", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var academicsSearch: AcademicsSearchEntity? = null
+    var description: String?
 
 ) : BaseTimeEntity(), SearchIndexed {
 

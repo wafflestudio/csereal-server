@@ -5,7 +5,6 @@ import com.wafflestudio.csereal.common.search.SearchIndexed
 import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.conference.dto.ConferenceDto
-import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
 import jakarta.persistence.*
 
 @Entity(name = "conference")
@@ -19,10 +18,8 @@ class ConferenceEntity(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conference_page_id")
-    val conferencePage: ConferencePageEntity,
+    val conferencePage: ConferencePageEntity
 
-    @OneToOne(mappedBy = "conferenceElement", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var researchSearch: ResearchSearchEntity? = null
 ) : BaseTimeEntity(), SearchIndexed {
 
     override val searchType get() = SearchType.CONFERENCE

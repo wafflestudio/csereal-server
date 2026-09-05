@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.member.service
 
-import com.wafflestudio.csereal.core.member.database.syncSearch
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.research.database.LabRepository
@@ -116,7 +115,6 @@ class ProfessorEventServiceImpl(
     @Transactional
     fun upsertProfessorSearchIndex(professor: ProfessorEntity) {
         professor.translations.forEach { translation ->
-            translation.syncSearch()
         }
     }
 }

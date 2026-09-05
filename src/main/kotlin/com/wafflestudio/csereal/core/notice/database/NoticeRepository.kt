@@ -4,15 +4,12 @@ import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
-import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
 import com.wafflestudio.csereal.core.main.dto.MainImportantResponse
 import com.wafflestudio.csereal.core.notice.database.QNoticeEntity.noticeEntity
 import com.wafflestudio.csereal.core.notice.database.QNoticeTagEntity.noticeTagEntity
 import com.wafflestudio.csereal.core.notice.dto.NoticeSearchDto
 import com.wafflestudio.csereal.core.notice.dto.NoticeSearchResponse
-import com.wafflestudio.csereal.core.notice.dto.NoticeTotalSearchElement
-import com.wafflestudio.csereal.core.notice.dto.NoticeTotalSearchResponse
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
@@ -64,60 +61,13 @@ interface CustomNoticeRepository {
     /** 키워드 검색이 고른 id 들의 표시용 값. 준 id 차례대로 돌려준다. */
     fun findSearchDtosByIds(ids: List<Long>): List<NoticeSearchDto>
 
-    fun totalSearchNotice(keyword: String, number: Int, stringLength: Int, isStaff: Boolean): NoticeTotalSearchResponse
-
     fun findImportantNotice(cnt: Int? = null): List<MainImportantResponse>
 }
 
 @Component
 class NoticeRepositoryImpl(
-    private val queryFactory: JPAQueryFactory,
-    private val commonRepository: CommonRepository
+    private val queryFactory: JPAQueryFactory
 ) : CustomNoticeRepository {
-    override fun totalSearchNotice(
-        keyword: String,
-        number: Int,
-        stringLength: Int,
-        isStaff: Boolean
-    ): NoticeTotalSearchResponse {
-        val doubleTemplate = commonRepository.searchFullDoubleTextTemplate(
-            keyword,
-            noticeEntity.title,
-            noticeEntity.plainTextDescription
-        )
-
-        val privateBoolean = noticeEntity.isPrivate.eq(false).takeUnless { isStaff }
-
-        val query = queryFactory.select(
-            noticeEntity.id,
-            noticeEntity.title,
-            noticeEntity.createdAt,
-            noticeEntity.plainTextDescription
-        ).from(noticeEntity)
-            .where(doubleTemplate.gt(0.0), privateBoolean)
-
-        val total = query.clone().select(noticeEntity.countDistinct()).fetchOne()!!
-
-        val searchResult = query
-            .orderBy(noticeEntity.createdAt.desc())
-            .limit(number.toLong())
-            .fetch()
-
-        return NoticeTotalSearchResponse(
-            total.toInt(),
-            searchResult.map {
-                NoticeTotalSearchElement(
-                    it[noticeEntity.id]!!,
-                    it[noticeEntity.title]!!,
-                    it[noticeEntity.createdAt]!!,
-                    it[noticeEntity.plainTextDescription]!!,
-                    keyword,
-                    stringLength
-                )
-            }
-        )
-    }
-
     override fun findSearchDtosByIds(ids: List<Long>): List<NoticeSearchDto> {
         // in 질의는 순서를 보장하지 않는다. 부른 쪽이 정한 차례로 되돌린다.
         val byId = selectNoticeSearchDto().where(noticeEntity.id.`in`(ids)).fetch().associateBy { it.id }

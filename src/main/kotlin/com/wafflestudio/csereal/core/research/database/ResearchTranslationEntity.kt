@@ -19,10 +19,8 @@ class ResearchTranslationEntity(
     var name: String,
 
     @Column(columnDefinition = "mediumText")
-    var description: String? = null,
+    var description: String? = null
 
-    @OneToOne(mappedBy = "research", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var researchSearch: ResearchSearchEntity? = null
 ) : BaseTimeEntity(), SearchIndexed {
 
     override val searchType get() =

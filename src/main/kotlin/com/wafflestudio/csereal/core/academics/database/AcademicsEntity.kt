@@ -26,10 +26,7 @@ class AcademicsEntity(
     var year: Int?,
 
     @OneToMany(mappedBy = "academics", cascade = [CascadeType.ALL], orphanRemoval = true)
-    override var attachments: MutableList<AttachmentEntity> = mutableListOf(),
-
-    @OneToOne(mappedBy = "academics", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var academicsSearch: AcademicsSearchEntity? = null
+    override var attachments: MutableList<AttachmentEntity> = mutableListOf()
 
 ) : BaseTimeEntity(), AttachmentAttachable, SearchIndexed {
 

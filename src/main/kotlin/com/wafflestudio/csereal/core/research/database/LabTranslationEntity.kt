@@ -20,10 +20,8 @@ class LabTranslationEntity(
     @Column(columnDefinition = "mediumText")
     var description: String? = null,
 
-    var location: String? = null,
+    var location: String? = null
 
-    @OneToOne(mappedBy = "lab", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var researchSearch: ResearchSearchEntity? = null
 ) : BaseTimeEntity(), SearchIndexed {
 
     override val searchType get() = SearchType.LAB

@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.research.service
 
-import com.wafflestudio.csereal.core.research.database.syncSearch
 import com.wafflestudio.csereal.core.member.event.ProfessorCreatedEvent
 import com.wafflestudio.csereal.core.member.event.ProfessorDeletedEvent
 import com.wafflestudio.csereal.core.member.event.ProfessorModifiedEvent
@@ -76,7 +75,6 @@ class LabEventServiceImpl(
     @Transactional
     fun upsertLabSearchIndex(lab: LabEntity) {
         lab.translations.forEach { translation ->
-            translation.syncSearch()
         }
     }
 }

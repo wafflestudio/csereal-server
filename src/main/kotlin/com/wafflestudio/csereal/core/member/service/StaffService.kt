@@ -1,12 +1,10 @@
 package com.wafflestudio.csereal.core.member.service
 
-import com.wafflestudio.csereal.core.member.database.syncSearch
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.api.req.CreateStaffLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyStaffLanguagesReqBody
-import com.wafflestudio.csereal.core.member.database.MemberSearchEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.member.database.StaffRepository
 import com.wafflestudio.csereal.core.member.database.StaffTranslationEntity
@@ -65,7 +63,6 @@ class StaffServiceImpl(
         if (mainImage != null) {
             mainImageService.uploadMainImage(staff, mainImage)
         }
-        staff.translations.forEach { it.memberSearch = MemberSearchEntity.create(it) }
         staffRepository.save(staff)
 
         return staff.toLanguagesDto()
@@ -109,7 +106,6 @@ class StaffServiceImpl(
             translation.role = content.role
             translation.office = content.office
             translation.tasks = content.tasks.map { it.trim() }.toMutableList()
-            translation.syncSearch()
         }
 
         mainImageService.replaceMainImage(staff, newImage, request.removeImage)

@@ -4,20 +4,14 @@ import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
-import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
 import com.wafflestudio.csereal.core.admin.dto.AdminSlideElement
 import com.wafflestudio.csereal.core.admin.dto.AdminSlidesResponse
 import com.wafflestudio.csereal.core.main.dto.MainImportantResponse
 import com.wafflestudio.csereal.core.news.database.QNewsEntity.newsEntity
 import com.wafflestudio.csereal.core.news.database.QNewsTagEntity.newsTagEntity
-import com.wafflestudio.csereal.core.news.database.QTagInNewsEntity.tagInNewsEntity
 import com.wafflestudio.csereal.core.news.dto.NewsSearchDto
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
-import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchDto
-import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchElement
-import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
-import com.wafflestudio.csereal.core.resource.mainImage.database.QMainImageEntity.mainImageEntity
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
@@ -57,14 +51,6 @@ interface CustomNewsRepository {
     /** 키워드 검색이 고른 id 들의 표시용 값. 준 id 차례대로 돌려준다. */
     fun findSearchDtosByIds(ids: List<Long>): List<NewsSearchDto>
 
-    fun searchTotalNews(
-        keyword: String,
-        number: Int,
-        amount: Int,
-        imageUrlCreator: (MainImageEntity?) -> String?,
-        isStaff: Boolean
-    ): NewsTotalSearchDto
-
     fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse
     fun findImportantNews(cnt: Int? = null): List<MainImportantResponse>
 }
@@ -72,8 +58,7 @@ interface CustomNewsRepository {
 @Repository
 class NewsRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
-    private val mainImageService: MainImageService,
-    private val commonRepository: CommonRepository
+    private val mainImageService: MainImageService
 ) : CustomNewsRepository {
     override fun findSearchDtosByIds(ids: List<Long>): List<NewsSearchDto> {
         // in 질의는 순서를 보장하지 않는다. 부른 쪽이 정한 차례로 되돌린다.
@@ -144,75 +129,6 @@ class NewsRepositoryImpl(
         imageURL = mainImageService.createImageURL(news.mainImage),
         isPrivate = news.isPrivate
     )
-
-    override fun searchTotalNews(
-        keyword: String,
-        number: Int,
-        amount: Int,
-        imageUrlCreator: (MainImageEntity?) -> String?,
-        isStaff: Boolean
-    ): NewsTotalSearchDto {
-        val doubleTemplate = commonRepository.searchFullDoubleTextTemplate(
-            keyword,
-            newsEntity.title,
-            newsEntity.plainTextDescription
-        )
-
-        val privateBoolean = newsEntity.isPrivate.eq(false).takeUnless { isStaff }
-
-        val searchResult = queryFactory.select(
-            newsEntity.id,
-            newsEntity.title,
-            newsEntity.date,
-            newsEntity.plainTextDescription,
-            mainImageEntity
-        ).from(newsEntity)
-            .leftJoin(mainImageEntity)
-            .on(newsEntity.mainImage.eq(mainImageEntity))
-            .where(doubleTemplate.gt(0.0), privateBoolean)
-            .orderBy(newsEntity.date.desc())
-            .limit(number.toLong())
-            .fetch()
-
-        val searchResultTags = queryFactory.select(
-            newsTagEntity.news.id,
-            newsTagEntity.tag.name
-        ).from(newsTagEntity)
-            .rightJoin(newsEntity).on(newsTagEntity.news.eq(newsEntity))
-            .leftJoin(tagInNewsEntity).on(newsTagEntity.tag.eq(tagInNewsEntity))
-            .where(
-                newsTagEntity.news.id.`in`(
-                    searchResult.map { it[newsEntity.id] }
-                )
-            )
-            .distinct()
-            .fetch()
-
-        val total = queryFactory.select(newsEntity.countDistinct())
-            .from(newsEntity)
-            .where(doubleTemplate.gt(0.0))
-            .fetchOne()!!
-
-        return NewsTotalSearchDto(
-            total.toInt(),
-            searchResult.map {
-                NewsTotalSearchElement(
-                    id = it[newsEntity.id]!!,
-                    title = it[newsEntity.title]!!,
-                    date = it[newsEntity.date],
-                    tags = searchResultTags.filter { tag ->
-                        tag[newsTagEntity.news.id] == it[newsEntity.id]
-                    }.map { tag ->
-                        tag[newsTagEntity.tag.name]!!.krName
-                    },
-                    imageUrl = imageUrlCreator(it[mainImageEntity]),
-                    description = it[newsEntity.plainTextDescription]!!,
-                    keyword = keyword,
-                    amount = amount
-                )
-            }
-        )
-    }
 
     override fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse {
         val tuple = queryFactory.select(

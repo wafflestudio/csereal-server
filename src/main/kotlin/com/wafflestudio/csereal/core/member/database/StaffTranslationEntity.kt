@@ -25,10 +25,8 @@ class StaffTranslationEntity(
 
     @Column(columnDefinition = "TEXT")
     @Convert(converter = StringListConverter::class)
-    var tasks: MutableList<String> = mutableListOf(),
+    var tasks: MutableList<String> = mutableListOf()
 
-    @OneToOne(mappedBy = "staff", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var memberSearch: MemberSearchEntity? = null
 ) : BaseTimeEntity(), SearchIndexed {
 
     override val searchType get() = SearchType.STAFF

@@ -4,17 +4,12 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.about.api.req.*
-import com.wafflestudio.csereal.core.about.api.res.AboutSearchElementDto
-import com.wafflestudio.csereal.core.about.api.res.AboutSearchResBody
 import com.wafflestudio.csereal.core.about.database.*
 import com.wafflestudio.csereal.core.about.dto.*
-import com.wafflestudio.csereal.core.main.event.RefreshSearchEvent
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
-import org.springframework.context.event.EventListener
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
@@ -46,13 +41,6 @@ interface AboutService {
     fun createCompany(request: CreateCompanyReq)
     fun updateCompany(id: Long, request: CreateCompanyReq)
     fun deleteCompany(id: Long)
-
-    fun searchTopAbout(
-        keyword: String,
-        language: LanguageType,
-        number: Int,
-        amount: Int
-    ): AboutSearchResBody
 }
 
 @Service
@@ -89,7 +77,6 @@ class AboutServiceImpl(
             val translation = about.translationOf(language)
                 ?: throw CserealException(ErrorCode.ABOUT_NOT_FOUND)
             translation.description = content.description
-            syncSearchOfTranslation(translation)
         }
 
         mainImageService.replaceMainImage(about, newMainImage, request.removeImage)
@@ -112,7 +99,6 @@ class AboutServiceImpl(
                 )
             )
         }
-        club.translations.forEach { it.syncSearchContent() }
 
         // 사진은 동아리에 하나뿐이라 한 번만 올린다.
         if (mainImage != null) {
@@ -132,7 +118,6 @@ class AboutServiceImpl(
                 ?: throw CserealException(ErrorCode.CLUB_NOT_FOUND)
             translation.name = content.name
             translation.description = content.description
-            translation.syncSearchContent()
         }
 
         mainImageService.replaceMainImage(club, newMainImage, request.removeImage)
@@ -182,7 +167,6 @@ class AboutServiceImpl(
                 )
             )
         }
-        facility.translations.forEach { it.syncSearchContent() }
 
         if (mainImage != null) {
             mainImageService.uploadMainImage(facility, mainImage)
@@ -201,7 +185,6 @@ class AboutServiceImpl(
             translation.name = content.name
             translation.description = content.description
             translation.locations = content.locations
-            translation.syncSearchContent()
         }
 
         mainImageService.replaceMainImage(facility, newMainImage, request.removeImage)
@@ -239,7 +222,6 @@ class AboutServiceImpl(
             val translation = direction.translationOf(language)
                 ?: throw CserealException(ErrorCode.DIRECTION_NOT_FOUND)
             translation.description = description
-            translation.syncSearchContent()
         }
     }
 
@@ -254,7 +236,6 @@ class AboutServiceImpl(
             val translation = page.translationOf(language)
                 ?: throw CserealException(ErrorCode.ABOUT_NOT_FOUND)
             translation.description = description
-            syncSearchOfTranslation(translation)
         }
     }
 
@@ -333,43 +314,5 @@ class AboutServiceImpl(
     @Transactional
     override fun deleteCompany(id: Long) {
         companyRepository.deleteById(id)
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @EventListener
-    fun refreshSearchListener(event: RefreshSearchEvent) {
-        aboutTranslationRepository.findAll().forEach {
-            syncSearchOfTranslation(it)
-        }
-    }
-
-    // 졸업생 진로 페이지의 색인만 통계·기업 이름을 함께 담는다.
-    @Transactional
-    fun syncSearchOfTranslation(translation: AboutTranslationEntity) {
-        if (translation.about.postType == AboutPostType.FUTURE_CAREERS) {
-            translation.syncSearchContent(
-                statRepository.findAll().map { it.name },
-                companyRepository.findAll().map { it.name }
-            )
-        } else {
-            translation.syncSearchContent()
-        }
-    }
-
-    @Transactional(readOnly = true)
-    override fun searchTopAbout(
-        keyword: String,
-        language: LanguageType,
-        number: Int,
-        amount: Int
-    ): AboutSearchResBody {
-        val (searchEntities, searchCnt) =
-            aboutTranslationRepository.searchAbouts(keyword, language, number, 1)
-        return AboutSearchResBody(
-            searchCnt,
-            searchEntities.map {
-                AboutSearchElementDto.of(it, keyword, amount)
-            }
-        )
     }
 }

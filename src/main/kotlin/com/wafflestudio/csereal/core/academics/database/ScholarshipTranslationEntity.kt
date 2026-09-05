@@ -20,10 +20,8 @@ class ScholarshipTranslationEntity(
     var name: String,
 
     @Column(columnDefinition = "text")
-    var description: String,
+    var description: String
 
-    @OneToOne(mappedBy = "scholarship", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var academicsSearch: AcademicsSearchEntity? = null
 ) : BaseTimeEntity(), SearchIndexed {
 
     override val searchType get() = SearchType.SCHOLARSHIP

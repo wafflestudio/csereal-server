@@ -3,7 +3,6 @@ package com.wafflestudio.csereal.core.about.database
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.StringListConverter
-import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.common.search.SearchIndexed
 import com.wafflestudio.csereal.common.search.SearchType
 import jakarta.persistence.*
@@ -25,42 +24,9 @@ class AboutTranslationEntity(
 
     @Column(columnDefinition = "TEXT")
     @Convert(converter = StringListConverter::class)
-    var locations: MutableList<String> = mutableListOf(),
-
-    @Column(columnDefinition = "TEXT")
-    var searchContent: String = ""
+    var locations: MutableList<String> = mutableListOf()
 ) : BaseTimeEntity(), SearchIndexed {
 
     override val searchType get() = SearchType.ABOUT
     override val searchSourceId get() = about.id
-
-    fun syncSearchContent() {
-        assert(about.postType != AboutPostType.FUTURE_CAREERS)
-        searchContent = createContent(name, description, locations)
-    }
-
-    fun syncSearchContent(statNames: List<String>, companyNames: List<String>) {
-        assert(about.postType == AboutPostType.FUTURE_CAREERS)
-        searchContent = createContent(name, description, statNames, companyNames)
-    }
-
-    companion object {
-        fun createContent(name: String?, description: String, locations: List<String>) = StringBuilder().apply {
-            name?.let { appendLine(it) }
-            appendLine(cleanTextFromHtml(description))
-            locations.forEach { appendLine(it) }
-        }.toString()
-
-        fun createContent(
-            name: String?,
-            description: String,
-            statNames: List<String>,
-            companyNames: List<String>
-        ) = StringBuilder().apply {
-            name?.let { appendLine(it) }
-            appendLine(cleanTextFromHtml(description))
-            statNames.forEach { appendLine(it) }
-            companyNames.forEach { appendLine(it) }
-        }.toString()
-    }
 }
