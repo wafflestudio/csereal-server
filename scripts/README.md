@@ -1,26 +1,20 @@
-# 호스트 스크립트
+# 스크립트
 
-**여기 남은 건 앱 감시 하나뿐이다.** 예약 실행되는 나머지(DB 백업)는 `ops` 컨테이너로
-옮겼다 — `../compose.ops.yml` 과 `../ops/` 참고.
+호스트에서 손으로 돌리는 도구만 남았다. **예약 실행되는 것은 전부 컨테이너로 옮겼다.**
 
-| 파일 | 호스트 위치 | 스케줄 |
-|---|---|---|
-| `monitor-restart.sh` | `~/scripts/monitor-restart.sh` | 매분 |
-| `crontab` | `/var/spool/cron/crontabs/waffle` | — |
-| `logrotate.conf` | `/etc/logrotate.d/csereal` | — |
+| 파일 | 무엇 |
+|---|---|
+| `archive-orphan-files.sh` | 참조 없는 첨부 파일을 찾아 정리한다(수동) |
 
-## 왜 이것만 호스트에 남았나
+## 여기 있던 것들이 어디로 갔나
 
-앱 감시는 **prod 의 유일한 자동복구 수단**이다. 직접 만든 컨테이너 안에 넣으면
-"감시자가 죽으면 아무도 모른다" 는 새 실패 모드가 생긴다. compose 의 healthcheck
-(`start_period` 가 이 스크립트의 `GRACE` 를 대체한다) + stock `autoheal` 이미지로
-가는 게 맞고, 그건 prod 동작을 바꾸는 일이라 따로 본다. 그때 이 디렉터리는 비워진다.
+| 옛 파일 | 지금 |
+|---|---|
+| `db-backup.sh` | `ops/db-backup.sh` — ops 컨테이너, 매일 자정 |
+| `backup-offsite.sh` | `ops/backup-offsite.sh` — ops 컨테이너, 매일 00:30 |
+| `monitor-restart.sh` | **삭제.** compose 의 healthcheck + `autoheal` 컨테이너가 대신한다 |
+| `crontab` | 스케줄이 `ops/crontab` 으로(이미지 안). 호스트 cron 은 비었다 |
+| `logrotate.conf` | **삭제.** 컨테이너 로그는 도커 로깅 드라이버가 돌린다 |
 
-## 올리기
-
-```bash
-COPYFILE_DISABLE=1 tar czf - scripts | ssh -p 9122 waffle@<host> 'tar xzf - -C ~'
-ssh -p 9122 waffle@<host> 'chmod +x ~/scripts/*.sh && crontab ~/scripts/crontab'
-```
-
-`COPYFILE_DISABLE=1` 은 macOS `tar` 가 `._` AppleDouble 파일을 함께 보내는 것을 막는다.
+호스트에 파일을 두고 "여기서 고치지 마세요" 라고 주석을 다는 방식은 규율에 기대는 것이지
+구조가 막는 게 아니다. 이미지에 구우면 호스트에서 고칠 수가 없다.
