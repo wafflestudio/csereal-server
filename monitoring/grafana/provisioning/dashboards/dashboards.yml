@@ -1,0 +1,13 @@
+# 대시보드도 파일이 정본이다. Grafana 가 기동할 때 아래 경로의 JSON 을 읽어 올린다.
+# ⚠️ UI 에서 고쳐도 재기동하면 파일 내용으로 되돌아간다. 실험은 UI 에서 하되,
+#    쓸 만해지면 JSON 을 뽑아 여기에 커밋할 것.
+apiVersion: 1
+
+providers:
+    - name: csereal
+      type: file
+      updateIntervalSeconds: 30
+      allowUiUpdates: false
+      options:
+          path: /var/lib/grafana/dashboards
+          foldersFromFilesStructure: false

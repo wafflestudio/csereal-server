@@ -2,37 +2,13 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml" />
     <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
-    <include resource="org/springframework/boot/logging/logback/file-appender.xml" />
+    <!-- file-appender.xml 은 넣지 않는다. 그 안의 FILE 은 <file>${LOG_FILE}</file> 인데
+         logging.file.name 을 안 쓰므로 logback 이 리터럴 "LOG_FILE_IS_UNDEFINED" 로 치환해
+         작업 디렉터리에 그 이름의 빈 파일을 만든다(레포에 커밋된 적도 있다).
+         아래에서 같은 이름의 FILE 을 직접 정의하므로 어차피 덮어써져 쓰이지도 않았다.
+         FILE_LOG_PATTERN·FILE_LOG_CHARSET 은 defaults.xml 이 준다. -->
 
     <import class="ch.qos.logback.classic.AsyncAppender" />
-    <import class="ch.qos.logback.classic.filter.ThresholdFilter" />
-    <import class="ch.qos.logback.classic.PatternLayout" />
-    <import class="com.cyfrania.logback.SlackAppender" />
-    <import class="com.cyfrania.logback.SlackChatApi" />
-
-
-    <!-- Slack Appender Config-->
-    <springProperty name="SLACK_TOKEN" source="slack.token" />
-    <springProperty name="SLACK_CHANNEL" source="slack.channel" />
-    <property name="SLACK_LOG_PATTERN" value="\n*================================*\n*====== Backend Server LOG ======*\n*================================*\n\n${FILE_LOG_PATTERN}\n\n*--------------------------------*\n\n" />
-
-    <appender name="SLACK" class="SlackAppender">
-        <sender class="SlackChatApi">
-            <token>${SLACK_TOKEN}</token>
-            <channel>${SLACK_CHANNEL}</channel>
-        </sender>
-        <layout class="PatternLayout">
-            <pattern>${SLACK_LOG_PATTERN}</pattern>
-        </layout>
-    </appender>
-
-    <appender name="ASYNC_SLACK" class="AsyncAppender">
-        <maxFlushTime>5000</maxFlushTime>
-        <appender-ref ref="SLACK" />
-        <filter class="ThresholdFilter">
-            <level>ERROR</level>
-        </filter>
-    </appender>
 
 
     <!--  File appender  -->
@@ -75,7 +51,6 @@
     <springProfile name="prod">
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
-            <appender-ref ref="ASYNC_SLACK" />
             <appender-ref ref="ASYNC_FILE" />
         </root>
     </springProfile>

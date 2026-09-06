@@ -1,0 +1,16 @@
+# 프로덕션 호스트(csereal-prod)의 waffle 유저 crontab.
+#
+# 설치:  crontab scripts/crontab
+# 확인:  crontab -l
+#
+# ⚠️ 여기 남은 건 하나뿐이다. DB 백업은 ops 컨테이너(compose.ops.yml)로 옮겼다 —
+#    스케줄이 이미지 안에 있어 호스트에서 고칠 수 없다.
+#
+# 감시 스크립트만 아직 호스트에 있다. compose 의 `restart: always` 는 프로세스가
+# "종료될 때"만 듣고, Docker 의 HEALTHCHECK 는 unhealthy 컨테이너를 재시작해 주지
+# 않아서(Swarm·k8s 는 해준다) 그 빈틈을 cron 으로 메운다.
+# TODO: compose healthcheck(start_period) + autoheal 컨테이너로 교체하면 이 파일도 사라진다.
+#       prod 의 유일한 자동복구 수단이라 교체는 따로 신중히.
+#
+# 분 시 일 월 요일  명령
+* * * * * /home/waffle/scripts/monitor-restart.sh >> /home/waffle/app/monitor.log 2>&1

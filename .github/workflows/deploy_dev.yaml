@@ -2,18 +2,15 @@ on:
     push:
         branches:
             - develop
-        paths:
-            - docker-compose-backend.yml
-            - Dockerfile
-            - Dockerfile.es
-            - gradle.properties
-            - gradlew
-            - gradlew.bat
-            - build.gradle.kts
-            - settings.gradle.kts
-            - src/**
-            - gradle/**
-            - .github/workflows/deploy_dev.yaml
+        # 경로 필터를 두지 않는다. 허용목록이던 시절 실측으로 25 커밋 중 2번만 배포를 아꼈는데,
+        # 목록에 없는 파일이 새로 생기면 배포가 조용히 안 되는 위험을 늘 안고 있었다.
+        # staging 은 헛배포해도 싸다 — 목록 유지비를 안 무는 쪽을 택한다.
+
+# deploy.yaml 과 같은 이유(겹치면 옛 커밋이 이길 수 있고 그게 조용하다).
+# develop 은 머지가 잦아 prod 보다 겹칠 확률이 높다.
+concurrency:
+    group: deploy-staging
+    cancel-in-progress: false
 
 jobs:
     build-and-deploy:
@@ -25,20 +22,20 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v7
 
             - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+              uses: docker/setup-buildx-action@v4
 
             - name: Log in to the Container Registry
-              uses: docker/login-action@v2.2.0
+              uses: docker/login-action@v4
               with:
                   registry: ghcr.io
                   username: ${{github.actor}}
                   password: ${{secrets.GITHUB_TOKEN}}
 
             - name: Build and push Docker image
-              uses: docker/build-push-action@v4.1.1
+              uses: docker/build-push-action@v7
               with:
                   context: .
                   push: true
@@ -50,7 +47,7 @@ jobs:
 
             # nori 는 공식 이미지에 없는 플러그인이라 검색 서버도 우리가 만들어 올린다.
             - name: Build and push search image
-              uses: docker/build-push-action@v4.1.1
+              uses: docker/build-push-action@v7
               with:
                   context: .
                   file: Dockerfile.es
@@ -67,22 +64,20 @@ jobs:
                   echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
                   echo "OIDC_CLIENT_SECRET_DEV=${{secrets.OIDC_CLIENT_SECRET_DEV}}" >> .env
                   echo "URL=${{secrets.URL_DEV_2}}" >> .env
-                  # echo "SLACK_TOKEN=${{secrets.SLACK_TOKEN}}" >> .env
-                  # echo "SLACK_CHANNEL=${{secrets.SLACK_CHANNEL}}" >> .env
 
             - name: SCP Command to Transfer Files
-              uses: appleboy/scp-action@v0.1.7
+              uses: appleboy/scp-action@v1
               with:
                   host: ${{secrets.SSH_HOST_DEV_2}}
                   username: ${{secrets.SSH_USER_DEV_2}}
                   port: ${{secrets.SSH_PORT_DEV_2}}
                   key: ${{secrets.SSH_KEY_DEV_2}}
-                  source: "docker-compose-backend.yml, .env"
+                  source: "compose.yml, compose.prod.yml, .env"
                   target: "~/app"
                   overwrite: true
 
             - name: SSH Remote Commands
-              uses: appleboy/ssh-action@v1.0.0
+              uses: appleboy/ssh-action@v1
               with:
                   host: ${{secrets.SSH_HOST_DEV_2}}
                   username: ${{secrets.SSH_USER_DEV_2}}
@@ -91,6 +86,6 @@ jobs:
                   script: |
                       cd ~/app
                       source .env
-                      docker compose -f docker-compose-backend.yml down
-                      docker compose -f docker-compose-backend.yml pull
-                      docker compose -f docker-compose-backend.yml up -d
+                      docker compose -f compose.yml -f compose.prod.yml pull
+                      # deploy.yaml 과 같은 이유로 down 을 쓰지 않는다(바뀐 서비스만 재생성).
+                      docker compose -f compose.yml -f compose.prod.yml up -d --remove-orphans

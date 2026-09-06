@@ -136,10 +136,6 @@ endpoint:
 
 login-page: https://${URL}
 
-slack:
-    token: ${SLACK_TOKEN}
-    channel: ${SLACK_CHANNEL}
-
 customlog:
     file:
         base: "/app/logs"

@@ -1,0 +1,59 @@
+# 로컬 개발·E2E 용 override. 소스에서 직접 빌드하고 MySQL 도 함께 띄운다.
+#   docker compose -f compose.yml -f compose.local.yml up -d --wait backend
+#
+# 프로젝트 이름을 고정한다 — 프론트 E2E 러너가 `--network csereal-local_default` 로
+# 이 스택에 붙는다(cse.snu.ac.kr/scripts/e2e-docker.sh).
+name: csereal-local
+
+services:
+    db:
+        environment:
+            MYSQL_DATABASE: csereal
+            MYSQL_ROOT_PASSWORD: password
+        ports:
+            - "3306:3306" # 호스트 디버깅용(mysql -h127.0.0.1)
+        volumes:
+            - db:/var/lib/mysql
+            # ngram_token_size=2 — 옛 MySQL FULLTEXT 검색이 의존하던 설정
+            - ./db_config:/etc/mysql/conf.d
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ppassword"]
+            interval: 2s
+            timeout: 5s
+            retries: 60
+
+    search:
+        image: csereal-search:local
+        build:
+            context: .
+            dockerfile: Dockerfile.es
+        ports:
+            - "9200:9200" # 호스트 디버깅용
+        healthcheck:
+            retries: 40
+
+    backend:
+        image: csereal-backend:local
+        build:
+            context: .
+        environment:
+            SPRING_PROFILES_ACTIVE: local # mock-login(@Profile("!prod")) 활성
+            SPRING_ELASTICSEARCH_URIS: http://search:9200
+            SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/csereal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
+            SPRING_DATASOURCE_USERNAME: root
+            SPRING_DATASOURCE_PASSWORD: password
+        ports:
+            - "8080:8080" # 호스트 디버깅용
+        depends_on:
+            db: { condition: service_healthy }
+            search: { condition: service_healthy }
+        restart: on-failure
+        healthcheck:
+            test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/v2/research/lab?language=ko"]
+            interval: 5s
+            timeout: 5s
+            retries: 60 # 첫 부팅(mysql 초기화 + flyway 전체 마이그레이션)이 느릴 수 있어 여유
+            start_period: 20s
+
+volumes:
+    db:

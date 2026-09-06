@@ -293,3 +293,6 @@ caddy/*
 
 # VS Code Java 확장(redhat.java)이 만드는 소스 사본
 bin/
+
+# Claude Code 가 만드는 git worktree·세션 파일
+.claude/

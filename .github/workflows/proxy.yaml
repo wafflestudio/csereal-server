@@ -7,6 +7,11 @@ on:
       - caddy/Caddyfile
       - .github/workflows/proxy.yaml
 
+# 엣지 설정을 다루므로 겹치면 안 된다. 진행 중인 것을 끊으면 어중간한 상태로 남는다.
+concurrency:
+    group: proxy-prod
+    cancel-in-progress: false
+
 jobs:
   proxy-initialize:
     runs-on: ubuntu-latest
@@ -14,7 +19,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       -
         name: Create .env file
@@ -25,7 +30,7 @@ jobs:
 
       -
         name: SCP Command to Transfer Files
-        uses: appleboy/scp-action@v0.1.4
+        uses: appleboy/scp-action@v1
         with:
           host: ${{secrets.SSH_HOST}}
           username: ${{secrets.SSH_USER}}
@@ -37,7 +42,7 @@ jobs:
 
       -
         name: SSH Command to Run Docker Compose
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{secrets.SSH_HOST}}
           username: ${{secrets.SSH_USER}}
@@ -46,5 +51,12 @@ jobs:
           script: |
             cd ~/proxy
             source .env
-            docker compose -f docker-compose-caddy.yml down
-            docker compose -f docker-compose-caddy.yml up -d
+            # 이미지·compose 설정 변경을 반영한다. Caddyfile 은 바인드 마운트라
+            # compose 입장에선 설정이 안 바뀐 것이어서 이것만으론 반영되지 않는다.
+            docker compose -f docker-compose-caddy.yml up -d --remove-orphans
+            # Caddyfile 변경은 무중단 reload 로 반영한다. 전엔 down → up 이라
+            # 설정 한 줄만 바꿔도 TLS 가 수 초 끊겼다(엣지라 사이트 전체가 멈춘다).
+            # reload 는 설정이 잘못되면 적용하지 않고 옛 설정을 그대로 유지한다.
+            for i in $(seq 1 15); do docker exec csereal_caddy caddy version >/dev/null 2>&1 && break; sleep 2; done
+            docker exec csereal_caddy caddy validate --config /etc/caddy/Caddyfile
+            docker exec csereal_caddy caddy reload --config /etc/caddy/Caddyfile

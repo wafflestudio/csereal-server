@@ -1,0 +1,25 @@
+global:
+    scrape_interval: 15s
+
+scrape_configs:
+    # 앱은 별도 compose 프로젝트라 서비스 이름(green/backend)으로 못 닿는다.
+    # 전 설정은 `green:8080` 을 긁었는데 두 컨테이너가 다른 네트워크에 있어
+    # 30일간 스크랩 성공이 0회였다(2026-09-06 확인). 호스트 게이트웨이로 바꾼다.
+    # 이러면 앱 서비스 이름이 바뀌어도 안 깨진다.
+    - job_name: spring
+      metrics_path: /actuator/prometheus
+      static_configs:
+          - targets: ["host.docker.internal:8080"]
+            labels:
+                app: csereal-server
+
+    # 수집기 자신도 본다 — 스크랩이 도는지 판단할 근거가 된다.
+    - job_name: prometheus
+      static_configs:
+          - targets: ["localhost:9090"]
+
+    # 호스트 지표 + ops 컨테이너가 남긴 배치 잡 하트비트(textfile collector).
+    # network_mode: host 라 프로메테우스 컨테이너에서는 게이트웨이를 거쳐 닿는다.
+    - job_name: node
+      static_configs:
+          - targets: ["host.docker.internal:9100"]

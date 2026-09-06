@@ -3,6 +3,15 @@ on:
         branches:
             - main
 
+# 배포가 겹치면 최종 상태가 최신 커밋이라는 보장이 사라진다 — 두 런이 같은 움직이는 태그
+# (:prod)에 이미지를 밀고 같은 ~/app 에 파일을 복사하므로, 늦게 끝난 쪽이 이긴다(= 옛 커밋이
+# 이길 수 있다). 그리고 그게 조용하다(양쪽 다 초록불).
+# cancel-in-progress: false — SSH 로 down/up 도는 중에 취소되면 호스트가 컨테이너 내려간
+# 중간 상태로 남는다. 진행 중인 배포는 끝까지 두고 다음 것을 줄 세운다.
+concurrency:
+    group: deploy-prod
+    cancel-in-progress: false
+
 jobs:
     build-and-deploy:
         runs-on: ubuntu-latest
@@ -12,20 +21,20 @@ jobs:
 
         steps:
             -   name: Checkout
-                uses: actions/checkout@v3
+                uses: actions/checkout@v7
 
             -   name: Set up Docker Buildx
-                uses: docker/setup-buildx-action@v3
+                uses: docker/setup-buildx-action@v4
 
             -   name: Log in to the Container Registry
-                uses: docker/login-action@v2.2.0
+                uses: docker/login-action@v4
                 with:
                     registry: ghcr.io
                     username: ${{github.actor}}
                     password: ${{secrets.GITHUB_TOKEN}}
 
             -   name: Build and push Docker image
-                uses: docker/build-push-action@v4.1.1
+                uses: docker/build-push-action@v7
                 with:
                     context: .
                     push: true
@@ -37,7 +46,7 @@ jobs:
 
             # nori 는 공식 이미지에 없는 플러그인이라 검색 서버도 우리가 만들어 올린다.
             -   name: Build and push search image
-                uses: docker/build-push-action@v4.1.1
+                uses: docker/build-push-action@v7
                 with:
                     context: .
                     file: Dockerfile.es
@@ -54,21 +63,19 @@ jobs:
                     echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
                     echo "OIDC_CLIENT_SECRET=${{secrets.OIDC_CLIENT_SECRET}}" >> .env
                     echo "URL=${{secrets.URL}}" >> .env
-                    echo "SLACK_TOKEN=${{secrets.SLACK_TOKEN}}" >> .env
-                    echo "SLACK_CHANNEL=${{secrets.SLACK_CHANNEL}}" >> .env
 
             -   name: SCP Command to Transfer Files
-                uses: appleboy/scp-action@v0.1.4
+                uses: appleboy/scp-action@v1
                 with:
                     host: ${{secrets.SSH_HOST}}
                     username: ${{secrets.SSH_USER}}
                     port: ${{secrets.SSH_PORT}}
                     key: ${{secrets.SSH_KEY}}
-                    source: "docker-compose-backend.yml, .env"
+                    source: "compose.yml, compose.prod.yml, .env"
                     target: "~/app"
                     overwrite: true
             -   name: SSH Remote Commands
-                uses: appleboy/ssh-action@v1.0.0
+                uses: appleboy/ssh-action@v1
                 with:
                     host: ${{secrets.SSH_HOST}}
                     username: ${{secrets.SSH_USER}}
@@ -77,6 +84,13 @@ jobs:
                     script: |
                         cd ~/app
                         source .env
-                        docker compose -f docker-compose-backend.yml down
-                        docker compose -f docker-compose-backend.yml pull
-                        docker compose -f docker-compose-backend.yml up -d
+                        docker compose -f compose.yml -f compose.prod.yml pull
+                        # down 을 쓰지 않는다. compose 는 이미지·설정이 바뀐 서비스만 재생성하는데
+                        # down 이 그걸 무력화해 매 배포마다 전부 내렸다 재생성했다.
+                        # --remove-orphans 는 down 이 해주던 "파일에서 사라진 서비스 정리"를 대신한다.
+                        #
+                        # ⚠️ 아직 ES 는 매번 재생성된다 — 위 스텝이 Dockerfile.es 가 안 바뀌어도
+                        #    search 이미지를 다시 밀어 다이제스트가 매번 달라지기 때문이다.
+                        #    (재색인은 별개다. 앱이 ApplicationReadyEvent 마다 전량 색인하므로
+                        #     ES 를 살려둬도 배포마다 일어난다.) 배포 스택을 정리할 때 함께 볼 것.
+                        docker compose -f compose.yml -f compose.prod.yml up -d --remove-orphans

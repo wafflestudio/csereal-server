@@ -29,7 +29,7 @@ import java.sql.SQLIntegrityConstraintViolationException
  *
  * 프레임워크 예외(405·415·400 계열 등 20여 종)는 [ResponseEntityExceptionHandler] 가 이미 상태 코드까지 정해 두었으므로
  * 목록을 손으로 나열하지 않고 상속해서 [handleExceptionInternal] 로 **본문만** 갈아끼운다.
- * 손으로 나열하던 시절엔 빠뜨린 예외가 마지막 그물로 떨어져 405 가 500 + ERROR 로그(Slack 알림)로 나갔다.
+ * 손으로 나열하던 시절엔 빠뜨린 예외가 마지막 그물로 떨어져 405 가 500 + ERROR 로그로 나갔다.
  */
 @RestControllerAdvice
 class CserealExceptionHandler : ResponseEntityExceptionHandler() {
@@ -70,7 +70,7 @@ class CserealExceptionHandler : ResponseEntityExceptionHandler() {
      * 그러니 이 핸들러와 그쪽 설정은 중복이 아니라 **다른 경로**를 각각 막는다.
      *
      * 그리고 이 핸들러를 지우면 안 된다. 마지막 그물 [handleUnknown] 이 `Exception` 을 선언하고 있어서
-     * `AccessDeniedException` 이 거기로 떨어져 500 + ERROR 로그(Slack)가 된다.
+     * `AccessDeniedException` 이 거기로 떨어져 500 + ERROR 로그가 된다.
      */
     @ExceptionHandler(AccessDeniedException::class)
     fun handle(e: AccessDeniedException): ResponseEntity<ErrorResponse> {
@@ -153,7 +153,7 @@ class CserealExceptionHandler : ResponseEntityExceptionHandler() {
 
     /**
      * 4xx 는 사용자가 고칠 수 있는 실패가 아니라 대개 프론트 버그·URL 조작이라 응답엔 코드만 싣고 상세는 로그로.
-     * WARN 이라 Slack 알림(ERROR 기준)은 울리지 않는다.
+     * WARN 이라 ERROR 기준 경보에는 잡히지 않는다.
      */
     private fun logClientError(code: ErrorCode, detail: String?) {
         if (!detail.isNullOrBlank()) logger.warn("${code.code} — $detail")

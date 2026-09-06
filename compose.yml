@@ -1,0 +1,28 @@
+# 스택의 공통 정의. 단독으로 쓰지 않는다 — 반드시 override 와 함께 부른다.
+#   로컬: docker compose -f compose.yml -f compose.local.yml up -d --wait backend
+#   배포: docker compose -f compose.yml -f compose.prod.yml  up -d --remove-orphans
+#
+# 왜 나눴나: 서비스 목록이 두 곳(로컬용·배포용)에 흩어져 있어서, 2026-09-06 검색 도입 때
+# 로컬에만 넣고 배포에 빠뜨려 staging 이 ES 없이 떴다(#438). 같은 날 백엔드 레포의 로컬
+# compose 두 개도 같은 이유로 조용히 기동 불가가 됐다. "이 스택에 어떤 서비스가 있는가"를
+# 한 곳에서만 적어 그 부류의 사고를 없앤다.
+#
+# 앱 서비스는 여기에 없다 — 배포는 green, 로컬은 backend 라는 다른 이름을 쓴다.
+# 이름을 맞추면 compose 가 기존 prod 컨테이너를 orphan 으로 보고 지웠다 다시 만드는데,
+# container_name 이 고정돼 있어 충돌로 배포가 깨질 수 있다. 이름 통일은 별도 작업으로.
+services:
+    # MySQL 버전을 한 곳에서만 적는다. 전엔 로컬(compose.local.yml)과 배포
+    # (docker-compose-db.yml)에 따로 적혀 있어 조용히 갈라질 수 있었다.
+    db:
+        image: mysql:8.0
+        cap_add: [SYS_NICE]
+
+    search:
+        environment:
+            discovery.type: single-node
+            xpack.security.enabled: "false" # 포트를 밖으로 안 내는 것이 방어다
+            ES_JAVA_OPTS: -Xms512m -Xmx512m
+        healthcheck:
+            test: ["CMD-SHELL", "curl -fsS localhost:9200/_cluster/health || exit 1"]
+            interval: 5s
+            timeout: 5s
