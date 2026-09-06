@@ -70,7 +70,6 @@ services:
             SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
             SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
             OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
-            OIDC_CLIENT_SECRET_DEV: ${OIDC_CLIENT_SECRET_DEV}
             URL: ${URL}
         # 이 헬스체크가 호스트 cron 으로 돌던 감시 스크립트를 대체한다.
         # `restart: always` 는 프로세스가 종료될 때만 듣는다 — JVM 이 살아 있으면서 응답만

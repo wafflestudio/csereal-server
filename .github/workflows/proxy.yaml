@@ -1,62 +1,79 @@
+# 엣지(Caddy) 배포. main → production, develop → staging 을 한 파일이 담당한다.
+# 환경별 값은 .github/deploy-targets/<브랜치>.env 에 있다 — 설명은 그 디렉터리의 README.
+name: proxy
+
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - compose.caddy.yml
-      - caddy/Caddyfile
-      - .github/workflows/proxy.yaml
+    push:
+        branches:
+            - main
+            - develop
+        paths:
+            - compose.caddy.yml
+            - caddy/Caddyfile
+            - caddy/Caddyfile.dev
+            - .github/workflows/proxy.yaml
 
 # 엣지 설정을 다루므로 겹치면 안 된다. 진행 중인 것을 끊으면 어중간한 상태로 남는다.
 concurrency:
-    group: proxy-prod
+    group: proxy-${{ github.ref_name }}
     cancel-in-progress: false
 
 jobs:
-  proxy-initialize:
-    runs-on: ubuntu-latest
+    proxy-initialize:
+        # 러너 아키텍처를 대상 호스트와 맞춘다(deploy.yaml 의 같은 주석 참고).
+        runs-on: ${{ github.ref_name == 'main' && 'ubuntu-latest' || 'ubuntu-24.04-arm' }}
+        environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
 
-    steps:
-      -
-        name: Checkout
-        uses: actions/checkout@v7
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
 
-      -
-        name: Create .env file
-        run: |
-          echo "URL=${{secrets.URL}}" > .env
-          echo "CERTIFICATE=${{secrets.CERTIFICATE}}" >> .env
-          echo "PRIVATE_KEY=${{secrets.PRIVATE_KEY}}" >> .env
+            # 대상별 값을 부어 넣는다. 이후 스텝은 env.SSH_HOST 처럼 쓴다.
+            # ⚠️ cat 으로 되돌리지 말 것 — $GITHUB_ENV 는 주석 줄을 거부한다
+            #    (`Invalid format '# staging'`). 파일의 주석은 사람 몫이라 남긴다.
+            - name: 배포 대상 설정 읽기
+              run: grep -vE '^\s*(#|$)' .github/deploy-targets/${{ github.ref_name }}.env >> "$GITHUB_ENV"
 
-      -
-        name: SCP Command to Transfer Files
-        uses: appleboy/scp-action@v1
-        with:
-          host: ${{secrets.SSH_HOST}}
-          username: ${{secrets.SSH_USER}}
-          port: ${{secrets.SSH_PORT}}
-          key: ${{secrets.SSH_KEY}}
-          source: "compose.caddy.yml, .env, caddy/Caddyfile"
-          target: "~/proxy"
-          overwrite: true
+            # 인증서는 prod 만 쓴다. staging 은 nip.io 도메인이라 Caddy 가 스스로 발급받는다.
+            - name: Create .env file
+              run: |
+                  echo "URL=${{ env.URL }}" > .env
+                  if [ "${{ env.PROFILE }}" = "prod" ]; then
+                    echo "CERTIFICATE=${{ secrets.CERTIFICATE }}" >> .env
+                    echo "PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}" >> .env
+                  fi
 
-      -
-        name: SSH Command to Run Docker Compose
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{secrets.SSH_HOST}}
-          username: ${{secrets.SSH_USER}}
-          port: ${{secrets.SSH_PORT}}
-          key: ${{secrets.SSH_KEY}}
-          script: |
-            cd ~/proxy
-            source .env
-            # 이미지·compose 설정 변경을 반영한다. Caddyfile 은 바인드 마운트라
-            # compose 입장에선 설정이 안 바뀐 것이어서 이것만으론 반영되지 않는다.
-            docker compose -f compose.caddy.yml up -d --remove-orphans
-            # Caddyfile 변경은 무중단 reload 로 반영한다. 전엔 down → up 이라
-            # 설정 한 줄만 바꿔도 TLS 가 수 초 끊겼다(엣지라 사이트 전체가 멈춘다).
-            # reload 는 설정이 잘못되면 적용하지 않고 옛 설정을 그대로 유지한다.
-            for i in $(seq 1 15); do docker exec csereal_caddy caddy version >/dev/null 2>&1 && break; sleep 2; done
-            docker exec csereal_caddy caddy validate --config /etc/caddy/Caddyfile
-            docker exec csereal_caddy caddy reload --config /etc/caddy/Caddyfile
+            - name: SCP Command to Transfer Files
+              uses: appleboy/scp-action@v1
+              with:
+                  host: ${{ env.SSH_HOST }}
+                  username: ${{ env.SSH_USER }}
+                  # 전엔 이 스텝에만 port 가 빠져 있었다. staging 이 기본 22 라 우연히 통했다.
+                  port: ${{ env.SSH_PORT }}
+                  key: ${{ secrets.SSH_KEY }}
+                  source: "compose.caddy.yml, .env, ${{ env.CADDYFILE }}"
+                  target: "~/proxy"
+                  overwrite: true
+
+            - name: SSH Command to Run Docker Compose
+              uses: appleboy/ssh-action@v1
+              with:
+                  host: ${{ env.SSH_HOST }}
+                  username: ${{ env.SSH_USER }}
+                  port: ${{ env.SSH_PORT }}
+                  key: ${{ secrets.SSH_KEY }}
+                  script: |
+                      cd ~/proxy
+                      # staging 은 Caddyfile.dev 를 받는다. 컨테이너가 보는 이름은 한 가지다.
+                      # prod 엔 그 파일이 없다 — `[ -f ] &&` 로 쓰면 거기서 1 을 반환한다.
+                      if [ -f caddy/Caddyfile.dev ]; then mv -f caddy/Caddyfile.dev caddy/Caddyfile; fi
+                      source .env
+                      # 이미지·compose 설정 변경을 반영한다. Caddyfile 은 바인드 마운트라
+                      # compose 입장에선 설정이 안 바뀐 것이어서 이것만으론 반영되지 않는다.
+                      docker compose -f compose.caddy.yml up -d --remove-orphans
+                      # Caddyfile 변경은 무중단 reload 로 반영한다. 전엔 down → up 이라
+                      # 설정 한 줄만 바꿔도 TLS 가 수 초 끊겼다(엣지라 사이트 전체가 멈춘다).
+                      # reload 는 설정이 잘못되면 적용하지 않고 옛 설정을 그대로 유지한다.
+                      for i in $(seq 1 15); do docker exec csereal_caddy caddy version >/dev/null 2>&1 && break; sleep 2; done
+                      docker exec csereal_caddy caddy validate --config /etc/caddy/Caddyfile
+                      docker exec csereal_caddy caddy reload --config /etc/caddy/Caddyfile
