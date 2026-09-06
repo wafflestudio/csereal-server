@@ -26,21 +26,20 @@ docker compose -f compose.yml -f compose.local.yml up -d --wait backend
 **비밀이 아닌 것은 시크릿에 넣지 않는다** — 호스트·포트·도메인은 설정이지 비밀이 아니고,
 시크릿에 넣으면 로그에서 `***` 로 가려져 디버깅만 어려워진다.
 
-**GitHub Environment 변수** (`production` / `staging`)
-
+**[`.github/deploy-targets/`](.github/deploy-targets/)** — 브랜치별 배포 대상.
 `SSH_HOST` · `SSH_PORT` · `SSH_USER` · `URL` · `PROFILE` · `CADDYFILE`
 
-**GitHub 레포 시크릿**
+**GitHub 시크릿**
 
 | | |
 |---|---|
 | `MYSQL_ROOT_PASSWORD` `MYSQL_USER` `MYSQL_PASSWORD` `MYSQL_DATABASE` | 양쪽 |
 | `OIDC_CLIENT_SECRET` | prod (OIDC 등록이 prod 프로파일에만 있다) |
 | `CERTIFICATE` `PRIVATE_KEY` | prod 엣지 (staging 은 nip.io 라 Caddy 가 자체 발급) |
-| `SSH_KEY` / `SSH_KEY_DEV_2` | prod / staging 접속 |
+| `SSH_KEY` | 접속 키. staging Environment 의 값이 레포 수준 값(prod)을 덮어쓴다 |
 
-⚠️ `SSH_KEY_DEV_2` 만 옛 이름이다. 기존 시크릿 값은 API 로 읽을 수 없어 같은 이름으로
-옮기려면 값을 한 번 다시 넣어야 한다. 그때까지 워크플로에 브랜치 분기 한 줄이 남는다.
+Environment(`production`·`staging`)는 **시크릿 격리** 용도로만 쓴다 — staging 잡이
+production 키를 읽을 수 없다.
 
 **호스트 `.env`** (git 에 없음)
 

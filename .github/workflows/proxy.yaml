@@ -1,5 +1,5 @@
 # 엣지(Caddy) 배포. main → production, develop → staging 을 한 파일이 담당한다.
-# 환경별 값은 GitHub Environment 변수에 있다 — 설명은 deploy.yaml 머리말 참고.
+# 환경별 값은 .github/deploy-targets/<브랜치>.env 에 있다 — 설명은 그 디렉터리의 README.
 name: proxy
 
 on:
@@ -28,11 +28,14 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v7
 
+            - name: 배포 대상 설정 읽기
+              run: cat .github/deploy-targets/${{ github.ref_name }}.env >> "$GITHUB_ENV"
+
             # 인증서는 prod 만 쓴다. staging 은 nip.io 도메인이라 Caddy 가 스스로 발급받는다.
             - name: Create .env file
               run: |
-                  echo "URL=${{ vars.URL }}" > .env
-                  if [ "${{ vars.PROFILE }}" = "prod" ]; then
+                  echo "URL=${{ env.URL }}" > .env
+                  if [ "${{ env.PROFILE }}" = "prod" ]; then
                     echo "CERTIFICATE=${{ secrets.CERTIFICATE }}" >> .env
                     echo "PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}" >> .env
                   fi
@@ -40,22 +43,22 @@ jobs:
             - name: SCP Command to Transfer Files
               uses: appleboy/scp-action@v1
               with:
-                  host: ${{ vars.SSH_HOST }}
-                  username: ${{ vars.SSH_USER }}
+                  host: ${{ env.SSH_HOST }}
+                  username: ${{ env.SSH_USER }}
                   # 전엔 이 스텝에만 port 가 빠져 있었다. staging 이 기본 22 라 우연히 통했다.
-                  port: ${{ vars.SSH_PORT }}
-                  key: ${{ github.ref_name == 'main' && secrets.SSH_KEY || secrets.SSH_KEY_DEV_2 }}
-                  source: "compose.caddy.yml, .env, ${{ vars.CADDYFILE }}"
+                  port: ${{ env.SSH_PORT }}
+                  key: ${{ secrets.SSH_KEY }}
+                  source: "compose.caddy.yml, .env, ${{ env.CADDYFILE }}"
                   target: "~/proxy"
                   overwrite: true
 
             - name: SSH Command to Run Docker Compose
               uses: appleboy/ssh-action@v1
               with:
-                  host: ${{ vars.SSH_HOST }}
-                  username: ${{ vars.SSH_USER }}
-                  port: ${{ vars.SSH_PORT }}
-                  key: ${{ github.ref_name == 'main' && secrets.SSH_KEY || secrets.SSH_KEY_DEV_2 }}
+                  host: ${{ env.SSH_HOST }}
+                  username: ${{ env.SSH_USER }}
+                  port: ${{ env.SSH_PORT }}
+                  key: ${{ secrets.SSH_KEY }}
                   script: |
                       cd ~/proxy
                       # staging 은 Caddyfile.dev 를 받는다. 컨테이너가 보는 이름은 한 가지다.
