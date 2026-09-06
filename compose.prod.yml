@@ -72,8 +72,48 @@ services:
             OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
             OIDC_CLIENT_SECRET_DEV: ${OIDC_CLIENT_SECRET_DEV}
             URL: ${URL}
+        # 이 헬스체크가 호스트 cron 으로 돌던 감시 스크립트를 대체한다.
+        # `restart: always` 는 프로세스가 종료될 때만 듣는다 — JVM 이 살아 있으면서 응답만
+        # 안 하는 경우(데드락·스레드풀 고갈)엔 영원히 재시작되지 않아서 감시가 필요했다.
+        #
+        # start_period 가 옛 스크립트의 GRACE=180 을 대체한다. Docker 는 이 기간의 실패를
+        # 아예 세지 않는다. 2026-09-04(V20) 배포 때 부팅이 23초 걸렸는데 스크립트가 10초만
+        # 주고 재시작해 Flyway 마이그레이션을 중간에 죽였고 영구 crash loop 가 됐다.
+        # 그 사고를 정석으로 푸는 방법이다.
+        healthcheck:
+            test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/helloworld"]
+            interval: 30s
+            timeout: 5s
+            retries: 3
+            start_period: 180s
+        # autoheal 이 이 라벨을 보고 unhealthy 컨테이너를 재시작한다.
+        # Docker 자체는 unhealthy 를 표시만 하고 재시작해 주지 않는다(Swarm·k8s 는 해준다).
+        labels:
+            autoheal: "true"
         # Caddy 는 이 컨테이너를 host.docker.internal:8080 으로 부른다(8080 게시 유지).
         depends_on:
             db: { condition: service_healthy }
             search: { condition: service_healthy }
         restart: always
+
+    # unhealthy 로 표시된 컨테이너를 재시작한다. 직접 만든 스크립트 대신 stock 이미지를
+    # 쓰는 이유: 앱의 유일한 자동복구 수단이라 검증된 것이 낫고, 판정 로직(healthcheck)은
+    # compose 선언으로 옮겨 레포가 정본이 되기 때문이다.
+    # 앱 스택에 두어 배포와 함께 간다 — 새 호스트를 세워도 자동으로 따라온다.
+    autoheal:
+        image: willfarrell/autoheal:1.2.0
+        container_name: csereal_autoheal
+        environment:
+            AUTOHEAL_CONTAINER_LABEL: autoheal
+            AUTOHEAL_INTERVAL: 30
+            # 자기 자신이 막 떴을 때 성급히 손대지 않게 한다.
+            # 컨테이너별 유예는 각 healthcheck 의 start_period 가 담당한다.
+            AUTOHEAL_START_PERIOD: 60
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        restart: always
+        logging:
+            driver: json-file
+            options:
+                max-size: "10m"
+                max-file: "3"
