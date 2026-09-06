@@ -1,0 +1,14 @@
+# 데이터소스를 코드로 넣는다 — UI 에서 손으로 추가하면 이 서버의 Grafana DB 에만 남아
+# 레포로 재현할 수 없다.
+apiVersion: 1
+
+datasources:
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://prometheus:9090
+      isDefault: true
+      editable: false
+      # uid 를 못박는다. 안 주면 Grafana 가 임의로 만들어 서버마다 달라지고,
+      # 대시보드 JSON 이 그 uid 를 가리키므로 다른 서버에서 패널이 전부 빈다.
+      uid: prometheus

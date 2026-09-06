@@ -1,0 +1,27 @@
+# 알림을 어디로 보낼지. Slack appender 를 걷어내면서 이 시스템에 알림 수단이 없어졌고,
+# 그 자리를 메운다.
+#
+# ⚠️ SMTP 자격증명은 여기 두지 않는다. 호스트 monitoring/.env 에서 온다:
+#      GF_SMTP_USER / GF_SMTP_PASSWORD   (Gmail 이면 앱 비밀번호)
+#    설정이 없으면 Grafana 는 조용히 메일을 안 보낸다 — 로그에만 남는다.
+apiVersion: 1
+
+contactPoints:
+    - orgId: 1
+      name: email
+      receivers:
+          - uid: email-default
+            type: email
+            settings:
+                addresses: yeolyi1310@gmail.com
+                singleEmail: true
+
+policies:
+    - orgId: 1
+      receiver: email
+      group_by: [alertname]
+      # 같은 경보를 반복해서 보내지 않는다. Slack appender 는 ERROR 로그 한 건마다 울려
+      # 같은 장애가 100번이면 100번 왔다 — 그 소음을 만들지 않는다.
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h

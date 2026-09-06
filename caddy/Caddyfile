@@ -18,6 +18,10 @@
     # Login
     reverse_proxy /oauth2/authorization/idsnucse host.docker.internal:8080 
 
+	# Grafana — 팀에 공개. Grafana 자체 인증(계정)으로 막는다.
+	# Prometheus(9090)는 열지 않는다 — 무인증이고 /api/v1/status/config 가 내부 구조를 그대로 준다.
+	reverse_proxy /grafana* host.docker.internal:3001
+
 	# Swagger — /swagger-ui.html 은 /swagger-ui/ 아래가 아니라 별도 매처가 필요하다
 	reverse_proxy /swagger-ui.html host.docker.internal:8080
 	reverse_proxy /swagger-ui/* host.docker.internal:8080

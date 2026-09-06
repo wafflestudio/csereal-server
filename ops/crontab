@@ -1,0 +1,7 @@
+# ops 컨테이너 안 스케줄(busybox crond). 이미지에 구워지므로 호스트에서 못 고친다.
+#
+# 분 시 일 월 요일  명령
+
+# DB 덤프. 매일 자정 KST(TZ 는 compose 가 넣는다), 30일 보관.
+# 출력은 stdout → docker logs csereal_ops. 호스트 로그 파일도 logrotate 설정도 없다.
+0 0 * * * /opt/ops/db-backup.sh
