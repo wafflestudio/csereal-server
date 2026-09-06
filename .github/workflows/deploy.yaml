@@ -1,96 +1,126 @@
+# 앱 배포. main → production, develop → staging 을 한 파일이 담당한다.
+#
+# 환경마다 다른 값은 .github/deploy-targets/<브랜치>.env 에 있다. 호스트·포트·계정·
+# 도메인은 비밀이 아니므로 레포에 둔다 — 변경이 PR 리뷰를 타고 grep 이 되고, "이 워크플로가
+# 어디로 배포하나"를 파일만 보고 알 수 있다. 진짜 비밀만 GitHub 시크릿에 남긴다.
+#
+# 전엔 deploy.yaml / deploy_dev.yaml 두 벌이었고 시크릿 이름만 `_DEV_2` 로 달랐다.
+# 한쪽만 고치면 다른 쪽이 조용히 뒤처지는 구조였다.
+name: deploy
+
 on:
     push:
         branches:
             - main
+            - develop
+        # 경로 필터를 두지 않는다. 허용목록이던 시절 실측으로 25 커밋 중 2번만 배포를 아꼈는데,
+        # 목록에 없는 파일이 새로 생기면 배포가 조용히 안 되는 위험을 늘 안고 있었다.
+        # 헛배포는 싸다 — 목록 유지비를 안 무는 쪽을 택한다.
 
 # 배포가 겹치면 최종 상태가 최신 커밋이라는 보장이 사라진다 — 두 런이 같은 움직이는 태그
-# (:prod)에 이미지를 밀고 같은 ~/app 에 파일을 복사하므로, 늦게 끝난 쪽이 이긴다(= 옛 커밋이
-# 이길 수 있다). 그리고 그게 조용하다(양쪽 다 초록불).
-# cancel-in-progress: false — SSH 로 down/up 도는 중에 취소되면 호스트가 컨테이너 내려간
-# 중간 상태로 남는다. 진행 중인 배포는 끝까지 두고 다음 것을 줄 세운다.
+# (:prod·:dev)에 이미지를 밀고 같은 ~/app 에 파일을 복사하므로, 늦게 끝난 쪽이 이긴다
+# (= 옛 커밋이 이길 수 있다). 그리고 그게 조용하다(양쪽 다 초록불).
+# cancel-in-progress: false — SSH 로 up 도는 중에 취소되면 호스트가 중간 상태로 남는다.
+# 진행 중인 배포는 끝까지 두고 다음 것을 줄 세운다. 환경별로 그룹을 나눈다.
 concurrency:
-    group: deploy-prod
+    group: deploy-${{ github.ref_name }}
     cancel-in-progress: false
 
 jobs:
     build-and-deploy:
-        runs-on: ubuntu-latest
+        # ⚠️ 러너 아키텍처는 취향이 아니라 대상 호스트와 맞춘 것이다.
+        #    prod=x86_64 → ubuntu-latest, staging=aarch64 → ubuntu-24.04-arm.
+        #    어긋나면 호스트가 실행할 수 없는 이미지가 만들어진다.
+        #    deploy-targets 파일로 못 뺀다 — runs-on 은 스텝이 돌기 전에 평가된다.
+        runs-on: ${{ github.ref_name == 'main' && 'ubuntu-latest' || 'ubuntu-24.04-arm' }}
+        environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
         permissions:
             packages: write
             contents: read
 
         steps:
-            -   name: Checkout
-                uses: actions/checkout@v7
+            - name: Checkout
+              uses: actions/checkout@v7
 
-            -   name: Set up Docker Buildx
-                uses: docker/setup-buildx-action@v4
+            # 대상별 값을 통째로 부어 넣는다. 이후 스텝은 env.SSH_HOST 처럼 쓴다.
+            - name: 배포 대상 설정 읽기
+              run: cat .github/deploy-targets/${{ github.ref_name }}.env >> "$GITHUB_ENV"
 
-            -   name: Log in to the Container Registry
-                uses: docker/login-action@v4
-                with:
-                    registry: ghcr.io
-                    username: ${{github.actor}}
-                    password: ${{secrets.GITHUB_TOKEN}}
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v4
 
-            -   name: Build and push Docker image
-                uses: docker/build-push-action@v7
-                with:
-                    context: .
-                    push: true
-                    build-args: |
-                        PROFILE=prod
-                    tags: |
-                        ghcr.io/wafflestudio/csereal-server/server_image:prod
-                        ghcr.io/wafflestudio/csereal-server/server_image:${{github.sha}}
+            - name: Log in to the Container Registry
+              uses: docker/login-action@v4
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Build and push Docker image
+              uses: docker/build-push-action@v7
+              with:
+                  context: .
+                  push: true
+                  build-args: |
+                      PROFILE=${{ env.PROFILE }}
+                  tags: |
+                      ghcr.io/wafflestudio/csereal-server/server_image:${{ env.PROFILE }}
+                      ghcr.io/wafflestudio/csereal-server/server_image:${{ github.sha }}
 
             # nori 는 공식 이미지에 없는 플러그인이라 검색 서버도 우리가 만들어 올린다.
-            -   name: Build and push search image
-                uses: docker/build-push-action@v7
-                with:
-                    context: .
-                    file: Dockerfile.es
-                    push: true
-                    tags: |
-                        ghcr.io/wafflestudio/csereal-server/search_image:prod
+            - name: Build and push search image
+              uses: docker/build-push-action@v7
+              with:
+                  context: .
+                  file: Dockerfile.es
+                  push: true
+                  tags: |
+                      ghcr.io/wafflestudio/csereal-server/search_image:${{ env.PROFILE }}
 
-            -   name: Create .env file
-                run: |
-                    echo "PROFILE=prod" > .env
-                    echo "MYSQL_ROOT_PASSWORD=${{secrets.MYSQL_ROOT_PASSWORD}}" >> .env
-                    echo "MYSQL_USER=${{secrets.MYSQL_USER}}" >> .env
-                    echo "MYSQL_PASSWORD=${{secrets.MYSQL_PASSWORD}}" >> .env
-                    echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
-                    echo "OIDC_CLIENT_SECRET=${{secrets.OIDC_CLIENT_SECRET}}" >> .env
-                    echo "URL=${{secrets.URL}}" >> .env
+            # OIDC 는 prod 프로파일에만 등록돼 있다(application.yaml). staging 은 mock-login 만
+            # 쓰므로 넘길 것이 없다 — 전엔 OIDC_CLIENT_SECRET_DEV 를 써 넣었지만 읽는 곳이 없었다.
+            - name: Create .env file
+              run: |
+                  echo "# deploy.yaml 이 매 배포마다 덮어쓴다. 여기서 고치지 말 것." > .env
+                  echo "PROFILE=${{ env.PROFILE }}" >> .env
+                  echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+                  echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+                  echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+                  echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
+                  echo "URL=${{ env.URL }}" >> .env
+                  if [ "${{ env.PROFILE }}" = "prod" ]; then
+                    echo "OIDC_CLIENT_SECRET=${{ secrets.OIDC_CLIENT_SECRET }}" >> .env
+                  fi
 
-            -   name: SCP Command to Transfer Files
-                uses: appleboy/scp-action@v1
-                with:
-                    host: ${{secrets.SSH_HOST}}
-                    username: ${{secrets.SSH_USER}}
-                    port: ${{secrets.SSH_PORT}}
-                    key: ${{secrets.SSH_KEY}}
-                    source: "compose.yml, compose.prod.yml, .env"
-                    target: "~/app"
-                    overwrite: true
-            -   name: SSH Remote Commands
-                uses: appleboy/ssh-action@v1
-                with:
-                    host: ${{secrets.SSH_HOST}}
-                    username: ${{secrets.SSH_USER}}
-                    port: ${{secrets.SSH_PORT}}
-                    key: ${{secrets.SSH_KEY}}
-                    script: |
-                        cd ~/app
-                        source .env
-                        docker compose -f compose.yml -f compose.prod.yml pull
-                        # down 을 쓰지 않는다. compose 는 이미지·설정이 바뀐 서비스만 재생성하는데
-                        # down 이 그걸 무력화해 매 배포마다 전부 내렸다 재생성했다.
-                        # --remove-orphans 는 down 이 해주던 "파일에서 사라진 서비스 정리"를 대신한다.
-                        #
-                        # ⚠️ 아직 ES 는 매번 재생성된다 — 위 스텝이 Dockerfile.es 가 안 바뀌어도
-                        #    search 이미지를 다시 밀어 다이제스트가 매번 달라지기 때문이다.
-                        #    (재색인은 별개다. 앱이 ApplicationReadyEvent 마다 전량 색인하므로
-                        #     ES 를 살려둬도 배포마다 일어난다.) 배포 스택을 정리할 때 함께 볼 것.
-                        docker compose -f compose.yml -f compose.prod.yml up -d --remove-orphans
+            - name: SCP Command to Transfer Files
+              uses: appleboy/scp-action@v1
+              with:
+                  host: ${{ env.SSH_HOST }}
+                  username: ${{ env.SSH_USER }}
+                  port: ${{ env.SSH_PORT }}
+                  # 환경이 고른다. staging Environment 의 SSH_KEY 가 레포 수준 값(prod)을 덮어쓴다.
+                  key: ${{ secrets.SSH_KEY }}
+                  source: "compose.yml, compose.prod.yml, .env"
+                  target: "~/app"
+                  overwrite: true
+
+            - name: SSH Remote Commands
+              uses: appleboy/ssh-action@v1
+              with:
+                  host: ${{ env.SSH_HOST }}
+                  username: ${{ env.SSH_USER }}
+                  port: ${{ env.SSH_PORT }}
+                  key: ${{ secrets.SSH_KEY }}
+                  script: |
+                      cd ~/app
+                      source .env
+                      docker compose -f compose.yml -f compose.prod.yml pull
+                      # down 을 쓰지 않는다. compose 는 이미지·설정이 바뀐 서비스만 재생성하는데
+                      # down 이 그걸 무력화해 매 배포마다 전부 내렸다 재생성했다.
+                      # --remove-orphans 는 down 이 해주던 "파일에서 사라진 서비스 정리"를 대신한다.
+                      #
+                      # ⚠️ 아직 ES 는 매번 재생성된다 — 위 스텝이 Dockerfile.es 가 안 바뀌어도
+                      #    search 이미지를 다시 밀어 다이제스트가 매번 달라지기 때문이다.
+                      #    (재색인은 별개다. 앱이 ApplicationReadyEvent 마다 전량 색인하므로
+                      #     ES 를 살려둬도 배포마다 일어난다.) 배포 스택을 정리할 때 함께 볼 것.
+                      docker compose -f compose.yml -f compose.prod.yml up -d --remove-orphans
