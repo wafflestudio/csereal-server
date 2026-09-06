@@ -65,7 +65,8 @@ jobs:
                   script: |
                       cd ~/proxy
                       # staging 은 Caddyfile.dev 를 받는다. 컨테이너가 보는 이름은 한 가지다.
-                      [ -f caddy/Caddyfile.dev ] && mv -f caddy/Caddyfile.dev caddy/Caddyfile
+                      # prod 엔 그 파일이 없다 — `[ -f ] &&` 로 쓰면 거기서 1 을 반환한다.
+                      if [ -f caddy/Caddyfile.dev ]; then mv -f caddy/Caddyfile.dev caddy/Caddyfile; fi
                       source .env
                       # 이미지·compose 설정 변경을 반영한다. Caddyfile 은 바인드 마운트라
                       # compose 입장에선 설정이 안 바뀐 것이어서 이것만으론 반영되지 않는다.
