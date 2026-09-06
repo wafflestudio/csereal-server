@@ -1,4 +1,26 @@
 services:
+    # 검색 서버. 공식 이미지에 없는 nori(한국어 분석기)를 얹은 이미지라 배포마다 함께 올린다.
+    search:
+        container_name: csereal_search
+        image: "ghcr.io/wafflestudio/csereal-server/search_image:${PROFILE}"
+        environment:
+            discovery.type: single-node
+            xpack.security.enabled: "false" # 포트를 밖으로 안 내는 것이 방어다
+            ES_JAVA_OPTS: -Xms512m -Xmx512m
+        volumes:
+            - ./search-data:/usr/share/elasticsearch/data
+        healthcheck:
+            test: ["CMD-SHELL", "curl -fsS localhost:9200/_cluster/health || exit 1"]
+            interval: 5s
+            timeout: 5s
+            retries: 60
+        logging:
+            driver: json-file
+            options:
+                max-size: "100m"
+                max-file: "3"
+        restart: always
+
     green:
         container_name: csereal_server_green
         ports:
@@ -14,6 +36,7 @@ services:
                 max-file: "3"
 
         environment:
+            SPRING_ELASTICSEARCH_URIS: http://search:9200
             SPRING_DATASOURCE_URL: "jdbc:mysql://host.docker.internal:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"
             SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
             SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
@@ -24,5 +47,7 @@ services:
             SLACK_CHANNEL: ${SLACK_CHANNEL}
         extra_hosts:
             - host.docker.internal:host-gateway
+        depends_on:
+            search: { condition: service_healthy }
         restart: always
         image: "ghcr.io/wafflestudio/csereal-server/server_image:${PROFILE}"
