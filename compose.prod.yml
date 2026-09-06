@@ -10,7 +10,10 @@ services:
     db:
         container_name: csereal_db_container
         volumes:
-            - ${DB_DATA_DIR:-/home/waffle/database/db}:/var/lib/mysql
+            # 프로젝트 디렉터리(~/app) 기준 상대경로다. prod 는 waffle, staging 은 ubuntu 라
+            # 홈 경로가 달라서 절대경로를 기본값으로 두면 한쪽에서 없는 경로가 만들어지고
+            # 빈 DB 가 뜬다(staging 에서 실제로 겪었다).
+            - ${DB_DATA_DIR:-../database/db}:/var/lib/mysql
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
             MYSQL_DATABASE: ${MYSQL_DATABASE}
