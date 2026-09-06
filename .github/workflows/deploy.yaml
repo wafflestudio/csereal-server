@@ -42,9 +42,11 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v7
 
-            # 대상별 값을 통째로 부어 넣는다. 이후 스텝은 env.SSH_HOST 처럼 쓴다.
+            # 대상별 값을 부어 넣는다. 이후 스텝은 env.SSH_HOST 처럼 쓴다.
+            # ⚠️ cat 으로 되돌리지 말 것 — $GITHUB_ENV 는 주석 줄을 거부한다
+            #    (`Invalid format '# staging'`). 파일의 주석은 사람 몫이라 남긴다.
             - name: 배포 대상 설정 읽기
-              run: cat .github/deploy-targets/${{ github.ref_name }}.env >> "$GITHUB_ENV"
+              run: grep -vE '^\s*(#|$)' .github/deploy-targets/${{ github.ref_name }}.env >> "$GITHUB_ENV"
 
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v4
