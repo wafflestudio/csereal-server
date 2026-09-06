@@ -5,12 +5,15 @@
 # 고칠 수가 없다. 의존성(docker CLI·rclone)도 호스트를 더럽히지 않는다.
 FROM alpine:3.20
 
-# docker-cli: DB 컨테이너 안 정품 mysqldump 를 부르려면 필요하다(소켓은 compose 가 마운트).
-# rclone:     백업을 호스트 밖으로 복사할 때 쓴다.
-# tzdata:     스케줄과 파일명 날짜가 KST 기준이어야 한다.
-RUN apk add --no-cache bash docker-cli rclone tzdata coreutils findutils
+# docker-cli:      DB 컨테이너 안 정품 mysqldump 를 부르려면 필요하다(소켓은 compose 가 마운트).
+# openssh-client: 백업을 다른 호스트로 복사한다. rsync 는 쓰지 않는다 — 백업 파일은
+#                 한 번 만들어지면 안 바뀌어 델타 전송이 아낄 게 없고, rsync 는 받는
+#                 쪽에도 설치돼 있어야 한다. 도착지는 sshd 만 있으면 되게 둔다.
+# tzdata:          스케줄과 파일명 날짜가 KST 기준이어야 한다.
+RUN apk add --no-cache bash docker-cli openssh-client tzdata coreutils findutils
 
 COPY db-backup.sh /opt/ops/db-backup.sh
+COPY backup-offsite.sh /opt/ops/backup-offsite.sh
 COPY crontab /etc/crontabs/root
 RUN chmod +x /opt/ops/*.sh
 
