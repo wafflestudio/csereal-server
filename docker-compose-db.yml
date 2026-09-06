@@ -1,15 +1,29 @@
+# 프로덕션 MySQL. 앱 스택과 별도 프로젝트로 돈다 — 상태를 가진 컨테이너라
+# 앱 배포에 휩쓸리면 안 된다.
+#
+#   docker compose -f docker-compose-db.yml up -d
+#
+# ⚠️ 최초 1회: 앱과 공유할 네트워크를 만들어 둬야 한다.
+#      docker network create csereal
 services:
   db:
     container_name: csereal_db_container
     image: mysql:8.0
-    ports:
-      - 3306:3306
     volumes:
       - ./db:/var/lib/mysql
-      - ./db_config:/etc/mysql/conf.d
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    # 앱이 컨테이너 이름으로 직접 붙는다. 전엔 프로젝트가 갈라져 서로 못 불러서
+    # 앱이 host.docker.internal(호스트 게이트웨이)로 나갔다 들어와야 했고,
+    # 그래서 3306 을 0.0.0.0 에 열 수밖에 없었다. 이 호스트엔 방화벽이 없다
+    # (ufw 미설치, iptables INPUT ACCEPT) — 게시 포트가 곧 공개 포트다.
+    networks:
+      - csereal
     restart: always
+
+networks:
+  csereal:
+    external: true

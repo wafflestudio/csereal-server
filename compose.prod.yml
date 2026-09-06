@@ -33,14 +33,28 @@ services:
                 max-file: "3"
         environment:
             SPRING_ELASTICSEARCH_URIS: http://search:9200
-            SPRING_DATASOURCE_URL: "jdbc:mysql://host.docker.internal:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"
+            # DB 는 별도 compose 프로젝트라 서비스 이름으로는 못 부른다. 공유 네트워크
+            # csereal 에 양쪽이 붙어 컨테이너 이름으로 직접 통신한다.
+            # 전엔 host.docker.internal 로 호스트 게이트웨이를 거쳤고, 그래서 MySQL 이
+            # 3306 을 0.0.0.0 에 열어야 했다(이 호스트엔 방화벽이 없다).
+            SPRING_DATASOURCE_URL: "jdbc:mysql://csereal_db_container:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"
             SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
             SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
             OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
             OIDC_CLIENT_SECRET_DEV: ${OIDC_CLIENT_SECRET_DEV}
             URL: ${URL}
-        extra_hosts:
-            - host.docker.internal:host-gateway
+        # DB 는 공유 네트워크로 직접 붙으므로 게이트웨이 우회가 필요 없어졌다.
+        # (Caddy 가 이 컨테이너를 host.docker.internal:8080 으로 부르는 건 그대로 —
+        #  그건 Caddy 쪽 설정이고 8080 게시는 유지한다.)
+        networks:
+            - default
+            - csereal
         depends_on:
             search: { condition: service_healthy }
         restart: always
+
+networks:
+    # DB 프로젝트(docker-compose-db.yml)와 공유한다.
+    # 최초 1회 호스트에서 `docker network create csereal` 이 필요하다.
+    csereal:
+        external: true

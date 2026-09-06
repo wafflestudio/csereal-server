@@ -4,7 +4,6 @@ on:
       - develop
     paths:
       - docker-compose-db.yml
-      - db_config/*
       - .github/workflows/database_dev.yaml
 
 jobs:
