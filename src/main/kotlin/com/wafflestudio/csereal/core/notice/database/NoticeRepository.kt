@@ -4,16 +4,12 @@ import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
-import com.wafflestudio.csereal.common.enums.ContentSearchSortType
-import com.wafflestudio.csereal.common.repository.CommonRepository
 import com.wafflestudio.csereal.common.utils.FixedPageRequest
 import com.wafflestudio.csereal.core.main.dto.MainImportantResponse
 import com.wafflestudio.csereal.core.notice.database.QNoticeEntity.noticeEntity
 import com.wafflestudio.csereal.core.notice.database.QNoticeTagEntity.noticeTagEntity
 import com.wafflestudio.csereal.core.notice.dto.NoticeSearchDto
 import com.wafflestudio.csereal.core.notice.dto.NoticeSearchResponse
-import com.wafflestudio.csereal.core.notice.dto.NoticeTotalSearchElement
-import com.wafflestudio.csereal.core.notice.dto.NoticeTotalSearchResponse
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
@@ -54,78 +50,36 @@ interface NoticeRepository : JpaRepository<NoticeEntity, Long>, CustomNoticeRepo
 }
 
 interface CustomNoticeRepository {
-    fun searchNotice(
+    /** 키워드 없이 태그만으로 훑을 때. 순서·페이징까지 여기서 정한다. */
+    fun browseNotice(
         tag: List<String>?,
-        keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
-        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): NoticeSearchResponse
 
-    fun totalSearchNotice(keyword: String, number: Int, stringLength: Int, isStaff: Boolean): NoticeTotalSearchResponse
+    /** 키워드 검색이 고른 id 들의 표시용 값. 준 id 차례대로 돌려준다. */
+    fun findSearchDtosByIds(ids: List<Long>): List<NoticeSearchDto>
 
     fun findImportantNotice(cnt: Int? = null): List<MainImportantResponse>
 }
 
 @Component
 class NoticeRepositoryImpl(
-    private val queryFactory: JPAQueryFactory,
-    private val commonRepository: CommonRepository
+    private val queryFactory: JPAQueryFactory
 ) : CustomNoticeRepository {
-    override fun totalSearchNotice(
-        keyword: String,
-        number: Int,
-        stringLength: Int,
-        isStaff: Boolean
-    ): NoticeTotalSearchResponse {
-        val doubleTemplate = commonRepository.searchFullDoubleTextTemplate(
-            keyword,
-            noticeEntity.title,
-            noticeEntity.plainTextDescription
-        )
-
-        val privateBoolean = noticeEntity.isPrivate.eq(false).takeUnless { isStaff }
-
-        val query = queryFactory.select(
-            noticeEntity.id,
-            noticeEntity.title,
-            noticeEntity.createdAt,
-            noticeEntity.plainTextDescription
-        ).from(noticeEntity)
-            .where(doubleTemplate.gt(0.0), privateBoolean)
-
-        val total = query.clone().select(noticeEntity.countDistinct()).fetchOne()!!
-
-        val searchResult = query
-            .orderBy(noticeEntity.createdAt.desc())
-            .limit(number.toLong())
-            .fetch()
-
-        return NoticeTotalSearchResponse(
-            total.toInt(),
-            searchResult.map {
-                NoticeTotalSearchElement(
-                    it[noticeEntity.id]!!,
-                    it[noticeEntity.title]!!,
-                    it[noticeEntity.createdAt]!!,
-                    it[noticeEntity.plainTextDescription]!!,
-                    keyword,
-                    stringLength
-                )
-            }
-        )
+    override fun findSearchDtosByIds(ids: List<Long>): List<NoticeSearchDto> {
+        // in 질의는 순서를 보장하지 않는다. 부른 쪽이 정한 차례로 되돌린다.
+        val byId = selectNoticeSearchDto().where(noticeEntity.id.`in`(ids)).fetch().associateBy { it.id }
+        return ids.mapNotNull(byId::get)
     }
 
-    override fun searchNotice(
+    override fun browseNotice(
         tag: List<String>?,
-        keyword: String?,
         pageable: Pageable,
         usePageBtn: Boolean,
-        sortBy: ContentSearchSortType,
         isStaff: Boolean
     ): NoticeSearchResponse {
-        val keywordBooleanBuilder = BooleanBuilder()
         val tagsBooleanBuilder = BooleanBuilder()
         val isPrivateBooleanBuilder = BooleanBuilder()
 
@@ -144,35 +98,9 @@ class NoticeRepositoryImpl(
             )
         }
 
-        val scoreOrNull = if (!keyword.isNullOrEmpty()) {
-            commonRepository.searchFullDoubleTextTemplate(
-                keyword,
-                noticeEntity.title,
-                noticeEntity.plainTextDescription
-            )
-        } else {
-            null
-        }
-
-        if (scoreOrNull != null) {
-            keywordBooleanBuilder.and(scoreOrNull.gt(0.0))
-        }
-
-        val jpaQuery = queryFactory.select(
-            Projections.constructor(
-                NoticeSearchDto::class.java,
-                noticeEntity.id,
-                noticeEntity.title,
-                noticeEntity.createdAt,
-                noticeEntity.isPinned,
-                noticeEntity.attachments.isNotEmpty,
-                noticeEntity.isPrivate,
-                // if scoreOrNull is null, put 0.0
-                scoreOrNull ?: Expressions.numberTemplate(Double::class.javaObjectType, "0.0")
-            )
-        ).from(noticeEntity)
+        val jpaQuery = selectNoticeSearchDto()
             .leftJoin(noticeTagEntity).on(noticeTagEntity.notice.eq(noticeEntity))
-            .where(keywordBooleanBuilder, tagsBooleanBuilder, isPrivateBooleanBuilder)
+            .where(tagsBooleanBuilder, isPrivateBooleanBuilder)
 
         val total: Long
         var pageRequest = pageable
@@ -185,27 +113,28 @@ class NoticeRepositoryImpl(
             total = (10 * pageable.pageSize).toLong() + 1 // 10개 페이지 고정
         }
 
-        val noticeSearchQuery = jpaQuery
+        val noticeSearchDtoList = jpaQuery
             .offset(pageRequest.offset)
             .limit(pageRequest.pageSize.toLong())
             .distinct()
-
-        val noticeSearchDtoList = noticeSearchQuery
             .orderBy(noticeEntity.isPinned.desc())
-            .let {
-                when {
-                    sortBy == ContentSearchSortType.DATE || scoreOrNull == null -> {
-                        it.orderBy(noticeEntity.createdAt.desc())
-                    }
-
-                    else -> {
-                        it.orderBy(scoreOrNull.desc())
-                    }
-                }
-            }.fetch()
+            .orderBy(noticeEntity.createdAt.desc())
+            .fetch()
 
         return NoticeSearchResponse(total, noticeSearchDtoList)
     }
+
+    private fun selectNoticeSearchDto() = queryFactory.select(
+        Projections.constructor(
+            NoticeSearchDto::class.java,
+            noticeEntity.id,
+            noticeEntity.title,
+            noticeEntity.createdAt,
+            noticeEntity.isPinned,
+            noticeEntity.attachments.isNotEmpty,
+            noticeEntity.isPrivate
+        )
+    ).from(noticeEntity)
 
     override fun findImportantNotice(cnt: Int?): List<MainImportantResponse> =
         queryFactory.select(

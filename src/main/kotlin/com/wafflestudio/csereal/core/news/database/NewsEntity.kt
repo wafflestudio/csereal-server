@@ -7,6 +7,8 @@ import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.news.api.req.NewsReqBody
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
+import com.wafflestudio.csereal.common.search.SearchIndexed
+import com.wafflestudio.csereal.common.search.SearchType
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.time.LocalDate
@@ -39,7 +41,10 @@ class NewsEntity(
     @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL])
     var newsTags: MutableSet<NewsTagEntity> = mutableSetOf()
 
-) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable {
+) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable, SearchIndexed {
+
+    override val searchType get() = SearchType.NEWS
+    override val searchSourceId get() = id
 
     companion object {
         fun of(newsDto: NewsReqBody): NewsEntity {

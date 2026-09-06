@@ -2,7 +2,8 @@ package com.wafflestudio.csereal.core.news.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
-import com.wafflestudio.csereal.common.enums.ContentSearchSortType
+import com.wafflestudio.csereal.common.search.SearchListService
+import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.admin.dto.AdminSlidesResponse
 import com.wafflestudio.csereal.core.news.database.*
@@ -10,7 +11,6 @@ import com.wafflestudio.csereal.core.news.api.req.CreateNewsReq
 import com.wafflestudio.csereal.core.news.api.req.UpdateNewsReq
 import com.wafflestudio.csereal.core.news.dto.NewsResponse
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
-import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchDto
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
 import org.springframework.data.domain.Pageable
@@ -24,8 +24,7 @@ interface NewsService {
         tag: List<String>?,
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean,
-        sortBy: ContentSearchSortType
+        usePageBtn: Boolean
     ): NewsSearchResponse
 
     fun readNews(newsId: Long): NewsResponse
@@ -39,7 +38,6 @@ interface NewsService {
 
     fun deleteNews(newsId: Long)
     fun enrollTag(tagName: String)
-    fun searchTotalNews(keyword: String, number: Int, amount: Int): NewsTotalSearchDto
     fun readAllSlides(pageNum: Long, pageSize: Int): AdminSlidesResponse
     fun unSlideManyNews(request: List<Long>)
 }
@@ -47,6 +45,7 @@ interface NewsService {
 @Service
 class NewsServiceImpl(
     private val newsRepository: NewsRepository,
+    private val searchListService: SearchListService,
     private val tagInNewsRepository: TagInNewsRepository,
     private val newsTagRepository: NewsTagRepository,
     private val mainImageService: MainImageService,
@@ -57,24 +56,23 @@ class NewsServiceImpl(
         tag: List<String>?,
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean,
-        sortBy: ContentSearchSortType
+        usePageBtn: Boolean
     ): NewsSearchResponse {
-        return newsRepository.searchNews(tag, keyword, pageable, usePageBtn, sortBy, isCurrentUserStaff())
-    }
+        val isStaff = isCurrentUserStaff()
+        if (keyword.isNullOrEmpty()) {
+            return newsRepository.browseNews(tag, pageable, usePageBtn, isStaff)
+        }
 
-    @Transactional(readOnly = true)
-    override fun searchTotalNews(
-        keyword: String,
-        number: Int,
-        amount: Int
-    ) = newsRepository.searchTotalNews(
-        keyword,
-        number,
-        amount,
-        mainImageService::createImageURL,
-        isCurrentUserStaff()
-    )
+        val page = searchListService.searchIds(
+            type = SearchType.NEWS,
+            keyword = keyword,
+            tags = tag.orEmpty().map { TagInNewsEnum.getTagEnum(it).name },
+            isStaff = isStaff,
+            offset = pageable.offset,
+            size = pageable.pageSize
+        )
+        return NewsSearchResponse(page.total, newsRepository.findSearchDtosByIds(page.ids))
+    }
 
     @Transactional(readOnly = true)
     override fun readNews(newsId: Long): NewsResponse {

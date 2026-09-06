@@ -1,14 +1,11 @@
 package com.wafflestudio.csereal.core.notice.api.v2
 
-import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.core.notice.api.req.CreateNoticeReq
 import com.wafflestudio.csereal.core.notice.api.req.UpdateNoticeReq
 import com.wafflestudio.csereal.core.notice.dto.*
 import com.wafflestudio.csereal.core.notice.service.NoticeService
 import jakarta.validation.Valid
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
-import org.hibernate.validator.constraints.Length
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -26,26 +23,13 @@ class NoticeController(
         @RequestParam(required = false) tag: List<String>?,
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) @Positive pageNum: Int?,
-        @RequestParam(required = false, defaultValue = "20") @Positive pageSize: Int,
-        @RequestParam(required = false, defaultValue = "DATE") sortBy: ContentSearchSortType
+        @RequestParam(required = false, defaultValue = "20") @Positive pageSize: Int
     ): ResponseEntity<NoticeSearchResponse> {
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
 
-        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn, sortBy))
-    }
-
-    @GetMapping("/totalSearch")
-    fun totalSearchNotice(
-        @RequestParam(required = true)
-        @Length(min = 2)
-        @NotBlank
-        keyword: String,
-        @RequestParam(required = true) @Positive number: Int,
-        @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int
-    ): NoticeTotalSearchResponse {
-        return noticeService.searchTotalNotice(keyword, number, stringLength)
+        return ResponseEntity.ok(noticeService.searchNotice(tag, keyword, pageRequest, usePageBtn))
     }
 
     @GetMapping("/{noticeId}")

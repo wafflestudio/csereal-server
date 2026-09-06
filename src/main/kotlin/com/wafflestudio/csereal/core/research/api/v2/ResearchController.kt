@@ -7,7 +7,6 @@ import com.wafflestudio.csereal.core.research.api.req.ModifyLabLanguageReqBody
 import com.wafflestudio.csereal.core.research.api.req.ModifyResearchLanguageReqBody
 import com.wafflestudio.csereal.core.research.dto.*
 import com.wafflestudio.csereal.core.research.service.LabService
-import com.wafflestudio.csereal.core.research.service.ResearchSearchService
 import com.wafflestudio.csereal.core.research.service.ResearchService
 import com.wafflestudio.csereal.core.research.type.ResearchType
 import jakarta.validation.Valid
@@ -20,8 +19,7 @@ import org.springframework.web.multipart.MultipartFile
 @RestController
 class ResearchController(
     private val researchService: ResearchService,
-    private val labService: LabService,
-    private val researchSearchService: ResearchSearchService
+    private val labService: LabService
 ) {
     // Research APIs
 

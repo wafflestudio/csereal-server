@@ -1,16 +1,11 @@
 package com.wafflestudio.csereal.core.news.api.v2
 
-import com.wafflestudio.csereal.common.enums.ContentSearchSortType
 import com.wafflestudio.csereal.core.news.api.req.CreateNewsReq
 import com.wafflestudio.csereal.core.news.api.req.UpdateNewsReq
 import com.wafflestudio.csereal.core.news.dto.NewsResponse
 import com.wafflestudio.csereal.core.news.dto.NewsSearchResponse
-import com.wafflestudio.csereal.core.news.dto.NewsTotalSearchDto
 import com.wafflestudio.csereal.core.news.service.NewsService
 import jakarta.validation.Valid
-import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.Positive
-import org.hibernate.validator.constraints.Length
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -28,26 +23,13 @@ class NewsController(
         @RequestParam(required = false) tag: List<String>?,
         @RequestParam(required = false) keyword: String?,
         @RequestParam(required = false) pageNum: Int?,
-        @RequestParam(required = false, defaultValue = "10") pageSize: Int,
-        @RequestParam(required = false, defaultValue = "DATE") sortBy: ContentSearchSortType
+        @RequestParam(required = false, defaultValue = "10") pageSize: Int
     ): ResponseEntity<NewsSearchResponse> {
         val usePageBtn = pageNum != null
         val page = pageNum ?: 1
         val pageRequest = PageRequest.of(page - 1, pageSize)
 
-        return ResponseEntity.ok(newsService.searchNews(tag, keyword, pageRequest, usePageBtn, sortBy))
-    }
-
-    @GetMapping("/totalSearch")
-    fun searchTotalNews(
-        @RequestParam(required = true)
-        @Length(min = 1)
-        @NotBlank
-        keyword: String,
-        @RequestParam(required = true) @Positive number: Int,
-        @RequestParam(required = false, defaultValue = "200") @Positive stringLength: Int
-    ): NewsTotalSearchDto {
-        return newsService.searchTotalNews(keyword, number, stringLength)
+        return ResponseEntity.ok(newsService.searchNews(tag, keyword, pageRequest, usePageBtn))
     }
 
     @GetMapping("/{newsId}")

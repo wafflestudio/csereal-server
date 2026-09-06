@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.academics.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
+import com.wafflestudio.csereal.common.search.SearchIndexed
+import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.academics.api.req.CreateYearReq
@@ -24,12 +26,12 @@ class AcademicsEntity(
     var year: Int?,
 
     @OneToMany(mappedBy = "academics", cascade = [CascadeType.ALL], orphanRemoval = true)
-    override var attachments: MutableList<AttachmentEntity> = mutableListOf(),
+    override var attachments: MutableList<AttachmentEntity> = mutableListOf()
 
-    @OneToOne(mappedBy = "academics", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var academicsSearch: AcademicsSearchEntity? = null
+) : BaseTimeEntity(), AttachmentAttachable, SearchIndexed {
 
-) : BaseTimeEntity(), AttachmentAttachable {
+    override val searchType get() = SearchType.ACADEMICS
+    override val searchSourceId get() = id
 
     companion object {
         fun createYearResponse(

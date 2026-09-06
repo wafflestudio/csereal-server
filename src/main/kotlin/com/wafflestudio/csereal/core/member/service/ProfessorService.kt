@@ -1,13 +1,11 @@
 package com.wafflestudio.csereal.core.member.service
 
-import com.wafflestudio.csereal.core.member.database.syncSearch
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.startsWithEnglish
 import com.wafflestudio.csereal.core.member.api.req.CreateProfessorLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorLanguagesReqBody
-import com.wafflestudio.csereal.core.member.database.MemberSearchEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
@@ -94,7 +92,6 @@ class ProfessorServiceImpl(
         if (mainImage != null) {
             mainImageService.uploadMainImage(professor, mainImage)
         }
-        professor.translations.forEach { it.memberSearch = MemberSearchEntity.create(it) }
         professorRepository.save(professor)
 
         applicationEventPublisher.publishEvent(ProfessorCreatedEvent.of(professor))
@@ -170,7 +167,6 @@ class ProfessorServiceImpl(
             translation.educations = content.educations.map { it.trim() }.toMutableList()
             translation.researchAreas = content.researchAreas.map { it.trim() }.toMutableList()
             translation.careers = content.careers.map { it.trim() }.toMutableList()
-            translation.syncSearch()
         }
 
         mainImageService.replaceMainImage(professor, newImage, req.removeImage)

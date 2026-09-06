@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
+import com.wafflestudio.csereal.common.search.SearchIndexed
+import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.StringListConverter
 import jakarta.persistence.*
@@ -32,8 +34,15 @@ class ProfessorTranslationEntity(
 
     @Column(columnDefinition = "TEXT")
     @Convert(converter = StringListConverter::class)
-    var careers: MutableList<String> = mutableListOf(),
+    var careers: MutableList<String> = mutableListOf()
 
-    @OneToOne(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var memberSearch: MemberSearchEntity? = null
-) : BaseTimeEntity()
+) : BaseTimeEntity(), SearchIndexed {
+
+    override val searchType get() =
+        if (professor.status == ProfessorStatus.INACTIVE) {
+            SearchType.EMERITUS_PROFESSOR
+        } else {
+            SearchType.PROFESSOR
+        }
+    override val searchSourceId get() = professor.id
+}

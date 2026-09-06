@@ -1,6 +1,5 @@
 package com.wafflestudio.csereal.core.conference.service
 
-import com.wafflestudio.csereal.core.research.database.syncSearch
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
@@ -11,8 +10,6 @@ import com.wafflestudio.csereal.core.conference.database.ConferenceRepository
 import com.wafflestudio.csereal.core.conference.dto.ConferenceDto
 import com.wafflestudio.csereal.core.conference.dto.ConferenceModifyRequest
 import com.wafflestudio.csereal.core.conference.dto.ConferencePage
-import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
-import com.wafflestudio.csereal.core.research.service.ResearchSearchService
 import com.wafflestudio.csereal.core.user.service.UserService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -28,7 +25,6 @@ interface ConferenceService {
 class ConferenceServiceImpl(
     private val conferencePageRepository: ConferencePageRepository,
     private val conferenceRepository: ConferenceRepository,
-    private val researchSearchService: ResearchSearchService,
     private val userService: UserService
 ) : ConferenceService {
 
@@ -76,8 +72,6 @@ class ConferenceServiceImpl(
         )
         conferencePage.conferences.add(newConference)
 
-        newConference.researchSearch = ResearchSearchEntity.create(newConference)
-
         return newConference
     }
 
@@ -91,8 +85,6 @@ class ConferenceServiceImpl(
 
         conferenceEntity.update(conferenceDto)
 
-        conferenceEntity.syncSearch()
-
         return conferenceEntity
     }
 
@@ -104,10 +96,5 @@ class ConferenceServiceImpl(
         ?.let {
             it.isDeleted = true
             conferencePage.conferences.remove(it)
-
-            it.researchSearch?.let {
-                researchSearchService.deleteResearchSearch(it)
-            }
-            it.researchSearch = null
         }
 }

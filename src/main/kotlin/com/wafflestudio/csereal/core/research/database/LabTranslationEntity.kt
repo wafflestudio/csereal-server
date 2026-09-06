@@ -1,6 +1,8 @@
 package com.wafflestudio.csereal.core.research.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
+import com.wafflestudio.csereal.common.search.SearchIndexed
+import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.enums.LanguageType
 import jakarta.persistence.*
 
@@ -18,8 +20,10 @@ class LabTranslationEntity(
     @Column(columnDefinition = "mediumText")
     var description: String? = null,
 
-    var location: String? = null,
+    var location: String? = null
 
-    @OneToOne(mappedBy = "lab", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var researchSearch: ResearchSearchEntity? = null
-) : BaseTimeEntity()
+) : BaseTimeEntity(), SearchIndexed {
+
+    override val searchType get() = SearchType.LAB
+    override val searchSourceId get() = lab.id
+}
