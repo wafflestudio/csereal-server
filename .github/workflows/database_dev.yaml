@@ -6,6 +6,12 @@ on:
       - docker-compose-db.yml
       - .github/workflows/database_dev.yaml
 
+# 배포가 겹치면 안 된다. 특히 이건 상태를 가진 컨테이너를 다룬다.
+# cancel-in-progress: false — 진행 중인 것을 중간에 끊으면 호스트가 어중간한 상태로 남는다.
+concurrency:
+    group: database-staging
+    cancel-in-progress: false
+
 jobs:
   database-deploy:
     runs-on: ubuntu-24.04-arm
@@ -45,5 +51,7 @@ jobs:
           script: |
             cd ~/database
             source .env
-            docker compose -f docker-compose-db.yml down
-            docker compose -f docker-compose-db.yml up -d
+            # ⚠️ down 을 쓰지 않는다. 상태를 가진 DB 컨테이너를 굳이 없앴다 다시 만들 이유가
+            #    없고, 그 사이 앱이 DB 를 잃는다. compose 는 이미지·설정이 바뀐 서비스만
+            #    재생성하므로 up -d 만으로 이 파일의 변경이 반영된다.
+            docker compose -f docker-compose-db.yml up -d --remove-orphans
