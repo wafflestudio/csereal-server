@@ -57,7 +57,7 @@ class CserealExceptionHandlerTest : StringSpec({
         body(r).code shouldBe ErrorCode.INTERNAL
     }
 
-    // 손으로 예외를 나열하던 시절 이게 500 + ERROR 로그(Slack)로 나갔다. 부모 상속으로 잡히는지 고정한다.
+    // 손으로 예외를 나열하던 시절 이게 500 + ERROR 로그로 나갔다. 부모 상속으로 잡히는지 고정한다.
     "허용하지 않는 메서드는 405" {
         val r = handler.handleException(HttpRequestMethodNotSupportedException("PUT"), request)
         r?.statusCode shouldBe HttpStatus.METHOD_NOT_ALLOWED

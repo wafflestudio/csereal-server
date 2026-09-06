@@ -9,34 +9,6 @@
          FILE_LOG_PATTERN·FILE_LOG_CHARSET 은 defaults.xml 이 준다. -->
 
     <import class="ch.qos.logback.classic.AsyncAppender" />
-    <import class="ch.qos.logback.classic.filter.ThresholdFilter" />
-    <import class="ch.qos.logback.classic.PatternLayout" />
-    <import class="com.cyfrania.logback.SlackAppender" />
-    <import class="com.cyfrania.logback.SlackChatApi" />
-
-
-    <!-- Slack Appender Config-->
-    <springProperty name="SLACK_TOKEN" source="slack.token" />
-    <springProperty name="SLACK_CHANNEL" source="slack.channel" />
-    <property name="SLACK_LOG_PATTERN" value="\n*================================*\n*====== Backend Server LOG ======*\n*================================*\n\n${FILE_LOG_PATTERN}\n\n*--------------------------------*\n\n" />
-
-    <appender name="SLACK" class="SlackAppender">
-        <sender class="SlackChatApi">
-            <token>${SLACK_TOKEN}</token>
-            <channel>${SLACK_CHANNEL}</channel>
-        </sender>
-        <layout class="PatternLayout">
-            <pattern>${SLACK_LOG_PATTERN}</pattern>
-        </layout>
-    </appender>
-
-    <appender name="ASYNC_SLACK" class="AsyncAppender">
-        <maxFlushTime>5000</maxFlushTime>
-        <appender-ref ref="SLACK" />
-        <filter class="ThresholdFilter">
-            <level>ERROR</level>
-        </filter>
-    </appender>
 
 
     <!--  File appender  -->
@@ -79,7 +51,6 @@
     <springProfile name="prod">
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
-            <appender-ref ref="ASYNC_SLACK" />
             <appender-ref ref="ASYNC_FILE" />
         </root>
     </springProfile>

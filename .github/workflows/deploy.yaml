@@ -63,8 +63,6 @@ jobs:
                     echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
                     echo "OIDC_CLIENT_SECRET=${{secrets.OIDC_CLIENT_SECRET}}" >> .env
                     echo "URL=${{secrets.URL}}" >> .env
-                    echo "SLACK_TOKEN=${{secrets.SLACK_TOKEN}}" >> .env
-                    echo "SLACK_CHANNEL=${{secrets.SLACK_CHANNEL}}" >> .env
 
             -   name: SCP Command to Transfer Files
                 uses: appleboy/scp-action@v1
@@ -73,7 +71,7 @@ jobs:
                     username: ${{secrets.SSH_USER}}
                     port: ${{secrets.SSH_PORT}}
                     key: ${{secrets.SSH_KEY}}
-                    source: "docker-compose-backend.yml, .env"
+                    source: "compose.yml, compose.prod.yml, .env"
                     target: "~/app"
                     overwrite: true
             -   name: SSH Remote Commands
@@ -86,7 +84,7 @@ jobs:
                     script: |
                         cd ~/app
                         source .env
-                        docker compose -f docker-compose-backend.yml pull
+                        docker compose -f compose.yml -f compose.prod.yml pull
                         # down 을 쓰지 않는다. compose 는 이미지·설정이 바뀐 서비스만 재생성하는데
                         # down 이 그걸 무력화해 매 배포마다 전부 내렸다 재생성했다.
                         # --remove-orphans 는 down 이 해주던 "파일에서 사라진 서비스 정리"를 대신한다.
@@ -95,4 +93,4 @@ jobs:
                         #    search 이미지를 다시 밀어 다이제스트가 매번 달라지기 때문이다.
                         #    (재색인은 별개다. 앱이 ApplicationReadyEvent 마다 전량 색인하므로
                         #     ES 를 살려둬도 배포마다 일어난다.) 배포 스택을 정리할 때 함께 볼 것.
-                        docker compose -f docker-compose-backend.yml up -d --remove-orphans
+                        docker compose -f compose.yml -f compose.prod.yml up -d --remove-orphans

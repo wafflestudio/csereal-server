@@ -64,8 +64,6 @@ jobs:
                   echo "MYSQL_DATABASE=${{secrets.MYSQL_DATABASE}}" >> .env
                   echo "OIDC_CLIENT_SECRET_DEV=${{secrets.OIDC_CLIENT_SECRET_DEV}}" >> .env
                   echo "URL=${{secrets.URL_DEV_2}}" >> .env
-                  # echo "SLACK_TOKEN=${{secrets.SLACK_TOKEN}}" >> .env
-                  # echo "SLACK_CHANNEL=${{secrets.SLACK_CHANNEL}}" >> .env
 
             - name: SCP Command to Transfer Files
               uses: appleboy/scp-action@v1
@@ -74,7 +72,7 @@ jobs:
                   username: ${{secrets.SSH_USER_DEV_2}}
                   port: ${{secrets.SSH_PORT_DEV_2}}
                   key: ${{secrets.SSH_KEY_DEV_2}}
-                  source: "docker-compose-backend.yml, .env"
+                  source: "compose.yml, compose.prod.yml, .env"
                   target: "~/app"
                   overwrite: true
 
@@ -88,6 +86,6 @@ jobs:
                   script: |
                       cd ~/app
                       source .env
-                      docker compose -f docker-compose-backend.yml pull
+                      docker compose -f compose.yml -f compose.prod.yml pull
                       # deploy.yaml 과 같은 이유로 down 을 쓰지 않는다(바뀐 서비스만 재생성).
-                      docker compose -f docker-compose-backend.yml up -d --remove-orphans
+                      docker compose -f compose.yml -f compose.prod.yml up -d --remove-orphans
