@@ -5,7 +5,6 @@ import com.wafflestudio.csereal.core.member.api.req.CreateProfessorLanguagesReqB
 import com.wafflestudio.csereal.core.member.api.req.CreateProfessorReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorReqBody
-import com.wafflestudio.csereal.core.member.database.MemberSearchRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
 import com.wafflestudio.csereal.core.research.database.LabEntity
@@ -31,8 +30,7 @@ import java.time.LocalDate
 class ProfessorServiceTest(
     private val professorService: ProfessorService,
     private val professorRepository: ProfessorRepository,
-    private val labRepository: LabRepository,
-    private val memberSearchRepository: MemberSearchRepository
+    private val labRepository: LabRepository
 ) : BehaviorSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
 
@@ -110,34 +108,6 @@ class ProfessorServiceTest(
                 // 호실은 언어별 값이라 ko/en 안에 있다.
                 created.ko!!.office shouldBe "office"
             }
-
-            Then("검색 색인이 언어마다 하나씩 생긴다") {
-                memberSearchRepository.count() shouldBe 2
-                val professor = professorRepository.findByIdOrNull(created.id)!!
-                val enSearch = professor.translationOf(LanguageType.EN)!!.memberSearch!!
-                enSearch.language shouldBe LanguageType.EN
-                enSearch.content shouldBe """
-                    name
-                    교수
-                    academicRank
-                    department
-                    labName
-                    $date
-                    $date
-                    office
-                    phone
-                    fax
-                    email
-                    website
-                    education1
-                    education2
-                    researchArea1
-                    researchArea2
-                    career1
-                    career2
-                    
-                """.trimIndent()
-            }
         }
     }
 
@@ -202,27 +172,6 @@ class ProfessorServiceTest(
                 professor.translationOf(LanguageType.KO)!!.office shouldBe "office2"
                 professor.translationOf(LanguageType.KO)!!.name shouldBe "이름2"
                 professor.translationOf(LanguageType.EN)!!.name shouldBe "name2"
-            }
-
-            Then("검색 색인도 언어마다 갱신된다") {
-                memberSearchRepository.count() shouldBe 2
-                val professor = professorRepository.findByIdOrNull(modified.id)!!
-                professor.translationOf(LanguageType.EN)!!.memberSearch!!.content shouldBe """
-                    name2
-                    역대 교수
-                    rank2
-                    dept2
-                    lab2
-                    $date
-                    $date
-                    office2
-                    phone2
-                    fax2
-                    email2
-                    website2
-                    education1
-                    
-                """.trimIndent()
             }
         }
     }

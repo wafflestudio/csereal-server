@@ -1,11 +1,12 @@
 package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
+import com.wafflestudio.csereal.common.search.SearchIndexed
+import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.StringListConverter
 import jakarta.persistence.*
 
-// 교수의 한 언어판. 직급·학과 표기·학력·연구분야·경력은 언어마다 다르다.
 @Entity(name = "professor_translation")
 class ProfessorTranslationEntity(
     @ManyToOne(fetch = FetchType.LAZY)
@@ -33,8 +34,15 @@ class ProfessorTranslationEntity(
 
     @Column(columnDefinition = "TEXT")
     @Convert(converter = StringListConverter::class)
-    var careers: MutableList<String> = mutableListOf(),
+    var careers: MutableList<String> = mutableListOf()
 
-    @OneToOne(mappedBy = "professor", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var memberSearch: MemberSearchEntity? = null
-) : BaseTimeEntity()
+) : BaseTimeEntity(), SearchIndexed {
+
+    override val searchType get() =
+        if (professor.status == ProfessorStatus.INACTIVE) {
+            SearchType.EMERITUS_PROFESSOR
+        } else {
+            SearchType.PROFESSOR
+        }
+    override val searchSourceId get() = professor.id
+}

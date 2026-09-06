@@ -3,7 +3,6 @@ package com.wafflestudio.csereal.core.research.service
 import com.wafflestudio.csereal.core.research.database.LabRepository
 import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.research.database.ResearchRepository
-import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
 import com.wafflestudio.csereal.core.research.event.LabCreatedEvent
 import com.wafflestudio.csereal.core.research.event.LabDeletedEvent
 import com.wafflestudio.csereal.core.research.event.LabModifiedEvent
@@ -99,8 +98,6 @@ class ResearchEventServiceImpl(
     @Transactional
     fun upsertResearchSearchIndex(research: ResearchEntity) {
         research.translations.forEach { translation ->
-            translation.researchSearch?.update(translation)
-                ?: let { translation.researchSearch = ResearchSearchEntity.create(translation) }
         }
     }
 }

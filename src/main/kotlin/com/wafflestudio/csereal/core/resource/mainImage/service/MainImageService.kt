@@ -4,25 +4,16 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.entity.MainImageAttachable
 import com.wafflestudio.csereal.common.properties.EndpointProperties
-import com.wafflestudio.csereal.core.about.database.AboutEntity
-import com.wafflestudio.csereal.core.imagemodal.database.ImageModalEntity
-import com.wafflestudio.csereal.core.member.database.ProfessorEntity
-import com.wafflestudio.csereal.core.member.database.StaffEntity
-import com.wafflestudio.csereal.core.news.database.NewsEntity
-import com.wafflestudio.csereal.core.recruit.database.RecruitEntity
-import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.resource.common.event.FileDeleteEvent
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageRepository
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.resource.mainImage.dto.MainImageDto
-import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import org.apache.commons.io.FilenameUtils
 import org.springframework.context.ApplicationEventPublisher
-import java.lang.invoke.WrongMethodTypeException
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -35,6 +26,12 @@ interface MainImageService {
     fun createImageURL(image: MainImageEntity?): String?
 
     fun removeImage(image: MainImageEntity)
+
+    fun replaceMainImage(
+        owner: MainImageAttachable,
+        newImage: MultipartFile?,
+        removeImage: Boolean
+    )
 }
 
 @Service
@@ -72,7 +69,7 @@ class MainImageServiceImpl(
             size = requestImage.size
         )
 
-        connectMainImageToEntity(contentEntityType, mainImage)
+        contentEntityType.mainImage = mainImage
         mainImageRepository.save(mainImage)
 
         return MainImageDto(
@@ -93,50 +90,30 @@ class MainImageServiceImpl(
     }
 
     @Transactional
+    override fun replaceMainImage(
+        owner: MainImageAttachable,
+        newImage: MultipartFile?,
+        removeImage: Boolean
+    ) {
+        // 먼저 떼고 나중에 올려도 안전하다 — 업로드가 실패하면 트랜잭션이 롤백되고,
+        // 파일 삭제는 AFTER_COMMIT 리스너(CommonFileService)가 하므로 파일은 남는다.
+        when {
+            newImage != null -> {
+                owner.mainImage?.let { removeImage(it) }
+                uploadMainImage(owner, newImage)
+            }
+
+            removeImage -> {
+                owner.mainImage?.let { removeImage(it) }
+                owner.mainImage = null
+            }
+        }
+    }
+
+    @Transactional
     override fun removeImage(image: MainImageEntity) {
         val fileDirectory = path + image.filename
         mainImageRepository.delete(image)
         eventPublisher.publishEvent(FileDeleteEvent(fileDirectory))
-    }
-
-    // TODO: 각 entity의 interface로 refactoring하기.
-    private fun connectMainImageToEntity(contentEntity: MainImageAttachable, mainImage: MainImageEntity) {
-        when (contentEntity) {
-            is NewsEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is SeminarEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is AboutEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is ProfessorEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is StaffEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is ResearchEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is RecruitEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            is ImageModalEntity -> {
-                contentEntity.mainImage = mainImage
-            }
-
-            else -> {
-                throw WrongMethodTypeException("해당하는 엔티티가 없습니다")
-            }
-        }
     }
 }

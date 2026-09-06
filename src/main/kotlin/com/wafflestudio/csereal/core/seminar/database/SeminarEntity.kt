@@ -7,6 +7,8 @@ import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
 import com.wafflestudio.csereal.core.seminar.api.req.SeminarReqBody
+import com.wafflestudio.csereal.common.search.SearchIndexed
+import com.wafflestudio.csereal.common.search.SearchType
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.time.LocalDate
@@ -63,7 +65,10 @@ class SeminarEntity(
     @OneToMany(mappedBy = "seminar", cascade = [CascadeType.ALL], orphanRemoval = true)
     override var attachments: MutableList<AttachmentEntity> = mutableListOf()
 
-) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable {
+) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable, SearchIndexed {
+
+    override val searchType get() = SearchType.SEMINAR
+    override val searchSourceId get() = id
 
     companion object {
         fun of(seminarDto: SeminarReqBody): SeminarEntity {
@@ -127,5 +132,10 @@ class SeminarEntity(
         isPrivate = updateSeminarRequest.isPrivate
         isImportant = updateSeminarRequest.isImportant
         importantUntil = if (updateSeminarRequest.isImportant) updateSeminarRequest.importantUntil else null
+    }
+
+    override fun attach(attachment: AttachmentEntity) {
+        attachments.add(attachment)
+        attachment.seminar = this
     }
 }

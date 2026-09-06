@@ -1,0 +1,56 @@
+{
+  "settings": {
+    "index": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "analysis": {
+      "char_filter": {
+        "tech_terms": {
+          "type": "mapping",
+          "mappings": [
+            "C++ => cpp", "c++ => cpp",
+            "C# => csharp", "c# => csharp",
+            "R&D => rnd", "r&d => rnd",
+            "AI/ML => aiml", "ai/ml => aiml",
+            ".NET => dotnet", ".net => dotnet",
+            "Node.js => nodejs", "node.js => nodejs"
+          ]
+        }
+      },
+      "tokenizer": {
+        "nori_mixed": { "type": "nori_tokenizer", "decompound_mode": "mixed" }
+      },
+      "filter": {
+        "english_stem": { "type": "stemmer", "language": "english" }
+      },
+      "analyzer": {
+        "korean": {
+          "type": "custom",
+          "char_filter": ["tech_terms"],
+          "tokenizer": "nori_mixed",
+          "filter": ["nori_part_of_speech", "lowercase", "english_stem"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "_meta": {
+      "tech_terms": "nori 는 문장부호를 버려서 C++ 와 C# 이 똑같이 토큰 'c' 가 된다. 그대로 두면 둘이 같은 결과를 준다. ⚠️ 바꿀 값은 s 로 끝나면 안 된다 — 뒤의 english_stem 이 깎는다(cplusplus → cplusplu).",
+      "english_stem": "nori 는 라틴 문자를 토큰으로 흘리기만 해서 professor 와 professors 가 서로를 못 찾았다. 한글 토큰은 이 필터가 건드리지 않는다.",
+      "decompound_mode": "mixed 는 원형과 분해형을 모두 담는다. discard 로 바꾸면 원형이 사라져(장학금 → 장학|금) 후보가 4배로 는다."
+    },
+    "dynamic": "strict",
+    "properties": {
+      "type":      { "type": "keyword" },
+      "sourceId":  { "type": "long" },
+      "titleKo":   { "type": "text", "analyzer": "korean" },
+      "titleEn":   { "type": "text", "analyzer": "korean" },
+      "bodyKo":    { "type": "text", "analyzer": "korean" },
+      "bodyEn":    { "type": "text", "analyzer": "korean" },
+      "url":       { "type": "keyword", "index": false },
+      "thumbnailUrl": { "type": "keyword", "index": false },
+      "createdAt": { "type": "date" },
+      "isPrivate": { "type": "boolean" },
+      "tags":      { "type": "keyword" },
+      "isPinned":  { "type": "boolean" }
+    }
+  }
+}

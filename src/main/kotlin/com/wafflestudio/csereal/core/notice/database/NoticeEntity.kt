@@ -6,6 +6,8 @@ import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.core.notice.api.req.NoticeReqBody
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.user.database.UserEntity
+import com.wafflestudio.csereal.common.search.SearchIndexed
+import com.wafflestudio.csereal.common.search.SearchType
 import jakarta.persistence.*
 import java.time.LocalDate
 
@@ -40,7 +42,10 @@ class NoticeEntity(
     @OneToMany(mappedBy = "notice", cascade = [CascadeType.ALL], orphanRemoval = true)
     override var attachments: MutableList<AttachmentEntity> = mutableListOf()
 
-) : BaseTimeEntity(), AttachmentAttachable {
+) : BaseTimeEntity(), AttachmentAttachable, SearchIndexed {
+
+    override val searchType get() = SearchType.NOTICE
+    override val searchSourceId get() = id
 
     companion object {
         fun of(req: NoticeReqBody, author: UserEntity) = NoticeEntity(
@@ -75,5 +80,10 @@ class NoticeEntity(
         // Important related fields (prioritize isImportant flag)
         this.isImportant = updateNoticeRequest.isImportant
         this.importantUntil = if (updateNoticeRequest.isImportant) updateNoticeRequest.importantUntil else null
+    }
+
+    override fun attach(attachment: AttachmentEntity) {
+        attachments.add(attachment)
+        attachment.notice = this
     }
 }

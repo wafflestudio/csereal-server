@@ -6,7 +6,6 @@ import com.wafflestudio.csereal.core.member.api.req.ModifyStaffLanguagesReqBody
 import com.wafflestudio.csereal.core.member.dto.SimpleStaffDto
 import com.wafflestudio.csereal.core.member.dto.StaffLanguagesDto
 import com.wafflestudio.csereal.core.member.service.StaffService
-import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.constraints.Positive
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -53,7 +52,6 @@ class StaffController(
         staffId: Long,
         @RequestPart("request") modifyStaffLanguageReq: ModifyStaffLanguagesReqBody,
 
-        @Parameter(description = "image 교체할 경우 업로드. Request Body의 removeImage 관계없이 변경됨.")
         @RequestPart("newMainImage")
         newMainImage: MultipartFile?
     ): StaffLanguagesDto =

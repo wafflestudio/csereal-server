@@ -7,7 +7,6 @@ import com.wafflestudio.csereal.core.research.api.req.CreateResearchLanguageReqB
 import com.wafflestudio.csereal.core.research.api.req.ModifyResearchLanguageReqBody
 import com.wafflestudio.csereal.core.research.database.ResearchEntity
 import com.wafflestudio.csereal.core.research.database.ResearchRepository
-import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
 import com.wafflestudio.csereal.core.research.database.ResearchTranslationEntity
 import com.wafflestudio.csereal.core.research.database.ResearchTranslationRepository
 import com.wafflestudio.csereal.core.research.dto.ResearchLanguageDto
@@ -59,11 +58,10 @@ class ResearchServiceImpl(
             )
         }
 
-        // 대표이미지는 하나뿐이다 — 예전엔 언어별로 한 번씩 올라가 같은 파일이 두 벌 남았다.
+        // 대표이미지는 하나뿐이라 한 번만 올린다.
         if (mainImage != null) {
             mainImageService.uploadMainImage(research, mainImage)
         }
-        research.translations.forEach { it.researchSearch = ResearchSearchEntity.create(it) }
         researchRepository.save(research)
 
         return research.toLanguageDto()
@@ -84,19 +82,9 @@ class ResearchServiceImpl(
                 ?: throw CserealException(ErrorCode.RESEARCH_NOT_FOUND, mapOf("researchId" to researchId))
             translation.name = content.name
             translation.description = content.description
-            translation.researchSearch?.update(translation)
-                ?: let { translation.researchSearch = ResearchSearchEntity.create(translation) }
         }
 
-        if (req.removeImage && updateImage == null) {
-            research.mainImage?.let {
-                mainImageService.removeImage(it)
-                research.mainImage = null
-            }
-        } else if (updateImage != null) {
-            research.mainImage?.let { mainImageService.removeImage(it) }
-            mainImageService.uploadMainImage(research, updateImage)
-        }
+        mainImageService.replaceMainImage(research, updateImage, req.removeImage)
 
         return research.toLanguageDto()
     }
@@ -111,8 +99,6 @@ class ResearchServiceImpl(
         research.labs.forEach { lab ->
             lab.research = null
             lab.translations.forEach { translation ->
-                translation.researchSearch?.update(translation)
-                    ?: let { translation.researchSearch = ResearchSearchEntity.create(translation) }
             }
         }
 

@@ -5,7 +5,6 @@ import com.wafflestudio.csereal.core.member.api.req.CreateStaffLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.CreateStaffReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyStaffLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyStaffReqBody
-import com.wafflestudio.csereal.core.member.database.MemberSearchRepository
 import com.wafflestudio.csereal.core.member.database.StaffRepository
 import com.wafflestudio.csereal.core.member.database.StaffTranslationRepository
 import com.wafflestudio.csereal.global.config.MySQLTestContainerConfig
@@ -27,8 +26,7 @@ import org.springframework.test.context.ActiveProfiles
 class StaffServiceTest(
     private val staffService: StaffService,
     private val staffRepository: StaffRepository,
-    private val staffTranslationRepository: StaffTranslationRepository,
-    private val memberSearchRepository: MemberSearchRepository
+    private val staffTranslationRepository: StaffTranslationRepository
 ) : BehaviorSpec({
     extensions(SpringTestExtension(SpringTestLifecycleMode.Root))
 
@@ -69,23 +67,6 @@ class StaffServiceTest(
                 created.ko!!.tasks shouldBe listOf("업무1", "업무2")
                 // 호실은 언어별 값이라 ko/en 안에 있다.
                 created.ko!!.office shouldBe "office"
-            }
-
-            Then("검색 색인이 언어마다 하나씩 생긴다") {
-                memberSearchRepository.count() shouldBe 2
-                val staff = staffRepository.findByIdOrNull(created.id)!!
-                val koSearch = staff.translationOf(LanguageType.KO)!!.memberSearch!!
-                koSearch.language shouldBe LanguageType.KO
-                koSearch.content shouldBe """
-                    이름
-                    역할
-                    office
-                    phone
-                    email
-                    업무1
-                    업무2
-                    
-                """.trimIndent()
             }
         }
     }
@@ -128,21 +109,6 @@ class StaffServiceTest(
                 staff.translationOf(LanguageType.KO)!!.name shouldBe "이름2"
                 staff.translationOf(LanguageType.EN)!!.name shouldBe "name2"
                 staff.translationOf(LanguageType.KO)!!.tasks shouldBe listOf("업무1", "업무3")
-            }
-
-            Then("검색 색인도 언어마다 갱신된다") {
-                memberSearchRepository.count() shouldBe 2
-                val staff = staffRepository.findByIdOrNull(updated.id)!!
-                staff.translationOf(LanguageType.KO)!!.memberSearch!!.content shouldBe """
-                    이름2
-                    역할2
-                    office2
-                    phone2
-                    email2
-                    업무1
-                    업무3
-                    
-                """.trimIndent()
             }
         }
     }

@@ -2,11 +2,12 @@ package com.wafflestudio.csereal.core.admissions.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.enums.LanguageType
-import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.admissions.api.req.AdmissionReqBody
 import com.wafflestudio.csereal.core.admissions.dto.AdmissionsDto
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsMainType
 import com.wafflestudio.csereal.core.admissions.type.AdmissionsPostType
+import com.wafflestudio.csereal.common.search.SearchIndexed
+import com.wafflestudio.csereal.common.search.SearchType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -33,11 +34,12 @@ class AdmissionsEntity(
     val postType: AdmissionsPostType,
 
     @Column(columnDefinition = "mediumText")
-    var description: String,
+    var description: String
+) : BaseTimeEntity(), SearchIndexed {
 
-    @Column(nullable = false, columnDefinition = "mediumText")
-    var searchContent: String
-) : BaseTimeEntity() {
+    override val searchType get() = SearchType.ADMISSIONS
+    override val searchSourceId get() = id
+
     companion object {
         fun of(
             mainType: AdmissionsMainType,
@@ -49,14 +51,7 @@ class AdmissionsEntity(
             postType = postType,
             name = name,
             description = admissionsDto.description,
-            language = LanguageType.makeStringToLanguageType(admissionsDto.language),
-            searchContent = createSearchContent(
-                name = name,
-                mainType = mainType,
-                postType = postType,
-                language = LanguageType.makeStringToLanguageType(admissionsDto.language),
-                description = admissionsDto.description
-            )
+            language = LanguageType.makeStringToLanguageType(admissionsDto.language)
         )
 
         fun of(
@@ -68,27 +63,7 @@ class AdmissionsEntity(
             postType = postType,
             name = req.name!!,
             description = req.description!!,
-            language = LanguageType.makeStringToLanguageType(req.language),
-            searchContent = createSearchContent(
-                name = req.name,
-                mainType = mainType,
-                postType = postType,
-                language = LanguageType.makeStringToLanguageType(req.language),
-                description = req.description
-            )
+            language = LanguageType.makeStringToLanguageType(req.language)
         )
-
-        fun createSearchContent(
-            name: String,
-            mainType: AdmissionsMainType,
-            postType: AdmissionsPostType,
-            language: LanguageType,
-            description: String
-        ) = StringBuilder().apply {
-            appendLine(name)
-            appendLine(mainType.getLanguageValue(language))
-            appendLine(postType.getLanguageValue(language))
-            appendLine(cleanTextFromHtml(description))
-        }.toString()
     }
 }

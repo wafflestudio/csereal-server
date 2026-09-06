@@ -109,11 +109,6 @@ class ConferenceServiceTest(
                 newConferences.first().apply {
                     name shouldBe modifiedConference.name
                     abbreviation shouldBe modifiedConference.abbreviation
-                    researchSearch?.content shouldBe """
-                        modifiedName
-                        modifiedAbbreviation
-                        
-                    """.trimIndent()
                 }
                 newConferences[1].apply {
                     name shouldBe conferences.last().name
@@ -122,11 +117,6 @@ class ConferenceServiceTest(
                 newConferences.last().apply {
                     name shouldBe newConference.name
                     abbreviation shouldBe newConference.abbreviation
-                    researchSearch?.content shouldBe """
-                        newName
-                        newAbbreviation
-                        
-                    """.trimIndent()
                 }
             }
         }

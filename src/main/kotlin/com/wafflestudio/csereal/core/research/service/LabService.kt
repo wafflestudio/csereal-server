@@ -11,7 +11,6 @@ import com.wafflestudio.csereal.core.research.database.LabRepository
 import com.wafflestudio.csereal.core.research.database.LabTranslationEntity
 import com.wafflestudio.csereal.core.research.database.LabTranslationRepository
 import com.wafflestudio.csereal.core.research.database.ResearchRepository
-import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
 import com.wafflestudio.csereal.core.research.dto.LabDto
 import com.wafflestudio.csereal.core.research.dto.LabLanguageDto
 import com.wafflestudio.csereal.core.research.event.LabCreatedEvent
@@ -86,9 +85,8 @@ class LabServiceImpl(
 
         labRepository.save(lab)
 
-        // PDF 는 연구실에 하나뿐이다 — 예전엔 언어별로 한 번씩 올라가 같은 파일이 두 벌 남았다.
+        // PDF 는 연구실에 하나뿐이라 한 번만 올린다.
         pdf?.let { attachmentService.uploadAttachmentInLabEntity(lab, it) }
-        lab.translations.forEach { it.researchSearch = ResearchSearchEntity.create(it) }
 
         applicationEventPublisher.publishEvent(
             LabCreatedEvent(lab.id, lab.research?.id, request.professorIds)
@@ -182,8 +180,6 @@ class LabServiceImpl(
             ?: throw CserealException(ErrorCode.RESEARCH_GROUP_NOT_FOUND, mapOf("groupId" to groupId))
 
     private fun upsertSearchIndex(translation: LabTranslationEntity) {
-        translation.researchSearch?.update(translation)
-            ?: let { translation.researchSearch = ResearchSearchEntity.create(translation) }
     }
 
     private fun LabEntity.toLanguageDto(): LabLanguageDto =

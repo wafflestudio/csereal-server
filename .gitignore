@@ -290,3 +290,6 @@ gradle-app.setting
 caddy/*
 !caddy/Caddyfile
 !caddy/Caddyfile.dev
+
+# VS Code Java 확장(redhat.java)이 만드는 소스 사본
+bin/

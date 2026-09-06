@@ -2,7 +2,8 @@ package com.wafflestudio.csereal.core.seminar.service
 
 import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
-import com.wafflestudio.csereal.common.enums.ContentSearchSortType
+import com.wafflestudio.csereal.common.search.SearchListService
+import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.utils.isCurrentUserStaff
 import com.wafflestudio.csereal.core.resource.attachment.service.AttachmentService
 import com.wafflestudio.csereal.core.resource.mainImage.service.MainImageService
@@ -22,8 +23,7 @@ interface SeminarService {
     fun searchSeminar(
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean,
-        sortBy: ContentSearchSortType
+        usePageBtn: Boolean
     ): SeminarSearchResponse
 
     fun createSeminar(
@@ -46,6 +46,7 @@ interface SeminarService {
 @Service
 class SeminarServiceImpl(
     private val seminarRepository: SeminarRepository,
+    private val searchListService: SearchListService,
     private val mainImageService: MainImageService,
     private val attachmentService: AttachmentService
 ) : SeminarService {
@@ -53,10 +54,22 @@ class SeminarServiceImpl(
     override fun searchSeminar(
         keyword: String?,
         pageable: Pageable,
-        usePageBtn: Boolean,
-        sortBy: ContentSearchSortType
+        usePageBtn: Boolean
     ): SeminarSearchResponse {
-        return seminarRepository.searchSeminar(keyword, pageable, usePageBtn, sortBy, isCurrentUserStaff())
+        val isStaff = isCurrentUserStaff()
+        if (keyword.isNullOrEmpty()) {
+            return seminarRepository.browseSeminar(pageable, usePageBtn, isStaff)
+        }
+
+        val page = searchListService.searchIds(
+            type = SearchType.SEMINAR,
+            keyword = keyword,
+            tags = emptyList(),
+            isStaff = isStaff,
+            offset = pageable.offset,
+            size = pageable.pageSize
+        )
+        return SeminarSearchResponse(page.total, seminarRepository.findSearchDtosByIds(page.ids))
     }
 
     @Transactional
@@ -116,13 +129,7 @@ class SeminarServiceImpl(
 
         seminar.update(request)
 
-        if (newMainImage != null) {
-            seminar.mainImage?.let { mainImageService.removeImage(it) }
-            mainImageService.uploadMainImage(seminar, newMainImage)
-        } else if (request.removeImage) {
-            seminar.mainImage?.let { mainImageService.removeImage(it) }
-            seminar.mainImage = null
-        }
+        mainImageService.replaceMainImage(seminar, newMainImage, request.removeImage)
 
         attachmentService.syncAttachments(seminar, request.attachmentIds, newAttachments)
 

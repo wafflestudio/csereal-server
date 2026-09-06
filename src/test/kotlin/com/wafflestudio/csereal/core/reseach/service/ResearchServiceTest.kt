@@ -7,7 +7,6 @@ import com.wafflestudio.csereal.core.research.api.req.ModifyResearchLanguageReqB
 import com.wafflestudio.csereal.core.research.api.req.ResearchContentReqBody
 import com.wafflestudio.csereal.core.research.database.LabRepository
 import com.wafflestudio.csereal.core.research.database.ResearchRepository
-import com.wafflestudio.csereal.core.research.database.ResearchSearchRepository
 import com.wafflestudio.csereal.core.research.database.ResearchTranslationRepository
 import com.wafflestudio.csereal.core.research.service.ResearchService
 import com.wafflestudio.csereal.core.research.type.ResearchType
@@ -30,7 +29,6 @@ class ResearchServiceTest(
     private val researchService: ResearchService,
     private val researchRepository: ResearchRepository,
     private val researchTranslationRepository: ResearchTranslationRepository,
-    private val researchSearchRepository: ResearchSearchRepository,
     private val professorRepository: ProfessorRepository,
     private val labRepository: LabRepository
 ) : BehaviorSpec({
@@ -40,7 +38,6 @@ class ResearchServiceTest(
         professorRepository.deleteAll()
         researchRepository.deleteAll()
         labRepository.deleteAll()
-        researchSearchRepository.deleteAll()
     }
 
     fun createReq(type: ResearchType, websiteURL: String? = null) = CreateResearchLanguageReqBody(

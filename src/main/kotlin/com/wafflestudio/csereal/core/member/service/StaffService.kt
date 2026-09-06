@@ -5,7 +5,6 @@ import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.member.api.req.CreateStaffLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyStaffLanguagesReqBody
-import com.wafflestudio.csereal.core.member.database.MemberSearchEntity
 import com.wafflestudio.csereal.core.member.database.StaffEntity
 import com.wafflestudio.csereal.core.member.database.StaffRepository
 import com.wafflestudio.csereal.core.member.database.StaffTranslationEntity
@@ -60,11 +59,10 @@ class StaffServiceImpl(
             )
         }
 
-        // 사진은 사람에게 하나뿐이다 — 예전엔 언어별로 한 번씩 올라가 같은 파일이 두 벌 남았다.
+        // 사진은 사람에게 하나뿐이라 한 번만 올린다.
         if (mainImage != null) {
             mainImageService.uploadMainImage(staff, mainImage)
         }
-        staff.translations.forEach { it.memberSearch = MemberSearchEntity.create(it) }
         staffRepository.save(staff)
 
         return staff.toLanguagesDto()
@@ -108,19 +106,9 @@ class StaffServiceImpl(
             translation.role = content.role
             translation.office = content.office
             translation.tasks = content.tasks.map { it.trim() }.toMutableList()
-            translation.memberSearch?.update(translation)
-                ?: let { translation.memberSearch = MemberSearchEntity.create(translation) }
         }
 
-        if (request.removeImage && newImage == null) {
-            staff.mainImage?.let {
-                mainImageService.removeImage(it)
-                staff.mainImage = null
-            }
-        } else if (newImage != null) {
-            staff.mainImage?.let { mainImageService.removeImage(it) }
-            mainImageService.uploadMainImage(staff, newImage)
-        }
+        mainImageService.replaceMainImage(staff, newImage, request.removeImage)
 
         return staff.toLanguagesDto()
     }

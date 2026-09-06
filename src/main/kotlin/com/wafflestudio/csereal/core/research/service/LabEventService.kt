@@ -5,7 +5,6 @@ import com.wafflestudio.csereal.core.member.event.ProfessorDeletedEvent
 import com.wafflestudio.csereal.core.member.event.ProfessorModifiedEvent
 import com.wafflestudio.csereal.core.research.database.LabEntity
 import com.wafflestudio.csereal.core.research.database.LabRepository
-import com.wafflestudio.csereal.core.research.database.ResearchSearchEntity
 import org.springframework.context.event.EventListener
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -76,8 +75,6 @@ class LabEventServiceImpl(
     @Transactional
     fun upsertLabSearchIndex(lab: LabEntity) {
         lab.translations.forEach { translation ->
-            translation.researchSearch?.update(translation)
-                ?: let { translation.researchSearch = ResearchSearchEntity.create(translation) }
         }
     }
 }

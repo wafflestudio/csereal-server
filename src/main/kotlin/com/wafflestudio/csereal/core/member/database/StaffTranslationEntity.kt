@@ -1,11 +1,13 @@
 package com.wafflestudio.csereal.core.member.database
 
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
+import com.wafflestudio.csereal.common.search.SearchIndexed
+import com.wafflestudio.csereal.common.search.SearchType
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.StringListConverter
 import jakarta.persistence.*
 
-// 행정직원의 한 언어판. 검색 색인은 언어별이라 여기 붙는다.
+// 검색 색인은 언어별이라 번역본에 붙는다.
 @Entity(name = "staff_translation")
 class StaffTranslationEntity(
     @ManyToOne(fetch = FetchType.LAZY)
@@ -23,8 +25,10 @@ class StaffTranslationEntity(
 
     @Column(columnDefinition = "TEXT")
     @Convert(converter = StringListConverter::class)
-    var tasks: MutableList<String> = mutableListOf(),
+    var tasks: MutableList<String> = mutableListOf()
 
-    @OneToOne(mappedBy = "staff", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var memberSearch: MemberSearchEntity? = null
-) : BaseTimeEntity()
+) : BaseTimeEntity(), SearchIndexed {
+
+    override val searchType get() = SearchType.STAFF
+    override val searchSourceId get() = staff.id
+}

@@ -4,17 +4,12 @@ import com.wafflestudio.csereal.common.CserealException
 import com.wafflestudio.csereal.common.ErrorCode
 import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.common.properties.EndpointProperties
-import com.wafflestudio.csereal.core.about.database.AboutEntity
-import com.wafflestudio.csereal.core.academics.database.AcademicsEntity
-import com.wafflestudio.csereal.core.news.database.NewsEntity
-import com.wafflestudio.csereal.core.notice.database.NoticeEntity
 import com.wafflestudio.csereal.core.research.database.LabEntity
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentRepository
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentDto
 import com.wafflestudio.csereal.core.resource.attachment.dto.AttachmentResponse
 import com.wafflestudio.csereal.core.resource.common.event.FileDeleteEvent
-import com.wafflestudio.csereal.core.seminar.database.SeminarEntity
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
@@ -107,7 +102,7 @@ class AttachmentServiceImpl(
                 size = requestAttachment.size
             )
 
-            connectAttachmentToEntity(contentEntityType, attachment)
+            contentEntityType.attach(attachment)
             attachmentRepository.save(attachment)
 
             attachmentsList.add(
@@ -185,35 +180,6 @@ class AttachmentServiceImpl(
                 val attachment = attachmentRepository.findByIdOrNull(id)
                     ?: throw CserealException(ErrorCode.ATTACHMENT_NOT_FOUND, mapOf("id" to id))
                 deleteAttachment(attachment)
-            }
-        }
-    }
-
-    private fun connectAttachmentToEntity(contentEntity: AttachmentAttachable, attachment: AttachmentEntity) {
-        when (contentEntity) {
-            is NewsEntity -> {
-                contentEntity.attachments.add(attachment)
-                attachment.news = contentEntity
-            }
-
-            is NoticeEntity -> {
-                contentEntity.attachments.add(attachment)
-                attachment.notice = contentEntity
-            }
-
-            is SeminarEntity -> {
-                contentEntity.attachments.add(attachment)
-                attachment.seminar = contentEntity
-            }
-
-            is AboutEntity -> {
-                contentEntity.attachments.add(attachment)
-                attachment.about = contentEntity
-            }
-
-            is AcademicsEntity -> {
-                contentEntity.attachments.add(attachment)
-                attachment.academics = contentEntity
             }
         }
     }

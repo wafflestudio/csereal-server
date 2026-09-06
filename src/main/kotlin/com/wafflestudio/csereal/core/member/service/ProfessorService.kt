@@ -6,7 +6,6 @@ import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.startsWithEnglish
 import com.wafflestudio.csereal.core.member.api.req.CreateProfessorLanguagesReqBody
 import com.wafflestudio.csereal.core.member.api.req.ModifyProfessorLanguagesReqBody
-import com.wafflestudio.csereal.core.member.database.MemberSearchEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorEntity
 import com.wafflestudio.csereal.core.member.database.ProfessorRepository
 import com.wafflestudio.csereal.core.member.database.ProfessorStatus
@@ -89,11 +88,10 @@ class ProfessorServiceImpl(
             )
         }
 
-        // 사진은 사람에게 하나뿐이다 — 예전엔 언어별로 한 번씩 올라가 같은 파일이 두 벌 남았다.
+        // 사진은 사람에게 하나뿐이라 한 번만 올린다.
         if (mainImage != null) {
             mainImageService.uploadMainImage(professor, mainImage)
         }
-        professor.translations.forEach { it.memberSearch = MemberSearchEntity.create(it) }
         professorRepository.save(professor)
 
         applicationEventPublisher.publishEvent(ProfessorCreatedEvent.of(professor))
@@ -169,19 +167,9 @@ class ProfessorServiceImpl(
             translation.educations = content.educations.map { it.trim() }.toMutableList()
             translation.researchAreas = content.researchAreas.map { it.trim() }.toMutableList()
             translation.careers = content.careers.map { it.trim() }.toMutableList()
-            translation.memberSearch?.update(translation)
-                ?: let { translation.memberSearch = MemberSearchEntity.create(translation) }
         }
 
-        if (req.removeImage && newImage == null) {
-            professor.mainImage?.let {
-                mainImageService.removeImage(it)
-                professor.mainImage = null
-            }
-        } else if (newImage != null) {
-            professor.mainImage?.let { mainImageService.removeImage(it) }
-            mainImageService.uploadMainImage(professor, newImage)
-        }
+        mainImageService.replaceMainImage(professor, newImage, req.removeImage)
 
         applicationEventPublisher.publishEvent(ProfessorModifiedEvent.of(professor, outdatedLabId))
         return professor.toLanguagesDto()
