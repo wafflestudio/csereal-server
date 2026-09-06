@@ -25,8 +25,19 @@ ssh -p 9122 -L 3001:localhost:3001 -L 9090:localhost:9090 waffle@<prod-host>
 # Prometheus  http://localhost:9090
 ```
 
-`GRAFANA_ADMIN_PASSWORD` 는 호스트의 `monitoring/.env` 에서 온다. 없으면 `admin` 으로
-뜨니 최초 접속 후 반드시 바꿀 것.
+`GRAFANA_ADMIN_PASSWORD` 는 호스트의 `monitoring/.env` 에서 온다. 없으면 compose 가
+기동을 거부한다(인터넷에 열려 있어 기본값을 두지 않았다).
+
+⚠️ **이 값은 Grafana DB 가 처음 만들어질 때만 적용된다.** 이미 admin 유저가 있는 볼륨에
+   나중에 값을 넣거나 바꿔도 **무시된다** — 로그인하면 `invalid password` 만 나온다.
+   이미 만들어진 뒤에 바꾸려면 CLI 로 재설정한다:
+
+   ```bash
+   docker exec -it grafana grafana cli admin reset-admin-password '새비밀번호'
+   ```
+
+   `.env` 값도 같이 맞춰 두면 나중에 볼륨을 새로 만들 때 어긋나지 않는다.
+   아이디는 항상 `admin` 이다(`GF_SECURITY_ADMIN_USER` 로 바꿀 수 있다).
 
 ## 대시보드
 
@@ -45,6 +56,38 @@ ssh -p 9122 -L 3001:localhost:3001 -L 9090:localhost:9090 waffle@<prod-host>
 ⚠️ provisioning 대시보드는 **UI 에서 고쳐도 재기동하면 파일 내용으로 되돌아간다**
 (`allowUiUpdates: false`). 실험은 UI 에서 새 대시보드를 만들어 하고, 쓸 만해지면
 JSON 을 뽑아 `grafana/dashboards/` 에 커밋한다.
+
+## 경보
+
+Slack appender 를 걷어내면서 이 시스템에 알림 수단이 없어졌다. 그 자리를 Grafana 경보가
+메운다. 규칙과 수신처 모두 `grafana/provisioning/alerting/` 에 코드로 있다.
+
+| 경보 | 조건 | 비고 |
+|---|---|---|
+| 앱이 응답하지 않는다 | `up{job="spring"} == 0`, 2분 | Slack 으로는 못 잡던 것 — 앱이 죽으면 로그도 안 나온다 |
+| 에러 로그가 늘고 있다 | ERROR 초당 0.1건 초과, 5분 | Slack appender 의 대체 |
+| 5xx 응답이 나가고 있다 | 5xx 발생, 5분 | 사용자가 겪는 실패 |
+| DB 백업이 25시간 넘게 성공 안 함 | 하트비트가 늙음 | ops 컨테이너가 남기는 지표 |
+| 디스크 여유 10GB 미만 | node-exporter | |
+
+**Slack 과 달라진 점**: ERROR 한 건마다 울리지 않고 비율·지속시간으로 판단한다.
+소음이 줄지만 **"무슨 에러인지"는 안 온다** — 알림을 받고 로그를 보러 가야 한다.
+내용까지 받으려면 로그 수집기(Loki 등)가 따로 필요하다.
+
+### 메일 발송 설정
+
+수신처는 `yeolyi1310@gmail.com` 이다. **SMTP 자격증명이 없으면 Grafana 는 조용히 메일을
+안 보낸다**(로그에만 남는다). 호스트 `monitoring/.env` 에 넣는다:
+
+```
+GF_SMTP_ENABLED=true
+GF_SMTP_HOST=smtp.gmail.com:587
+GF_SMTP_USER=<보내는 계정>
+GF_SMTP_PASSWORD=<Gmail 앱 비밀번호>
+GF_SMTP_FROM_ADDRESS=<보내는 계정>
+```
+
+Gmail 은 일반 비밀번호가 아니라 **앱 비밀번호**가 필요하다(2단계 인증 켠 뒤 발급).
 
 ## 이력
 

@@ -17,3 +17,9 @@ scrape_configs:
     - job_name: prometheus
       static_configs:
           - targets: ["localhost:9090"]
+
+    # 호스트 지표 + ops 컨테이너가 남긴 배치 잡 하트비트(textfile collector).
+    # network_mode: host 라 프로메테우스 컨테이너에서는 게이트웨이를 거쳐 닿는다.
+    - job_name: node
+      static_configs:
+          - targets: ["host.docker.internal:9100"]
