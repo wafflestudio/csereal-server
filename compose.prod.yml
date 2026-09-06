@@ -1,7 +1,36 @@
 # 배포용 override (prod·staging 공통, PROFILE 로 갈린다).
 #   docker compose -f compose.yml -f compose.prod.yml up -d --remove-orphans
-# MySQL 은 이 스택에 없다 — 호스트에서 별도 compose 프로젝트로 돈다(docker-compose-db.yml).
 services:
+    # 옛 docker-compose-db.yml 을 흡수했다. 별도 compose 프로젝트로 떼어 둔 이유는
+    # "앱 배포가 down 으로 DB 까지 내리는 것"을 막기 위해서였는데, 배포에서 down 을
+    # 없애 그 전제가 사라졌다. compose 는 이미지·설정이 바뀐 서비스만 재생성한다.
+    #
+    # 데이터 경로를 절대경로로 둬서 프로젝트가 어디서 돌든 같은 데이터를 본다 —
+    # 통합에 데이터 이전이 필요 없었던 이유다.
+    db:
+        container_name: csereal_db_container
+        volumes:
+            - ${DB_DATA_DIR:-/home/waffle/database/db}:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        # 포트를 밖으로 내지 않는다. 같은 프로젝트라 앱이 서비스 이름으로 붙는다.
+        # 전엔 프로젝트가 갈라져 앱이 호스트 게이트웨이를 거쳐야 했고, 그래서 3306 을
+        # 0.0.0.0 에 열 수밖에 없었다(이 호스트엔 방화벽이 없다).
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+            interval: 10s
+            timeout: 5s
+            retries: 30
+        logging:
+            driver: json-file
+            options:
+                max-size: "100m"
+                max-file: "3"
+        restart: always
+
     search:
         container_name: csereal_search
         image: "ghcr.io/wafflestudio/csereal-server/search_image:${PROFILE}"
@@ -33,28 +62,15 @@ services:
                 max-file: "3"
         environment:
             SPRING_ELASTICSEARCH_URIS: http://search:9200
-            # DB 는 별도 compose 프로젝트라 서비스 이름으로는 못 부른다. 공유 네트워크
-            # csereal 에 양쪽이 붙어 컨테이너 이름으로 직접 통신한다.
-            # 전엔 host.docker.internal 로 호스트 게이트웨이를 거쳤고, 그래서 MySQL 이
-            # 3306 을 0.0.0.0 에 열어야 했다(이 호스트엔 방화벽이 없다).
-            SPRING_DATASOURCE_URL: "jdbc:mysql://csereal_db_container:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"
+            # 같은 프로젝트라 서비스 이름으로 붙는다.
+            SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"
             SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
             SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
             OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
             OIDC_CLIENT_SECRET_DEV: ${OIDC_CLIENT_SECRET_DEV}
             URL: ${URL}
-        # DB 는 공유 네트워크로 직접 붙으므로 게이트웨이 우회가 필요 없어졌다.
-        # (Caddy 가 이 컨테이너를 host.docker.internal:8080 으로 부르는 건 그대로 —
-        #  그건 Caddy 쪽 설정이고 8080 게시는 유지한다.)
-        networks:
-            - default
-            - csereal
+        # Caddy 는 이 컨테이너를 host.docker.internal:8080 으로 부른다(8080 게시 유지).
         depends_on:
+            db: { condition: service_healthy }
             search: { condition: service_healthy }
         restart: always
-
-networks:
-    # DB 프로젝트(docker-compose-db.yml)와 공유한다.
-    # 최초 1회 호스트에서 `docker network create csereal` 이 필요하다.
-    csereal:
-        external: true

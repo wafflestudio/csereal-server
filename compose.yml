@@ -11,6 +11,12 @@
 # 이름을 맞추면 compose 가 기존 prod 컨테이너를 orphan 으로 보고 지웠다 다시 만드는데,
 # container_name 이 고정돼 있어 충돌로 배포가 깨질 수 있다. 이름 통일은 별도 작업으로.
 services:
+    # MySQL 버전을 한 곳에서만 적는다. 전엔 로컬(compose.local.yml)과 배포
+    # (docker-compose-db.yml)에 따로 적혀 있어 조용히 갈라질 수 있었다.
+    db:
+        image: mysql:8.0
+        cap_add: [SYS_NICE]
+
     search:
         environment:
             discovery.type: single-node

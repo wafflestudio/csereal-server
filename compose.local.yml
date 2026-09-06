@@ -7,8 +7,6 @@ name: csereal-local
 
 services:
     db:
-        image: mysql:8.0
-        cap_add: [SYS_NICE]
         environment:
             MYSQL_DATABASE: csereal
             MYSQL_ROOT_PASSWORD: password
