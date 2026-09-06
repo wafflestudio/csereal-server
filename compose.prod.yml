@@ -1,18 +1,13 @@
+# 배포용 override (prod·staging 공통, PROFILE 로 갈린다).
+#   docker compose -f compose.yml -f compose.prod.yml up -d --remove-orphans
+# MySQL 은 이 스택에 없다 — 호스트에서 별도 compose 프로젝트로 돈다(docker-compose-db.yml).
 services:
-    # 검색 서버. 공식 이미지에 없는 nori(한국어 분석기)를 얹은 이미지라 배포마다 함께 올린다.
     search:
         container_name: csereal_search
         image: "ghcr.io/wafflestudio/csereal-server/search_image:${PROFILE}"
-        environment:
-            discovery.type: single-node
-            xpack.security.enabled: "false" # 포트를 밖으로 안 내는 것이 방어다
-            ES_JAVA_OPTS: -Xms512m -Xmx512m
-        # 색인 데이터를 남기지 않는다. 기동할 때마다 DB 에서 전량 다시 만들기 때문에
+        # 색인 데이터를 남기지 않는다. 앱이 기동할 때마다 DB 에서 전량 다시 만들기 때문에
         # 남겨도 쓰지 않고, 바인드 마운트는 호스트 소유권 때문에 기동을 막는다.
         healthcheck:
-            test: ["CMD-SHELL", "curl -fsS localhost:9200/_cluster/health || exit 1"]
-            interval: 5s
-            timeout: 5s
             retries: 30
             start_period: 90s
         logging:
@@ -24,6 +19,7 @@ services:
 
     green:
         container_name: csereal_server_green
+        image: "ghcr.io/wafflestudio/csereal-server/server_image:${PROFILE}"
         ports:
             - 8080:8080
         volumes:
@@ -35,7 +31,6 @@ services:
             options:
                 max-size: "100m"
                 max-file: "3"
-
         environment:
             SPRING_ELASTICSEARCH_URIS: http://search:9200
             SPRING_DATASOURCE_URL: "jdbc:mysql://host.docker.internal:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"
@@ -51,4 +46,3 @@ services:
         depends_on:
             search: { condition: service_healthy }
         restart: always
-        image: "ghcr.io/wafflestudio/csereal-server/server_image:${PROFILE}"
