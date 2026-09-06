@@ -1,0 +1,36 @@
+# 예약 실행되는 운영 작업. 앱·DB 스택과 분리된 별도 compose 프로젝트다 —
+# 앱을 배포할 때마다 백업 스케줄러가 재시작되면 곤란하다.
+#
+#   docker compose -f compose.ops.yml up -d --build
+#
+# 필요한 환경변수는 DB 스택의 .env 를 그대로 쓴다(MYSQL_ROOT_PASSWORD·MYSQL_DATABASE).
+name: ops
+
+services:
+    ops:
+        build: ./ops
+        container_name: csereal_ops
+        env_file:
+            - ${DB_ENV_FILE:-/home/waffle/database/.env}
+        environment:
+            TZ: Asia/Seoul # 19:00 스케줄과 파일명 날짜의 기준
+            BACKUP_DIR: /backup
+            METRICS_DIR: /metrics
+            DB_CONTAINER: csereal_db_container
+        volumes:
+            # DB 컨테이너 안 mysqldump 를 부르기 위해. ⚠️ 소켓 마운트는 root 권한과 등가다.
+            # (호스트의 waffle 유저도 docker 그룹이라 실질적 권한 변화는 없다.)
+            - /var/run/docker.sock:/var/run/docker.sock
+            # 덤프가 쌓이는 곳. 호스트 경로를 그대로 이어받아 기존 백업과 한 디렉터리다.
+            - ${BACKUP_HOST_DIR:-/home/waffle/database/backup}:/backup
+            # 하트비트 지표. node_exporter 의 textfile collector 가 같은 디렉터리를 읽는다.
+            - ops-metrics:/metrics
+        restart: unless-stopped
+        logging:
+            driver: json-file
+            options:
+                max-size: "10m"
+                max-file: "3"
+
+volumes:
+    ops-metrics:
