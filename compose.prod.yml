@@ -53,7 +53,7 @@ services:
 
     green:
         container_name: csereal_server_green
-        image: "ghcr.io/wafflestudio/csereal-server/server_image:${PROFILE}"
+        image: "ghcr.io/wafflestudio/csereal-server/server_image:${IMAGE_TAG:?deploy.yaml 이 .env 에 써 넣는다}"
         ports:
             - 8080:8080
         volumes:

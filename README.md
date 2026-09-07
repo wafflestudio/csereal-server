@@ -13,13 +13,17 @@ docker compose -f compose.yml -f compose.local.yml up -d --wait backend
 
 ## 배포
 
-| 브랜치 | 환경 | 러너 |
-|---|---|---|
-| `develop` | staging | `ubuntu-24.04-arm` (호스트 aarch64) |
-| `main` | production | `ubuntu-latest` (호스트 x86_64) |
+| 브랜치 | 환경 |
+|---|---|
+| `develop` | staging (aarch64) |
+| `main` | production (x86_64) |
 
-`deploy.yaml` 한 파일이 두 환경을 담당한다. ⚠️ 러너 아키텍처가 호스트와 어긋나면
-실행할 수 없는 이미지가 나온다.
+`deploy.yaml` 한 파일이 두 환경을 담당한다. 이미지 태그는 **소스 내용 해시**이고
+매니페스트는 amd64·arm64 둘 다 담는다. 그래서 같은 소스면 빌드를 건너뛴다 —
+develop 에서 만든 이미지를 main 승격 때 그대로 쓴다.
+
+배포된 버전은 호스트 `~/app/.env` 의 `IMAGE_TAG` 에 적힌다. **롤백은 그 값을 옛 해시로
+바꾸고 `up -d`** — 다시 빌드할 필요가 없다.
 
 ## 설정값
 
