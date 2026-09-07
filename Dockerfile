@@ -24,9 +24,9 @@ COPY --from=extract /out/extracted/spring-boot-loader/ ./
 COPY --from=extract /out/extracted/snapshot-dependencies/ ./
 COPY --from=extract /out/extracted/application/ ./
 
-ARG PROFILE
-ENV SPRING_PROFILES_ACTIVE=${PROFILE}
-
+# 프로파일은 굽지 않는다 — compose 가 런타임에 준다(로컬은 원래 그렇게 하고 있었다).
+# 구우면 같은 소스로 prod 용·dev 용 이미지가 따로 생겨, prod 가 staging 에서 한 번도
+# 돌려본 적 없는 산출물을 실행하게 된다.
 EXPOSE 8080
 # exec 형식이라야 JVM 이 PID 1 이 된다. 쉘 형식으로 되돌리면 SIGTERM 이 sh 에서 멈춰
 # graceful shutdown 없이 10초 뒤 SIGKILL 로 죽는다.

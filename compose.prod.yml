@@ -36,7 +36,9 @@ services:
 
     search:
         container_name: csereal_search
-        image: "ghcr.io/wafflestudio/csereal-server/search_image:${PROFILE}"
+        # 내용 해시 태그. Dockerfile.es 가 그대로면 배포가 이미지를 다시 만들지도 푸시하지도
+        # 않는다 — 다이제스트가 안 바뀌니 compose 가 ES 를 재생성하지 않는다.
+        image: "ghcr.io/wafflestudio/csereal-server/search_image:${SEARCH_TAG:?deploy.yaml 이 .env 에 써 넣는다}"
         # 색인 데이터를 남기지 않는다. 앱이 기동할 때마다 DB 에서 전량 다시 만들기 때문에
         # 남겨도 쓰지 않고, 바인드 마운트는 호스트 소유권 때문에 기동을 막는다.
         healthcheck:
@@ -64,6 +66,8 @@ services:
                 max-size: "100m"
                 max-file: "3"
         environment:
+            # 이미지에 굽지 않고 여기서 준다. compose.local.yml 과 같은 방식이다.
+            SPRING_PROFILES_ACTIVE: ${PROFILE}
             SPRING_ELASTICSEARCH_URIS: http://search:9200
             # 같은 프로젝트라 서비스 이름으로 붙는다.
             SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true"

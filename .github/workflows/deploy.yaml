@@ -63,21 +63,42 @@ jobs:
               with:
                   context: .
                   push: true
-                  build-args: |
-                      PROFILE=${{ env.PROFILE }}
                   tags: |
                       ghcr.io/wafflestudio/csereal-server/server_image:${{ env.PROFILE }}
                       ghcr.io/wafflestudio/csereal-server/server_image:${{ github.sha }}
 
             # nori 는 공식 이미지에 없는 플러그인이라 검색 서버도 우리가 만들어 올린다.
+            # 태그는 Dockerfile.es 의 내용 해시다. 전엔 움직이는 태그(:prod·:dev)에 매번
+            # 다시 밀어서, 두 줄짜리 파일이 안 바뀌어도 30초를 쓰고 다이제스트가 달라져
+            # compose 가 ES 컨테이너를 배포마다 재생성했다.
+            # 아키텍처를 붙이는 이유: prod 는 amd64, staging 은 arm64 라 내용이 같아도
+            # 이미지가 다르다.
+            - name: 검색 이미지 태그 계산
+              run: |
+                  H=$(git ls-tree HEAD -- Dockerfile.es | sha256sum | cut -c1-12)
+                  echo "SEARCH_TAG=${H}-$(dpkg --print-architecture)" >> "$GITHUB_ENV"
+
+            - name: 검색 이미지가 이미 있나
+              id: search_image
+              run: |
+                  REF=ghcr.io/wafflestudio/csereal-server/search_image:${SEARCH_TAG}
+                  if docker manifest inspect "$REF" >/dev/null 2>&1; then
+                    echo "  이미 있다 → 빌드 건너뜀: $REF"
+                    echo "hit=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "  없다 → 빌드한다: $REF"
+                    echo "hit=false" >> "$GITHUB_OUTPUT"
+                  fi
+
             - name: Build and push search image
+              if: steps.search_image.outputs.hit != 'true'
               uses: docker/build-push-action@v7
               with:
                   context: .
                   file: Dockerfile.es
                   push: true
                   tags: |
-                      ghcr.io/wafflestudio/csereal-server/search_image:${{ env.PROFILE }}
+                      ghcr.io/wafflestudio/csereal-server/search_image:${{ env.SEARCH_TAG }}
 
             # OIDC 는 prod 프로파일에만 등록돼 있다(application.yaml). staging 은 mock-login 만
             # 쓰므로 넘길 것이 없다 — 전엔 OIDC_CLIENT_SECRET_DEV 를 써 넣었지만 읽는 곳이 없었다.
@@ -90,6 +111,7 @@ jobs:
                   echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
                   echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
                   echo "URL=${{ env.URL }}" >> .env
+                  echo "SEARCH_TAG=${{ env.SEARCH_TAG }}" >> .env
                   if [ "${{ env.PROFILE }}" = "prod" ]; then
                     echo "OIDC_CLIENT_SECRET=${{ secrets.OIDC_CLIENT_SECRET }}" >> .env
                   fi
