@@ -1,23 +1,21 @@
-# 예약 실행되는 운영 작업. 앱·DB 스택과 분리된 별도 compose 프로젝트다 —
-# 앱을 배포할 때마다 백업 스케줄러가 재시작되면 곤란하다.
-#
+# 예약 실행되는 운영 작업(백업). 앱과 분리된 별도 compose 프로젝트다.
 #   docker compose -f compose.ops.yml up -d --build
-#
-# 필요한 환경변수는 DB 스택의 .env 를 그대로 쓴다(MYSQL_ROOT_PASSWORD·MYSQL_DATABASE).
 name: ops
 
 services:
     ops:
         build: ./ops
         container_name: csereal_ops
+        # DB 계정은 앱과 같은 것을 쓴다. 따로 두면 갈라져서 백업이 조용히 틀린
+        # 계정으로 돌게 된다. ⚠️ 절대경로로 두지 말 것 — 호스트마다 홈이 다르다.
         env_file:
-            - ${DB_ENV_FILE:-/home/waffle/database/.env}
+            - ../app/secrets.env
         environment:
             TZ: Asia/Seoul # 19:00 스케줄과 파일명 날짜의 기준
             BACKUP_DIR: /backup
             METRICS_DIR: /metrics
             DB_CONTAINER: csereal_db_container
-            # 오프사이트 복사 대상. 값이 없으면 backup-offsite.sh 가 실패한다(조용히 넘어가지 않는다).
+            # 오프사이트 복사 대상.
             OFFSITE_HOST: ${OFFSITE_HOST:-ubuntu@168.107.16.249}
             OFFSITE_PATH: ${OFFSITE_PATH:-db-backup-from-prod/}
         volumes:
