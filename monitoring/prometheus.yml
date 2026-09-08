@@ -2,10 +2,7 @@ global:
     scrape_interval: 15s
 
 scrape_configs:
-    # 앱은 별도 compose 프로젝트라 서비스 이름(green/backend)으로 못 닿는다.
-    # 전 설정은 `green:8080` 을 긁었는데 두 컨테이너가 다른 네트워크에 있어
-    # 30일간 스크랩 성공이 0회였다(2026-09-06 확인). 호스트 게이트웨이로 바꾼다.
-    # 이러면 앱 서비스 이름이 바뀌어도 안 깨진다.
+    # 앱은 별도 compose 프로젝트라 서비스 이름으로 못 닿는다.
     - job_name: spring
       metrics_path: /actuator/prometheus
       static_configs:

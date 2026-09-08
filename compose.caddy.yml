@@ -9,7 +9,7 @@ services:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
       - ./caddy/data:/data
       - ./caddy/config:/config
-      - ./caddy/certs:/certs
+      - ../secrets/certs:/certs:ro
     environment:
       URL: ${URL}
       CERTIFICATE: ${CERTIFICATE}
