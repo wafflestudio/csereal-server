@@ -2,19 +2,25 @@
 #   로컬: docker compose -f compose.yml -f compose.local.yml up -d --wait backend
 #   배포: docker compose -f compose.yml -f compose.prod.yml  up -d --remove-orphans
 #
-# 앱 서비스는 여기에 없다 — 배포는 green, 로컬은 backend 로 이름이 다르다.
-# 맞추면 compose 가 기존 prod 컨테이너를 orphan 으로 보고 지웠다 다시 만든다.
 services:
     db:
         image: mysql:8.0
         cap_add: [SYS_NICE]
+        # 헬스체크는 override 에 있다 — 비밀번호가 환경마다 달라 공통으로 못 뺀다.
 
     search:
         environment:
             discovery.type: single-node
-            xpack.security.enabled: "false" # 포트를 밖으로 안 내는 것이 방어다
+            xpack.security.enabled: "false" 
             ES_JAVA_OPTS: -Xms512m -Xmx512m
         healthcheck:
             test: ["CMD-SHELL", "curl -fsS localhost:9200/_cluster/health || exit 1"]
             interval: 5s
             timeout: 5s
+
+    backend:
+        ports:
+            - 8080:8080
+        depends_on:
+            db: { condition: service_healthy }
+            search: { condition: service_healthy }

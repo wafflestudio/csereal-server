@@ -14,8 +14,6 @@ APP_DIR=$HOME/app
 PROXY_DIR=$HOME/proxy
 GRADLE_VOLUME=csereal-gradle
 TAG=${GIT_SHA:0:12}
-# 비밀은 레포에도 GitHub 에도 두지 않는다. 호스트가 들고 있고 사람이 한 번 만든다
-# (README 의 "호스트 .env" 참고). 거의 바뀌지 않는 값들이다.
 SECRETS_FILE=$APP_DIR/secrets.env
 
 say() { echo "▸ $*"; }
@@ -31,9 +29,8 @@ build_images() {
     docker build -q --build-arg JAR_STAGE=prebuilt --build-arg GIT_SHA="$GIT_SHA" \
         -t "csereal-server:$TAG" "$WORKSPACE"
 
-    # nori 는 공식 이미지에 없는 플러그인이라 검색 서버도 우리가 만든다. 태그가 내용
-    # 해시라 Dockerfile.es 가 그대로면 다시 만들지 않는다 — 다이제스트가 안 바뀌어야
-    # compose 가 ES 를 재생성하지 않는다.
+    # nori 는 공식 이미지에 없는 플러그인이라 검색 서버도 우리가 만든다. 
+    # 해시를 확인해 Dockerfile.es 가 그대로면 다시 만들지 않는다.
     SEARCH_TAG=$(git ls-tree HEAD -- Dockerfile.es | sha256sum | cut -c1-12)
     if docker image inspect "csereal-search:$SEARCH_TAG" >/dev/null 2>&1; then
         say "검색 이미지 그대로: $SEARCH_TAG"
@@ -68,15 +65,13 @@ deploy_app() {
     cat "$SECRETS_FILE" >>.env
 
     say "compose up"
-    # down 을 쓰지 않는다 — compose 는 바뀐 서비스만 재생성하는데 down 이 그걸 무력화한다.
-    # --wait 은 healthcheck 가 healthy 가 될 때까지 기다린다. 없으면 앱이 크래시 루프여도
-    # 배포가 초록불로 끝난다.
+    # --wait 은 healthcheck 가 healthy 가 될 때까지 기다린다. 없으면 앱이 크래시 루프여도 배포가 초록불로 끝난다.
     docker compose -f compose.yml -f compose.prod.yml up -d --wait --remove-orphans
 
-    # 의도한 커밋이 실제로 떴는지 본다. 이미지가 잘못 태깅됐거나 compose 가 옛 태그를
-    # 잡았다면 여기서 걸린다 — 조용히 넘어가지 않게 하는 장치다.
+    # 의도한 커밋이 실제로 떴는지 본다. 
+    # 이미지가 잘못 태깅됐거나 compose 가 옛 태그를 잡았다면 여기서 걸린다.
     local running
-    running=$(docker inspect csereal_server_green --format '{{range .Config.Env}}{{println .}}{{end}}' |
+    running=$(docker inspect csereal_server --format '{{range .Config.Env}}{{println .}}{{end}}' |
         sed -n 's/^GIT_SHA=//p')
     [ "$running" = "$GIT_SHA" ] ||
         { echo "✗ 배포된 커밋이 다르다: 기대 $GIT_SHA / 실제 ${running:-없음}" >&2; exit 1; }

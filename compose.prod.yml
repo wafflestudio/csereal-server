@@ -40,12 +40,10 @@ services:
                 max-file: "3"
         restart: always
 
-    green:
-        container_name: csereal_server_green
+    backend:
+        container_name: csereal_server
         # 커밋 해시 태그. 롤백은 .env 의 IMAGE_TAG 를 옛 값으로 바꾸고 up -d 하면 된다.
         image: "csereal-server:${IMAGE_TAG:?ops/host-deploy.sh 가 .env 에 써 넣는다}"
-        ports:
-            - 8080:8080
         volumes:
             - ./cse-files:/app/cse-files
             - ./files:/app/files
@@ -78,10 +76,6 @@ services:
         # autoheal 이 이 라벨을 보고 재시작한다. Docker 는 표시만 하고 재시작해 주지 않는다.
         labels:
             autoheal: "true"
-        # Caddy 는 이 컨테이너를 host.docker.internal:8080 으로 부른다(8080 게시 유지).
-        depends_on:
-            db: { condition: service_healthy }
-            search: { condition: service_healthy }
         restart: always
 
     # unhealthy 라벨이 붙은 컨테이너를 재시작한다. 앱의 유일한 자동복구 수단이다.
