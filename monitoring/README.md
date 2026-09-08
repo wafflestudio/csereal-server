@@ -21,12 +21,12 @@ iptables INPUT ACCEPT) 게시 포트가 곧 공개 포트이기 때문이다. SS
 
 ```bash
 ssh -p 9122 -L 3001:localhost:3001 -L 9090:localhost:9090 waffle@<prod-host>
-# Grafana     http://localhost:3001   (admin / GRAFANA_ADMIN_PASSWORD)
+# Grafana     http://localhost:3001   (admin / GF_SECURITY_ADMIN_PASSWORD)
 # Prometheus  http://localhost:9090
 ```
 
-`GRAFANA_ADMIN_PASSWORD` 는 호스트의 `monitoring/.env` 에서 온다. 없으면 compose 가
-기동을 거부한다(인터넷에 열려 있어 기본값을 두지 않았다).
+`GF_SECURITY_ADMIN_PASSWORD` 는 호스트의 `~/secrets/monitoring.env` 에서 온다(`env_file`).
+파일이 없으면 compose 가 기동을 거부한다.
 
 ⚠️ **이 값은 Grafana DB 가 처음 만들어질 때만 적용된다.** 이미 admin 유저가 있는 볼륨에
    나중에 값을 넣거나 바꿔도 **무시된다** — 로그인하면 `invalid password` 만 나온다.
@@ -36,7 +36,7 @@ ssh -p 9122 -L 3001:localhost:3001 -L 9090:localhost:9090 waffle@<prod-host>
    docker exec -it grafana grafana cli admin reset-admin-password '새비밀번호'
    ```
 
-   `.env` 값도 같이 맞춰 두면 나중에 볼륨을 새로 만들 때 어긋나지 않는다.
+   `~/secrets/monitoring.env` 값도 같이 맞춰 두면 나중에 볼륨을 새로 만들 때 어긋나지 않는다.
    아이디는 항상 `admin` 이다(`GF_SECURITY_ADMIN_USER` 로 바꿀 수 있다).
 
 ## 대시보드
@@ -81,7 +81,7 @@ Slack appender 를 걷어내면서 이 시스템에 알림 수단이 없어졌�
 ### 메일 발송 설정
 
 수신처는 `yeolyi1310@gmail.com` 이다. **SMTP 자격증명이 없으면 Grafana 는 조용히 메일을
-안 보낸다**(로그에만 남는다). 호스트 `monitoring/.env` 에 넣는다:
+안 보낸다**(로그에만 남는다). 호스트 `~/secrets/monitoring.env` 에 넣는다:
 
 ```
 GF_SMTP_ENABLED=true
