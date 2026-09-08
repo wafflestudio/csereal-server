@@ -12,10 +12,15 @@ FROM alpine:3.20
 # tzdata:          스케줄과 파일명 날짜가 KST 기준이어야 한다.
 RUN apk add --no-cache bash docker-cli openssh-client tzdata coreutils findutils
 
-COPY db-backup.sh /opt/ops/db-backup.sh
-COPY backup-offsite.sh /opt/ops/backup-offsite.sh
-COPY crontab /etc/crontabs/root
+COPY db-backup.sh backup-offsite.sh /opt/ops/
 RUN chmod +x /opt/ops/*.sh
+
+# busybox crond 스케줄.  분 시 일 월 요일  명령
+# 덤프는 매일 자정 KST(TZ 는 compose 가 넣는다). 오프사이트 복사는 덤프가 끝날 시간을
+# 두고 30분 뒤 — 백업이 원본과 같은 디스크에만 있으면 그 디스크가 죽을 때 같이 죽는다.
+RUN printf '%s\n' \
+    '0 0 * * * /opt/ops/db-backup.sh' \
+    '30 0 * * * /opt/ops/backup-offsite.sh' >/etc/crontabs/root
 
 # busybox crond. -f 포그라운드, -d 8 로 로그를 stdout 으로 보낸다
 # (도커 로깅 드라이버가 받으므로 호스트 logrotate 설정이 필요 없다).

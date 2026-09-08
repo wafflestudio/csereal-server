@@ -40,7 +40,7 @@ DB 컨테이너 안 정품 `mysqldump` 를 부르려고 소켓을 마운트한�
 
 | | |
 |---|---|
-| 스케줄 | 매일 자정 KST (`ops/crontab`) |
+| 스케줄 | 매일 자정 KST (`ops/Dockerfile` 안 crontab) |
 | 보관 | 30일 |
 | 위치 | 호스트 `~/database/backup` 을 `/backup` 으로 마운트 |
 | 크기 | ~95MB(gzip), DB 실크기 0.29GB |
