@@ -34,6 +34,55 @@ groups:
                           - evaluator: { type: lt, params: [1] }
                       refId: C
 
+          # 프론트가 죽으면 Caddy 가 502 를 내지만 백엔드는 멀쩡해 다른 규칙엔 안 걸린다.
+          - uid: frontend-down
+            title: 프론트가 응답하지 않는다
+            condition: C
+            for: 2m
+            annotations:
+                summary: "프론트 스크랩이 2분 넘게 실패한다. frontend 컨테이너나 9464 포트를 볼 것."
+            labels: { severity: critical }
+            data:
+                - refId: A
+                  relativeTimeRange: { from: 300, to: 0 }
+                  datasourceUid: prometheus
+                  model:
+                      expr: up{job="frontend"}
+                      instant: true
+                      refId: A
+                - refId: C
+                  datasourceUid: __expr__
+                  model:
+                      type: threshold
+                      expression: A
+                      conditions:
+                          - evaluator: { type: lt, params: [1] }
+                      refId: C
+
+          - uid: frontend-5xx
+            title: 프론트 5xx 응답이 나가고 있다
+            condition: C
+            for: 5m
+            annotations:
+                summary: "5분 평균 프론트 5xx 응답이 발생 중이다. SSR 실패나 백엔드 호출 실패."
+            labels: { severity: warning }
+            data:
+                - refId: A
+                  relativeTimeRange: { from: 600, to: 0 }
+                  datasourceUid: prometheus
+                  model:
+                      expr: sum(rate(http_requests_total{job="frontend",status=~"5.."}[5m]))
+                      instant: true
+                      refId: A
+                - refId: C
+                  datasourceUid: __expr__
+                  model:
+                      type: threshold
+                      expression: A
+                      conditions:
+                          - evaluator: { type: gt, params: [0] }
+                      refId: C
+
           # Slack appender 가 하던 일의 대체. 다만 "무슨 에러인지"는 안 온다 —
           # 알림을 받고 로그를 보러 가야 한다.
           - uid: error-rate

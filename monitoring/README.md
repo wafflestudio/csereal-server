@@ -1,6 +1,6 @@
 # 모니터링
 
-앱의 `/actuator/prometheus` 를 15초마다 긁어 Grafana 로 본다. 앱 배포와 분리된 별도
+백엔드의 `/actuator/prometheus` 와 프론트의 `:9464/metrics` 를 15초마다 긁어 Grafana 로 본다. 앱 배포와 분리된 별도
 compose 프로젝트다(앱 배포 때마다 대시보드가 재시작되면 곤란하다).
 
 ## 띄우기
@@ -45,7 +45,9 @@ ssh -p 9122 -L 3001:localhost:3001 -L 9090:localhost:9090 waffle@<prod-host>
 
 - `grafana/provisioning/datasources/prometheus.yml` — Prometheus 연결. `uid: prometheus`
   로 못박아 뒀다(안 주면 서버마다 uid 가 달라져 대시보드 패널이 전부 빈다).
-- `grafana/dashboards/csereal-server.json` — 기본 대시보드. 패널 11 개.
+- `grafana/dashboards/csereal-server.json` — 백엔드 대시보드. 패널 11 개.
+- `grafana/dashboards/csereal-web.json` — 프론트 대시보드. 프론트 레포 `server.ts` 가 내는
+  지표라 `page` 라벨(정규화한 URL)로 나눈다.
 
 패널 질의는 **prod 에서 실제로 값이 나오는 것만** 골랐다. 히스토그램 버킷
 (`http_server_requests_seconds_bucket`)과 tomcat 스레드 지표는 이 앱에 없어서 뺐다 —
@@ -65,6 +67,8 @@ Slack appender 를 걷어내면서 이 시스템에 알림 수단이 없어졌�
 | 경보 | 조건 | 비고 |
 |---|---|---|
 | 앱이 응답하지 않는다 | `up{job="spring"} == 0`, 2분 | Slack 으로는 못 잡던 것 — 앱이 죽으면 로그도 안 나온다 |
+| 프론트가 응답하지 않는다 | `up{job="frontend"} == 0`, 2분 | 프론트가 죽어도 백엔드는 멀쩡해 다른 규칙엔 안 걸린다 |
+| 프론트 5xx 응답이 나가고 있다 | 5xx 발생, 5분 | SSR 실패·백엔드 호출 실패 |
 | 에러 로그가 늘고 있다 | ERROR 초당 0.1건 초과, 5분 | Slack appender 의 대체 |
 | 5xx 응답이 나가고 있다 | 5xx 발생, 5분 | 사용자가 겪는 실패 |
 | DB 백업이 25시간 넘게 성공 안 함 | 하트비트가 늙음 | ops 컨테이너가 남기는 지표 |
