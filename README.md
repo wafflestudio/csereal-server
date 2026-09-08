@@ -1,6 +1,6 @@
 # csereal-server
 
-컴퓨터공학부 홈페이지 백엔드. Spring Boot(Kotlin) · MySQL · Elasticsearch.
+cse.snu.ac.kr 백엔드
 
 ## 로컬 실행
 
@@ -20,9 +20,11 @@ docker compose -f compose.yml -f compose.local.yml up -d --wait backend
 
 GitHub 시크릿은 `SSH_KEY` 하나이며 나머지는 호스트에 둡니다. 
 
+사람이 놓는 것은 전부 `~/secrets/`(권한 700) 안에 있습니다.
+
 | | |
 |---|---|
-| `~/app/secrets.env` | `MYSQL_ROOT_PASSWORD` `MYSQL_USER` `MYSQL_PASSWORD` `MYSQL_DATABASE` `OIDC_CLIENT_SECRET`(prod만) |
-| `~/monitoring/.env` | `GRAFANA_ADMIN_PASSWORD` · `GF_SMTP_*` |
-| `~/proxy/caddy/certs/` | TLS 인증서·키. `main.env` 의 경로와 맞아야 한다 |
-| `~/ops-stack/secrets/backup_offsite` | 오프사이트 백업용 SSH 개인키 |
+| `app.env` | `MYSQL_ROOT_PASSWORD` `MYSQL_USER` `MYSQL_PASSWORD` `MYSQL_DATABASE` `OIDC_CLIENT_SECRET`(prod만) |
+| `monitoring.env` | `GF_SECURITY_ADMIN_PASSWORD` · `GF_SMTP_*`. prod만 |
+| `certs/` | TLS 인증서·키. `main.env` 의 경로와 맞아야 합니다. prod만 |
+| `backup_offsite` | 백업용 SSH 개인키. prod만 |

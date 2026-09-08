@@ -9,26 +9,26 @@ services:
         # DB 계정은 앱과 같은 것을 쓴다. 따로 두면 갈라져서 백업이 조용히 틀린
         # 계정으로 돌게 된다. ⚠️ 절대경로로 두지 말 것 — 호스트마다 홈이 다르다.
         env_file:
-            - ../app/secrets.env
+            - ../secrets/app.env
         environment:
             TZ: Asia/Seoul # 19:00 스케줄과 파일명 날짜의 기준
             BACKUP_DIR: /backup
             METRICS_DIR: /metrics
             DB_CONTAINER: csereal_db_container
-            # 오프사이트 복사 대상.
-            OFFSITE_HOST: ${OFFSITE_HOST:-ubuntu@168.107.16.249}
-            OFFSITE_PATH: ${OFFSITE_PATH:-db-backup-from-prod/}
+            # 오프사이트 복사 대상(staging 호스트).
+            OFFSITE_HOST: ubuntu@168.107.16.249
+            OFFSITE_PATH: db-backup-from-prod/
         volumes:
             # DB 컨테이너 안 mysqldump 를 부르기 위해. ⚠️ 소켓 마운트는 root 권한과 등가다.
             # (호스트의 waffle 유저도 docker 그룹이라 실질적 권한 변화는 없다.)
             - /var/run/docker.sock:/var/run/docker.sock
             # 덤프가 쌓이는 곳. 호스트 경로를 그대로 이어받아 기존 백업과 한 디렉터리다.
-            - ${BACKUP_HOST_DIR:-/home/waffle/database/backup}:/backup
+            - ../database/backup:/backup
             # 하트비트 지표. node_exporter 의 textfile collector 가 같은 디렉터리를 읽는다.
             - ops-metrics:/metrics
             # 오프사이트 복사용 전용 SSH 키(읽기 전용). 이 레포에 없다 — 호스트에서 만들고
             # 공개키를 수신 호스트의 authorized_keys 에 restrict + from= 제한으로 넣는다.
-            - ${OFFSITE_KEY_DIR:-./secrets}:/secrets:ro
+            - ../secrets/backup_offsite:/secrets/backup_offsite:ro
         restart: unless-stopped
         logging:
             driver: json-file

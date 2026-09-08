@@ -14,7 +14,7 @@ APP_DIR=$HOME/app
 PROXY_DIR=$HOME/proxy
 GRADLE_VOLUME=csereal-gradle
 TAG=${GIT_SHA:0:12}
-SECRETS_FILE=$APP_DIR/secrets.env
+SECRETS_FILE=$HOME/secrets/app.env
 
 say() { echo "▸ $*"; }
 

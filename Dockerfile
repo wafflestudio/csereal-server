@@ -36,14 +36,11 @@ COPY --from=extract /out/extracted/spring-boot-loader/ ./
 COPY --from=extract /out/extracted/snapshot-dependencies/ ./
 COPY --from=extract /out/extracted/application/ ./
 
-# 프로파일은 굽지 않는다 — compose 가 런타임에 준다(로컬은 원래 그렇게 하고 있었다).
-# 구우면 같은 소스로 prod 용·dev 용 이미지가 따로 생겨, prod 가 staging 에서 한 번도
-# 돌려본 적 없는 산출물을 실행하게 된다.
-# 배포 스크립트가 이 값으로 "의도한 커밋이 실제로 떴는지" 확인한다.
-# 호스트 증분 빌드가 옛 산출물을 섞어도 조용히 넘어가지 않게 하는 장치다.
+# host-deploy.sh 가 의도한 커밋이 떴는지 이 값으로 확인한다.
 ARG GIT_SHA=unknown
 ENV GIT_SHA=${GIT_SHA}
 
+# ⚠️ SPRING_PROFILES_ACTIVE 를 여기 굽지 말 것 — compose 가 런타임에 준다.
 EXPOSE 8080
 # exec 형식이라야 JVM 이 PID 1 이 된다. 쉘 형식으로 되돌리면 SIGTERM 이 sh 에서 멈춰
 # graceful shutdown 없이 10초 뒤 SIGKILL 로 죽는다.

@@ -54,21 +54,16 @@ services:
             # dashboards.yml 이 이 경로를 읽는다.
             - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
             - grafana-data:/var/lib/grafana
+        # 관리자 비밀번호와 SMTP 자격증명. 파일이 없으면 compose 가 기동을 거부한다.
+        # ⚠️ SMTP 를 안 채우면 Grafana 가 조용히 메일을 안 보낸다(Gmail 은 앱 비밀번호).
+        env_file:
+            - ../secrets/monitoring.env
         environment:
             # 경로로 서빙한다. 인증서가 *.snu.ac.kr 만 커버해 2단계 서브도메인을 못 쓴다.
             GF_SERVER_ROOT_URL: https://cse.snu.ac.kr/grafana/
             GF_SERVER_SERVE_FROM_SUB_PATH: "true"
-            # 호스트 monitoring/.env 에서 온다. 기본값을 두지 않는다 — 인터넷에 열려 있다.
-            GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?monitoring/.env 에 GRAFANA_ADMIN_PASSWORD 를 넣을 것}
             GF_USERS_ALLOW_SIGN_UP: "false"
             GF_ANALYTICS_REPORTING_ENABLED: "false"
-            # 경보 메일. 호스트 monitoring/.env 에서 온다.
-            # ⚠️ 안 채우면 Grafana 가 조용히 메일을 안 보낸다. Gmail 은 앱 비밀번호가 필요.
-            GF_SMTP_ENABLED: ${GF_SMTP_ENABLED:-false}
-            GF_SMTP_HOST: ${GF_SMTP_HOST:-smtp.gmail.com:587}
-            GF_SMTP_USER: ${GF_SMTP_USER:-}
-            GF_SMTP_PASSWORD: ${GF_SMTP_PASSWORD:-}
-            GF_SMTP_FROM_ADDRESS: ${GF_SMTP_FROM_ADDRESS:-}
             GF_SMTP_FROM_NAME: csereal
         depends_on:
             - prometheus
