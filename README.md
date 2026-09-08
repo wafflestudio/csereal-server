@@ -29,22 +29,32 @@ docker compose -f compose.yml -f compose.local.yml up -d --wait backend
 **[`.github/deploy-targets/`](.github/deploy-targets/)** — 브랜치별 배포 대상.
 `SSH_HOST` · `SSH_PORT` · `SSH_USER` · `URL` · `PROFILE` · `CADDYFILE`
 
-**GitHub 시크릿**
+**GitHub 시크릿 — `SSH_KEY` 하나뿐이다**
 
-| | |
-|---|---|
-| `MYSQL_ROOT_PASSWORD` `MYSQL_USER` `MYSQL_PASSWORD` `MYSQL_DATABASE` | 양쪽 |
-| `OIDC_CLIENT_SECRET` | prod (OIDC 등록이 prod 프로파일에만 있다) |
-| `CERTIFICATE` `PRIVATE_KEY` | prod 엣지 (staging 은 nip.io 라 Caddy 가 자체 발급) |
-| `SSH_KEY` | 접속 키. staging Environment 의 값이 레포 수준 값(prod)을 덮어쓴다 |
-
-Environment(`production`·`staging`)는 **시크릿 격리** 용도로만 쓴다 — staging 잡이
+호스트 접속 키. Environment(`production`·`staging`)로 격리한다 — staging 잡이
 production 키를 읽을 수 없다.
+
+DB 계정·OIDC 는 GitHub 에 두지 않는다. 거의 바뀌지 않는 값이라 매 배포마다 날라야 할
+이유가 없고, 호스트가 이미 갖고 있다(아래).
+
+**호스트 `~/app/secrets.env`** — 사람이 한 번 만든다. git 에도 GitHub 에도 없다.
+
+```
+MYSQL_ROOT_PASSWORD=…
+MYSQL_USER=…
+MYSQL_PASSWORD=…
+MYSQL_DATABASE=…
+OIDC_CLIENT_SECRET=…   # prod 만. OIDC 등록이 prod 프로파일에만 있다
+```
+
+없거나 키가 빠지면 배포가 명확한 메시지로 멈춘다. 권한은 `600`.
+호스트를 새로 세우면 이 파일부터 만들어야 한다.
 
 **호스트 `.env`** (git 에 없음)
 
 | 파일 | |
 |---|---|
-| `~/app/.env` · `~/proxy/.env` | 배포 워크플로가 매번 덮어쓴다. 호스트에서 고치면 사라진다 |
+| `~/app/secrets.env` | **손으로.** 위 참고 |
+| `~/app/.env` · `~/proxy/.env` | `host-deploy.sh` 가 매 배포마다 다시 만든다. 고치면 사라진다 |
 | `~/database/.env` | 손으로. DB 계정 — ops 컨테이너가 읽는다 |
 | `~/monitoring/.env` | 손으로. `GRAFANA_ADMIN_PASSWORD`(없으면 기동 거부) · `GF_SMTP_*` |

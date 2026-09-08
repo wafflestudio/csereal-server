@@ -3,6 +3,9 @@
 #
 # 빌드는 러너가 아니라 대상 호스트에서 한다(ops/host-deploy.sh). 그래서 이 잡은
 # 아키텍처와 무관하다 — 각 호스트가 자기 것을 만든다.
+#
+# 비밀(DB 계정·OIDC)은 호스트의 ~/app/secrets.env 에 있다. 거의 바뀌지 않는 값이라
+# 매 배포마다 GitHub 를 거쳐 나르지 않는다 — 여기 남은 시크릿은 SSH_KEY 뿐이다.
 name: deploy
 
 on:
@@ -32,41 +35,6 @@ jobs:
             - name: 배포 대상 설정 읽기
               run: grep -vE '^\s*(#|$)' .github/deploy-targets/${{ github.ref_name }}.env >> "$GITHUB_ENV"
 
-            # OIDC 등록은 prod 프로파일에만 있다(application.yaml). staging 은 mock-login 만 쓴다.
-            # IMAGE_TAG·SEARCH_TAG 는 빌드 결과라 호스트 스크립트가 ~/app/.env 에 덧붙인다.
-            - name: Create .env file
-              run: |
-                  {
-                    echo "# deploy.yaml 이 매 배포마다 덮어쓴다. 여기서 고치지 말 것."
-                    echo "PROFILE=${{ env.PROFILE }}"
-                    echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}"
-                    echo "MYSQL_USER=${{ secrets.MYSQL_USER }}"
-                    echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}"
-                    echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}"
-                    echo "URL=${{ env.URL }}"
-                  } > .env
-                  if [ "${{ env.PROFILE }}" = "prod" ]; then
-                    echo "OIDC_CLIENT_SECRET=${{ secrets.OIDC_CLIENT_SECRET }}" >> .env
-                  fi
-                  # 엣지용. 인증서는 prod 만 쓴다 — staging 은 nip.io 라 Caddy 가 스스로 발급받는다.
-                  echo "URL=${{ env.URL }}" > proxy.env
-                  if [ "${{ env.PROFILE }}" = "prod" ]; then
-                    echo "CERTIFICATE=${{ secrets.CERTIFICATE }}" >> proxy.env
-                    echo "PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}" >> proxy.env
-                  fi
-
-            - name: SCP Command to Transfer Files
-              uses: appleboy/scp-action@v1
-              with:
-                  host: ${{ env.SSH_HOST }}
-                  username: ${{ env.SSH_USER }}
-                  port: ${{ env.SSH_PORT }}
-                  # 환경이 고른다. staging Environment 의 SSH_KEY 가 레포 수준 값(prod)을 덮어쓴다.
-                  key: ${{ secrets.SSH_KEY }}
-                  source: ".env, proxy.env"
-                  target: "~/app"
-                  overwrite: true
-
             # 원격 출력이 이 로그로 그대로 흘러나온다(gradle 진행 상황 포함).
             - name: 호스트에서 빌드·배포
               uses: appleboy/ssh-action@v1
@@ -76,10 +44,10 @@ jobs:
                   port: ${{ env.SSH_PORT }}
                   key: ${{ secrets.SSH_KEY }}
                   command_timeout: 20m
-                  envs: GIT_SHA,CADDYFILE
+                  envs: GIT_SHA,PROFILE,URL,CADDYFILE,CERTIFICATE,PRIVATE_KEY
                   script: |
                       set -e
-                      mkdir -p ~/proxy && mv ~/app/proxy.env ~/proxy/.env
+                      mkdir -p ~/proxy
                       W=~/build/csereal-server
                       [ -d "$W/.git" ] || git clone -q https://github.com/wafflestudio/csereal-server.git "$W"
                       cd "$W"

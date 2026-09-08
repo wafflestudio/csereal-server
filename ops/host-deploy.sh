@@ -4,13 +4,19 @@
 set -euo pipefail
 
 : "${GIT_SHA:?GIT_SHA 가 필요하다}"
-: "${CADDYFILE:?CADDYFILE 이 필요하다 (deploy-targets)}"
+# 아래는 .github/deploy-targets/<브랜치>.env 에서 온다.
+: "${PROFILE:?PROFILE 이 필요하다}"
+: "${URL:?URL 이 필요하다}"
+: "${CADDYFILE:?CADDYFILE 이 필요하다}"
 
 WORKSPACE=$PWD
 APP_DIR=$HOME/app
 PROXY_DIR=$HOME/proxy
 GRADLE_VOLUME=csereal-gradle
 TAG=${GIT_SHA:0:12}
+# 비밀은 레포에도 GitHub 에도 두지 않는다. 호스트가 들고 있고 사람이 한 번 만든다
+# (README 의 "호스트 .env" 참고). 거의 바뀌지 않는 값들이다.
+SECRETS_FILE=$APP_DIR/secrets.env
 
 say() { echo "▸ $*"; }
 
@@ -37,13 +43,29 @@ build_images() {
     fi
 }
 
+# 호스트의 비밀 + 레포의 설정 + 이번 빌드의 태그를 합쳐 compose 가 읽을 .env 를 만든다.
+write_env() {
+    local dir=$1; shift
+    [ -f "$SECRETS_FILE" ] || {
+        echo "✗ $SECRETS_FILE 이 없다. README 의 '호스트 .env' 를 보고 만들 것." >&2
+        exit 1
+    }
+    for key in MYSQL_ROOT_PASSWORD MYSQL_USER MYSQL_PASSWORD MYSQL_DATABASE; do
+        grep -q "^$key=" "$SECRETS_FILE" || { echo "✗ $SECRETS_FILE 에 $key 가 없다" >&2; exit 1; }
+    done
+    {
+        echo "# host-deploy.sh 가 매 배포마다 다시 만든다. 여기서 고치지 말 것."
+        echo "# 비밀은 secrets.env 에 있다."
+        for kv in "$@"; do echo "$kv"; done
+    } >"$dir/.env"
+}
+
 deploy_app() {
     # compose 프로젝트 디렉터리는 ~/app 이다(프로젝트 이름과 상대 볼륨 경로가 거기 묶여 있다).
     cp "$WORKSPACE/compose.yml" "$WORKSPACE/compose.prod.yml" "$APP_DIR/"
     cd "$APP_DIR"
-    # 손으로 다시 돌려도 중복이 안 쌓이게 먼저 지운다(배포는 매번 .env 를 새로 받는다).
-    sed -i '/^IMAGE_TAG=\|^SEARCH_TAG=/d' .env
-    { echo "IMAGE_TAG=$TAG"; echo "SEARCH_TAG=$SEARCH_TAG"; } >>.env
+    write_env "$APP_DIR" "PROFILE=$PROFILE" "URL=$URL" "IMAGE_TAG=$TAG" "SEARCH_TAG=$SEARCH_TAG"
+    cat "$SECRETS_FILE" >>.env
 
     say "compose up"
     # down 을 쓰지 않는다 — compose 는 바뀐 서비스만 재생성하는데 down 이 그걸 무력화한다.
@@ -68,6 +90,12 @@ deploy_edge() {
     mkdir -p "$PROXY_DIR/caddy"
     cp "$WORKSPACE/$CADDYFILE" "$PROXY_DIR/caddy/Caddyfile"
     cd "$PROXY_DIR"
+    # 인증서 경로는 비밀이 아니라 deploy-targets 에 있다. staging 은 아예 없다.
+    {
+        echo "URL=$URL"
+        [ -n "${CERTIFICATE:-}" ] && echo "CERTIFICATE=$CERTIFICATE"
+        [ -n "${PRIVATE_KEY:-}" ] && echo "PRIVATE_KEY=$PRIVATE_KEY"
+    } >.env || true
 
     say "caddy 반영"
     docker compose -f compose.caddy.yml up -d --remove-orphans
