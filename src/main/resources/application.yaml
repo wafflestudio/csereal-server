@@ -178,6 +178,10 @@ spring:
         enabled: true
         locations: classpath:db/migration
 csereal:
+    # build/ 는 gitignore 되고 clean 으로 지워진다. base 의 ./files/ 를 그대로 쓰면
+    # 테스트가 레포 루트에 파일을 남긴다(그 경로는 gitignore 에도 없다).
+    upload:
+        path: build/tmp/attachment-test-uploads/
     search:
         reindex-on-startup: false # 테스트엔 ES 서버가 없다
 customlog:
