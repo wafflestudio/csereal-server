@@ -23,7 +23,7 @@ import java.io.File
  * TransactionTemplate 으로 진짜 커밋한다(AFTER_COMMIT 리스너는 커밋돼야 돈다).
  */
 @ActiveProfiles("test")
-@SpringBootTest(properties = ["csereal.upload.path=build/tmp/attachment-test-uploads/"])
+@SpringBootTest
 @Import(MySQLTestContainerConfig::class)
 class AttachmentServiceTest(
     private val attachmentService: AttachmentService,
