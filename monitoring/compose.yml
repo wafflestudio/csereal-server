@@ -1,15 +1,8 @@
-# 모니터링 스택. 앱 배포와 분리된 별도 compose 프로젝트다 —
-# 앱을 배포할 때마다 대시보드가 재시작되면 곤란하고, 반대로 모니터링을 만지다
-# 앱을 건드리는 것도 곤란하다.
-#
+# 모니터링 스택. 앱과 분리된 별도 compose 프로젝트다.
 #   docker compose -f monitoring/compose.yml up -d
 #
-# 두 포트 모두 loopback 에만 바인딩한다. 전엔 프로메테우스가 0.0.0.0:9090 이라
-# 학외에서 무인증으로 /api/v1/* 이 응답했다(2026-09-06 실측·차단). 호스트에
-# 방화벽이 없어(ufw 미설치, iptables INPUT ACCEPT) 게시 포트가 곧 공개 포트다.
-#
-# 보려면 SSH 터널을 쓴다:
-#   ssh -p 9122 -L 9090:localhost:9090 -L 3001:localhost:3001 waffle@<host>
+# ⚠️ 호스트에 방화벽이 없다 — 게시 포트가 곧 공개 포트다.
+# 보려면 SSH 터널: ssh -p 9122 -L 9090:localhost:9090 -L 3001:localhost:3001 waffle@<host>
 name: monitoring
 
 services:
@@ -21,29 +14,26 @@ services:
         volumes:
             - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
             - prometheus-data:/prometheus
-        # 앱은 별도 compose 프로젝트(app)에 있어 서비스 이름으로 못 닿는다.
-        # 앱이 MySQL 에 붙는 방식과 같게 호스트 게이트웨이를 거친다.
+        # 앱이 별도 compose 프로젝트라 서비스 이름으로 못 닿는다.
         extra_hosts:
             - host.docker.internal:host-gateway
         restart: unless-stopped
 
-    # 호스트 자체 지표(CPU·메모리·디스크·네트워크)와, 배치 잡이 남긴 하트비트를 노출한다.
-    # 전엔 호스트 지표가 아예 없었다 — 앱이 보는 system_cpu_usage 하나로 짐작하는 수준이었다.
+    # 호스트 지표(CPU·메모리·디스크·네트워크)와 배치 잡 하트비트를 노출한다.
     node-exporter:
         image: prom/node-exporter:v1.9.1
         container_name: node-exporter
-        # 호스트의 프로세스·네트워크 네임스페이스를 봐야 진짜 호스트 지표가 나온다.
+        # 호스트 네임스페이스를 봐야 진짜 호스트 지표가 나온다.
         pid: host
         network_mode: host
         command:
             - --path.rootfs=/host
             - --path.procfs=/host/proc
             - --path.sysfs=/host/sys
-            # ops 컨테이너가 쓴 .prom 파일을 읽어 함께 노출한다(하트비트).
+            # ops 컨테이너가 쓴 하트비트 .prom 을 함께 노출한다.
             - --collector.textfile.directory=/textfile
-            # 기본 주소는 0.0.0.0:9100 이다. network_mode: host 라 그대로 두면 인터넷에 열린다.
-            # 127.0.0.1 에 묶으면 이번엔 프로메테우스 컨테이너가 못 닿는다(Grafana 와 같은 함정).
-            # 도커 게이트웨이 주소는 컨테이너에서 닿으면서 인터넷에서는 안 보인다.
+            # ⚠️ 도커 게이트웨이여야 한다. 0.0.0.0 은 인터넷에 열리고,
+            #    127.0.0.1 은 프로메테우스 컨테이너가 못 닿는다.
             - --web.listen-address=172.17.0.1:9100
         volumes:
             - /proc:/host/proc:ro
@@ -55,31 +45,25 @@ services:
     grafana:
         image: grafana/grafana:13.2.1
         container_name: grafana
-        # 도커 게이트웨이(172.17.0.1)에만 낸다 — Caddy 가 host.docker.internal 로 여기 붙어
-        # https://cse.snu.ac.kr/grafana 를 서빙한다. 인터넷에서는 이 주소가 안 보인다.
-        # (127.0.0.1 에 묶으면 게이트웨이로 오는 Caddy 를 못 받는다.)
-        # 호스트 3000 은 프론트가 쓰므로 3001 로 낸다.
+        # 도커 게이트웨이에만 낸다 — Caddy 가 여기 붙어 /grafana 를 서빙한다.
+        # 3000 은 프론트가 쓴다.
         ports:
             - "172.17.0.1:3001:3000"
         volumes:
             - ./grafana/provisioning:/etc/grafana/provisioning:ro
-            # 대시보드 JSON. provisioning/dashboards/dashboards.yml 이 이 경로를 읽는다.
+            # dashboards.yml 이 이 경로를 읽는다.
             - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
             - grafana-data:/var/lib/grafana
         environment:
-            # 경로 방식으로 서빙한다. 인증서가 *.snu.ac.kr 만 커버해
-            # grafana.cse.snu.ac.kr 같은 2단계 서브도메인은 못 쓴다(와일드카드는 한 단계만).
+            # 경로로 서빙한다. 인증서가 *.snu.ac.kr 만 커버해 2단계 서브도메인을 못 쓴다.
             GF_SERVER_ROOT_URL: https://cse.snu.ac.kr/grafana/
             GF_SERVER_SERVE_FROM_SUB_PATH: "true"
-            # 이 값이 없으면 compose 가 기동을 거부한다 — 인터넷에 열려 있으므로 기본값을
-            # 두지 않는다. 호스트의 monitoring/.env 에 GRAFANA_ADMIN_PASSWORD=... 를 넣으면
-            # compose 가 프로젝트 디렉터리의 .env 를 자동으로 읽어 치환한다.
+            # 호스트 monitoring/.env 에서 온다. 기본값을 두지 않는다 — 인터넷에 열려 있다.
             GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?monitoring/.env 에 GRAFANA_ADMIN_PASSWORD 를 넣을 것}
             GF_USERS_ALLOW_SIGN_UP: "false"
             GF_ANALYTICS_REPORTING_ENABLED: "false"
-            # 경보 메일. 값은 호스트 monitoring/.env 에서 온다.
-            # ⚠️ 안 채우면 Grafana 는 조용히 메일을 안 보낸다(로그에만 남는다).
-            #    Gmail 은 일반 비밀번호가 아니라 앱 비밀번호가 필요하다.
+            # 경보 메일. 호스트 monitoring/.env 에서 온다.
+            # ⚠️ 안 채우면 Grafana 가 조용히 메일을 안 보낸다. Gmail 은 앱 비밀번호가 필요.
             GF_SMTP_ENABLED: ${GF_SMTP_ENABLED:-false}
             GF_SMTP_HOST: ${GF_SMTP_HOST:-smtp.gmail.com:587}
             GF_SMTP_USER: ${GF_SMTP_USER:-}
@@ -91,11 +75,10 @@ services:
         restart: unless-stopped
 
 volumes:
-    # 전엔 볼륨이 없어 컨테이너를 다시 만들 때마다 지표가 사라졌다.
+
     prometheus-data:
     grafana-data:
-    # ops 프로젝트(compose.ops.yml)가 만든 볼륨을 읽기 전용으로 빌려 쓴다.
-    # 백업이 성공할 때마다 거기에 하트비트 .prom 파일이 쓰인다.
+    # ops 프로젝트가 만든 볼륨을 빌려 쓴다(하트비트).
     ops-metrics:
         external: true
         name: ops_ops-metrics
