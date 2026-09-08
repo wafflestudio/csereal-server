@@ -78,9 +78,8 @@ deploy_app() {
 }
 
 deploy_edge() {
-    # 앱을 먼저 띄우고 여기로 온다. 이 아래가 실패해도 앱은 이미 서비스 중이다.
-    # caddy 는 공식 이미지라 빌드할 것이 없고, reload 는 무중단이며 설정이 잘못되면
-    # 적용하지 않고 옛 설정을 유지한다. 그래서 매 배포마다 돌려도 안전하다.
+    # 앱 다음에 온다 — 여기서 실패해도 앱은 이미 서비스 중이다.
+    # reload 는 무중단이고 설정이 틀리면 적용하지 않으므로 매 배포마다 돌려도 된다.
     cp "$WORKSPACE/compose.caddy.yml" "$PROXY_DIR/"
     mkdir -p "$PROXY_DIR/caddy"
     cp "$WORKSPACE/$CADDYFILE" "$PROXY_DIR/caddy/Caddyfile"
@@ -99,8 +98,7 @@ deploy_edge() {
     docker exec csereal_caddy caddy reload --config /etc/caddy/Caddyfile
 }
 
-# 옛 이미지가 커밋마다 423MB 씩 쌓인다. 최근 5개는 남겨 .env 의 IMAGE_TAG 만 바꿔
-# 롤백할 수 있게 한다.
+# 이미지가 커밋마다 423MB 씩 쌓인다. 최근 5개는 남겨 IMAGE_TAG 로 롤백할 수 있게.
 prune_old_images() {
     docker images csereal-server --format '{{.Tag}}' | tail -n +6 |
         xargs -r -I{} docker rmi "csereal-server:{}" >/dev/null 2>&1 || true

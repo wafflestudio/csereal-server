@@ -19,15 +19,13 @@ services:
             OFFSITE_HOST: ubuntu@168.107.16.249
             OFFSITE_PATH: db-backup-from-prod/
         volumes:
-            # DB 컨테이너 안 mysqldump 를 부르기 위해. ⚠️ 소켓 마운트는 root 권한과 등가다.
-            # (호스트의 waffle 유저도 docker 그룹이라 실질적 권한 변화는 없다.)
+            # DB 컨테이너 안 mysqldump 를 부르기 위해. ⚠️ 소켓은 root 권한과 등가다.
             - /var/run/docker.sock:/var/run/docker.sock
-            # 덤프가 쌓이는 곳. 호스트 경로를 그대로 이어받아 기존 백업과 한 디렉터리다.
+            # 덤프가 쌓이는 곳.
             - ../database/backup:/backup
-            # 하트비트 지표. node_exporter 의 textfile collector 가 같은 디렉터리를 읽는다.
+            # 하트비트 지표. node_exporter 가 같은 볼륨을 읽는다.
             - ops-metrics:/metrics
-            # 오프사이트 복사용 전용 SSH 키(읽기 전용). 이 레포에 없다 — 호스트에서 만들고
-            # 공개키를 수신 호스트의 authorized_keys 에 restrict + from= 제한으로 넣는다.
+            # 오프사이트 복사용 전용 SSH 키.
             - ../secrets/backup_offsite:/secrets/backup_offsite:ro
         restart: unless-stopped
         logging:

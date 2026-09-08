@@ -3,11 +3,8 @@
 # https://docs.spring.io/spring-boot/reference/packaging/container-images/dockerfiles.html
 # https://docs.spring.io/spring-boot/reference/packaging/container-images/efficient-images.html
 
-# jar 을 어디서 가져올지 고른다. 기본은 이 안에서 직접 빌드하므로 깨끗한 체크아웃에서
-# `docker build .` 이 그대로 된다. 호스트 배포는 --build-arg JAR_STAGE=prebuilt 로
-# 미리 만든 jar 을 쓴다 — 그쪽만 Gradle 증분 컴파일을 살릴 수 있다.
-# BuildKit 은 도달하지 않는 스테이지를 만들지 않으므로, 기본 경로에서 prebuilt 의
-# COPY 는 실행되지 않는다(build/libs 가 없어도 된다).
+# jar 출처를 고른다. 기본은 여기서 직접 빌드하므로 `docker build .` 이 그대로 된다.
+# 호스트 배포는 JAR_STAGE=prebuilt 로 미리 만든 jar 을 쓴다(증분 컴파일이 산다).
 ARG JAR_STAGE=source
 
 FROM eclipse-temurin:21-jdk AS source

@@ -13,8 +13,7 @@ PORT=22
 KEEP_DAYS=30
 TOTAL=
 
-# accept-new: 첫 접속의 호스트 키는 받아들이되 이후 변경은 거부한다
-# (no 로 두면 중간자 공격을 영영 못 잡는다).
+# accept-new: 첫 접속만 받아들이고 이후 호스트 키 변경은 거부한다.
 ssh_() {
     ssh -i "$KEY" -p "$PORT" -o StrictHostKeyChecking=accept-new \
         -o ConnectTimeout=20 -o BatchMode=yes "$OFFSITE_HOST" "$@"
@@ -31,8 +30,7 @@ copy_new() {
         name=$(basename "$f")
         printf '%s\n' "$remote" | grep -qxF "$name" && continue
 
-        # .part 로 받고 성공했을 때만 최종 이름으로 옮긴다. 중간에 끊겨도 조각이
-        # 정상 파일처럼 남지 않는다(db-backup.sh 와 같은 규율).
+        # .part 로 받고 성공했을 때만 옮긴다 — 끊긴 조각이 정상 파일처럼 남지 않게.
         ssh_ "cat > '$OFFSITE_PATH/$name.part' && mv '$OFFSITE_PATH/$name.part' '$OFFSITE_PATH/$name'" <"$f"
 
         local_size=$(stat -c %s "$f")
