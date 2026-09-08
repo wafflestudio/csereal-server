@@ -3,10 +3,8 @@ on:
     branches:
       - main
       - develop
-  # develop push 에도 도는 이유는 두 가지다.
-  # ① gradle 캐시는 기본 브랜치에서 만든 것만 다른 브랜치가 읽을 수 있다(GitHub 캐시 격리 규칙).
-  #    setup-gradle 도 기본 브랜치가 아니면 read-only 로 돈다 → PR 에서만 돌리면 캐시가 영원히 빈다.
-  # ② 머지된 develop 자체가 초록인지 확인하는 곳이 없었다.
+  # develop(기본 브랜치) push 에도 도는 이유: gradle 캐시는 기본 브랜치에서 만든 것만
+  # 다른 브랜치가 읽을 수 있다. PR 에서만 돌리면 캐시가 영원히 빈다.
   push:
     branches:
       - develop
@@ -32,14 +30,11 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # gradle 배포판·의존성·빌드 캐시를 런 사이에 재사용한다. 없으면 매 런 배포판을 새로 받고
-      # 의존성을 처음부터 해석한다(실측: 첫 태스크가 뜨기까지 64초).
+      # gradle 배포판·의존성을 런 사이에 재사용한다. 없으면 첫 태스크까지 64초가 더 든다.
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      # `build` 는 assemble + check 라 테스트와 ktlint 를 모두 포함한다.
-      # 전엔 `clean build -x test` 후 `test` 를 따로 돌려 gradle 을 두 번 부팅했다.
-      # (`clean` 은 러너가 매번 새 머신이라 지울 게 없어 늘 UP-TO-DATE 였다.)
+      # `build` = assemble + check 라 테스트와 ktlint 를 모두 포함한다(별도 ktlint 워크플로 없음).
       - name: Build with Gradle
         run: ./gradlew build
 
