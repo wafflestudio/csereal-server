@@ -1,27 +1,18 @@
 # 배포용 override (prod·staging 공통, PROFILE 로 갈린다).
 #   docker compose -f compose.yml -f compose.prod.yml up -d --remove-orphans
 services:
-    # 옛 docker-compose-db.yml 을 흡수했다. 별도 compose 프로젝트로 떼어 둔 이유는
-    # "앱 배포가 down 으로 DB 까지 내리는 것"을 막기 위해서였는데, 배포에서 down 을
-    # 없애 그 전제가 사라졌다. compose 는 이미지·설정이 바뀐 서비스만 재생성한다.
-    #
-    # 데이터 경로를 절대경로로 둬서 프로젝트가 어디서 돌든 같은 데이터를 본다 —
-    # 통합에 데이터 이전이 필요 없었던 이유다.
     db:
         container_name: csereal_db_container
         volumes:
-            # 프로젝트 디렉터리(~/app) 기준 상대경로다. prod 는 waffle, staging 은 ubuntu 라
-            # 홈 경로가 달라서 절대경로를 기본값으로 두면 한쪽에서 없는 경로가 만들어지고
-            # 빈 DB 가 뜬다(staging 에서 실제로 겪었다).
+            # ⚠️ 상대경로여야 한다. prod 는 waffle, staging 은 ubuntu 라 홈이 다르고,
+            #    절대경로를 두면 한쪽에 없는 경로가 만들어져 빈 DB 가 뜬다.
             - ${DB_DATA_DIR:-../database/db}:/var/lib/mysql
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
             MYSQL_DATABASE: ${MYSQL_DATABASE}
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-        # 포트를 밖으로 내지 않는다. 같은 프로젝트라 앱이 서비스 이름으로 붙는다.
-        # 전엔 프로젝트가 갈라져 앱이 호스트 게이트웨이를 거쳐야 했고, 그래서 3306 을
-        # 0.0.0.0 에 열 수밖에 없었다(이 호스트엔 방화벽이 없다).
+        # 포트를 밖으로 내지 않는다. 앱이 서비스 이름으로 붙는다.
         healthcheck:
             test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
             interval: 10s
@@ -36,11 +27,9 @@ services:
 
     search:
         container_name: csereal_search
-        # 내용 해시 태그. Dockerfile.es 가 그대로면 배포가 이미지를 다시 만들지도 푸시하지도
-        # 않는다 — 다이제스트가 안 바뀌니 compose 가 ES 를 재생성하지 않는다.
-        image: "ghcr.io/wafflestudio/csereal-server/search_image:${SEARCH_TAG:?deploy.yaml 이 .env 에 써 넣는다}"
-        # 색인 데이터를 남기지 않는다. 앱이 기동할 때마다 DB 에서 전량 다시 만들기 때문에
-        # 남겨도 쓰지 않고, 바인드 마운트는 호스트 소유권 때문에 기동을 막는다.
+        # 호스트가 만든 로컬 이미지(레지스트리 없음).
+        image: "csereal-search:${SEARCH_TAG:?ops/host-deploy.sh 가 .env 에 써 넣는다}"
+        # 색인은 앱이 기동할 때마다 DB 에서 전량 다시 만든다 — 남길 이유가 없다.
         healthcheck:
             retries: 30
             start_period: 90s
@@ -51,11 +40,10 @@ services:
                 max-file: "3"
         restart: always
 
-    green:
-        container_name: csereal_server_green
-        image: "ghcr.io/wafflestudio/csereal-server/server_image:${PROFILE}"
-        ports:
-            - 8080:8080
+    backend:
+        container_name: csereal_server
+        # 커밋 해시 태그. 롤백은 .env 의 IMAGE_TAG 를 옛 값으로 바꾸고 up -d 하면 된다.
+        image: "csereal-server:${IMAGE_TAG:?ops/host-deploy.sh 가 .env 에 써 넣는다}"
         volumes:
             - ./cse-files:/app/cse-files
             - ./files:/app/files
@@ -75,42 +63,29 @@ services:
             SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
             OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
             URL: ${URL}
-        # 이 헬스체크가 호스트 cron 으로 돌던 감시 스크립트를 대체한다.
-        # `restart: always` 는 프로세스가 종료될 때만 듣는다 — JVM 이 살아 있으면서 응답만
-        # 안 하는 경우(데드락·스레드풀 고갈)엔 영원히 재시작되지 않아서 감시가 필요했다.
-        #
-        # start_period 가 옛 스크립트의 GRACE=180 을 대체한다. Docker 는 이 기간의 실패를
-        # 아예 세지 않는다. 2026-09-04(V20) 배포 때 부팅이 23초 걸렸는데 스크립트가 10초만
-        # 주고 재시작해 Flyway 마이그레이션을 중간에 죽였고 영구 crash loop 가 됐다.
-        # 그 사고를 정석으로 푸는 방법이다.
+        # restart: always 는 프로세스가 종료될 때만 듣는다. JVM 이 살아 있으면서 응답만
+        # 안 하는 경우는 이 헬스체크와 아래 autoheal 이 잡는다.
+        # ⚠️ start_period 를 줄이지 말 것 — Docker 는 이 기간의 실패를 세지 않는다.
+        #    짧으면 Flyway 마이그레이션 중에 재시작이 걸려 crash loop 가 된다.
         healthcheck:
             test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/helloworld"]
             interval: 30s
             timeout: 5s
             retries: 3
             start_period: 180s
-        # autoheal 이 이 라벨을 보고 unhealthy 컨테이너를 재시작한다.
-        # Docker 자체는 unhealthy 를 표시만 하고 재시작해 주지 않는다(Swarm·k8s 는 해준다).
+        # autoheal 이 이 라벨을 보고 재시작한다. Docker 는 표시만 하고 재시작해 주지 않는다.
         labels:
             autoheal: "true"
-        # Caddy 는 이 컨테이너를 host.docker.internal:8080 으로 부른다(8080 게시 유지).
-        depends_on:
-            db: { condition: service_healthy }
-            search: { condition: service_healthy }
         restart: always
 
-    # unhealthy 로 표시된 컨테이너를 재시작한다. 직접 만든 스크립트 대신 stock 이미지를
-    # 쓰는 이유: 앱의 유일한 자동복구 수단이라 검증된 것이 낫고, 판정 로직(healthcheck)은
-    # compose 선언으로 옮겨 레포가 정본이 되기 때문이다.
-    # 앱 스택에 두어 배포와 함께 간다 — 새 호스트를 세워도 자동으로 따라온다.
+    # unhealthy 라벨이 붙은 컨테이너를 재시작한다. 앱의 유일한 자동복구 수단이다.
     autoheal:
         image: willfarrell/autoheal:1.2.0
         container_name: csereal_autoheal
         environment:
             AUTOHEAL_CONTAINER_LABEL: autoheal
             AUTOHEAL_INTERVAL: 30
-            # 자기 자신이 막 떴을 때 성급히 손대지 않게 한다.
-            # 컨테이너별 유예는 각 healthcheck 의 start_period 가 담당한다.
+            # 자기가 막 떴을 때 성급히 손대지 않게. 컨테이너별 유예는 start_period 가 맡는다.
             AUTOHEAL_START_PERIOD: 60
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock

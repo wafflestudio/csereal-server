@@ -42,11 +42,6 @@ services:
             SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/csereal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
             SPRING_DATASOURCE_USERNAME: root
             SPRING_DATASOURCE_PASSWORD: password
-        ports:
-            - "8080:8080" # 호스트 디버깅용
-        depends_on:
-            db: { condition: service_healthy }
-            search: { condition: service_healthy }
         restart: on-failure
         healthcheck:
             test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/v2/research/lab?language=ko"]
