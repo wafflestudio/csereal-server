@@ -35,12 +35,7 @@ jobs:
                   GIT_SHA: ${{ github.sha }}
               run: |
                   install -m 600 /dev/stdin key <<<"$SSH_KEY"
-                  timeout 15m ssh -i key -p "$SSH_PORT" \
-                      -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 \
-                      "$SSH_USER@$SSH_HOST" \
-                      GIT_SHA="$GIT_SHA" PROFILE="$PROFILE" URL="$URL" \
-                      CADDYFILE="$CADDYFILE" CERTIFICATE="${CERTIFICATE:-}" PRIVATE_KEY="${PRIVATE_KEY:-}" \
-                      'bash -s' <<'REMOTE'
+                  cat >remote.sh <<'REMOTE'
                   set -e
                   mkdir -p ~/proxy
                   W=~/build/csereal-server
@@ -51,3 +46,20 @@ jobs:
                   git reset -q --hard "$GIT_SHA"
                   bash ops/host-deploy.sh
                   REMOTE
+
+                  # SNU 경계 장비가 학외에서 오는 연결을 간헐적으로 끊는다
+                  # (kex_exchange_identification: Connection reset — sshd 로그에는 남지도 않는다).
+                  # 배포 스크립트는 같은 커밋으로 여러 번 돌려도 결과가 같다.
+                  for attempt in 1 2 3 4 5; do
+                    if timeout 15m ssh -i key -p "$SSH_PORT" \
+                        -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 \
+                        "$SSH_USER@$SSH_HOST" \
+                        GIT_SHA="$GIT_SHA" PROFILE="$PROFILE" URL="$URL" \
+                        CADDYFILE="$CADDYFILE" CERTIFICATE="${CERTIFICATE:-}" PRIVATE_KEY="${PRIVATE_KEY:-}" \
+                        'bash -s' <remote.sh; then
+                      exit 0
+                    fi
+                    echo "::warning::SSH 실패 ($attempt/5) — 재시도"
+                    sleep 15
+                  done
+                  exit 1
