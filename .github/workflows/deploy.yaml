@@ -1,8 +1,8 @@
-# 앱 배포. main → production, develop → staging.
+# 앱과 엣지(Caddy) 배포. main → production, develop → staging.
 # 환경별 값은 .github/deploy-targets/<브랜치>.env (설명은 그 디렉터리의 README).
 #
-# 빌드는 러너가 아니라 대상 호스트에서 한다(ops/host-deploy.sh). 이유는 그 스크립트 머리말.
-# 그래서 이 잡은 아키텍처와 무관하다 — 각 호스트가 자기 것을 만든다.
+# 빌드는 러너가 아니라 대상 호스트에서 한다(ops/host-deploy.sh). 그래서 이 잡은
+# 아키텍처와 무관하다 — 각 호스트가 자기 것을 만든다.
 name: deploy
 
 on:
@@ -33,7 +33,7 @@ jobs:
               run: grep -vE '^\s*(#|$)' .github/deploy-targets/${{ github.ref_name }}.env >> "$GITHUB_ENV"
 
             # OIDC 등록은 prod 프로파일에만 있다(application.yaml). staging 은 mock-login 만 쓴다.
-            # IMAGE_TAG·SEARCH_TAG 는 호스트 스크립트가 여기에 덧붙인다.
+            # IMAGE_TAG·SEARCH_TAG 는 빌드 결과라 호스트 스크립트가 ~/app/.env 에 덧붙인다.
             - name: Create .env file
               run: |
                   {
@@ -48,6 +48,12 @@ jobs:
                   if [ "${{ env.PROFILE }}" = "prod" ]; then
                     echo "OIDC_CLIENT_SECRET=${{ secrets.OIDC_CLIENT_SECRET }}" >> .env
                   fi
+                  # 엣지용. 인증서는 prod 만 쓴다 — staging 은 nip.io 라 Caddy 가 스스로 발급받는다.
+                  echo "URL=${{ env.URL }}" > proxy.env
+                  if [ "${{ env.PROFILE }}" = "prod" ]; then
+                    echo "CERTIFICATE=${{ secrets.CERTIFICATE }}" >> proxy.env
+                    echo "PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}" >> proxy.env
+                  fi
 
             - name: SCP Command to Transfer Files
               uses: appleboy/scp-action@v1
@@ -57,7 +63,7 @@ jobs:
                   port: ${{ env.SSH_PORT }}
                   # 환경이 고른다. staging Environment 의 SSH_KEY 가 레포 수준 값(prod)을 덮어쓴다.
                   key: ${{ secrets.SSH_KEY }}
-                  source: ".env"
+                  source: ".env, proxy.env"
                   target: "~/app"
                   overwrite: true
 
@@ -70,9 +76,10 @@ jobs:
                   port: ${{ env.SSH_PORT }}
                   key: ${{ secrets.SSH_KEY }}
                   command_timeout: 20m
-                  envs: GIT_SHA
+                  envs: GIT_SHA,CADDYFILE
                   script: |
                       set -e
+                      mkdir -p ~/proxy && mv ~/app/proxy.env ~/proxy/.env
                       W=~/build/csereal-server
                       [ -d "$W/.git" ] || git clone -q https://github.com/wafflestudio/csereal-server.git "$W"
                       cd "$W"
