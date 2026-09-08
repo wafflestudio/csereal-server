@@ -1,11 +1,4 @@
 # 앱과 엣지(Caddy) 배포. main → production, develop → staging.
-# 환경별 값은 .github/deploy-targets/<브랜치>.env (설명은 그 디렉터리의 README).
-#
-# 빌드는 러너가 아니라 대상 호스트에서 한다(ops/host-deploy.sh). 그래서 이 잡은
-# 아키텍처와 무관하다 — 각 호스트가 자기 것을 만든다.
-#
-# 비밀(DB 계정·OIDC)은 호스트의 ~/app/secrets.env 에 있다. 거의 바뀌지 않는 값이라
-# 매 배포마다 GitHub 를 거쳐 나르지 않는다 — 여기 남은 시크릿은 SSH_KEY 뿐이다.
 name: deploy
 
 on:
@@ -13,8 +6,6 @@ on:
         branches:
             - main
             - develop
-        # 경로 필터를 두지 않는다(의도적) — 허용목록에 없는 파일이 새로 생기면
-        # 배포가 조용히 안 된다. 헛배포가 그 위험보다 싸다.
 
 # 겹치면 늦게 끝난 쪽이 이겨 옛 커밋이 배포될 수 있고, 그게 조용하다(양쪽 다 초록불).
 # cancel-in-progress: false — 호스트에서 빌드·up 도는 중에 끊기면 중간 상태로 남는다.
@@ -36,24 +27,27 @@ jobs:
               run: grep -vE '^\s*(#|$)' .github/deploy-targets/${{ github.ref_name }}.env >> "$GITHUB_ENV"
 
             # 원격 출력이 이 로그로 그대로 흘러나온다(gradle 진행 상황 포함).
+            # ssh 를 직접 부른다. 서드파티 액션을 쓰면 우리 SSH 개인키를 그 액션에
+            # 넘겨야 하는데, 여기서 유출되면 두 호스트가 통째로 열린다.
             - name: 호스트에서 빌드·배포
-              uses: appleboy/ssh-action@v1
-              with:
-                  host: ${{ env.SSH_HOST }}
-                  username: ${{ env.SSH_USER }}
-                  port: ${{ env.SSH_PORT }}
-                  key: ${{ secrets.SSH_KEY }}
-                  command_timeout: 20m
-                  envs: GIT_SHA,PROFILE,URL,CADDYFILE,CERTIFICATE,PRIVATE_KEY
-                  script: |
-                      set -e
-                      mkdir -p ~/proxy
-                      W=~/build/csereal-server
-                      [ -d "$W/.git" ] || git clone -q https://github.com/wafflestudio/csereal-server.git "$W"
-                      cd "$W"
-                      git fetch -q origin
-                      # 추적 파일만 맞춘다. build/ 와 .gradle/ 은 남겨야 증분 컴파일이 산다.
-                      git reset -q --hard "$GIT_SHA"
-                      GIT_SHA="$GIT_SHA" bash ops/host-deploy.sh
               env:
+                  SSH_KEY: ${{ secrets.SSH_KEY }}
                   GIT_SHA: ${{ github.sha }}
+              run: |
+                  install -m 600 /dev/stdin key <<<"$SSH_KEY"
+                  timeout 15m ssh -i key -p "$SSH_PORT" \
+                      -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 \
+                      "$SSH_USER@$SSH_HOST" \
+                      GIT_SHA="$GIT_SHA" PROFILE="$PROFILE" URL="$URL" \
+                      CADDYFILE="$CADDYFILE" CERTIFICATE="${CERTIFICATE:-}" PRIVATE_KEY="${PRIVATE_KEY:-}" \
+                      'bash -s' <<'REMOTE'
+                  set -e
+                  mkdir -p ~/proxy
+                  W=~/build/csereal-server
+                  [ -d "$W/.git" ] || git clone -q https://github.com/wafflestudio/csereal-server.git "$W"
+                  cd "$W"
+                  git fetch -q origin
+                  # 추적 파일만 맞춘다. build/ 와 .gradle/ 은 남겨야 증분 컴파일이 산다.
+                  git reset -q --hard "$GIT_SHA"
+                  bash ops/host-deploy.sh
+                  REMOTE
