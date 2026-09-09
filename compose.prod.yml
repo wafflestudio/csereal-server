@@ -4,15 +4,14 @@ services:
     db:
         container_name: csereal_db_container
         volumes:
-            # ⚠️ 상대경로여야 한다. prod 는 waffle, staging 은 ubuntu 라 홈이 다르고,
-            #    절대경로를 두면 한쪽에 없는 경로가 만들어져 빈 DB 가 뜬다.
+            # 상대경로여야 한다. prod 는 waffle, staging 은 ubuntu 라 홈이 다르고,
+            # 절대경로를 두면 한쪽에 없는 경로가 만들어져 빈 DB 가 뜬다.
             - ${DB_DATA_DIR:-../database/db}:/var/lib/mysql
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
             MYSQL_DATABASE: ${MYSQL_DATABASE}
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-        # 포트를 밖으로 내지 않는다. 앱이 서비스 이름으로 붙는다.
         healthcheck:
             test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
             interval: 10s
@@ -27,9 +26,8 @@ services:
 
     search:
         container_name: csereal_search
-        # 호스트가 만든 로컬 이미지(레지스트리 없음).
         image: "csereal-search:${SEARCH_TAG:?ops/host-deploy.sh 가 .env 에 써 넣는다}"
-        # 색인은 앱이 기동할 때마다 DB 에서 전량 다시 만든다 — 남길 이유가 없다.
+        # 앱이 기동할 때마다 전체 재색인.
         healthcheck:
             retries: 30
             start_period: 90s
@@ -54,7 +52,6 @@ services:
                 max-size: "100m"
                 max-file: "3"
         environment:
-            # 이미지에 굽지 않고 여기서 준다. compose.local.yml 과 같은 방식이다.
             SPRING_PROFILES_ACTIVE: ${PROFILE}
             SPRING_ELASTICSEARCH_URIS: http://search:9200
             # 같은 프로젝트라 서비스 이름으로 붙는다.
@@ -78,7 +75,6 @@ services:
             autoheal: "true"
         restart: always
 
-    # unhealthy 라벨이 붙은 컨테이너를 재시작한다. 앱의 유일한 자동복구 수단이다.
     autoheal:
         image: willfarrell/autoheal:1.2.0
         container_name: csereal_autoheal
