@@ -10,6 +10,13 @@ scrape_configs:
             labels:
                 app: csereal-server
 
+    # 프론트 SSR 서버(Hono). :3000 은 Caddy catch-all 로 공개되는 포트라 지표는 별도 포트에 있다.
+    - job_name: frontend
+      static_configs:
+          - targets: ["host.docker.internal:9464"]
+            labels:
+                app: csereal-web
+
     # 수집기 자신도 본다 — 스크랩이 도는지 판단할 근거가 된다.
     - job_name: prometheus
       static_configs:

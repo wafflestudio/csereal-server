@@ -6,6 +6,8 @@ import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.core.notice.api.req.NoticeReqBody
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.user.database.UserEntity
+import com.wafflestudio.csereal.common.sanitize.HtmlContentHolder
+import com.wafflestudio.csereal.common.sanitize.HtmlField
 import com.wafflestudio.csereal.common.search.SearchIndexed
 import com.wafflestudio.csereal.common.search.SearchType
 import jakarta.persistence.*
@@ -18,11 +20,7 @@ class NoticeEntity(
     @Column(columnDefinition = "text")
     var titleForMain: String?,
 
-    @Column(columnDefinition = "mediumtext")
-    var description: String,
-
-    @Column(columnDefinition = "mediumtext")
-    var plainTextDescription: String,
+    description: String,
 
     var isPrivate: Boolean,
 
@@ -42,17 +40,34 @@ class NoticeEntity(
     @OneToMany(mappedBy = "notice", cascade = [CascadeType.ALL], orphanRemoval = true)
     override var attachments: MutableList<AttachmentEntity> = mutableListOf()
 
-) : BaseTimeEntity(), AttachmentAttachable, SearchIndexed {
+) : BaseTimeEntity(), AttachmentAttachable, SearchIndexed, HtmlContentHolder {
 
     override val searchType get() = SearchType.NOTICE
     override val searchSourceId get() = id
+
+    /**
+     * 본문. 목록·메인에 쓰이는 [plainTextDescription] 이 여기서 파생되므로
+     * **대입할 때마다** 함께 갱신한다 — 누가 언제 바꾸든 둘이 어긋날 수 없다.
+     * (Hibernate 는 필드 접근이라 DB 에서 읽을 땐 이 setter 를 타지 않는다.)
+     */
+    @Column(columnDefinition = "mediumtext")
+    var description: String = description
+        set(value) {
+            field = value
+            plainTextDescription = cleanTextFromHtml(value)
+        }
+
+    /** [description] 에서 태그를 걷어낸 것. 목록 미리보기와 검색 색인이 읽는다. */
+    @Column(columnDefinition = "mediumtext")
+    var plainTextDescription: String = cleanTextFromHtml(description)
+
+    override fun htmlFields() = listOf(HtmlField({ description }, { description = it }))
 
     companion object {
         fun of(req: NoticeReqBody, author: UserEntity) = NoticeEntity(
             title = req.title,
             titleForMain = req.titleForMain,
             description = req.description,
-            plainTextDescription = cleanTextFromHtml(req.description),
             isPrivate = req.isPrivate,
             isPinned = req.isPinned,
             pinnedUntil = if (req.isPinned) req.pinnedUntil else null,
@@ -63,11 +78,6 @@ class NoticeEntity(
     }
 
     fun update(updateNoticeRequest: NoticeReqBody) {
-        // Update plainTextDescription if description is changed
-        if (updateNoticeRequest.description != this.description) {
-            this.plainTextDescription = cleanTextFromHtml(updateNoticeRequest.description)
-        }
-
         this.title = updateNoticeRequest.title
         this.titleForMain = updateNoticeRequest.titleForMain
         this.description = updateNoticeRequest.description

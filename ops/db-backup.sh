@@ -12,7 +12,7 @@ set -euo pipefail
 
 KEEP_DAYS=30
 MIN_BYTES=$((10 * 1024 * 1024)) # 정상 덤프는 ~95MB. 이보다 작으면 실패로 본다.
-STAMP=$(date +%Y-%m-%d)         # TZ=Asia/Seoul 은 compose 가 넣는다
+STAMP=$(date +%Y-%m-%d)
 FINAL="$BACKUP_DIR/mysqldump-$STAMP.gz"
 TMP="$FINAL.part"
 SIZE=
@@ -22,7 +22,7 @@ dump() {
     trap 'rm -f "$TMP"' EXIT # 실패하면 조각 파일을 남기지 않는다.
 
     # --single-transaction : InnoDB 스냅샷으로 일관성을 얻는다. 기본값은 테이블 잠금이라
-    #                        덤프 내내 쓰기가 막힌다(전 테이블 InnoDB 확인).
+    #                        덤프 내내 쓰기가 막힌다.
     # --source-data=2      : binlog 위치를 주석으로 남긴다. 시점 복구(PITR)의 기준점.
     # docker exec          : DB 컨테이너 안 정품 mysqldump 를 쓴다. 호스트의
     #                        /usr/bin/mysqldump 는 mariadb-dump 심볼릭 링크였다.

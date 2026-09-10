@@ -24,6 +24,7 @@ class SearchSyncService(
     // AFTER_COMMIT 은 트랜잭션이 이미 끝난 뒤라 REQUIRES_NEW 로 새로 연다.
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     fun onChanged(event: SearchDocumentChanged) {
+        if (suspended.get()) return
         runCatching {
             val document = providers.firstNotNullOfOrNull { it.collectOne(event.type, event.sourceId) }
             if (document != null) {
@@ -37,7 +38,26 @@ class SearchSyncService(
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun onRemoved(event: SearchDocumentRemoved) {
+        if (suspended.get()) return
         runCatching { searchIndexService.deleteOne(event.type, event.sourceId) }
             .onFailure { logger.error("색인 삭제 실패 {} {}", event.type, event.sourceId, it) }
+    }
+
+    companion object {
+        private val suspended = ThreadLocal.withInitial { false }
+
+        /**
+         * 이 스레드에서 커밋되는 변경의 행 단위 색인을 끈다. 대량 갱신용 — `indexOne` 은
+         * 문서마다 `refresh=wait_for` 로 1초 가까이 기다려 수천 행이면 몇 시간이 걸린다.
+         * 끝나면 호출자가 [SearchIndexService.reindexAll] 로 한 번에 맞춘다.
+         */
+        fun <T> withoutRowSync(block: () -> T): T {
+            suspended.set(true)
+            try {
+                return block()
+            } finally {
+                suspended.remove()
+            }
+        }
     }
 }

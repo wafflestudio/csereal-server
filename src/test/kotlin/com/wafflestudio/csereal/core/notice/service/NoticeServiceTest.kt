@@ -78,7 +78,6 @@ class NoticeServiceTest(
                                     <p>This is a test notice.</p>
                                     <h3>Goodbye, World!</h3>
                     """.trimIndent(),
-                    plainTextDescription = "Hello, World! This is a test notice. Goodbye, World!",
                     isPrivate = false,
                     isPinned = false,
                     isImportant = false,

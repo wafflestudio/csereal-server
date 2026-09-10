@@ -8,19 +8,15 @@ cse.snu.ac.kr 백엔드
 docker compose -f compose.yml -f compose.local.yml up -d --wait backend
 ```
 
-`compose.yml` 은 서비스 목록만 담으니 override와 함께 사용합니다. 
+`compose.yml` 은 서비스 목록만 담으니 override와 함께 사용합니다.
 
-## 배포
+## CI/CD
 
-`develop` → staging, `main` → production. 빌드는 러너가 아니라 대상 호스트에서
-합니다([`ops/host-deploy.sh`](ops/host-deploy.sh)). 대상별 설정은
-[`.github/deploy-targets/`](.github/deploy-targets/).
+`develop` → staging, `main` → production.
 
-## 새 호스트에 필요한 것
+GitHub 시크릿은 `SSH_KEY` 하나이며 나머지는 호스트에 둡니다.
 
-GitHub 시크릿은 `SSH_KEY` 하나이며 나머지는 호스트에 둡니다. 
-
-사람이 놓는 것은 전부 `~/secrets/`(권한 700) 안에 있습니다.
+호스트의 `~/secrets/`에 아래 환경변수를 둡니다.
 
 | | |
 |---|---|
@@ -28,3 +24,12 @@ GitHub 시크릿은 `SSH_KEY` 하나이며 나머지는 호스트에 둡니다.
 | `monitoring.env` | `GF_SECURITY_ADMIN_PASSWORD` · `GF_SMTP_*`. prod만 |
 | `certs/` | TLS 인증서·키. `main.env` 의 경로와 맞아야 합니다. prod만 |
 | `backup_offsite` | 백업용 SSH 개인키. prod만 |
+
+## DB 백업 복원
+
+백업은 ops 컨테이너가 매일 자정 호스트 `~/database/backup/` 에 남깁니다([`ops/db-backup.sh`](ops/db-backup.sh)).
+
+```bash
+docker run -d --name restore-test -e MYSQL_ROOT_PASSWORD=x -e MYSQL_DATABASE=csereal mysql:8.0
+gunzip -c ~/database/backup/mysqldump-YYYY-MM-DD.gz | docker exec -i restore-test mysql -uroot -px csereal
+```
