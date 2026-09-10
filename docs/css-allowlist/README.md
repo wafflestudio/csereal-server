@@ -210,11 +210,11 @@ OWASP 는 따옴표 없는 `font-family: 돋움체` 를 통과시키고, 출력�
 
 ## 재현
 
-측정 도구는 두 레포에 나뉘어 있다. 허용 목록은 백엔드에 있지만 브라우저와 뷰어 CSS 는 프론트에 있다.
+측정 도구는 이 폴더에 있다. 렌더 비교는 브라우저와 뷰어 CSS 가 필요해서 프론트 레포 디렉터리에서 실행한다.
 
 ```
-csereal-server/docs/css-allowlist/extract-corpus.py   본문 → 측정용 코퍼스 (의존성 없음)
-cse.snu.ac.kr/scripts/measure-css-impact.mjs          렌더 비교 (playwright, sharp)
+extract-corpus.py        본문 → 측정용 코퍼스 (의존성 없음)
+measure-css-impact.mjs   렌더 비교 (프론트의 playwright, sharp 를 쓴다)
 ```
 
 ### 1. 본문 추출
@@ -248,11 +248,11 @@ python3 docs/css-allowlist/extract-corpus.py rows.txt --policy policy.txt \
 
 ### 4. 렌더 비교
 
-프론트 레포에서 실행한다.
+프론트 레포 디렉터리에서 실행한다. 의존성과 뷰어 CSS 를 거기서 찾는다.
 
 ```bash
 cd ../cse.snu.ac.kr
-node scripts/measure-css-impact.mjs ../csereal-server/out.json --out shots/
+node ../csereal-server/docs/css-allowlist/measure-css-impact.mjs ../csereal-server/out.json --out shots/
 ```
 
 기본이 전수라 오래 걸린다. 훑어볼 때는 `--samples 12`. 렌더가 15초를 넘는 문서는 세어만 두고 넘어가고(`--timeout` 으로 조정), 실패 건수와 첫 실패 사유가 결과에 같이 찍힌다. `--out` 을 주면 속성마다 `<속성>-before.png`, `-after.png`, `-diff.png` 가 남는다.
