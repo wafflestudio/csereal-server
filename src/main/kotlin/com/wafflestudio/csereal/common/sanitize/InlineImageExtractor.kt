@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.Base64
+import java.util.UUID
 
 /**
  * 본문에 박힌 `data:image` 를 파일로 빼내고 `src` 를 그 URL 로 바꾼다.
@@ -42,8 +43,10 @@ class InlineImageExtractor(
 
         return try {
             Files.createDirectories(Paths.get(uploadPath))
-            // FileController.uploadFiles 와 같은 규칙 — 고아 파일 정리가 이 이름을 훑는다.
-            val filename = "${System.currentTimeMillis()}_inline-image.$extension"
+            // FileController.uploadFiles 와 같은 `<millis>_<이름>` 꼴 — 고아 파일 정리가 이 이름을 훑는다.
+            // 한 본문에 이미지가 여럿이면 같은 밀리초에 저장되므로 이름에 난수를 더한다.
+            val suffix = UUID.randomUUID().toString().take(8)
+            val filename = "${System.currentTimeMillis()}_inline-image-$suffix.$extension"
             Files.write(Paths.get(uploadPath, filename), bytes)
             filename
         } catch (e: Exception) {
