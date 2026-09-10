@@ -7,10 +7,9 @@ on:
             - main
             - develop
 
-# 겹치면 늦게 끝난 쪽이 이겨 옛 커밋이 배포될 수 있고, 그게 조용하다(양쪽 다 초록불).
-# cancel-in-progress: false — 호스트에서 빌드·up 도는 중에 끊기면 중간 상태로 남는다.
 concurrency:
     group: deploy-${{ github.ref_name }}
+    # 호스트에서 빌드·up 도는 중에 끊기면 중간 상태로 남는다.
     cancel-in-progress: false
 
 jobs:
@@ -26,9 +25,6 @@ jobs:
             - name: 배포 대상 설정 읽기
               run: grep -vE '^\s*(#|$)' .github/deploy-targets/${{ github.ref_name }}.env >> "$GITHUB_ENV"
 
-            # 원격 출력이 이 로그로 그대로 흘러나온다(gradle 진행 상황 포함).
-            # ssh 를 직접 부른다. 서드파티 액션을 쓰면 우리 SSH 개인키를 그 액션에
-            # 넘겨야 하는데, 여기서 유출되면 두 호스트가 통째로 열린다.
             - name: 호스트에서 빌드·배포
               env:
                   SSH_KEY: ${{ secrets.SSH_KEY }}

@@ -1,5 +1,7 @@
 package com.wafflestudio.csereal.core.research.database
 
+import com.wafflestudio.csereal.common.sanitize.HtmlContentHolder
+import com.wafflestudio.csereal.common.sanitize.HtmlField
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.search.SearchIndexed
 import com.wafflestudio.csereal.common.search.SearchType
@@ -21,7 +23,9 @@ class ResearchTranslationEntity(
     @Column(columnDefinition = "mediumText")
     var description: String? = null
 
-) : BaseTimeEntity(), SearchIndexed {
+) : BaseTimeEntity(), SearchIndexed, HtmlContentHolder {
+
+    override fun htmlFields() = listOf(HtmlField({ description }, { description = it }))
 
     override val searchType get() =
         if (research.postType == ResearchType.CENTERS) {

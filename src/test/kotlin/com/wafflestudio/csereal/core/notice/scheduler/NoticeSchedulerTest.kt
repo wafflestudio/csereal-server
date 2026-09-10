@@ -166,7 +166,6 @@ class NoticeSchedulerTest(
                 title = title,
                 titleForMain = null,
                 description = "Test description for $title",
-                plainTextDescription = "Test description for $title",
                 isPrivate = false,
                 isPinned = isPinned,
                 pinnedUntil = pinnedUntil,

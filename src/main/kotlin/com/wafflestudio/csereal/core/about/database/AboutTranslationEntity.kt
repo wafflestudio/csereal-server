@@ -1,5 +1,7 @@
 package com.wafflestudio.csereal.core.about.database
 
+import com.wafflestudio.csereal.common.sanitize.HtmlContentHolder
+import com.wafflestudio.csereal.common.sanitize.HtmlField
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.common.utils.StringListConverter
@@ -25,7 +27,9 @@ class AboutTranslationEntity(
     @Column(columnDefinition = "TEXT")
     @Convert(converter = StringListConverter::class)
     var locations: MutableList<String> = mutableListOf()
-) : BaseTimeEntity(), SearchIndexed {
+) : BaseTimeEntity(), SearchIndexed, HtmlContentHolder {
+
+    override fun htmlFields() = listOf(HtmlField({ description }, { description = it }))
 
     override val searchType get() = SearchType.ABOUT
     override val searchSourceId get() = about.id

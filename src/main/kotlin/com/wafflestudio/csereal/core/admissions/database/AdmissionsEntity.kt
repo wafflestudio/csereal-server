@@ -1,5 +1,7 @@
 package com.wafflestudio.csereal.core.admissions.database
 
+import com.wafflestudio.csereal.common.sanitize.HtmlContentHolder
+import com.wafflestudio.csereal.common.sanitize.HtmlField
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.enums.LanguageType
 import com.wafflestudio.csereal.core.admissions.api.req.AdmissionReqBody
@@ -35,7 +37,9 @@ class AdmissionsEntity(
 
     @Column(columnDefinition = "mediumText")
     var description: String
-) : BaseTimeEntity(), SearchIndexed {
+) : BaseTimeEntity(), SearchIndexed, HtmlContentHolder {
+
+    override fun htmlFields() = listOf(HtmlField({ description }, { description = it }))
 
     override val searchType get() = SearchType.ADMISSIONS
     override val searchSourceId get() = id

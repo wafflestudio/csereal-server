@@ -7,6 +7,8 @@ import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.news.api.req.NewsReqBody
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
+import com.wafflestudio.csereal.common.sanitize.HtmlContentHolder
+import com.wafflestudio.csereal.common.sanitize.HtmlField
 import com.wafflestudio.csereal.common.search.SearchIndexed
 import com.wafflestudio.csereal.common.search.SearchType
 import jakarta.persistence.*
@@ -20,11 +22,7 @@ class NewsEntity(
     @Column(columnDefinition = "text")
     var titleForMain: String?,
 
-    @Column(columnDefinition = "mediumtext")
-    var description: String,
-
-    @Column(columnDefinition = "mediumtext")
-    var plainTextDescription: String,
+    description: String,
 
     var date: LocalDateTime,
     var isPrivate: Boolean,
@@ -41,10 +39,28 @@ class NewsEntity(
     @OneToMany(mappedBy = "news", cascade = [CascadeType.ALL])
     var newsTags: MutableSet<NewsTagEntity> = mutableSetOf()
 
-) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable, SearchIndexed {
+) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable, SearchIndexed, HtmlContentHolder {
 
     override val searchType get() = SearchType.NEWS
     override val searchSourceId get() = id
+
+    /**
+     * 본문. 목록·메인에 쓰이는 [plainTextDescription] 이 여기서 파생되므로
+     * **대입할 때마다** 함께 갱신한다 — 누가 언제 바꾸든 둘이 어긋날 수 없다.
+     * (Hibernate 는 필드 접근이라 DB 에서 읽을 땐 이 setter 를 타지 않는다.)
+     */
+    @Column(columnDefinition = "mediumtext")
+    var description: String = description
+        set(value) {
+            field = value
+            plainTextDescription = cleanTextFromHtml(value)
+        }
+
+    /** [description] 에서 태그를 걷어낸 것. 목록 미리보기와 검색 색인이 읽는다. */
+    @Column(columnDefinition = "mediumtext")
+    var plainTextDescription: String = cleanTextFromHtml(description)
+
+    override fun htmlFields() = listOf(HtmlField({ description }, { description = it }))
 
     companion object {
         fun of(newsDto: NewsReqBody): NewsEntity {
@@ -52,7 +68,6 @@ class NewsEntity(
                 title = newsDto.title,
                 titleForMain = newsDto.titleForMain,
                 description = newsDto.description,
-                plainTextDescription = cleanTextFromHtml(newsDto.description),
                 date = newsDto.date,
                 isPrivate = newsDto.isPrivate,
                 isSlide = newsDto.isSlide,
@@ -63,10 +78,7 @@ class NewsEntity(
     }
 
     fun update(updateNewsRequest: NewsReqBody) {
-        if (updateNewsRequest.description != this.description) {
-            this.description = updateNewsRequest.description
-            this.plainTextDescription = cleanTextFromHtml(updateNewsRequest.description)
-        }
+        this.description = updateNewsRequest.description
         this.title = updateNewsRequest.title
         this.titleForMain = updateNewsRequest.titleForMain
         this.date = updateNewsRequest.date

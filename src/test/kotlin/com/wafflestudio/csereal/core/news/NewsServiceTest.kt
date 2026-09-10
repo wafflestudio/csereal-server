@@ -75,7 +75,6 @@ class NewsServiceTest(
                             <p>This is news description.</p>
                             <h3>Goodbye, World!</h3>
                     """.trimIndent(),
-                    plainTextDescription = "Hello, World! This is news description. Goodbye, World!",
                     date = LocalDateTime.now(),
                     isPrivate = false,
                     isSlide = false,
@@ -134,7 +133,6 @@ class NewsServiceTest(
                             <p>This is news description.</p>
                             <h3>Goodbye, World!</h3>
                     """.trimIndent(),
-                    plainTextDescription = "Hello, World! This is news description. Goodbye, World!",
                     date = LocalDateTime.now(),
                     isPrivate = false,
                     isSlide = true,
@@ -151,7 +149,6 @@ class NewsServiceTest(
                             <p>This is news description.</p>
                             <h3>Goodbye, World!</h3>
                     """.trimIndent(),
-                    plainTextDescription = "Hello, World! This is news description. Goodbye, World!",
                     date = LocalDateTime.now(),
                     isPrivate = false,
                     isSlide = true,
@@ -168,7 +165,6 @@ class NewsServiceTest(
                             <p>This is news description.</p>
                             <h3>Goodbye, World!</h3>
                     """.trimIndent(),
-                    plainTextDescription = "Hello, World! This is news description. Goodbye, World!",
                     date = LocalDateTime.now(),
                     isPrivate = false,
                     isSlide = false,
@@ -185,7 +181,6 @@ class NewsServiceTest(
                             <p>This is news description.</p>
                             <h3>Goodbye, World!</h3>
                     """.trimIndent(),
-                    plainTextDescription = "Hello, World! This is news description. Goodbye, World!",
                     date = LocalDateTime.now(),
                     isPrivate = false,
                     isSlide = false,

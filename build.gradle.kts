@@ -66,7 +66,10 @@ dependencies {
     kapt("jakarta.annotation:jakarta.annotation-api")
     kapt("jakarta.persistence:jakarta.persistence-api")
 
-    // 태그 제거
+    // 본문 HTML 세탁.
+    implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20260313.1")
+
+    // 검색 색인용 평문 추출, 세탁 전 DOM 손질
     implementation("org.jsoup:jsoup:1.17.2")
 
     // 이미지 업로드

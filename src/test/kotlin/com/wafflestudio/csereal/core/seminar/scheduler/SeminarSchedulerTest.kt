@@ -119,9 +119,7 @@ class SeminarSchedulerTest(
                 title = title,
                 titleForMain = "Title for Main: $title",
                 description = "Test description for $title",
-                plainTextDescription = "Test plain text description for $title",
                 introduction = "Test introduction for $title",
-                plainTextIntroduction = "Test plain text introduction for $title",
                 name = "Seminar Speaker Name",
                 speakerURL = null,
                 speakerTitle = "Speaker Title",
@@ -135,7 +133,6 @@ class SeminarSchedulerTest(
                 isImportant = isImportant,
                 importantUntil = importantUntil,
                 additionalNote = "Additional note for $title",
-                plainTextAdditionalNote = "Additional note for $title",
                 mainImage = null,
                 attachments = mutableListOf()
             )

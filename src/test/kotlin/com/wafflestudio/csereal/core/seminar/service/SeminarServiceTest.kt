@@ -97,13 +97,11 @@ class SeminarServiceTest(
                                 <p>This is seminar description.</p>
                                 <h3>Goodbye, World!</h3>
                     """.trimIndent(),
-                    plainTextDescription = "Hello, World! This is seminar description. Goodbye, World!",
                     introduction = """
                                 <h1>Hello, World!</h1>
                                 <p>This is seminar introduction.</p>
                                 <h3>Goodbye, World!</h3>
                     """.trimIndent(),
-                    plainTextIntroduction = "Hello, World! This is seminar introduction. Goodbye, World!",
                     name = "name",
                     speakerURL = "speakerURL",
                     speakerTitle = "speakerTitle",
@@ -118,7 +116,6 @@ class SeminarServiceTest(
                                     <p>This is seminar additionalNote.</p>
                                     <h3>Goodbye, World!</h3>
                     """.trimIndent(),
-                    plainTextAdditionalNote = "Hello, World! This is seminar additionalNote. Goodbye, World!",
                     isPrivate = false,
                     isImportant = false
                 )
