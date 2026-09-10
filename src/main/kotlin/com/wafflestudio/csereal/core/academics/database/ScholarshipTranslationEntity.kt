@@ -1,5 +1,7 @@
 package com.wafflestudio.csereal.core.academics.database
 
+import com.wafflestudio.csereal.common.sanitize.HtmlContentHolder
+import com.wafflestudio.csereal.common.sanitize.HtmlField
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.search.SearchIndexed
 import com.wafflestudio.csereal.common.search.SearchType
@@ -22,7 +24,9 @@ class ScholarshipTranslationEntity(
     @Column(columnDefinition = "text")
     var description: String
 
-) : BaseTimeEntity(), SearchIndexed {
+) : BaseTimeEntity(), SearchIndexed, HtmlContentHolder {
+
+    override fun htmlFields() = listOf(HtmlField({ description }, { description = it }))
 
     override val searchType get() = SearchType.SCHOLARSHIP
     override val searchSourceId get() = scholarship.id

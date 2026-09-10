@@ -115,7 +115,6 @@ class NewsSchedulerTest(
                 title = title,
                 titleForMain = null,
                 description = "Test description for $title",
-                plainTextDescription = "Test plain text description for $title",
                 date = today.atStartOfDay(),
                 isPrivate = false,
                 isSlide = false,

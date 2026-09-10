@@ -3,6 +3,8 @@ package com.wafflestudio.csereal.core.seminar.database
 import com.wafflestudio.csereal.common.entity.BaseTimeEntity
 import com.wafflestudio.csereal.common.entity.AttachmentAttachable
 import com.wafflestudio.csereal.common.entity.MainImageAttachable
+import com.wafflestudio.csereal.common.sanitize.HtmlContentHolder
+import com.wafflestudio.csereal.common.sanitize.HtmlField
 import com.wafflestudio.csereal.common.utils.cleanTextFromHtml
 import com.wafflestudio.csereal.core.resource.attachment.database.AttachmentEntity
 import com.wafflestudio.csereal.core.resource.mainImage.database.MainImageEntity
@@ -20,17 +22,9 @@ class SeminarEntity(
     @Column(columnDefinition = "text")
     var titleForMain: String?,
 
-    @Column(columnDefinition = "mediumtext")
-    var description: String,
+    description: String,
 
-    @Column(columnDefinition = "mediumtext")
-    var plainTextDescription: String,
-
-    @Column(columnDefinition = "mediumtext")
-    var introduction: String,
-
-    @Column(columnDefinition = "mediumtext")
-    var plainTextIntroduction: String,
+    introduction: String,
 
     // 연사 정보
     var name: String,
@@ -53,11 +47,7 @@ class SeminarEntity(
     var isImportant: Boolean,
     var importantUntil: LocalDate? = null,
 
-    @Column(columnDefinition = "text")
-    var additionalNote: String?,
-
-    @Column(columnDefinition = "text")
-    var plainTextAdditionalNote: String?,
+    additionalNote: String?,
 
     @OneToOne
     override var mainImage: MainImageEntity? = null,
@@ -65,24 +55,57 @@ class SeminarEntity(
     @OneToMany(mappedBy = "seminar", cascade = [CascadeType.ALL], orphanRemoval = true)
     override var attachments: MutableList<AttachmentEntity> = mutableListOf()
 
-) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable, SearchIndexed {
+) : BaseTimeEntity(), MainImageAttachable, AttachmentAttachable, SearchIndexed, HtmlContentHolder {
 
     override val searchType get() = SearchType.SEMINAR
     override val searchSourceId get() = id
 
+    // 본문 셋과 각각의 평문. 대입할 때마다 함께 갱신해 둘이 어긋날 수 없게 한다
+    // (Hibernate 는 필드 접근이라 DB 에서 읽을 땐 이 setter 를 타지 않는다).
+
+    @Column(columnDefinition = "mediumtext")
+    var description: String = description
+        set(value) {
+            field = value
+            plainTextDescription = cleanTextFromHtml(value)
+        }
+
+    @Column(columnDefinition = "mediumtext")
+    var plainTextDescription: String = cleanTextFromHtml(description)
+
+    @Column(columnDefinition = "mediumtext")
+    var introduction: String = introduction
+        set(value) {
+            field = value
+            plainTextIntroduction = cleanTextFromHtml(value)
+        }
+
+    @Column(columnDefinition = "mediumtext")
+    var plainTextIntroduction: String = cleanTextFromHtml(introduction)
+
+    @Column(columnDefinition = "text")
+    var additionalNote: String? = additionalNote
+        set(value) {
+            field = value
+            plainTextAdditionalNote = value?.let { cleanTextFromHtml(it) }
+        }
+
+    @Column(columnDefinition = "text")
+    var plainTextAdditionalNote: String? = additionalNote?.let { cleanTextFromHtml(it) }
+
+    override fun htmlFields() = listOf(
+        HtmlField({ description }, { description = it }),
+        HtmlField({ introduction }, { introduction = it }),
+        HtmlField({ additionalNote }, { additionalNote = it })
+    )
+
     companion object {
         fun of(seminarDto: SeminarReqBody): SeminarEntity {
-            val plainTextDescription = cleanTextFromHtml(seminarDto.description)
-            val plainTextIntroduction = cleanTextFromHtml(seminarDto.introduction)
-            val plainTextAdditionalNote = seminarDto.additionalNote?.let { cleanTextFromHtml(it) }
-
             return SeminarEntity(
                 title = seminarDto.title,
                 titleForMain = seminarDto.titleForMain,
                 description = seminarDto.description,
-                plainTextDescription = plainTextDescription,
                 introduction = seminarDto.introduction,
-                plainTextIntroduction = plainTextIntroduction,
                 name = seminarDto.name,
                 speakerURL = seminarDto.speakerURL,
                 speakerTitle = seminarDto.speakerTitle,
@@ -95,27 +118,14 @@ class SeminarEntity(
                 isPrivate = seminarDto.isPrivate,
                 isImportant = seminarDto.isImportant,
                 importantUntil = if (seminarDto.isImportant) seminarDto.importantUntil else null,
-                additionalNote = seminarDto.additionalNote,
-                plainTextAdditionalNote = plainTextAdditionalNote
+                additionalNote = seminarDto.additionalNote
             )
         }
     }
 
     fun update(updateSeminarRequest: SeminarReqBody) {
-        if (updateSeminarRequest.description != description) {
-            description = updateSeminarRequest.description
-            plainTextDescription = cleanTextFromHtml(updateSeminarRequest.description)
-        }
-
-        if (updateSeminarRequest.introduction != introduction) {
-            introduction = updateSeminarRequest.introduction
-            plainTextIntroduction = cleanTextFromHtml(updateSeminarRequest.introduction)
-        }
-
-        if (updateSeminarRequest.additionalNote != additionalNote) {
-            additionalNote = updateSeminarRequest.additionalNote
-            plainTextAdditionalNote = updateSeminarRequest.additionalNote?.let { cleanTextFromHtml(it) }
-        }
+        description = updateSeminarRequest.description
+        additionalNote = updateSeminarRequest.additionalNote
 
         title = updateSeminarRequest.title
         titleForMain = updateSeminarRequest.titleForMain
