@@ -29,14 +29,19 @@ class ContentSanitizer(
     fun sanitize(html: String): String {
         if (html.isBlank()) return html
 
-        val doc = Jsoup.parseBodyFragment(html)
+        val doc = parse(html)
         prepare(doc)
 
-        val cleaned = Jsoup.parseBodyFragment(ContentPolicy.INSTANCE.sanitize(doc.body().html()))
+        val cleaned = parse(ContentPolicy.INSTANCE.sanitize(doc.body().html()))
         finish(cleaned)
 
         return cleaned.body().html()
     }
+
+    // jsoup 기본값은 pretty-print 다. 켜 두면 태그 사이에 들여쓰기 공백이 끼어 표가 많은
+    // 본문은 오히려 커지고, 인라인 요소 사이 공백은 렌더에도 나타난다.
+    private fun parse(html: String): Document =
+        Jsoup.parseBodyFragment(html).also { it.outputSettings().prettyPrint(false) }
 
     /** ① 세탁이 판단할 수 없는 것들을 먼저 걷어낸다. */
     private fun prepare(doc: Document) {

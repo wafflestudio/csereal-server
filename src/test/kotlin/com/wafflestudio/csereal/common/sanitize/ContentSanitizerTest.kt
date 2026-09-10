@@ -309,6 +309,13 @@ class ContentSanitizerTest : BehaviorSpec({
                 out shouldContain "<a "
             }
         }
+
+        When("표가 있는 본문") {
+            Then("들여쓰기 공백을 끼워 넣지 않는다") {
+                val html = "<table><tbody><tr><td><div>위원회</div></td><td>a</td></tr></tbody></table>"
+                sanitizer.sanitize(html) shouldBe html
+            }
+        }
     }
 
     Given("멱등성") {
